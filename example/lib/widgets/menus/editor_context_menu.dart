@@ -18,7 +18,10 @@ class EditorContextMenuWrapper extends StatefulWidget {
 }
 
 class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
-  static const panel = MenuEntryPanel(menuEntry: Menu.context);
+  static const panel = MenuEntryPanel(
+    menuEntry: Menu.context,
+    constraints: BoxConstraints(minWidth: 320),
+  );
   final TextEditingController _controller = TextEditingController(
     text: 'Click here to start editing...',
   );

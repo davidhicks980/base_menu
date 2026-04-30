@@ -19,7 +19,6 @@ class SubmenuActionLabel extends StatelessWidget {
     this.trailing,
     this.shortcut,
     this.isOpen,
-    this.spacing = 16,
   });
 
   final Axis axis;
@@ -28,7 +27,7 @@ class SubmenuActionLabel extends StatelessWidget {
   final AlignmentGeometry leadingMidpointAlignment;
   final Widget? trailing;
   final MenuSerializableShortcut? shortcut;
-  final double spacing;
+
   final bool? isOpen;
   final Widget child;
 
@@ -48,7 +47,7 @@ class SubmenuActionLabel extends StatelessWidget {
           : null,
       trailing: const _Arrow(),
       shortcut: shortcut,
-      spacing: spacing,
+
       child: child,
     );
   }
@@ -64,7 +63,6 @@ class MenuActionLabel extends StatelessWidget {
     this.leadingMidpointAlignment = const AlignmentDirectional(0.23529412, 0),
     this.trailing,
     this.shortcut,
-    this.spacing = 16,
   });
 
   final Widget? leading;
@@ -73,7 +71,7 @@ class MenuActionLabel extends StatelessWidget {
   final WidgetStateProperty<Decoration>? decoration;
   final Widget? trailing;
   final MenuSerializableShortcut? shortcut;
-  final double spacing;
+
   final Widget child;
 
   static const _labelTextStyle = TextStyle(
@@ -81,7 +79,7 @@ class MenuActionLabel extends StatelessWidget {
     fontSize: 14,
     color: Color.from(alpha: 1, red: 0.122, green: 0.122, blue: 0.122),
     fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
-    fontVariations: kIsWeb ? [FontVariation.width(85)] : [],
+    fontVariations: kIsWeb ? [FontVariation.width(90)] : [],
     overflow: TextOverflow.ellipsis,
     height: 1.0,
     decoration: TextDecoration.none,
@@ -144,6 +142,7 @@ class MenuActionLabel extends StatelessWidget {
                 child: Align(alignment: Alignment.centerLeft, child: child),
               ),
             ),
+            const SizedBox(width: 16),
             if (shortcut != null)
               _ShortcutLabel(accelTextStyle: _acceleratorTextStyle, shortcut: shortcut),
             if (trailing != null) trailing!,

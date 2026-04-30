@@ -1,8 +1,10 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import 'app_state_manager.dart';
+import 'firebase_options.dart';
 import 'toolbar.dart';
 import 'widgets/action_reflector.dart';
 import 'widgets/editor.dart';
@@ -13,7 +15,7 @@ import 'widgets/title_icon.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const App());
 }
 

@@ -44,6 +44,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-
 .firebase
 .firebaserc
+firebase.json
+
+# FVM Version Cache
+.fvm/
+.fvmrc
+.vscode

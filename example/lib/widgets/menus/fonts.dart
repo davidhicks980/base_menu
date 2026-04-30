@@ -184,14 +184,20 @@ class _SubmenuOption extends StatelessWidget {
                       onPressed: () {
                         group.select(value, variant);
                       },
-                      child: Text(fontWeightToLabelMap[variant]!),
+                      child: Text(
+                        fontWeightToLabelMap[variant]!,
+                        style: TextStyle(fontFamily: value.label, fontWeight: variant),
+                      ),
                     );
                   },
                 ),
             ],
           ),
           leading: checked ? const Icon(Symbols.check, size: 16) : null,
-          child: Text(value.label),
+          child: Text(
+            value.label,
+            style: TextStyle(fontFamily: value.label, fontWeight: FontWeight.normal),
+          ),
         ),
       ),
     );

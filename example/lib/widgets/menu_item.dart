@@ -1,0 +1,70 @@
+import 'package:flutter/widgets.dart';
+import 'package:menu_utilities/menu_utilities.dart';
+
+import 'menu_action_label.dart';
+
+class MenuItem extends StatelessWidget {
+  const MenuItem({
+    super.key,
+    this.onPressed,
+    required this.child,
+    this.leading,
+    this.leadingWidth = 34,
+    this.leadingMidpointAlignment = const AlignmentDirectional(0.23529412, 0),
+    this.trailing,
+    this.shortcut,
+    this.mouseCursor = WidgetStateMouseCursor.clickable,
+    this.autofocus = false,
+    this.requestFocusOnHover = true,
+    this.isExpanded,
+    this.intent,
+  });
+
+  final VoidCallback? onPressed;
+  final Widget child;
+  final Widget? leading;
+  final double leadingWidth;
+  final AlignmentGeometry leadingMidpointAlignment;
+  final Widget? trailing;
+  final WidgetStateProperty<MouseCursor> mouseCursor;
+  final MenuSerializableShortcut? shortcut;
+  final Intent? intent;
+  final bool? isExpanded;
+  final bool requestFocusOnHover;
+  final bool autofocus;
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSubmenu = isExpanded != null;
+    return CoreMenuItem(
+      onPressed: intent != null
+          ? () {
+              onPressed?.call();
+              Actions.invoke(context, intent!);
+            }
+          : onPressed,
+      requestFocusOnHover: requestFocusOnHover,
+      isExpanded: isExpanded,
+      mouseCursor: mouseCursor,
+      autofocus: autofocus,
+      child: hasSubmenu
+          ? SubmenuActionLabel(
+              leading: leading,
+              leadingWidth: leadingWidth,
+              leadingMidpointAlignment: leadingMidpointAlignment,
+              shortcut: shortcut,
+              trailing: trailing,
+              axis: Axis.vertical,
+              child: child,
+            )
+          : MenuActionLabel(
+              leading: leading,
+              leadingWidth: leadingWidth,
+              leadingMidpointAlignment: leadingMidpointAlignment,
+              shortcut: shortcut,
+              trailing: trailing,
+              child: child,
+            ),
+    );
+  }
+}

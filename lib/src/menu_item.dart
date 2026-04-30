@@ -1,0 +1,110 @@
+import 'package:flutter/semantics.dart';
+import 'package:flutter/widgets.dart';
+
+import 'tappable.dart';
+
+export 'tappable.dart';
+
+class CoreMenuItem extends StatefulWidget {
+  const CoreMenuItem({
+    super.key,
+    this.onHover,
+    this.onPressed,
+    this.onFocusChange,
+    this.focusNode,
+    this.autofocus = false,
+    this.requestFocusOnHover = true,
+    this.requestCloseOnActivate = true,
+    this.behavior = HitTestBehavior.deferToChild,
+    this.mouseCursor,
+    this.isExpanded,
+    this.role = SemanticsRole.menuItem,
+    required this.child,
+  });
+
+  final ValueChanged<bool>? onHover;
+  final VoidCallback? onPressed;
+  final ValueChanged<bool>? onFocusChange;
+  final FocusNode? focusNode;
+  final bool autofocus;
+  final HitTestBehavior behavior;
+  final WidgetStateProperty<MouseCursor>? mouseCursor;
+  final bool requestFocusOnHover;
+  final bool requestCloseOnActivate;
+  final bool? isExpanded;
+  final SemanticsRole? role;
+  final Widget child;
+
+  @override
+  State<CoreMenuItem> createState() => _CoreMenuItemState();
+}
+
+class _CoreMenuItemState extends State<CoreMenuItem> {
+  FocusNode? _internalFocusNode;
+  FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.focusNode == null) {
+      _internalFocusNode = FocusNode();
+    }
+  }
+
+  @override
+  void didUpdateWidget(CoreMenuItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      if (widget.focusNode == null) {
+        _internalFocusNode = FocusNode();
+      } else {
+        _internalFocusNode!.dispose();
+        _internalFocusNode = null;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _internalFocusNode?.dispose();
+    super.dispose();
+  }
+
+  void _handlePressed() {
+    if (widget.requestCloseOnActivate) {
+      if (MenuController.maybeIsOpenOf(context) ?? false) {
+        Actions.invoke(context, const DismissIntent());
+      }
+    }
+    widget.onPressed?.call();
+  }
+
+  void _handleHover(bool hovering) {
+    if (hovering && widget.requestFocusOnHover && !_focusNode.hasFocus) {
+      _focusNode.requestFocus();
+    }
+    widget.onHover?.call(hovering);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MergeSemantics(
+      child: Semantics.fromProperties(
+        properties: SemanticsProperties(
+          role: widget.role,
+          expanded: widget.isExpanded,
+        ),
+        child: CoreTappable(
+          mouseCursor: widget.mouseCursor ?? WidgetStateMouseCursor.clickable,
+          behavior: widget.behavior,
+          onFocusChange: widget.onFocusChange,
+          onHover: _handleHover,
+          onPressed: _handlePressed,
+          focusNode: _focusNode,
+          autofocus: widget.autofocus,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}

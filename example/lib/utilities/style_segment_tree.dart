@@ -1,6 +1,54 @@
-import 'package:flutter/painting.dart' show TextStyle;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 
 import '../model/enum.dart';
+
+@immutable
+class SegmentTextStyle {
+  const SegmentTextStyle({this.textStyle, this.isSuperscript, this.isSubscript});
+
+  final TextStyle? textStyle;
+  final bool? isSuperscript;
+  final bool? isSubscript;
+
+  SegmentTextStyle copyWith({
+    TextStyle? textStyle,
+    bool? isSuperscript,
+    bool? isSubscript,
+    double? lineSpacing,
+  }) {
+    return SegmentTextStyle(
+      textStyle: textStyle ?? this.textStyle,
+      isSuperscript: isSuperscript ?? this.isSuperscript,
+      isSubscript: isSubscript ?? this.isSubscript,
+    );
+  }
+
+  SegmentTextStyle merge(SegmentTextStyle? other) {
+    if (other == null) {
+      return this;
+    }
+    return copyWith(
+      textStyle: textStyle?.merge(other.textStyle) ?? other.textStyle,
+      isSuperscript: other.isSuperscript ?? isSuperscript,
+      isSubscript: other.isSubscript ?? isSubscript,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is SegmentTextStyle &&
+        other.textStyle == textStyle &&
+        other.isSuperscript == isSuperscript &&
+        other.isSubscript == isSubscript;
+  }
+
+  @override
+  int get hashCode => Object.hash(textStyle, isSuperscript, isSubscript);
+}
 
 class SegmentNode {
   SegmentNode(this.start, this.end, {required this.paragraphStyle});
@@ -9,7 +57,7 @@ class SegmentNode {
   int end;
 
   // Styles that apply strictly to this node's FULL range
-  TextStyle? activeStyle;
+  SegmentTextStyle? activeStyle;
 
   DocumentParagraphStyle paragraphStyle;
 
@@ -68,11 +116,11 @@ class StyleSegmentTree {
     _shiftRecursive(node.right, boundary, delta);
   }
 
-  void setTextStyle(int start, int end, TextStyle style) {
+  void setTextStyle(int start, int end, SegmentTextStyle style) {
     _updateRecursive(root, start, end, style);
   }
 
-  void _updateRecursive(SegmentNode? node, int qStart, int qEnd, TextStyle style) {
+  void _updateRecursive(SegmentNode? node, int qStart, int qEnd, SegmentTextStyle style) {
     if (node == null || !node.intersects(qStart, qEnd)) {
       return;
     }
@@ -162,11 +210,15 @@ class StyleSegmentTree {
     }
   }
 
-  TextStyle queryStyles(int position) {
-    return _queryRecursive(root, position, const TextStyle());
+  SegmentTextStyle queryStyles(int position) {
+    return _queryRecursive(root, position, const SegmentTextStyle());
   }
 
-  TextStyle _queryRecursive(SegmentNode node, int position, TextStyle accumulatedStyles) {
+  SegmentTextStyle _queryRecursive(
+    SegmentNode node,
+    int position,
+    SegmentTextStyle accumulatedStyles,
+  ) {
     if (position < node.start || position >= node.end) {
       return accumulatedStyles;
     }

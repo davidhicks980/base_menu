@@ -23,7 +23,14 @@ class Select extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final controller = MenuController();
     return CoreMenu(
+      controller: controller,
+      onFocusChange: (value) {
+        if (!value) {
+          controller.close();
+        }
+      },
       overlayPadding: const EdgeInsets.only(top: 98, bottom: 8),
       padding: padding,
       panel: panel,

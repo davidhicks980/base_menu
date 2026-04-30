@@ -9,6 +9,7 @@ import 'model/enum.dart';
 import 'model/intents.dart';
 import 'model/model.dart';
 import 'utilities/editor_controller.dart';
+import 'utilities/style_segment_tree.dart';
 import 'widgets/action_reflector.dart';
 
 abstract interface class AppStateInterface {
@@ -47,7 +48,7 @@ class AppStateManager extends StatefulWidget {
     )!.selectedParagraphStyle;
   }
 
-  static Map<DocumentParagraphStyle, TextStyle> paragraphStylesOf(BuildContext context) {
+  static Map<DocumentParagraphStyle, SegmentTextStyle> paragraphStylesOf(BuildContext context) {
     return InheritedModel.inheritFrom<_EditorModel>(
       context,
       aspect: _EditorModelAspect.paragraphStyles,
@@ -113,6 +114,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
   // ignore: unused_field
   ViewMode _viewMode = ViewMode.editing;
   bool _isHeaderShown = true;
+  SegmentTextStyle? _lastTextStyle;
 
   @override
   void dispose() {
@@ -125,6 +127,23 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     setState(() {
       documentFlags = {...documentFlags, key: !(documentFlags[key] ?? false)};
     });
+  }
+
+  void syncFlagsToTextStyle(SegmentTextStyle textStyle) {
+    if (_lastTextStyle == textStyle) {
+      return;
+    }
+
+    documentFlags = {
+      ...documentFlags,
+      .textFormatBold: textStyle.textStyle?.fontWeight == FontWeight.bold,
+      .textFormatItalic: textStyle.textStyle?.fontStyle == FontStyle.italic,
+      .textFormatUnderline: textStyle.textStyle?.decoration == TextDecoration.underline,
+      .textFormatStrikethrough: textStyle.textStyle?.decoration == TextDecoration.lineThrough,
+      .textFormatSuperscript: textStyle.isSuperscript == true,
+      .textFormatSubscript: textStyle.isSubscript == true,
+    };
+    _lastTextStyle = textStyle;
   }
 
   @override
@@ -277,9 +296,11 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     // Format
     FormatBoldIntent: CallbackAction<FormatBoldIntent>(
       onInvoke: (intent) {
-        final isBold = !controller.selectionHasAttributes((s) => s.fontWeight != FontWeight.bold);
+        final isBold = !controller.selectionHasAttributes(
+          (s) => s.textStyle?.fontWeight != FontWeight.bold,
+        );
         final fontWeight = isBold ? FontWeight.normal : FontWeight.bold;
-        controller.applyStyle(TextStyle(fontWeight: fontWeight));
+        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(fontWeight: fontWeight)));
         editorFocusNode.requestFocus();
         return null;
       },
@@ -287,7 +308,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
     FormatTextWeightIntent: CallbackAction<FormatTextWeightIntent>(
       onInvoke: (intent) {
-        controller.applyStyle(TextStyle(fontWeight: intent.value));
+        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(fontWeight: intent.value)));
         editorFocusNode.requestFocus();
         return null;
       },
@@ -295,9 +316,11 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
     FormatItalicIntent: CallbackAction<FormatItalicIntent>(
       onInvoke: (intent) {
-        final isItalic = !controller.selectionHasAttributes((s) => s.fontStyle != FontStyle.italic);
+        final isItalic = !controller.selectionHasAttributes(
+          (s) => s.textStyle?.fontStyle != FontStyle.italic,
+        );
         final fontStyle = isItalic ? FontStyle.normal : FontStyle.italic;
-        controller.applyStyle(TextStyle(fontStyle: fontStyle));
+        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(fontStyle: fontStyle)));
         editorFocusNode.requestFocus();
         return null;
       },
@@ -305,10 +328,10 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     FormatUnderlineIntent: CallbackAction<FormatUnderlineIntent>(
       onInvoke: (intent) {
         final isUnderlined = !controller.selectionHasAttributes(
-          (s) => s.decoration != TextDecoration.underline,
+          (s) => s.textStyle?.decoration != TextDecoration.underline,
         );
         final decoration = isUnderlined ? TextDecoration.none : TextDecoration.underline;
-        controller.applyStyle(TextStyle(decoration: decoration));
+        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(decoration: decoration)));
         editorFocusNode.requestFocus();
 
         return null;
@@ -316,53 +339,75 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     ),
     FormatStrikethroughIntent: CallbackAction<FormatStrikethroughIntent>(
       onInvoke: (intent) {
-        final controller = AppStateManager.controllerOf(primaryFocus!.context!);
         final isStruckThrough = !controller.selectionHasAttributes(
-          (s) => s.decoration != TextDecoration.lineThrough,
+          (s) => s.textStyle?.decoration != TextDecoration.lineThrough,
         );
         final decoration = isStruckThrough ? TextDecoration.none : TextDecoration.lineThrough;
-        controller.applyStyle(TextStyle(decoration: decoration));
+        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(decoration: decoration)));
         editorFocusNode.requestFocus();
 
         return null;
       },
     ),
-    FormatSuperscriptIntent: ReflectAction(),
-    FormatSubscriptIntent: ReflectAction(),
+    FormatSuperscriptIntent: CallbackAction<FormatSuperscriptIntent>(
+      onInvoke: (intent) {
+        controller.applyStyle(
+          SegmentTextStyle(
+            isSuperscript: !(controller.selectedTextStyle?.isSuperscript == true),
+            isSubscript: false,
+          ),
+        );
+        return null;
+      },
+    ),
+    FormatSubscriptIntent: CallbackAction<FormatSubscriptIntent>(
+      onInvoke: (intent) {
+        controller.applyStyle(
+          SegmentTextStyle(
+            isSubscript: !(controller.selectedTextStyle?.isSubscript == true),
+            isSuperscript: false,
+          ),
+        );
+        return null;
+      },
+    ),
     FormatTextHighlightIntent: CallbackAction<FormatTextHighlightIntent>(
       onInvoke: (intent) {
-        controller.applyStyle(TextStyle(backgroundColor: intent.value));
+        controller.applyStyle(
+          SegmentTextStyle(textStyle: TextStyle(backgroundColor: intent.value)),
+        );
         editorFocusNode.requestFocus();
         return null;
       },
     ),
     FormatTextColorIntent: CallbackAction<FormatTextColorIntent>(
       onInvoke: (intent) {
-        controller.applyStyle(TextStyle(color: intent.value));
+        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(color: intent.value)));
         editorFocusNode.requestFocus();
         return null;
       },
     ),
     FormatFontSizeIntent: CallbackAction<FormatFontSizeIntent>(
       onInvoke: (intent) {
-        controller.applyStyle(TextStyle(fontSize: intent.value));
+        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(fontSize: intent.value)));
+        editorFocusNode.requestFocus();
         return null;
       },
     ),
     FormatIncrementFontSizeIntent: CallbackAction<FormatIncrementFontSizeIntent>(
       onInvoke: (intent) {
-        final currentSize = controller.selectedTextStyle?.fontSize ?? 14;
+        final currentSize = controller.selectedTextStyle?.textStyle?.fontSize ?? 14;
         final newSize = math.min(94.0, currentSize + 1);
-        controller.applyStyle(TextStyle(fontSize: newSize));
+        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(fontSize: newSize)));
         editorFocusNode.requestFocus();
         return null;
       },
     ),
     FormatDecrementFontSizeIntent: CallbackAction<FormatDecrementFontSizeIntent>(
       onInvoke: (intent) {
-        final currentSize = controller.selectedTextStyle?.fontSize ?? 14;
+        final currentSize = controller.selectedTextStyle?.textStyle?.fontSize ?? 14;
         final newSize = math.max(1.0, currentSize - 1);
-        controller.applyStyle(TextStyle(fontSize: newSize));
+        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(fontSize: newSize)));
         editorFocusNode.requestFocus();
         return null;
       },
@@ -385,7 +430,10 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
           return;
         }
 
-        controller.updateParagraphStyle(intent.style, textStyle);
+        controller.updateParagraphStyle(
+          intent.style,
+          SegmentTextStyle(textStyle: textStyle.textStyle),
+        );
         editorFocusNode.requestFocus();
         return;
       },
@@ -394,7 +442,9 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     ClearFormattingIntent: CallbackAction<ClearFormattingIntent>(
       onInvoke: (intent) {
         final controller = AppStateManager.controllerOf(primaryFocus!.context!);
-        controller.applyStyle(const TextStyle());
+        controller.applyStyle(
+          const SegmentTextStyle(isSubscript: false, isSuperscript: false, textStyle: TextStyle()),
+        );
         editorFocusNode.requestFocus();
         return;
       },
@@ -402,7 +452,13 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
     IncreaseIndentIntent: ReflectAction(),
     DecreaseIndentIntent: ReflectAction(),
-    SetLineSpacingIntent: ReflectAction(),
+    SetLineSpacingIntent: CallbackAction<SetLineSpacingIntent>(
+      onInvoke: (intent) {
+        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(height: intent.value)));
+        editorFocusNode.requestFocus();
+        return null;
+      },
+    ),
     AddSpaceBeforeParagraphIntent: _ToggleEntryAction(this),
     AddSpaceAfterParagraphIntent: _ToggleEntryAction(this),
     KeepLinesTogetherIntent: _ToggleEntryAction(this),
@@ -471,11 +527,12 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         child: ListenableBuilder(
           listenable: controller,
           builder: (context, child) {
+            syncFlagsToTextStyle(controller.selectedTextStyle ?? const SegmentTextStyle());
             return _EditorModel(
               controller: controller,
               hasSelection: !controller.selection.isCollapsed,
               selectedText: controller.selectedText,
-              selectedTextStyle: controller.selectedTextStyle,
+              selectedTextStyle: controller.selectedTextStyle?.textStyle,
               selectedParagraphStyle: controller.selectedParagraphStyle,
               paragraphStyles: controller.paragraphStyles,
               textAlign: controller.textAlign,
@@ -524,7 +581,7 @@ class _EditorModel extends InheritedModel<_EditorModelAspect> {
   final String? selectedText;
   final TextStyle? selectedTextStyle;
   final DocumentParagraphStyle selectedParagraphStyle;
-  final Map<DocumentParagraphStyle, TextStyle> paragraphStyles;
+  final Map<DocumentParagraphStyle, SegmentTextStyle> paragraphStyles;
   final Map<SelectionKey, bool> documentFlags;
   final bool hasSelection;
   final EditorController controller;

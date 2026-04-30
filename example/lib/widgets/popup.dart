@@ -65,6 +65,12 @@ class _PopupState extends State<Popup> {
       axis: widget.axis,
       padding: widget.padding,
       panel: widget.panel,
+      onFocusChange: (value) {
+        if (!value) {
+          controller.close();
+        }
+      },
+      alignmentOffset: const Offset(0, 8),
       controller: controller,
       child: widget.child,
       builder: (context, controller, child) {

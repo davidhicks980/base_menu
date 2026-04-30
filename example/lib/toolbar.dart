@@ -129,68 +129,74 @@ class _ToolbarState extends State<Toolbar> {
   @override
   Widget build(BuildContext context) {
     final cutoffChildren = allGroups.sublist(_cutoff);
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFFF0F4F9),
-        borderRadius: BorderRadius.all(Radius.circular(24.0)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      constraints: const BoxConstraints(maxHeight: 40),
-      child: Row(
-        children: [
-          const SearchMenu(breakpoint: 1500),
-          Flexible(
-            child: ListenableBuilder(
-              listenable: scopeNode,
-              builder: _buildConditionalTraversal,
-              child: CoreMenuBar(
-                controller: menuController,
-                focusScopeNode: scopeNode,
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: OverflowRow(
-                        onOverflow: (int cutoffIndex) {
-                          _cutoff = cutoffIndex;
-                          SchedulerBinding.instance.addPostFrameCallback((timestamp) {
-                            if (mounted) {
-                              setState(() {});
-                            }
-                          });
-                        },
-                        children: children,
+    return TapRegion(
+      groupId: overflowController,
+      onTapOutside: (_) {
+        scopeNode.unfocus(disposition: UnfocusDisposition.previouslyFocusedChild);
+      },
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFF0F4F9),
+          borderRadius: BorderRadius.all(Radius.circular(24.0)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        constraints: const BoxConstraints(maxHeight: 40),
+        child: Row(
+          children: [
+            const SearchMenu(breakpoint: 1500),
+            Flexible(
+              child: ListenableBuilder(
+                listenable: scopeNode,
+                builder: _buildConditionalTraversal,
+                child: CoreMenuBar(
+                  controller: menuController,
+                  focusScopeNode: scopeNode,
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: OverflowRow(
+                          onOverflow: (int cutoffIndex) {
+                            _cutoff = cutoffIndex;
+                            SchedulerBinding.instance.addPostFrameCallback((timestamp) {
+                              if (mounted) {
+                                setState(() {});
+                              }
+                            });
+                          },
+                          children: children,
+                        ),
                       ),
-                    ),
-                    if (cutoffChildren.isNotEmpty)
-                      OverflowButton(
-                        controller: overflowController,
-                        children: cutoffChildren.expand((group) => group).toList(growable: false),
-                      ),
-                  ],
+                      if (cutoffChildren.isNotEmpty)
+                        OverflowButton(
+                          controller: overflowController,
+                          children: cutoffChildren.expand((group) => group).toList(growable: false),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          const ViewModeMenu(breakpoint: 1500),
-          const SizedBox(width: 8),
-          const VerticalMenuDivider(),
-          ToolbarIconButton(
-            onPressed: () {
-              AppStateManager.of(context).toggleTitle();
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 1),
-              child: Builder(
-                builder: (context) {
-                  return AppStateManager.isHeaderShownOf(context)
-                      ? const Icon(Symbols.expand_less, size: 18)
-                      : const Icon(Symbols.expand_more, size: 18);
-                },
+            const ViewModeMenu(breakpoint: 1500),
+            const SizedBox(width: 8),
+            const VerticalMenuDivider(),
+            ToolbarIconButton(
+              onPressed: () {
+                AppStateManager.of(context).toggleTitle();
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: Builder(
+                  builder: (context) {
+                    return AppStateManager.isHeaderShownOf(context)
+                        ? const Icon(Symbols.expand_less, size: 18)
+                        : const Icon(Symbols.expand_more, size: 18);
+                  },
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 2),
-        ],
+            const SizedBox(width: 2),
+          ],
+        ),
       ),
     );
   }
@@ -258,28 +264,34 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    final Widget panel = FadeTransition(
-      opacity: animationController,
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: Color(0xFFF0F4F9),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(4),
-            topRight: Radius.circular(4),
-            bottomLeft: Radius.circular(4),
-            bottomRight: Radius.circular(4),
+    final Widget panel = TapRegion(
+      groupId: widget.controller,
+      onTapOutside: (_) {
+        focusNode.unfocus(disposition: UnfocusDisposition.previouslyFocusedChild);
+      },
+      child: FadeTransition(
+        opacity: animationController,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            color: Color(0xFFF0F4F9),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(4),
+              topRight: Radius.circular(4),
+              bottomLeft: Radius.circular(4),
+              bottomRight: Radius.circular(4),
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.2), blurRadius: 4, offset: Offset(0, 2)),
+            ],
           ),
-          boxShadow: <BoxShadow>[
-            BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.2), blurRadius: 4, offset: Offset(0, 2)),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(5),
-          child: Wrap(
-            runSpacing: 5,
-            spacing: 2,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: widget.children,
+          child: Padding(
+            padding: const EdgeInsets.all(5),
+            child: Wrap(
+              runSpacing: 5,
+              spacing: 2,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: widget.children,
+            ),
           ),
         ),
       ),

@@ -52,7 +52,6 @@ class MenuBarButtonLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(DefaultTextStyle.of(context).style);
     const textStyle = kIsWeb ? _textStyleWeb : _textStyle;
     final Widget child = Padding(
       padding: const EdgeInsets.fromLTRB(8.0, 2.0, 8.0, 2.0),

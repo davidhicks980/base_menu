@@ -9,13 +9,11 @@ class MenuEntryToolbarButton extends StatelessWidget {
   const MenuEntryToolbarButton({
     super.key,
     required this.item,
-    this.onPressed,
     this.requestCloseOnActivate = true,
     this.iconTheme,
   });
 
   final MenuEntryWithIntent item;
-  final VoidCallback? onPressed;
   final bool requestCloseOnActivate;
   final IconThemeData? iconTheme;
 
@@ -30,7 +28,9 @@ class MenuEntryToolbarButton extends StatelessWidget {
             tooltip: item.label,
             shortcut: item.shortcut,
             intent: item.intent,
-            onPressed: onPressed,
+            onPressed: () {
+              Actions.invoke(context, item.intent);
+            },
             requestCloseOnActivate: requestCloseOnActivate,
             decoration: toggled
                 ? const WidgetStatePropertyAll(

@@ -24,7 +24,7 @@ class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 122, maxWidth: 122),
+      constraints: const BoxConstraints.tightFor(width: 122),
       child: Select(
         panel: MenuPanel(
           padding: const EdgeInsets.only(bottom: 6),
@@ -127,7 +127,7 @@ class _Option extends StatelessWidget {
               ),
             ],
           ),
-          child: Text(label, style: paragraphStyles[style]),
+          child: Text(label, style: paragraphStyles[style]?.textStyle),
         ),
       ),
     );

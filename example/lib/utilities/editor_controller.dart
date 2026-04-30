@@ -8,37 +8,33 @@ class EditorController extends TextEditingController {
 
   final StyleSegmentTree _styleTree = StyleSegmentTree();
 
-  Map<DocumentParagraphStyle, TextStyle> paragraphStyles = {
-    DocumentParagraphStyle.normal: const TextStyle(fontSize: 14, height: 20 / 14),
-    DocumentParagraphStyle.title: const TextStyle(
-      fontSize: 36,
-      height: 32 / 26,
-      fontWeight: FontWeight.w500,
+  Map<DocumentParagraphStyle, SegmentTextStyle> paragraphStyles = {
+    DocumentParagraphStyle.normal: const SegmentTextStyle(
+      textStyle: TextStyle(fontSize: 14, height: 20 / 14),
     ),
-    DocumentParagraphStyle.subtitle: const TextStyle(
-      fontSize: 18,
-      height: 28 / 18,
-      fontStyle: FontStyle.italic,
-      color: Color(0xFF888888),
+    DocumentParagraphStyle.title: const SegmentTextStyle(
+      textStyle: TextStyle(fontSize: 36, height: 32 / 26, fontWeight: FontWeight.w500),
     ),
-    DocumentParagraphStyle.heading1: const TextStyle(
-      fontSize: 28,
-      height: 28 / 22,
-      fontWeight: FontWeight.w500,
+    DocumentParagraphStyle.subtitle: const SegmentTextStyle(
+      textStyle: TextStyle(
+        fontSize: 18,
+        height: 28 / 18,
+        fontStyle: FontStyle.italic,
+        color: Color(0xFF888888),
+      ),
     ),
-    DocumentParagraphStyle.heading2: const TextStyle(
-      fontSize: 24,
-      height: 24 / 16,
-      fontWeight: FontWeight.w500,
+    DocumentParagraphStyle.heading1: const SegmentTextStyle(
+      textStyle: TextStyle(fontSize: 28, height: 28 / 22, fontWeight: FontWeight.w500),
     ),
-    DocumentParagraphStyle.heading3: const TextStyle(
-      fontSize: 20,
-      height: 20 / 14,
-      fontWeight: FontWeight.w400,
+    DocumentParagraphStyle.heading2: const SegmentTextStyle(
+      textStyle: TextStyle(fontSize: 24, height: 24 / 16, fontWeight: FontWeight.w500),
+    ),
+    DocumentParagraphStyle.heading3: const SegmentTextStyle(
+      textStyle: TextStyle(fontSize: 20, height: 20 / 14, fontWeight: FontWeight.w400),
     ),
   };
 
-  void updateParagraphStyle(DocumentParagraphStyle paragraphStyle, TextStyle style) {
+  void updateParagraphStyle(DocumentParagraphStyle paragraphStyle, SegmentTextStyle style) {
     if (paragraphStyles[paragraphStyle] != style) {
       paragraphStyles[paragraphStyle] = style;
       notifyListeners();
@@ -73,7 +69,7 @@ class EditorController extends TextEditingController {
   }
 
   /// Applies a specific style to the currently selected text range.
-  void applyStyle(TextStyle style) {
+  void applyStyle(SegmentTextStyle style) {
     if (!selection.isValid) {
       return;
     }
@@ -123,7 +119,7 @@ class EditorController extends TextEditingController {
 
   /// Returns the style of the currently selected text.
   /// If the selection is collapsed, returns the style of the preceding character.
-  TextStyle? get selectedTextStyle {
+  SegmentTextStyle? get selectedTextStyle {
     if (!selection.isValid) {
       return null;
     }
@@ -149,7 +145,7 @@ class EditorController extends TextEditingController {
     return _styleTree.queryParagraphStyle(selection.start);
   }
 
-  bool selectionHasAttributes(bool Function(TextStyle style) predicate) {
+  bool selectionHasAttributes(bool Function(SegmentTextStyle style) predicate) {
     if (!selection.isValid || selection.isCollapsed) {
       final style = selectedTextStyle;
       return style != null && predicate(style);
@@ -209,13 +205,13 @@ class EditorController extends TextEditingController {
       return TextSpan(style: style, text: '');
     }
 
-    final children = <TextSpan>[];
+    final children = <InlineSpan>[];
 
     // Rebuild the text span by querying the style segment tree for each character.
     var i = 0;
     while (i < text.length) {
       final paragraph = _styleTree.queryParagraphStyle(i);
-      final TextStyle currentStyle = _styleTree.queryStyles(i);
+      final SegmentTextStyle currentStyle = _styleTree.queryStyles(i);
       final start = i;
 
       // Look ahead to group characters with the same style
@@ -227,9 +223,31 @@ class EditorController extends TextEditingController {
 
       final paragraphStyle = paragraphStyles[paragraph]!;
 
-      children.add(
-        TextSpan(text: text.substring(start, i), style: paragraphStyle.merge(currentStyle)),
-      );
+      final mergedStyle = paragraphStyle.merge(currentStyle);
+
+      if (currentStyle.isSuperscript == true || currentStyle.isSubscript == true) {
+        final double fontSize = mergedStyle.textStyle?.fontSize ?? 14.0;
+        const scaleFactor = 0.7;
+        final double yOffset = currentStyle.isSuperscript == true
+            ? -fontSize * 0.4
+            : fontSize * 0.2;
+
+        children.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: Transform.translate(
+              offset: Offset(0, yOffset),
+              child: Text(
+                text.substring(start, i),
+                style: mergedStyle.textStyle?.copyWith(fontSize: fontSize * scaleFactor),
+              ),
+            ),
+          ),
+        );
+      } else {
+        children.add(TextSpan(text: text.substring(start, i), style: mergedStyle.textStyle));
+      }
     }
 
     return TextSpan(style: style, children: children);

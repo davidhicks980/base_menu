@@ -15,7 +15,7 @@ Use with caution and be prepared for breaking changes.
 * **Multi-axis:** Works for both vertical and horizontal menu layouts,
   making it suitable for dropdowns, context menus, toolbars, and more.
 * **Unstyled by default:** Provides core functionality without imposing any visual
-  design, allowing you to style menus to fit your app's unique look and feel.
+  opinions, allowing you to style menus to fit your app's unique look and feel.
 
 ## Motivation
 

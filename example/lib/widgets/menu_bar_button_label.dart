@@ -8,12 +8,14 @@ class MenuBarButtonLabel extends StatelessWidget {
   final Decoration? decoration;
 
   static const _textStyleWeb = TextStyle(
-    fontFamily: 'RobotoFlex',
-    fontSize: 14,
+    inherit: false,
+    fontFamily: 'GoogleSans',
+    fontSize: 14.25,
+    letterSpacing: -0.2,
     fontWeight: FontWeight(490),
     decoration: TextDecoration.none,
-    inherit: false,
-    fontVariations: [FontVariation.opticalSize(15)],
+    // letterSpacing: 0,
+    fontVariations: [FontVariation.opticalSize(17)],
     color: Color.from(alpha: 1, red: 0.122, green: 0.122, blue: 0.122),
   );
 
@@ -50,6 +52,7 @@ class MenuBarButtonLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(DefaultTextStyle.of(context).style);
     const textStyle = kIsWeb ? _textStyleWeb : _textStyle;
     final Widget child = Padding(
       padding: const EdgeInsets.fromLTRB(8.0, 2.0, 8.0, 2.0),

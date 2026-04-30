@@ -36,9 +36,9 @@ class _FloogleDocsLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
-      dimension: 36.0,
+      dimension: 34.0,
       child: Center(
-        child: CustomPaint(size: const Size(36.0 * 0.75, 36.0), painter: _FloogleDocsPainter()),
+        child: CustomPaint(size: const Size(34.0 * 0.75, 34.0), painter: _FloogleDocsPainter()),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -279,6 +280,7 @@ class _Anchor extends StatelessWidget {
               fontSize: 14,
               color: FloogleColors.midGrayText,
               decoration: TextDecoration.none,
+              fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
             ),
             overflow: TextOverflow.ellipsis,
             child: listenable,

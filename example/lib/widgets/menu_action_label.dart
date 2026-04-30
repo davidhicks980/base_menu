@@ -111,20 +111,10 @@ class MenuActionLabel extends StatelessWidget {
     fontFamily: 'RobotoFlex',
     fontSize: 14,
     color: Color.from(alpha: 1, red: 0.122, green: 0.122, blue: 0.122),
-    fontWeight: FontWeight.w400,
+    fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
     overflow: TextOverflow.ellipsis,
     height: 1.0,
     decoration: TextDecoration.none,
-  );
-
-  static const _labelTextStyleWeb = TextStyle(
-    fontFamily: 'RobotoFlex',
-    fontSize: 14,
-    decoration: TextDecoration.none,
-    inherit: false,
-    fontVariations: [FontVariation.width(85), FontVariation('GRAD', 90)],
-    letterSpacing: 0.2,
-    color: Color.from(alpha: 1, red: 0.122, green: 0.122, blue: 0.122),
   );
 
   static const _acceleratorTextStyle = TextStyle(
@@ -152,7 +142,10 @@ class MenuActionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTextStyle.merge(
-      style: kIsWeb ? _labelTextStyleWeb : _labelTextStyle,
+      style: _labelTextStyle,
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+      softWrap: false,
       child: WidgetStateDecoratedBox(
         decoration: decoration ?? _decoration,
         child: Row(
@@ -178,16 +171,7 @@ class MenuActionLabel extends StatelessWidget {
             Flexible(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 512, minHeight: 33),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: DefaultTextStyle(
-                    style: kIsWeb ? _labelTextStyleWeb : _labelTextStyle,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    softWrap: false,
-                    child: child,
-                  ),
-                ),
+                child: Align(alignment: Alignment.centerLeft, child: child),
               ),
             ),
             if (shortcut != null)

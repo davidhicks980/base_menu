@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
@@ -8,7 +9,12 @@ class TitleIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = IconTheme(
-      data: const IconThemeData(size: 18, color: Color.fromRGBO(68, 71, 70, 1), grade: 90),
+      data: const IconThemeData(
+        size: 18,
+        color: Color.fromRGBO(68, 71, 70, 1),
+        grade: 90,
+        weight: kIsWeb ? 500 : 400,
+      ),
       child: child,
     );
     return CoreTappable(

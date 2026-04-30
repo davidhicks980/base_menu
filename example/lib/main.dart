@@ -130,7 +130,7 @@ class _MainState extends State<Main> with SingleTickerProviderStateMixin {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Padding(
-                        padding: EdgeInsets.fromLTRB(16, 15, 4, 0),
+                        padding: EdgeInsets.fromLTRB(17, 15, 3, 0),
                         child: FloogleDocsLogoButton(),
                       ),
                       Expanded(
@@ -148,7 +148,9 @@ class _MainState extends State<Main> with SingleTickerProviderStateMixin {
                                   spacing: 3,
                                   children: [
                                     Flexible(child: TitleField()),
-                                    TitleIconButton(child: Icon(Symbols.star_border, weight: 350)),
+                                    TitleIconButton(
+                                      child: Icon(Symbols.star_border, weight: kIsWeb ? 500 : 350),
+                                    ),
                                     TitleIconButton(child: Icon(Symbols.add_to_drive)),
                                     TitleIconButton(child: _CloudIcon()),
                                   ],
@@ -198,10 +200,10 @@ class _CloudIcon extends StatelessWidget {
     return const Stack(
       alignment: Alignment.center,
       children: [
-        Icon(Symbols.cloud, opticalSize: 20, size: 20, weight: 250),
+        Icon(Symbols.cloud, opticalSize: 20, size: 20, weight: kIsWeb ? 350 : 250),
         Padding(
           padding: EdgeInsets.only(top: 1),
-          child: Icon(Symbols.check, opticalSize: 20, size: 10, weight: 600),
+          child: Icon(Symbols.check, opticalSize: 20, size: 10, weight: kIsWeb ? 800 : 600),
         ),
       ],
     );

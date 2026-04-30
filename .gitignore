@@ -32,3 +32,7 @@ migrate_working_dir/
 
 # FVM Version Cache
 .fvm/
+.fvmrc
+.vscode/copilot-instructions.md
+.gitignore
+.vscode/settings.json

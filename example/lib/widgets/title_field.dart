@@ -8,15 +8,10 @@ const _textStyle = kIsWeb
     ? TextStyle(
         fontSize: 18,
         fontFamily: 'GoogleSans',
-        letterSpacing: -0.4,
-        fontVariations: [
-          FontVariation('YTLC', 525),
-          FontVariation('XTRA', 500),
-          FontVariation('GRAD', 50),
-          FontVariation.width(100),
-        ],
+        letterSpacing: -0.3,
         height: 1.2,
         overflow: TextOverflow.ellipsis,
+        fontVariations: [FontVariation.weight(480), FontVariation.opticalSize(17)],
         color: Color(0xFF1F1F1F),
       )
     : TextStyle(

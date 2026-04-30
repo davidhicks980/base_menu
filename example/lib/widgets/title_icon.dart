@@ -2,9 +2,27 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import 'widget_state_decorated_box.dart';
+
 class TitleIconButton extends StatelessWidget {
   const TitleIconButton({super.key, required this.child});
   final Widget child;
+
+  static const _decoration = WidgetStateProperty<BoxDecoration>.fromMap({
+    WidgetState.pressed: BoxDecoration(
+      color: Color.from(alpha: 0.098, red: 0, green: 0, blue: 0),
+      shape: BoxShape.circle,
+    ),
+    WidgetState.focused: BoxDecoration(
+      color: Color.from(alpha: 0.059, red: 0, green: 0, blue: 0),
+      shape: BoxShape.circle,
+    ),
+    WidgetState.hovered: BoxDecoration(
+      color: Color.from(alpha: 0.059, red: 0, green: 0, blue: 0),
+      shape: BoxShape.circle,
+    ),
+    WidgetState.any: BoxDecoration(),
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,22 +40,7 @@ class TitleIconButton extends StatelessWidget {
       child: SizedBox(
         width: 28,
         height: 28,
-        child: Builder(
-          builder: (context) {
-            final Color color;
-            if (CoreTappable.isPressedOf(context)) {
-              color = const Color.from(alpha: 1, red: 0.898, green: 0.898, blue: 0.898);
-            } else if (CoreTappable.isFocusedOf(context)) {
-              color = const Color.from(alpha: 1, red: 0.949, green: 0.949, blue: 0.949);
-            } else {
-              color = const Color.from(alpha: 0, red: 0, green: 0, blue: 0);
-            }
-            return DecoratedBox(
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-              child: icon,
-            );
-          },
-        ),
+        child: WidgetStateDecoratedBox(decoration: _decoration, child: icon),
       ),
       onPressed: () {},
     );

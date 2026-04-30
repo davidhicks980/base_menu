@@ -32,29 +32,6 @@ class SubmenuActionLabel extends StatelessWidget {
   final bool? isOpen;
   final Widget child;
 
-  String get arrow => axis == Axis.horizontal ? _downArrowSymbol : _rightArrowSymbol;
-
-  static const _arrowTextStyle = TextStyle(
-    fontFamily: 'RobotoFlex',
-    fontSize: 14 * 0.7,
-    fontWeight: FontWeight.w400,
-    color: Color.from(alpha: 0.502, red: 0.122, green: 0.122, blue: 0.122),
-    height: 20 / 14,
-    decorationThickness: 0,
-  );
-
-  static const _arrowHoveredTextStyle = TextStyle(
-    fontFamily: 'RobotoFlex',
-    fontSize: 14 * 0.7,
-    fontWeight: FontWeight.w400,
-    color: Color.from(alpha: 1, red: 0.122, green: 0.122, blue: 0.122),
-    height: 20 / 14,
-    decorationThickness: 0,
-  );
-
-  static const _rightArrowSymbol = kIsWeb ? '▶' : '►';
-  static const _downArrowSymbol = '▼';
-
   @override
   Widget build(BuildContext context) {
     final isOpen = this.isOpen ?? MenuController.maybeIsOpenOf(context) ?? false;
@@ -69,15 +46,7 @@ class SubmenuActionLabel extends StatelessWidget {
               ),
             )
           : null,
-      trailing: Builder(
-        builder: (context) {
-          final highlightArrow =
-              CoreTappable.isHoveredOf(context) || CoreTappable.isFocusedOf(context) || isOpen;
-          return ExcludeSemantics(
-            child: Text(arrow, style: highlightArrow ? _arrowHoveredTextStyle : _arrowTextStyle),
-          );
-        },
-      ),
+      trailing: const _Arrow(),
       shortcut: shortcut,
       spacing: spacing,
       child: child,
@@ -112,6 +81,7 @@ class MenuActionLabel extends StatelessWidget {
     fontSize: 14,
     color: Color.from(alpha: 1, red: 0.122, green: 0.122, blue: 0.122),
     fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+    fontVariations: kIsWeb ? [FontVariation.width(85)] : [],
     overflow: TextOverflow.ellipsis,
     height: 1.0,
     decoration: TextDecoration.none,
@@ -242,4 +212,52 @@ class _RenderAlignMidpoint extends RenderPositionedBox {
 
     childParentData.offset = Offset(dx, dy);
   }
+}
+
+class _Arrow extends StatelessWidget {
+  const _Arrow({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final highlightArrow =
+        CoreTappable.isHoveredOf(context) ||
+        CoreTappable.isFocusedOf(context) ||
+        MenuController.maybeIsOpenOf(context) == true;
+    return highlightArrow
+        ? const CustomPaint(
+            size: Size(8, 8),
+            painter: _ArrowPainter(
+              color: Color.from(alpha: 1, red: 0.122, green: 0.122, blue: 0.122),
+            ),
+          )
+        : const CustomPaint(
+            size: Size(8, 8),
+            painter: _ArrowPainter(
+              color: Color.from(alpha: 0.502, red: 0.122, green: 0.122, blue: 0.122),
+            ),
+          );
+  }
+}
+
+class _ArrowPainter extends CustomPainter {
+  const _ArrowPainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final vertices = ui.Vertices(ui.VertexMode.triangles, [
+      Offset.zero,
+      Offset(size.width, size.height / 2),
+      Offset(0, size.height),
+    ]);
+
+    canvas.drawVertices(vertices, BlendMode.srcOver, paint);
+  }
+
+  @override
+  bool shouldRepaint(_ArrowPainter oldDelegate) => color != oldDelegate.color;
 }

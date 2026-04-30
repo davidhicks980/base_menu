@@ -80,6 +80,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
               height: 1.0,
               letterSpacing: 0.1,
               fontWeight: kIsWeb ? FontWeight.w500 : const FontWeight(450),
+              fontVariations: const [FontVariation.opticalSize(17)],
               decoration: TextDecoration.none,
             ),
             overflow: TextOverflow.ellipsis,

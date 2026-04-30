@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:ui' as ui
+import 'dart:ui'
+    as ui
     show DisplayFeature, DisplayFeatureState, Offset, Rect, TextDirection, clampDouble;
 
 import 'package:flutter/foundation.dart';
@@ -42,25 +43,25 @@ const Map<ShortcutActivator, Intent> _kMenuVerticalTraversalShortcuts = <Shortcu
 
 const Map<ShortcutActivator, Intent> _kMenuHorizontalTraversalShortcuts =
     <ShortcutActivator, Intent>{
-  SingleActivator(LogicalKeyboardKey.gameButtonA): ActivateIntent(),
-  SingleActivator(LogicalKeyboardKey.escape): DismissIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowLeft): _HorizontalFocusPreviousIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowRight): _HorizontalFocusNextIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowUp): _VerticalFocusPreviousIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowDown): _VerticalFocusNextIntent(),
-  SingleActivator(LogicalKeyboardKey.tab): NextFocusIntent(),
-  SingleActivator(LogicalKeyboardKey.tab, shift: true): PreviousFocusIntent(),
-  SingleActivator(LogicalKeyboardKey.home): _MenuFocusFirstIntent(),
-  SingleActivator(LogicalKeyboardKey.end): _MenuFocusLastIntent(),
-};
+      SingleActivator(LogicalKeyboardKey.gameButtonA): ActivateIntent(),
+      SingleActivator(LogicalKeyboardKey.escape): DismissIntent(),
+      SingleActivator(LogicalKeyboardKey.arrowLeft): _HorizontalFocusPreviousIntent(),
+      SingleActivator(LogicalKeyboardKey.arrowRight): _HorizontalFocusNextIntent(),
+      SingleActivator(LogicalKeyboardKey.arrowUp): _VerticalFocusPreviousIntent(),
+      SingleActivator(LogicalKeyboardKey.arrowDown): _VerticalFocusNextIntent(),
+      SingleActivator(LogicalKeyboardKey.tab): NextFocusIntent(),
+      SingleActivator(LogicalKeyboardKey.tab, shift: true): PreviousFocusIntent(),
+      SingleActivator(LogicalKeyboardKey.home): _MenuFocusFirstIntent(),
+      SingleActivator(LogicalKeyboardKey.end): _MenuFocusLastIntent(),
+    };
 
 const Map<ShortcutActivator, Intent> _kStopDirectionalPropagationShortcuts =
     <ShortcutActivator, Intent>{
-  SingleActivator(LogicalKeyboardKey.arrowUp): DoNothingAndStopPropagationIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowDown): DoNothingAndStopPropagationIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowLeft): DoNothingAndStopPropagationIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowRight): DoNothingAndStopPropagationIntent(),
-};
+      SingleActivator(LogicalKeyboardKey.arrowUp): DoNothingAndStopPropagationIntent(),
+      SingleActivator(LogicalKeyboardKey.arrowDown): DoNothingAndStopPropagationIntent(),
+      SingleActivator(LogicalKeyboardKey.arrowLeft): DoNothingAndStopPropagationIntent(),
+      SingleActivator(LogicalKeyboardKey.arrowRight): DoNothingAndStopPropagationIntent(),
+    };
 
 sealed class _CoreMenuFocusTraversalIntent extends Intent {
   const _CoreMenuFocusTraversalIntent();
@@ -113,11 +114,7 @@ class CoreMenuEnterIntent extends Intent {
 // Used to notify anchor descendants when the menu opens and closes, and to
 // access the anchor's controller.
 class _CoreMenuScope extends InheritedWidget {
-  const _CoreMenuScope({
-    required super.child,
-    required this.axis,
-    required this.isSubmenu,
-  });
+  const _CoreMenuScope({required super.child, required this.axis, required this.isSubmenu});
 
   final Axis axis;
   final bool isSubmenu;
@@ -497,19 +494,16 @@ class CoreMenu extends StatefulWidget {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(ObjectFlagProperty<MenuController>.has('controller', controller));
+    properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('padding', padding, defaultValue: null));
     properties.add(
-      DiagnosticsProperty<EdgeInsetsGeometry>('padding', padding, defaultValue: null),
-    );
-    properties.add(
-      DiagnosticsProperty<EdgeInsetsGeometry>('overlayPadding', overlayPadding,
-          defaultValue: const EdgeInsets.all(8)),
-    );
-    properties.add(
-      DiagnosticsProperty<Offset>(
-        'alignmentOffset',
-        alignmentOffset,
-        defaultValue: Offset.zero,
+      DiagnosticsProperty<EdgeInsetsGeometry>(
+        'overlayPadding',
+        overlayPadding,
+        defaultValue: const EdgeInsets.all(8),
       ),
+    );
+    properties.add(
+      DiagnosticsProperty<Offset>('alignmentOffset', alignmentOffset, defaultValue: Offset.zero),
     );
   }
 }
@@ -563,17 +557,16 @@ class _CoreMenuState extends State<CoreMenu> {
     super.dispose();
   }
 
-  final FocusNode _trackingFocusNode =
-      FocusNode(debugLabel: 'Menu Anchor Tracking Focus Node', canRequestFocus: false);
+  final FocusNode _trackingFocusNode = FocusNode(
+    debugLabel: 'Menu Anchor Tracking Focus Node',
+    canRequestFocus: false,
+  );
   bool _hasFocus = false;
 
   void _handleFocusChange(bool focused) {
     if (_trackingFocusNode.hasFocus != _hasFocus) {
       _hasFocus = _trackingFocusNode.hasFocus;
       widget.onFocusChange?.call(_hasFocus);
-      if (!_hasFocus) {
-        _menuController.close();
-      }
     }
   }
 
@@ -594,20 +587,18 @@ class _CoreMenuState extends State<CoreMenu> {
     final isSubmenu = _parentMenuScope?.isSubmenu ?? false;
     final shortcuts = switch (axis) {
       Axis.vertical => {
-          ..._kMenuVerticalTraversalShortcuts,
-          switch (_textDirection) {
-            TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
-            TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
-          }: const CoreMenuEnterIntent.focusFirst(),
-        },
+        ..._kMenuVerticalTraversalShortcuts,
+        switch (_textDirection) {
+          TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
+          TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
+        }: const CoreMenuEnterIntent.focusFirst(),
+      },
       Axis.horizontal || null => {
-          ..._kMenuHorizontalTraversalShortcuts,
-          const SingleActivator(LogicalKeyboardKey.arrowDown):
-              const CoreMenuEnterIntent.focusFirst(),
-          if (!isSubmenu)
-            const SingleActivator(LogicalKeyboardKey.arrowUp):
-                const CoreMenuEnterIntent.focusLast(),
-        }
+        ..._kMenuHorizontalTraversalShortcuts,
+        const SingleActivator(LogicalKeyboardKey.arrowDown): const CoreMenuEnterIntent.focusFirst(),
+        if (!isSubmenu)
+          const SingleActivator(LogicalKeyboardKey.arrowUp): const CoreMenuEnterIntent.focusLast(),
+      },
     };
     return Actions(
       actions: <Type, Action<Intent>>{
@@ -637,11 +628,13 @@ class _CoreMenuState extends State<CoreMenu> {
       child: Shortcuts(
         includeSemantics: false,
         shortcuts: shortcuts,
-        child: Builder(builder: (context) {
-          return widget.builder?.call(context, controller, widget.child) ??
-              widget.child ??
-              const SizedBox();
-        }),
+        child: Builder(
+          builder: (context) {
+            return widget.builder?.call(context, controller, widget.child) ??
+                widget.child ??
+                const SizedBox();
+          },
+        ),
       ),
     );
   }
@@ -649,9 +642,7 @@ class _CoreMenuState extends State<CoreMenu> {
   @override
   Widget build(BuildContext context) {
     final Widget child = Actions(
-      actions: {
-        DirectionalFocusIntent: DoNothingAction(),
-      },
+      actions: {DirectionalFocusIntent: DoNothingAction()},
       child: Shortcuts(
         includeSemantics: false,
         shortcuts: _kStopDirectionalPropagationShortcuts,
@@ -700,9 +691,7 @@ class _CoreMenuState extends State<CoreMenu> {
     };
 
     return Actions(
-      actions: {
-        intentType: CallbackAction(onInvoke: _exitMenuActionCallback),
-      },
+      actions: {intentType: CallbackAction(onInvoke: _exitMenuActionCallback)},
       child: _MenuOverlay(
         submenuAxis: widget.axis,
         position: position,
@@ -876,7 +865,7 @@ class _CoreMenuBarState extends State<CoreMenuBar> {
             _menuScopeNode.enclosingScope?.previousFocus();
             return null;
           },
-        )
+        ),
       },
       child: RawMenuAnchorGroup(
         controller: _menuController,
@@ -927,13 +916,13 @@ class _MenuFocusTraversal extends StatelessWidget {
             _MenuSetFirstFocusIntent: _MenuSetFirstFocusAction(focusScopeNode),
             ...switch (axis) {
               Axis.vertical => {
-                  _VerticalFocusNextIntent: _TraverseNextAction(focusScopeNode),
-                  _VerticalFocusPreviousIntent: _TraversePreviousAction(focusScopeNode)
-                },
+                _VerticalFocusNextIntent: _TraverseNextAction(focusScopeNode),
+                _VerticalFocusPreviousIntent: _TraversePreviousAction(focusScopeNode),
+              },
               Axis.horizontal => {
-                  _HorizontalFocusNextIntent: _TraverseNextAction(focusScopeNode),
-                  _HorizontalFocusPreviousIntent: _TraversePreviousAction(focusScopeNode)
-                },
+                _HorizontalFocusNextIntent: _TraverseNextAction(focusScopeNode),
+                _HorizontalFocusPreviousIntent: _TraversePreviousAction(focusScopeNode),
+              },
             },
           },
           child: FocusScope(
@@ -1088,12 +1077,13 @@ class _MenuOverlay extends StatelessWidget {
           final TextDirection textDirection = Directionality.of(context);
           // Resolve fallback alignment here so that alignmentOffset defaults to
           // being directionally-agnostic.
-          final anchorAlignment = (alignment ??
-                  switch (_CoreMenuScope._maybeOf(context)?.axis) {
-                    Axis.vertical => AlignmentDirectional.topEnd,
-                    _ => AlignmentDirectional.bottomStart,
-                  })
-              .resolve(textDirection);
+          final anchorAlignment =
+              (alignment ??
+                      switch (_CoreMenuScope._maybeOf(context)?.axis) {
+                        Axis.vertical => AlignmentDirectional.topEnd,
+                        _ => AlignmentDirectional.bottomStart,
+                      })
+                  .resolve(textDirection);
 
           return CustomSingleChildLayout(
             delegate: _MenuLayout(
@@ -1234,12 +1224,7 @@ class _MenuLayout extends SingleChildLayoutDelegate {
     return closest!;
   }
 
-  Offset _fitInsideScreen(
-    Rect screen,
-    Size childSize,
-    Offset position,
-    Offset anchorPosition,
-  ) {
+  Offset _fitInsideScreen(Rect screen, Size childSize, Offset position, Offset anchorPosition) {
     final EdgeInsets? padding = menuPadding?.resolve(textDirection);
     final Rect anchor = menuPosition == null ? anchorRect : anchorPosition & Size.zero;
 
@@ -1370,9 +1355,10 @@ class _MenuLayout extends SingleChildLayoutDelegate {
       anchorOffset = alignment.resolve(textDirection).withinRect(anchorRect);
       anchorOffset += switch (textDirection) {
         ui.TextDirection.ltr => alignmentOffset,
-        ui.TextDirection.rtl => alignment is AlignmentDirectional
-            ? Offset(-alignmentOffset.dx, alignmentOffset.dy)
-            : alignmentOffset,
+        ui.TextDirection.rtl =>
+          alignment is AlignmentDirectional
+              ? Offset(-alignmentOffset.dx, alignmentOffset.dy)
+              : alignmentOffset,
       };
     } else {
       anchorOffset = anchorRect.topLeft + menuPosition!;
@@ -1381,18 +1367,9 @@ class _MenuLayout extends SingleChildLayoutDelegate {
     final ui.Offset position =
         anchorOffset - menuAlignment.resolve(textDirection).alongSize(childSize);
 
-    final Rect screen = _findClosestScreen(
-      size,
-      anchorRect.center,
-      avoidBounds,
-    );
+    final Rect screen = _findClosestScreen(size, anchorRect.center, avoidBounds);
 
-    return _fitInsideScreen(
-      screen,
-      childSize,
-      position,
-      anchorOffset,
-    );
+    return _fitInsideScreen(screen, childSize, position, anchorOffset);
   }
 
   @override

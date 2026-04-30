@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -196,7 +197,10 @@ class _SubmenuOption extends StatelessWidget {
           leading: checked ? const Icon(Symbols.check, size: 16) : null,
           child: Text(
             value.label,
-            style: TextStyle(fontFamily: value.label, fontWeight: FontWeight.normal),
+            style: TextStyle(
+              fontFamily: value.label,
+              fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+            ),
           ),
         ),
       ),

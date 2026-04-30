@@ -120,7 +120,6 @@ class _Option extends StatelessWidget {
               const MenuDivider(padding: EdgeInsets.fromLTRB(30, 7.5, 0, 7.5)),
               MenuItem(
                 onPressed: () {
-                  print('Update "$label" to match');
                   MenuController.maybeOf(context)?.close();
                   Actions.invoke(context, UpdateParagraphStyleToMatchIntent(style));
                 },

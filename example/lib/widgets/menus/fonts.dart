@@ -22,8 +22,7 @@ class FontMenu extends StatefulWidget {
 
 class _FontMenuState extends State<FontMenu> {
   void _handleChanged(FontFamily family, FontWeight weight) {
-    Actions.invoke(context, SetFontFamilyIntent(family));
-    Actions.invoke(context, FormatTextWeightIntent(weight));
+    Actions.invoke(context, SetFontFamilyIntent((family: family, weight: weight)));
   }
 
   @override
@@ -143,7 +142,6 @@ class _Option extends StatelessWidget {
         autofocus: autofocusSelected && group.isFamilySelected,
         checked: group.isFamilySelected,
         onPressed: () {
-          print('Selecting font ${value.label}'); // --- IGNORE ---
           group.select(value, FontWeight.normal);
         },
         child: Text(value.label),
@@ -186,9 +184,6 @@ class _SubmenuOption extends StatelessWidget {
                     return CheckboxMenuItem(
                       checked: checked && isWeightSelected,
                       onPressed: () {
-                        print(
-                          'Selecting font ${value.label} with weight $variant',
-                        ); // --- IGNORE ---
                         group.select(value, variant);
                       },
                       child: Text(

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'data/entry.dart';
 import 'data/menu.dart';
+import 'extensions/string.dart';
 import 'model/enum.dart';
 import 'model/intents.dart';
 import 'model/model.dart';
@@ -297,19 +298,27 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     // Format
     FormatBoldIntent: CallbackAction<FormatBoldIntent>(
       onInvoke: (intent) {
-        final isBold = !controller.selectionHasAttributes(
-          (s) => s.textStyle?.fontWeight != FontWeight.bold,
+        final isBold = controller.selectionHasAttributes(
+          (s) =>
+              s.textStyle?.fontWeight?.value != null &&
+              s.textStyle!.fontWeight!.value > FontWeight.normal.value,
         );
-        final fontWeight = isBold ? FontWeight.normal : FontWeight.bold;
-        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(fontWeight: fontWeight)));
-        editorFocusNode.requestFocus();
-        return null;
-      },
-    ),
 
-    FormatTextWeightIntent: CallbackAction<FormatTextWeightIntent>(
-      onInvoke: (intent) {
-        controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(fontWeight: intent.value)));
+        final fontWeight = isBold ? FontWeight.normal : FontWeight.bold;
+
+        final textStyle =
+            controller.selectedTextStyle?.textStyle ??
+            const TextStyle(fontWeight: FontWeight.normal, fontFamily: 'Roboto');
+
+        controller.applyStyle(
+          SegmentTextStyle(
+            textStyle: GoogleFonts.getFont(
+              textStyle.fontFamily?.withSpaceAfterCapitals.split('_')[0] ?? 'Roboto',
+              fontWeight: fontWeight,
+              textStyle: textStyle,
+            ),
+          ),
+        );
         editorFocusNode.requestFocus();
         return null;
       },
@@ -423,10 +432,13 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
     SetFontFamilyIntent: CallbackAction<SetFontFamilyIntent>(
       onInvoke: (intent) {
-        print('Applying font family ${intent.value.label}'); // --- IGNORE ---
         controller.applyStyle(
           SegmentTextStyle(
-            textStyle: TextStyle(fontFamily: GoogleFonts.getFont(intent.value.label).fontFamily),
+            textStyle: GoogleFonts.getFont(
+              intent.value.family.label,
+              textStyle: controller.selectedTextStyle?.textStyle,
+              fontWeight: intent.value.weight,
+            ),
           ),
         );
         editorFocusNode.requestFocus();

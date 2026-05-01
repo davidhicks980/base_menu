@@ -276,11 +276,6 @@ class AddCommentIntent extends FloogleIntent {
   const AddCommentIntent();
 }
 
-// Format Menu Intents
-class FormatTextWeightIntent extends FloogleSelectableIntent<FontWeight> {
-  const FormatTextWeightIntent(FontWeight weight) : super(key: .textFormatWeight, value: weight);
-}
-
 class FormatBoldIntent extends FloogleSelectableBooleanIntent {
   const FormatBoldIntent() : super(.textFormatBold);
 }
@@ -615,7 +610,9 @@ class FormatFontSizeIntent extends FloogleSelectableIntent<double> {
       super(key: SelectionKey.fontSize, value: fontSize);
 }
 
-class SetFontFamilyIntent extends FloogleSelectableIntent<FontFamily> {
-  const SetFontFamilyIntent(FontFamily fontFamily)
-    : super(key: SelectionKey.fontFamily, value: fontFamily);
+typedef FontFamilyWeightPair = ({FontFamily family, FontWeight weight});
+
+class SetFontFamilyIntent extends FloogleSelectableIntent<FontFamilyWeightPair> {
+  const SetFontFamilyIntent(FontFamilyWeightPair value)
+    : super(key: SelectionKey.fontFamily, value: value);
 }

@@ -48,7 +48,7 @@ class MenuTooltip extends StatelessWidget {
       semanticsTooltip: message.toPlainText(),
       positionDelegate: _positionDelegate,
       tooltipBuilder: _tooltipBuilder,
-      // ignorePointer: true,
+      ignorePointer: true,
       child: child,
     );
   }

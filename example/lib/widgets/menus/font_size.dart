@@ -44,7 +44,7 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _selectedFontSize = AppStateManager.selectedTextStyleOf(context)?.textStyle?.fontSize ?? 11;
+    _selectedFontSize = AppStateManager.selectedTextStyleOf(context)?.textStyle?.fontSize ?? 14;
   }
 
   @override

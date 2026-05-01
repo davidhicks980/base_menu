@@ -78,7 +78,7 @@ class AppStateManager extends StatefulWidget {
     )!.controller;
   }
 
-  static Map<SelectionKey, bool> documentFlagsOf(BuildContext context) {
+  static Map<SelectionKey, Object> documentFlagsOf(BuildContext context) {
     return InheritedModel.inheritFrom<_EditorModel>(
       context,
       aspect: _EditorModelAspect.documentFlags,
@@ -110,7 +110,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
   final FocusNode editorFocusNode = FocusNode();
   final MenuController searchMenuController = MenuController();
-  Map<SelectionKey, bool> documentFlags = <SelectionKey, bool>{};
+  Map<SelectionKey, Object> documentFlags = <SelectionKey, Object>{};
   late final shortcuts = _buildShortcuts();
   // ignore: unused_field
   ViewMode _viewMode = ViewMode.editing;
@@ -126,7 +126,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
   void toggleFlag(SelectionKey key) {
     setState(() {
-      documentFlags = {...documentFlags, key: !(documentFlags[key] ?? false)};
+      documentFlags = {...documentFlags, key: !((documentFlags[key] as bool?) ?? false)};
     });
   }
 
@@ -135,14 +135,19 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
       return;
     }
 
+    final TextStyle(:fontWeight, :fontStyle, :decoration, :height, :fontFamily, :fontSize) =
+        textStyle.textStyle ?? const TextStyle();
+
     documentFlags = {
       ...documentFlags,
-      .textFormatBold: textStyle.textStyle?.fontWeight == FontWeight.bold,
-      .textFormatItalic: textStyle.textStyle?.fontStyle == FontStyle.italic,
-      .textFormatUnderline: textStyle.textStyle?.decoration == TextDecoration.underline,
-      .textFormatStrikethrough: textStyle.textStyle?.decoration == TextDecoration.lineThrough,
+      .textFormatBold: fontWeight == FontWeight.bold,
+      .textFormatItalic: fontStyle == FontStyle.italic,
+      .textFormatUnderline: decoration == TextDecoration.underline,
+      .textFormatStrikethrough: decoration == TextDecoration.lineThrough,
       .textFormatSuperscript: textStyle.isSuperscript == true,
       .textFormatSubscript: textStyle.isSubscript == true,
+      .textAlign: textStyle.textAlign ?? TextAlign.left,
+      .lineHeight: height ?? 1.5,
     };
     _lastTextStyle = textStyle;
   }
@@ -467,6 +472,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         controller.applyStyle(
           const SegmentTextStyle(isSubscript: false, isSuperscript: false, textStyle: TextStyle()),
         );
+        controller.applyParagraphStyle(.normal);
         editorFocusNode.requestFocus();
         return;
       },
@@ -608,7 +614,7 @@ class _EditorModel extends InheritedModel<_EditorModelAspect> {
   final SegmentTextStyle? selectedTextStyle;
   final DocumentParagraphStyle selectedParagraphStyle;
   final Map<DocumentParagraphStyle, SegmentTextStyle> paragraphStyles;
-  final Map<SelectionKey, bool> documentFlags;
+  final Map<SelectionKey, Object> documentFlags;
   final bool hasSelection;
   final EditorController controller;
   final FocusNode editorFocusNode;

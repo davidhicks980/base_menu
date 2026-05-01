@@ -2,11 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import 'tooltip.dart';
 import 'widget_state_decorated_box.dart';
 
 class TitleIconButton extends StatelessWidget {
-  const TitleIconButton({super.key, required this.child});
+  const TitleIconButton({super.key, required this.child, required this.tooltip});
   final Widget child;
+  final TextSpan tooltip;
 
   static const _decoration = WidgetStateProperty<BoxDecoration>.fromMap({
     WidgetState.pressed: BoxDecoration(
@@ -35,14 +37,17 @@ class TitleIconButton extends StatelessWidget {
       ),
       child: child,
     );
-    return CoreTappable(
-      mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
-      child: SizedBox(
-        width: 28,
-        height: 28,
-        child: WidgetStateDecoratedBox(decoration: _decoration, child: icon),
+    return MenuTooltip(
+      message: tooltip,
+      child: CoreTappable(
+        mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: WidgetStateDecoratedBox(decoration: _decoration, child: icon),
+        ),
+        onPressed: () {},
       ),
-      onPressed: () {},
     );
   }
 }

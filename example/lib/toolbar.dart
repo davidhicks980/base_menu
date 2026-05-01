@@ -115,6 +115,12 @@ class _ToolbarState extends State<Toolbar> {
   int _cutoff = children.length;
   final scopeNode = FocusScopeNode(traversalEdgeBehavior: TraversalEdgeBehavior.stop);
 
+  @override
+  void dispose() {
+    scopeNode.dispose();
+    super.dispose();
+  }
+
   Widget _buildConditionalTraversal(BuildContext context, Widget? child) {
     return Focus(
       includeSemantics: false,
@@ -302,6 +308,7 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
             widget.controller.close();
           } else {
             widget.controller.open();
+            focusNode.requestFocus();
           }
         },
         child: const Icon(Symbols.more_vert, size: 18, opticalSize: 30),

@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import 'app_state_manager.dart';
@@ -113,82 +114,101 @@ class _MainState extends State<Main> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: const Color(0xFFF8FAFD),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          if (_isHeaderShown)
-            FocusTraversalGroup(
-              policy: WidgetOrderTraversalPolicy(),
-              child: FadeTransition(
-                opacity: _controller,
-                child: MatrixTransition(
-                  animation: _controller,
-                  onTransform: (double animationValue) {
-                    return Matrix4.translationValues(0, -30 * (1 - animationValue), 0);
-                  },
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(17, 15, 3, 0),
-                        child: FloogleDocsLogoButton(),
-                      ),
-                      Expanded(
-                        child: SizedBox(
-                          height: 60,
-                          child: Stack(
-                            alignment: Alignment.topLeft,
-                            children: [
-                              const Positioned(
-                                top: 6,
-                                left: 1,
-                                right: 0,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  spacing: 3,
-                                  children: [
-                                    Flexible(child: TitleField()),
-                                    TitleIconButton(
-                                      child: Icon(Symbols.star_border, weight: kIsWeb ? 500 : 350),
-                                    ),
-                                    TitleIconButton(child: Icon(Symbols.add_to_drive)),
-                                    TitleIconButton(child: _CloudIcon()),
-                                  ],
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.arrowLeft): const DoNothingAndStopPropagationIntent(),
+        LogicalKeySet(LogicalKeyboardKey.arrowRight): const DoNothingAndStopPropagationIntent(),
+        LogicalKeySet(LogicalKeyboardKey.arrowUp): const DoNothingAndStopPropagationIntent(),
+        LogicalKeySet(LogicalKeyboardKey.arrowDown): const DoNothingAndStopPropagationIntent(),
+      },
+      child: ColoredBox(
+        color: const Color(0xFFF8FAFD),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            if (_isHeaderShown)
+              FocusTraversalGroup(
+                policy: WidgetOrderTraversalPolicy(),
+                child: FadeTransition(
+                  opacity: _controller,
+                  child: MatrixTransition(
+                    animation: _controller,
+                    onTransform: (double animationValue) {
+                      return Matrix4.translationValues(0, -30 * (1 - animationValue), 0);
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(17, 15, 3, 0),
+                          child: FloogleDocsLogoButton(),
+                        ),
+                        Expanded(
+                          child: SizedBox(
+                            height: 60,
+                            child: Stack(
+                              alignment: Alignment.topLeft,
+                              children: [
+                                const Positioned(
+                                  top: 6,
+                                  left: 1,
+                                  right: 0,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    spacing: 3,
+                                    children: [
+                                      Flexible(child: TitleField()),
+                                      TitleIconButton(
+                                        tooltip: TextSpan(text: 'Star'),
+                                        child: Icon(
+                                          Symbols.star_border,
+                                          weight: kIsWeb ? 500 : 350,
+                                        ),
+                                      ),
+                                      TitleIconButton(
+                                        tooltip: TextSpan(text: 'Add shortcut to drive'),
+                                        child: Icon(Symbols.add_to_drive),
+                                      ),
+                                      TitleIconButton(
+                                        tooltip: TextSpan(text: 'See document status'),
+                                        child: _CloudIcon(),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Positioned(
-                                top: 32,
-                                left: 0,
-                                right: 0,
-                                child: MatrixTransition(
-                                  animation: _controller,
-                                  onTransform: (animationValue) {
-                                    return Matrix4.translationValues(
-                                      0,
-                                      30 * (1 - animationValue),
-                                      0,
-                                    );
-                                  },
-                                  child: const DocumentMenuBar(),
+                                Positioned(
+                                  top: 32,
+                                  left: 0,
+                                  right: 0,
+                                  child: MatrixTransition(
+                                    animation: _controller,
+                                    onTransform: (animationValue) {
+                                      return Matrix4.translationValues(
+                                        0,
+                                        30 * (1 - animationValue),
+                                        0,
+                                      );
+                                    },
+                                    child: const DocumentMenuBar(),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
+
+            const Padding(
+              padding: EdgeInsets.only(left: 16, right: 16, top: 6, bottom: 4),
+              child: Toolbar(),
             ),
-          const Padding(
-            padding: EdgeInsets.only(left: 16, right: 16, top: 6, bottom: 4),
-            child: Toolbar(),
-          ),
-          const Expanded(child: EditorView()),
-        ],
+            const Expanded(child: EditorView()),
+          ],
+        ),
       ),
     );
   }

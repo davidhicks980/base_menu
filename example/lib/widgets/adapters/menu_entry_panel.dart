@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 
+import '../../app_state_manager.dart';
 import '../../model/model.dart';
+import '../checkbox_menu_item.dart';
 import '../dimension_picker.dart';
 import '../menu_divider.dart';
 import '../menu_item.dart';
@@ -43,6 +45,24 @@ class MenuEntryPanel extends StatelessWidget {
               entry: entry,
               hoverDelay: const Duration(milliseconds: 260),
             ),
+            SelectableMenuEntry() => Builder(
+              builder: (context) {
+                final checked =
+                    AppStateManager.documentFlagsOf(context)[child.intent.key] ==
+                    child.intent.value;
+                return CheckboxMenuItem(
+                  checked: checked,
+                  onPressed: () {
+                    Actions.invoke(context, child.intent);
+                  },
+                  controlAffinity: .trailing,
+                  shortcut: child.shortcut,
+                  icon: child.icon != null ? Icon(child.icon) : null,
+                  child: Text(child.label),
+                );
+              },
+            ),
+
             MenuEntryWithIntent(:final intent, :final icon, :final shortcut, :final label) =>
               MenuItem(
                 intent: intent,

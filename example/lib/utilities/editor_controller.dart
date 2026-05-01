@@ -41,15 +41,6 @@ class EditorController extends TextEditingController {
     }
   }
 
-  TextAlign get textAlign => _textAlign;
-  TextAlign _textAlign = TextAlign.left;
-  set textAlign(TextAlign align) {
-    if (_textAlign != align) {
-      _textAlign = align;
-      notifyListeners();
-    }
-  }
-
   double get indent => _indent;
   double _indent = 0.0;
   set indent(double value) {

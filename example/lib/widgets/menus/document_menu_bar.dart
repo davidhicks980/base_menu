@@ -25,22 +25,6 @@ class _DocumentMenuBarState extends State<DocumentMenuBar> {
       .toList(growable: false);
 
   @override
-  void initState() {
-    super.initState();
-    _focusScopeNode.addListener(() {
-      if (!_focusScopeNode.hasFocus) {
-        _menuController.close();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _focusScopeNode.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final bool hasOverflow = _cutoff < Menu.main.children.length;
     return CoreMenuBar(

@@ -39,8 +39,8 @@ class MenuItem extends StatelessWidget {
     return CoreMenuItem(
       onPressed: intent != null
           ? () {
-              onPressed?.call();
               Actions.invoke(context, intent!);
+              onPressed?.call();
             }
           : onPressed,
       requestFocusOnHover: requestFocusOnHover,

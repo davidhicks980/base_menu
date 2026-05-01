@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'data/entry.dart';
 import 'data/menu.dart';
@@ -419,6 +420,19 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return null;
       },
     ),
+
+    SetFontFamilyIntent: CallbackAction<SetFontFamilyIntent>(
+      onInvoke: (intent) {
+        print('Applying font family ${intent.value.label}'); // --- IGNORE ---
+        controller.applyStyle(
+          SegmentTextStyle(
+            textStyle: TextStyle(fontFamily: GoogleFonts.getFont(intent.value.label).fontFamily),
+          ),
+        );
+        editorFocusNode.requestFocus();
+        return null;
+      },
+    ),
     UpdateParagraphStyleToMatchIntent: CallbackAction<UpdateParagraphStyleToMatchIntent>(
       onInvoke: (intent) {
         final textStyle = controller.selectedTextStyle;
@@ -430,10 +444,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
           return;
         }
 
-        controller.updateParagraphStyle(
-          intent.style,
-          SegmentTextStyle(textStyle: textStyle.textStyle),
-        );
+        controller.updateParagraphStyle(intent.style, textStyle);
         editorFocusNode.requestFocus();
         return;
       },

@@ -143,6 +143,7 @@ class _Option extends StatelessWidget {
         autofocus: autofocusSelected && group.isFamilySelected,
         checked: group.isFamilySelected,
         onPressed: () {
+          print('Selecting font ${value.label}'); // --- IGNORE ---
           group.select(value, FontWeight.normal);
         },
         child: Text(value.label),
@@ -179,10 +180,15 @@ class _SubmenuOption extends StatelessWidget {
                   builder: (context) {
                     final group = _FontSelector.of(context, value);
                     final isWeightSelected =
-                        AppStateManager.selectedTextStyleOf(context)?.fontWeight == variant;
+                        (AppStateManager.selectedTextStyleOf(context)?.fontWeight ??
+                            FontWeight.normal) ==
+                        variant;
                     return CheckboxMenuItem(
                       checked: checked && isWeightSelected,
                       onPressed: () {
+                        print(
+                          'Selecting font ${value.label} with weight $variant',
+                        ); // --- IGNORE ---
                         group.select(value, variant);
                       },
                       child: Text(

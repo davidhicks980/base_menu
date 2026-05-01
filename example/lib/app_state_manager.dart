@@ -108,7 +108,12 @@ class AppStateManager extends StatefulWidget {
 }
 
 class _AppStateManagerState extends State<AppStateManager> implements AppStateInterface {
-  final controller = EditorController(text: 'Enter text here...');
+  final controller = EditorController(
+    text:
+        'This application demonstrates a menu system built using menu_utilities.\n\n'
+        'The editor itself is only a demonstration, and has limited functionality.\n\n',
+  );
+
   final FocusNode editorFocusNode = FocusNode();
   final MenuController searchMenuController = MenuController();
   Map<SelectionKey, bool> documentFlags = <SelectionKey, bool>{};

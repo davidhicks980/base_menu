@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../app_state_manager.dart';
+import '../../extensions/string.dart';
 import '../../model/enum.dart';
 import '../../model/intents.dart';
 import '../../utilities/colors.dart';
@@ -27,7 +28,9 @@ class _FontMenuState extends State<FontMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedFamily = AppStateManager.selectedTextStyleOf(context)?.fontFamily;
+    final selectedFamily = AppStateManager.selectedTextStyleOf(
+      context,
+    )?.textStyle?.fontFamily?.withSpaceAfterCapitals.split('_').first;
     final family = selectedFamily != null
         ? FontFamily.values.firstWhere(
             (f) => f.label == selectedFamily,
@@ -178,7 +181,7 @@ class _SubmenuOption extends StatelessWidget {
                   builder: (context) {
                     final group = _FontSelector.of(context, value);
                     final isWeightSelected =
-                        (AppStateManager.selectedTextStyleOf(context)?.fontWeight ??
+                        (AppStateManager.selectedTextStyleOf(context)?.textStyle?.fontWeight ??
                             FontWeight.normal) ==
                         variant;
                     return CheckboxMenuItem(

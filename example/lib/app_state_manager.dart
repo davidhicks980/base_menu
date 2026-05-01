@@ -36,7 +36,7 @@ class AppStateManager extends StatefulWidget {
     )!.selectedText;
   }
 
-  static TextStyle? selectedTextStyleOf(BuildContext context) {
+  static SegmentTextStyle? selectedTextStyleOf(BuildContext context) {
     return InheritedModel.inheritFrom<_EditorModel>(
       context,
       aspect: _EditorModelAspect.selectedTextStyle,
@@ -55,13 +55,6 @@ class AppStateManager extends StatefulWidget {
       context,
       aspect: _EditorModelAspect.paragraphStyles,
     )!.paragraphStyles;
-  }
-
-  static TextAlign? textAlignOf(BuildContext context) {
-    return InheritedModel.inheritFrom<_EditorModel>(
-      context,
-      aspect: _EditorModelAspect.textAlign,
-    )!.textAlign;
   }
 
   static FocusNode editorFocusNodeOf(BuildContext context) {
@@ -111,7 +104,8 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
   final controller = EditorController(
     text:
         'This application demonstrates a menu system built using menu_utilities.\n\n'
-        'The editor itself is only a demonstration, and has limited functionality.\n\n',
+        'The editor itself is only a demonstration, and has limited functionality.\n\n'
+        'No Material or Cupertino widgets are used in this example.',
   );
 
   final FocusNode editorFocusNode = FocusNode();
@@ -487,6 +481,13 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return null;
       },
     ),
+    SetBlockAlignIntent: CallbackAction<SetBlockAlignIntent>(
+      onInvoke: (intent) {
+        controller.applyStyle(SegmentTextStyle(textAlign: intent.value));
+        editorFocusNode.requestFocus();
+        return null;
+      },
+    ),
     AddSpaceBeforeParagraphIntent: _ToggleEntryAction(this),
     AddSpaceAfterParagraphIntent: _ToggleEntryAction(this),
     KeepLinesTogetherIntent: _ToggleEntryAction(this),
@@ -560,10 +561,9 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
               controller: controller,
               hasSelection: !controller.selection.isCollapsed,
               selectedText: controller.selectedText,
-              selectedTextStyle: controller.selectedTextStyle?.textStyle,
+              selectedTextStyle: controller.selectedTextStyle,
               selectedParagraphStyle: controller.selectedParagraphStyle,
               paragraphStyles: controller.paragraphStyles,
-              textAlign: controller.textAlign,
               editorFocusNode: editorFocusNode,
               searchMenuController: searchMenuController,
               documentFlags: documentFlags,
@@ -585,7 +585,6 @@ enum _EditorModelAspect {
   paragraphStyles,
   documentFlags,
   controller,
-  textAlign,
   editorFocusNode,
   searchMenuController,
   isHeaderShown,
@@ -601,19 +600,17 @@ class _EditorModel extends InheritedModel<_EditorModelAspect> {
     required this.documentFlags,
     required this.hasSelection,
     required this.controller,
-    required this.textAlign,
     required this.editorFocusNode,
     required this.searchMenuController,
     required this.isHeaderShown,
   });
   final String? selectedText;
-  final TextStyle? selectedTextStyle;
+  final SegmentTextStyle? selectedTextStyle;
   final DocumentParagraphStyle selectedParagraphStyle;
   final Map<DocumentParagraphStyle, SegmentTextStyle> paragraphStyles;
   final Map<SelectionKey, bool> documentFlags;
   final bool hasSelection;
   final EditorController controller;
-  final TextAlign textAlign;
   final FocusNode editorFocusNode;
   final MenuController searchMenuController;
   final bool isHeaderShown;
@@ -628,7 +625,6 @@ class _EditorModel extends InheritedModel<_EditorModelAspect> {
         !mapEquals(documentFlags, oldWidget.documentFlags) ||
         hasSelection != oldWidget.hasSelection ||
         controller != oldWidget.controller ||
-        textAlign != oldWidget.textAlign ||
         editorFocusNode != oldWidget.editorFocusNode ||
         searchMenuController != oldWidget.searchMenuController ||
         isHeaderShown != oldWidget.isHeaderShown;
@@ -668,9 +664,6 @@ class _EditorModel extends InheritedModel<_EditorModelAspect> {
 
     if (dependencies.contains(_EditorModelAspect.controller) &&
         controller != oldWidget.controller) {
-      return true;
-    }
-    if (dependencies.contains(_EditorModelAspect.textAlign) && textAlign != oldWidget.textAlign) {
       return true;
     }
 

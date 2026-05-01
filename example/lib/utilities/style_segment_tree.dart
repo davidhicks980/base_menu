@@ -5,22 +5,25 @@ import '../model/enum.dart';
 
 @immutable
 class SegmentTextStyle {
-  const SegmentTextStyle({this.textStyle, this.isSuperscript, this.isSubscript});
+  const SegmentTextStyle({this.textStyle, this.isSuperscript, this.isSubscript, this.textAlign});
 
   final TextStyle? textStyle;
   final bool? isSuperscript;
   final bool? isSubscript;
+  final TextAlign? textAlign;
 
   SegmentTextStyle copyWith({
     TextStyle? textStyle,
     bool? isSuperscript,
     bool? isSubscript,
     double? lineSpacing,
+    TextAlign? textAlign,
   }) {
     return SegmentTextStyle(
       textStyle: textStyle ?? this.textStyle,
       isSuperscript: isSuperscript ?? this.isSuperscript,
       isSubscript: isSubscript ?? this.isSubscript,
+      textAlign: textAlign ?? this.textAlign,
     );
   }
 
@@ -32,6 +35,7 @@ class SegmentTextStyle {
       textStyle: textStyle?.merge(other.textStyle) ?? other.textStyle,
       isSuperscript: other.isSuperscript ?? isSuperscript,
       isSubscript: other.isSubscript ?? isSubscript,
+      textAlign: other.textAlign ?? textAlign,
     );
   }
 
@@ -43,11 +47,12 @@ class SegmentTextStyle {
     return other is SegmentTextStyle &&
         other.textStyle == textStyle &&
         other.isSuperscript == isSuperscript &&
-        other.isSubscript == isSubscript;
+        other.isSubscript == isSubscript &&
+        other.textAlign == textAlign;
   }
 
   @override
-  int get hashCode => Object.hash(textStyle, isSuperscript, isSubscript);
+  int get hashCode => Object.hash(textStyle, isSuperscript, isSubscript, textAlign);
 }
 
 class SegmentNode {

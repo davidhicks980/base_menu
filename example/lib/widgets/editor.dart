@@ -123,7 +123,7 @@ class _EditorWidget extends StatelessWidget {
       },
       focusNode: AppStateManager.editorFocusNodeOf(context),
       controller: AppStateManager.controllerOf(context),
-      textAlign: AppStateManager.textAlignOf(context) ?? TextAlign.start,
+      textAlign: AppStateManager.selectedTextStyleOf(context)?.textAlign ?? TextAlign.start,
       maxLines: null, // Allows multiline
       expands: true,
     );

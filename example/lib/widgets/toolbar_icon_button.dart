@@ -3,7 +3,7 @@ import 'package:menu_utilities/menu_utilities.dart';
 
 import 'widget_state_decorated_box.dart';
 
-class ToolbarIconButton extends StatefulWidget {
+class ToolbarIconButton extends StatelessWidget {
   const ToolbarIconButton({
     super.key,
     required this.child,
@@ -13,6 +13,7 @@ class ToolbarIconButton extends StatefulWidget {
     this.tooltip,
     this.shortcut,
     this.showShortcutInTooltip = true,
+    this.autofocus = false,
     this.intent,
     this.decoration,
     this.constraints = const BoxConstraints.tightFor(width: 30, height: 30),
@@ -31,16 +32,8 @@ class ToolbarIconButton extends StatefulWidget {
   final BoxConstraints constraints;
   final bool requestFocusOnHover;
   final bool requestCloseOnActivate;
+  final bool autofocus;
   final Intent? intent;
-
-  @override
-  State<ToolbarIconButton> createState() => _ToolbarIconButtonState();
-}
-
-class _ToolbarIconButtonState extends State<ToolbarIconButton> {
-  void _handlePressed() {
-    widget.onPressed?.call();
-  }
 
   static const _decoration = WidgetStateProperty<BoxDecoration>.fromMap({
     WidgetState.pressed: BoxDecoration(
@@ -61,18 +54,16 @@ class _ToolbarIconButtonState extends State<ToolbarIconButton> {
   @override
   Widget build(BuildContext context) {
     return CoreMenuItem(
-      onPressed: _handlePressed,
-      onHover: widget.onHover,
+      autofocus: autofocus,
+      onPressed: onPressed,
+      onHover: onHover,
       mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
       requestFocusOnHover: false,
-      requestCloseOnActivate: widget.requestCloseOnActivate,
+      requestCloseOnActivate: requestCloseOnActivate,
       role: null,
       child: ConstrainedBox(
-        constraints: widget.constraints,
-        child: WidgetStateDecoratedBox(
-          decoration: widget.decoration ?? _decoration,
-          child: widget.child,
-        ),
+        constraints: constraints,
+        child: WidgetStateDecoratedBox(decoration: decoration ?? _decoration, child: child),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../model/model.dart';
+import '../../utilities/colors.dart';
 import '../tile_group.dart';
 
 class MenuEntryTileGroup<T> extends StatelessWidget {
@@ -40,7 +41,7 @@ class _TileLinePainter extends CustomPainter {
   final List<TileLineMenuEntry> description;
 
   static const double _indentUnit = 16.0;
-  static const double _prefixGap = 4.0;
+  static const double gap = 4.0;
   static const double _prefixWidth = 12.0;
 
   @override
@@ -64,7 +65,6 @@ class _TileLinePainter extends CustomPainter {
       double x = line.indentLevel * _indentUnit;
       final double y = cy - lineHeight / 2;
       final double remainingWidth = size.width - x;
-      const gap = 4.0;
       final double totalGapWidth = gap * (line.columns - 1);
       final double segmentWidth = (remainingWidth - totalGapWidth) / line.columns;
       final double segmentWithGap = segmentWidth + gap;
@@ -72,6 +72,12 @@ class _TileLinePainter extends CustomPainter {
         final double segX = x + col * segmentWithGap;
         final segRect = Rect.fromLTWH(segX, y, segmentWidth, lineHeight);
         canvas.drawRect(segRect, paint);
+        if (description[i].strikeThrough) {
+          final strikePaint = Paint()
+            ..color = FloogleColors.black
+            ..strokeWidth = 1;
+          canvas.drawLine(Offset(segX - 2, cy), Offset(segX + segmentWidth + 2, cy), strikePaint);
+        }
       }
 
       if (line.prefix != null) {
@@ -208,7 +214,7 @@ class _TileLinePainter extends CustomPainter {
           textPainter.paint(canvas, Offset(x - textPainter.width - 2, cy - textPainter.height / 2));
         }
 
-        x += _prefixWidth + _prefixGap;
+        x += _prefixWidth + gap;
       }
     }
   }

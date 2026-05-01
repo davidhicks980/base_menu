@@ -13,6 +13,7 @@ class Popup extends StatefulWidget {
     this.padding = const EdgeInsets.symmetric(vertical: 6.0),
     this.axis = Axis.vertical,
     this.buttonDecoration,
+    this.focusFirstOnOpen = true,
   });
 
   final Widget panel;
@@ -22,6 +23,7 @@ class Popup extends StatefulWidget {
   final Axis axis;
   final BoxConstraints buttonConstraints;
   final WidgetStateProperty<BoxDecoration>? buttonDecoration;
+  final bool focusFirstOnOpen;
 
   @override
   State<Popup> createState() => _PopupState();
@@ -85,8 +87,11 @@ class _PopupState extends State<Popup> {
             if (controller.isOpen) {
               controller.close();
             } else {
-              focusNode.requestFocus();
-              Actions.invoke(context, const CoreMenuEnterIntent.focusFirst());
+              if (widget.focusFirstOnOpen) {
+                Actions.invoke(context, const CoreMenuEnterIntent.focusFirst());
+              } else {
+                controller.open();
+              }
             }
           },
           child: widget.child,

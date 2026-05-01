@@ -1133,7 +1133,7 @@ abstract class Entry {
 
   // Checklist
 
-  static const formatChecklistOne = TileMenuEntry(
+  static const formatChecklistTwo = TileMenuEntry(
     'Do not strikethrough text when checked',
     tileLines: [
       TileLineMenuEntry(1, prefix: '☐'),
@@ -1142,7 +1142,7 @@ abstract class Entry {
     intent: FormatChecklistIntent.normal(),
   );
 
-  static const formatChecklistTwo = TileMenuEntry(
+  static const formatChecklistOne = TileMenuEntry(
     'Strikethrough text when checked',
     tileLines: [
       TileLineMenuEntry(1, prefix: '☐'),

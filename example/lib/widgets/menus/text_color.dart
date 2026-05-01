@@ -16,7 +16,8 @@ class TextColorButton extends StatefulWidget {
 class _TextColorButtonState extends State<TextColorButton> {
   @override
   Widget build(BuildContext context) {
-    final color = AppStateManager.selectedTextStyleOf(context)?.color ?? const Color(0xFF3C4043);
+    final color =
+        AppStateManager.selectedTextStyleOf(context)?.textStyle?.color ?? const Color(0xFF3C4043);
     final button = Semantics(
       label: 'Text color: ${': ${colorLabel(color)}'}',
       child: ExcludeSemantics(

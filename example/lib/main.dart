@@ -143,74 +143,57 @@ class _MainState extends State<Main> with SingleTickerProviderStateMixin {
                     onTransform: (double animationValue) {
                       return Matrix4.translationValues(0, -30 * (1 - animationValue), 0);
                     },
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(17, 15, 3, 0),
-                          child: FloogleDocsLogoButton(),
-                        ),
-                        Expanded(
-                          child: SizedBox(
-                            height: 60,
-                            child: Stack(
-                              alignment: Alignment.topLeft,
+                    child: SizedBox(
+                      height: 62,
+                      child: Stack(
+                        children: [
+                          const Positioned(top: 16, left: 17, child: FloogleDocsLogoButton()),
+                          const Positioned(
+                            top: 7,
+                            left: 55,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              spacing: 3,
                               children: [
-                                const Positioned(
-                                  top: 6,
-                                  left: 1,
-                                  right: 0,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    spacing: 3,
-                                    children: [
-                                      Flexible(child: TitleField()),
-                                      TitleIconButton(
-                                        tooltip: TextSpan(text: 'Star'),
-                                        child: Icon(
-                                          Symbols.star_border,
-                                          weight: kIsWeb ? 500 : 350,
-                                        ),
-                                      ),
-                                      TitleIconButton(
-                                        tooltip: TextSpan(text: 'Add shortcut to drive'),
-                                        child: Icon(Symbols.add_to_drive),
-                                      ),
-                                      TitleIconButton(
-                                        tooltip: TextSpan(text: 'See document status'),
-                                        child: _CloudIcon(),
-                                      ),
-                                    ],
-                                  ),
+                                Flexible(child: TitleField()),
+                                TitleIconButton(
+                                  tooltip: TextSpan(text: 'Star'),
+                                  child: Icon(Symbols.star_border, weight: kIsWeb ? 500 : 350),
                                 ),
-                                Positioned(
-                                  top: 32,
-                                  left: 0,
-                                  right: 0,
-                                  child: MatrixTransition(
-                                    animation: _controller,
-                                    onTransform: (animationValue) {
-                                      return Matrix4.translationValues(
-                                        0,
-                                        30 * (1 - animationValue),
-                                        0,
-                                      );
-                                    },
-                                    child: const DocumentMenuBar(),
-                                  ),
+                                TitleIconButton(
+                                  tooltip: TextSpan(text: 'Add shortcut to drive'),
+                                  child: Icon(Symbols.add_to_drive),
+                                ),
+                                TitleIconButton(
+                                  tooltip: TextSpan(text: 'See document status'),
+                                  child: _CloudIcon(),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                      ],
+
+                          Positioned(
+                            top: 34,
+                            left: 54,
+                            right: 0,
+                            child: MatrixTransition(
+                              animation: _controller,
+                              onTransform: (animationValue) {
+                                return Matrix4.translationValues(0, 30 * (1 - animationValue), 0);
+                              },
+                              child: const DocumentMenuBar(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
 
             const Padding(
-              padding: EdgeInsets.only(left: 16, right: 16, top: 6, bottom: 4),
+              padding: EdgeInsets.only(left: 16, right: 16, bottom: 2, top: 2),
               child: Toolbar(),
             ),
             const Expanded(child: EditorView()),

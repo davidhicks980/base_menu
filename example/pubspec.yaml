@@ -84,6 +84,9 @@ flutter:
     - family: GoogleSansFlex
       fonts:
         - asset: assets/GoogleSansFlex.ttf
+    - family: GoogleSansCode
+      fonts:
+        - asset: assets/GoogleSansCode.ttf
     - family: Amatic SC
       fonts:
         - asset: assets/Amatic_SC_400.ttf

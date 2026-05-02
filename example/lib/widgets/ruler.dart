@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../utilities/colors.dart';
@@ -74,9 +75,10 @@ class _RulerPainter extends CustomPainter {
           text: '$inchNum',
           style: const TextStyle(
             color: FloogleColors.rulerTextColor,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'RobotoFlex',
+            fontSize: 11,
+            fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+
+            fontFamily: 'GoogleSansCode',
           ),
         );
         textPainter.layout();
@@ -155,9 +157,9 @@ class _VerticalRulerPainter extends CustomPainter {
           text: '$inchNum',
           style: const TextStyle(
             color: FloogleColors.rulerTextColor,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'RobotoFlex',
+            fontSize: 11,
+            fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+            fontFamily: 'GoogleSansCode',
           ),
         );
         textPainter.layout();

@@ -12,10 +12,8 @@ class MenuEntryPopup extends StatelessWidget {
     this.tooltip,
     this.buttonConstraints = const BoxConstraints(minWidth: 30, minHeight: 30),
     this.buttonDecoration,
-    this.padding = const EdgeInsets.symmetric(vertical: 6.0),
   });
   final SubmenuEntry model;
-  final EdgeInsetsGeometry padding;
   final BoxConstraints? constraints;
   final WidgetStateProperty<BoxDecoration>? buttonDecoration;
   final BoxConstraints buttonConstraints;
@@ -27,7 +25,7 @@ class MenuEntryPopup extends StatelessWidget {
       buttonConstraints: buttonConstraints,
       buttonDecoration: buttonDecoration,
       tooltip: tooltip,
-      panel: MenuEntryPanel(constraints: constraints, padding: padding, menuEntry: model),
+      panel: MenuEntryPanel(constraints: constraints, menuEntry: model),
       child: Icon(model.child.icon),
     );
   }

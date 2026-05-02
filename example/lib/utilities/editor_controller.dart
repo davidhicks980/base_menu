@@ -213,9 +213,7 @@ class EditorController extends TextEditingController {
       }
 
       final paragraphStyle = paragraphStyles[paragraph]!;
-
       final mergedStyle = paragraphStyle.merge(currentStyle);
-
       if (currentStyle.isSuperscript == true || currentStyle.isSubscript == true) {
         final double fontSize = mergedStyle.textStyle?.fontSize ?? 14.0;
         const scaleFactor = 0.7;

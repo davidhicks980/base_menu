@@ -2,18 +2,17 @@ import 'package:flutter/widgets.dart';
 
 import '../../app_state_manager.dart';
 import '../../model/model.dart';
-import '../checkbox_menu_item.dart';
 import '../dimension_picker.dart';
 import '../menu_divider.dart';
 import '../menu_item.dart';
 import '../menu_panel.dart';
+import '../selectable_menu_item.dart';
 import 'menu_entry_submenu.dart';
 import 'menu_entry_tile_group.dart';
 
 class MenuEntryPanel extends StatelessWidget {
   const MenuEntryPanel({
     super.key,
-    this.padding = const EdgeInsets.symmetric(vertical: 6.0),
     this.constraints,
     this.clipBehavior = Clip.none,
     this.borderRadius = const BorderRadius.all(Radius.circular(4)),
@@ -21,7 +20,6 @@ class MenuEntryPanel extends StatelessWidget {
     required this.menuEntry,
   });
 
-  final EdgeInsetsGeometry? padding;
   final BoxConstraints? constraints;
   final BorderRadiusGeometry borderRadius;
   final Clip clipBehavior;
@@ -32,7 +30,6 @@ class MenuEntryPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return MenuPanel(
       axis: axis,
-      padding: padding ?? EdgeInsets.zero,
       constraints: constraints,
       clipBehavior: clipBehavior,
       borderRadius: borderRadius,
@@ -50,28 +47,61 @@ class MenuEntryPanel extends StatelessWidget {
                 final checked =
                     AppStateManager.documentFlagsOf(context)[child.intent.key] ==
                     child.intent.value;
-                return CheckboxMenuItem(
-                  checked: checked,
+                return SelectableMenuItem(
+                  selected: checked,
                   onPressed: () {
                     Actions.invoke(context, child.intent);
                   },
-                  controlAffinity: .trailing,
                   shortcut: child.shortcut,
-                  icon: child.icon != null ? Icon(child.icon) : null,
+                  controlAffinity: child.iconConfig?.affinity == .leading ? .trailing : .leading,
+                  icon: child.icon != null
+                      ? Icon(
+                          child.icon,
+                          weight: child.iconConfig?.weight,
+                          fill: child.iconConfig?.fill,
+                          grade: child.iconConfig?.grade,
+                          opticalSize: child.iconConfig?.opticalSize,
+                          size: child.iconConfig?.size,
+                        )
+                      : null,
                   child: Text(child.label),
                 );
               },
             ),
 
-            MenuEntryWithIntent(:final intent, :final icon, :final shortcut, :final label) =>
+            MenuEntryWithIntent(
+              :final intent,
+              :final icon,
+              :final shortcut,
+              :final label,
+              :final iconConfig,
+            ) =>
               MenuItem(
                 intent: intent,
-                leading: icon != null ? Icon(icon) : null,
+                leading: icon != null
+                    ? Icon(
+                        child.icon,
+                        weight: iconConfig?.weight,
+                        fill: iconConfig?.fill,
+                        grade: iconConfig?.grade,
+                        opticalSize: iconConfig?.opticalSize,
+                        size: iconConfig?.size,
+                      )
+                    : null,
                 shortcut: shortcut,
                 child: Text(label),
               ),
             MenuEntry() => MenuItem(
-              leading: child.icon != null ? Icon(child.icon) : null,
+              leading: child.icon != null
+                  ? Icon(
+                      child.icon,
+                      weight: child.iconConfig?.weight,
+                      fill: child.iconConfig?.fill,
+                      grade: child.iconConfig?.grade,
+                      opticalSize: child.iconConfig?.opticalSize,
+                      size: child.iconConfig?.size,
+                    )
+                  : null,
               child: Text(child.label),
             ),
             SeparatorMenuEntry() => const MenuDivider(),

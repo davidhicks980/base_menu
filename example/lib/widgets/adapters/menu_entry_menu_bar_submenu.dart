@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../model/model.dart';
 import '../menu_bar_button_label.dart';
+import '../web_label.dart';
 import 'menu_entry_panel.dart';
 
 class MenuBarSubmenu extends StatefulWidget {
@@ -105,6 +107,28 @@ class _MenuBarSubmenuState extends State<MenuBarSubmenu> {
                 child: MenuBarButtonLabel(
                   widget.overflow
                       ? Icon(widget.entry.child.icon, size: 16)
+                      : kIsWeb
+                      ? WebLabel(
+                          label: widget.entry.child.label,
+                          textStyle: const TextStyle(
+                            fontFamily: 'GoogleSansFlex',
+                            fontFamilyFallback: ['GoogleSans'],
+                            fontSize: 14.5,
+                            fontWeight: FontWeight(460),
+                            letterSpacing: 0.1,
+                            fontVariations: [
+                              FontVariation.width(82.5),
+                              FontVariation.opticalSize(14),
+                            ],
+                          ),
+                          uppercaseTextStyle: const TextStyle(
+                            fontFamily: 'GoogleSans',
+                            fontSize: 14.5,
+                            fontWeight: FontWeight(460),
+                            letterSpacing: -0.3,
+                            fontVariations: [FontVariation.opticalSize(14)],
+                          ),
+                        )
                       : Text(widget.entry.child.label),
                   decoration: _blockDecoration ? const BoxDecoration() : null,
                 ),

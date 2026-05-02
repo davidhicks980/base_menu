@@ -59,7 +59,7 @@ class RenderOverflowToolbarRow extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, _OverflowParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, _OverflowParentData> {
-  RenderOverflowToolbarRow({required OverflowCallback onOverflow}) : _onOverflow = onOverflow;
+  RenderOverflowToolbarRow({required this._onOverflow});
 
   OverflowCallback get onOverflow => _onOverflow;
   OverflowCallback _onOverflow;

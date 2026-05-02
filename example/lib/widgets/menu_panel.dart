@@ -6,14 +6,17 @@ import '../utilities/colors.dart';
 class MenuPanel extends StatelessWidget {
   const MenuPanel({
     super.key,
-    this.padding = EdgeInsets.zero,
+    this.padding = defaultPadding,
     this.constraints,
     this.axis = Axis.vertical,
     required this.children,
     this.clipBehavior = Clip.none,
     this.spacing = 0,
     this.borderRadius = const BorderRadius.all(Radius.circular(4)),
+    this.color = FloogleColors.white,
   });
+
+  static const defaultPadding = EdgeInsets.symmetric(vertical: 7, horizontal: 1);
 
   final EdgeInsetsGeometry padding;
   final BoxConstraints? constraints;
@@ -22,6 +25,7 @@ class MenuPanel extends StatelessWidget {
   final Clip clipBehavior;
   final Axis axis;
   final double spacing;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +36,20 @@ class MenuPanel extends StatelessWidget {
       menuChildren: children,
       spacing: spacing,
     );
+
     final decoration = BoxDecoration(
-      color: FloogleColors.white,
+      color: color,
       borderRadius: borderRadius,
       boxShadow: const <BoxShadow>[
-        BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.2), blurRadius: 4, offset: Offset(0, 2)),
+        BoxShadow(
+          color: Color.fromRGBO(0, 0, 0, 0.15),
+          blurRadius: 6,
+          spreadRadius: 2,
+          offset: Offset(0, 2),
+        ),
       ],
     );
+
     if (clipBehavior == Clip.none) {
       return DecoratedBox(decoration: decoration, child: panel);
     }

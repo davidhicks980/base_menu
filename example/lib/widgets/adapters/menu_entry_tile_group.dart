@@ -48,7 +48,7 @@ class _TileLinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..style = PaintingStyle.fill
-      ..color = const Color.fromARGB(255, 203, 203, 203);
+      ..color = FloogleColors.tileLineGray;
 
     if (description.isEmpty) {
       return;
@@ -81,7 +81,7 @@ class _TileLinePainter extends CustomPainter {
       }
 
       if (line.prefix != null) {
-        final prefixPaint = Paint()..color = const Color(0xFF000000);
+        final prefixPaint = Paint()..color = FloogleColors.black;
         final rect = Rect.fromCenter(
           center: Offset(x - _prefixWidth * 0.8, cy),
           width: 8,
@@ -187,7 +187,7 @@ class _TileLinePainter extends CustomPainter {
             canvas.drawPath(
               check,
               Paint()
-                ..color = const Color(0xFF000000)
+                ..color = FloogleColors.black
                 ..style = PaintingStyle.stroke
                 ..strokeWidth = 1.2
                 ..strokeJoin = StrokeJoin.round,
@@ -201,7 +201,7 @@ class _TileLinePainter extends CustomPainter {
             text: TextSpan(
               text: line.prefix,
               style: const TextStyle(
-                color: Color(0xFF000000),
+                color: FloogleColors.black,
                 height: 1.0,
                 fontFamily: 'RobotoFlex',
                 fontSize: 10.0,

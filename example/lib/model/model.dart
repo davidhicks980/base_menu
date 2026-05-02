@@ -1,7 +1,51 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import '../widgets/selectable_menu_item.dart';
 import 'intents.dart';
+
+@immutable
+class IconConfiguration {
+  const IconConfiguration({
+    this.size,
+    this.fill,
+    this.weight,
+    this.grade,
+    this.opticalSize,
+    this.affinity = .leading,
+  });
+  final double? size;
+  final double? fill;
+  final double? weight;
+  final double? grade;
+  final double? opticalSize;
+  final CheckboxMenuItemControlAffinity affinity;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    return other is IconConfiguration &&
+        other.size == size &&
+        other.fill == fill &&
+        other.weight == weight &&
+        other.grade == grade &&
+        other.opticalSize == opticalSize &&
+        other.affinity == affinity;
+  }
+
+  @override
+  int get hashCode {
+    return size.hashCode ^
+        fill.hashCode ^
+        weight.hashCode ^
+        grade.hashCode ^
+        opticalSize.hashCode ^
+        affinity.hashCode;
+  }
+}
 
 @immutable
 sealed class BaseMenuEntry {
@@ -10,10 +54,11 @@ sealed class BaseMenuEntry {
 
 @immutable
 class MenuEntry extends BaseMenuEntry {
-  const MenuEntry(this.label, {this.icon});
+  const MenuEntry(this.label, {this.icon, this.iconConfig});
 
   final String label;
   final IconData? icon;
+  final IconConfiguration? iconConfig;
 
   @override
   bool operator ==(Object other) {
@@ -21,18 +66,27 @@ class MenuEntry extends BaseMenuEntry {
       return true;
     }
 
-    return other is MenuEntry && other.label == label && other.icon == icon;
+    return other is MenuEntry &&
+        other.label == label &&
+        other.icon == icon &&
+        other.iconConfig == iconConfig;
   }
 
   @override
   int get hashCode {
-    return label.hashCode ^ icon.hashCode;
+    return label.hashCode ^ icon.hashCode ^ iconConfig.hashCode;
   }
 }
 
 @optionalTypeArgs
 class MenuEntryWithIntent<T extends Intent> extends MenuEntry {
-  const MenuEntryWithIntent(super.label, {super.icon, required this.intent, this.shortcut});
+  const MenuEntryWithIntent(
+    super.label, {
+    super.icon,
+    super.iconConfig,
+    required this.intent,
+    this.shortcut,
+  });
 
   final T intent;
   final MenuSerializableShortcut? shortcut;
@@ -84,6 +138,7 @@ class SelectableMenuEntry<V> extends MenuEntryWithIntent<FloogleSelectableIntent
     super.label, {
     this.subtitle,
     super.icon,
+    super.iconConfig,
     super.shortcut,
     required super.intent,
   });

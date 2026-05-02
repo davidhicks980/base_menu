@@ -1,6 +1,15 @@
-import 'dart:ui';
+import 'package:flutter/widgets.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
-enum ViewMode { editing, suggesting, viewing }
+enum ViewModeOption {
+  editing('Editing', Symbols.edit),
+  suggesting('Suggesting', Symbols.comment),
+  viewing('Viewing', Symbols.visibility);
+
+  const ViewModeOption(this.label, this.icon);
+  final String label;
+  final IconData icon;
+}
 
 enum ChecklistType { normal, strikethrough }
 

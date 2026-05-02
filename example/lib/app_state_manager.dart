@@ -110,10 +110,14 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
   final FocusNode editorFocusNode = FocusNode();
   final MenuController searchMenuController = MenuController();
-  Map<SelectionKey, Object> documentFlags = <SelectionKey, Object>{};
+  Map<SelectionKey, Object> documentFlags = <SelectionKey, Object>{
+    .viewMode: ViewModeOption.editing,
+    .showRuler: true,
+    .showPrintLayout: true,
+  };
   late final shortcuts = _buildShortcuts();
   // ignore: unused_field
-  ViewMode _viewMode = ViewMode.editing;
+  final ViewModeOption _viewMode = ViewModeOption.editing;
   bool _isHeaderShown = true;
   SegmentTextStyle? _lastTextStyle;
 
@@ -127,6 +131,12 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
   void toggleFlag(SelectionKey key) {
     setState(() {
       documentFlags = {...documentFlags, key: !((documentFlags[key] as bool?) ?? false)};
+    });
+  }
+
+  void setFlag(SelectionKey key, Object value) {
+    setState(() {
+      documentFlags = {...documentFlags, key: value};
     });
   }
 
@@ -258,13 +268,17 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     SetLanguageIntent: ReflectAction(),
     PageSetupIntent: ReflectAction(),
     PrintIntent: ReflectAction(),
+    SetCommentVisibilityIntent: CallbackAction<SetCommentVisibilityIntent>(
+      onInvoke: (intent) {
+        setFlag(intent.key, intent.value);
+        return null;
+      },
+    ),
 
     // View
     SetViewingModeIntent: CallbackAction<SetViewingModeIntent>(
       onInvoke: (intent) {
-        setState(() {
-          _viewMode = intent.value;
-        });
+        setFlag(intent.key, intent.value);
         return null;
       },
     ),
@@ -312,12 +326,12 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
         final textStyle =
             controller.selectedTextStyle?.textStyle ??
-            const TextStyle(fontWeight: FontWeight.normal, fontFamily: 'Roboto');
+            const TextStyle(fontWeight: FontWeight.normal, fontFamily: 'RobotoFlex');
 
         controller.applyStyle(
           SegmentTextStyle(
             textStyle: GoogleFonts.getFont(
-              textStyle.fontFamily?.withSpaceAfterCapitals.split('_')[0] ?? 'Roboto',
+              textStyle.fontFamily?.withSpaceAfterCapitals.split('_')[0] ?? 'RobotoFlex',
               fontWeight: fontWeight,
               textStyle: textStyle,
             ),
@@ -433,7 +447,6 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return null;
       },
     ),
-
     SetFontFamilyIntent: CallbackAction<SetFontFamilyIntent>(
       onInvoke: (intent) {
         controller.applyStyle(
@@ -465,7 +478,6 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return;
       },
     ),
-
     ClearFormattingIntent: CallbackAction<ClearFormattingIntent>(
       onInvoke: (intent) {
         final controller = AppStateManager.controllerOf(primaryFocus!.context!);
@@ -477,7 +489,6 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return;
       },
     ),
-
     IncreaseIndentIntent: ReflectAction(),
     DecreaseIndentIntent: ReflectAction(),
     SetLineSpacingIntent: CallbackAction<SetLineSpacingIntent>(

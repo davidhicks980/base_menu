@@ -9,7 +9,7 @@ import '../model/model.dart';
 abstract class Entry {
   static const newDocument = MenuEntryWithIntent(
     'Document',
-    icon: Symbols.article,
+    icon: Symbols.docs_rounded,
     intent: NewDocumentIntent(),
   );
 
@@ -141,6 +141,7 @@ abstract class Entry {
   static const print = MenuEntryWithIntent(
     'Print',
     icon: Symbols.print,
+    iconConfig: IconConfiguration(fill: 1),
     shortcut: SingleActivator(LogicalKeyboardKey.keyP, meta: true),
     intent: PrintIntent(),
   );
@@ -510,7 +511,7 @@ abstract class Entry {
   static const insertTab = MenuEntryWithIntent(
     'Tab',
     icon: Symbols.article,
-    shortcut: SingleActivator(LogicalKeyboardKey.f11, shift: true),
+    shortcut: SingleActivator(LogicalKeyboardKey.f11),
     intent: InsertTabIntent(),
   );
 
@@ -612,13 +613,11 @@ abstract class Entry {
   // Tools menu entries
   static const showSpellingSuggestions = SelectableMenuEntry(
     'Show spelling suggestions',
-    icon: Symbols.lightbulb,
     intent: ToggleSpellingSuggestionsIntent(),
   );
 
   static const showGrammarSuggestions = SelectableMenuEntry(
     'Show grammar suggestions',
-    icon: Symbols.lightbulb_outline,
     intent: ToggleGrammarSuggestionsIntent(),
   );
 
@@ -787,7 +786,6 @@ abstract class Entry {
 
   static const showAllComments = SelectableMenuEntry(
     'Show all comments',
-    icon: Symbols.comment,
     intent: SetCommentVisibilityIntent.showAll(),
   );
 
@@ -800,15 +798,10 @@ abstract class Entry {
 
   static const showPrintLayout = SelectableMenuEntry(
     'Show print layout',
-    icon: Symbols.check,
     intent: TogglePrintLayoutIntent(),
   );
 
-  static const showRuler = SelectableMenuEntry(
-    'Show ruler',
-    icon: Symbols.check,
-    intent: ToggleRulerIntent(),
-  );
+  static const showRuler = SelectableMenuEntry('Show ruler', intent: ToggleRulerIntent());
 
   static const showEquationToolbar = SelectableMenuEntry(
     'Show equation toolbar',

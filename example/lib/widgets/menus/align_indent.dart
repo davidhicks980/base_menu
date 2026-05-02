@@ -4,6 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../app_state_manager.dart';
 import '../../data/menu.dart';
 import '../../model/intents.dart';
+import '../../utilities/colors.dart';
 import '../menu_panel.dart';
 import '../popup.dart';
 import '../toolbar_icon_button.dart';
@@ -26,12 +27,13 @@ class _AlignIndentMenuState extends State<AlignIndentMenu> {
         spacing: 4,
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
         borderRadius: BorderRadius.circular(6),
+        color: FloogleColors.alignSurfaceColor,
         axis: Axis.horizontal,
         children: [
           for (final entry in Menu.align.children)
             DecoratedBox(
               decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 232, 237, 246),
+                color: FloogleColors.alignUnselectedColor,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: ToolbarIconButton(
@@ -39,7 +41,7 @@ class _AlignIndentMenuState extends State<AlignIndentMenu> {
                 decoration: align == entry.intent.value
                     ? WidgetStatePropertyAll(
                         BoxDecoration(
-                          color: const Color.fromRGBO(211, 226, 253, 1),
+                          color: FloogleColors.selectedButtonBackground,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       )
@@ -56,8 +58,8 @@ class _AlignIndentMenuState extends State<AlignIndentMenu> {
                 child: Icon(
                   entry.icon,
                   color: align == entry.intent.value
-                      ? const Color.fromARGB(255, 5, 30, 73)
-                      : const Color.fromARGB(255, 70, 70, 70),
+                      ? FloogleColors.selectedButton
+                      : FloogleColors.gray,
                 ),
               ),
             ),

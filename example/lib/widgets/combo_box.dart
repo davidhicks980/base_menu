@@ -67,6 +67,13 @@ class ComboBox extends StatefulWidget {
     this.inputConstraints = const BoxConstraints(minHeight: 28, maxHeight: 28),
     required this.selected,
     this.focusNode,
+    this.textStyle = const TextStyle(
+      fontFamily: 'GoogleSans',
+      fontSize: 14,
+      color: FloogleColors.gray,
+      decoration: TextDecoration.none,
+      fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+    ),
     this.menuController,
   });
 
@@ -77,6 +84,7 @@ class ComboBox extends StatefulWidget {
   final BoxConstraints inputConstraints;
   final FocusNode? focusNode;
   final MenuController? menuController;
+  final TextStyle textStyle;
 
   @override
   State<ComboBox> createState() => _ComboBoxState();
@@ -122,17 +130,16 @@ class _ComboBoxState extends State<ComboBox> {
 
   @override
   Widget build(BuildContext context) {
-    const padding = EdgeInsets.symmetric(vertical: 6);
     return CoreMenu(
       controller: widget.menuController,
-      padding: padding,
+      padding: MenuPanel.defaultPadding,
       alignmentOffset: const Offset(0, 6),
       panel: ValueListenableBuilder(
         valueListenable: _textController,
         builder: (context, value, child) {
           return _ComboBoxValue(value: widget.selected, child: child!);
         },
-        child: MenuPanel(padding: padding, children: widget.children),
+        child: MenuPanel(children: widget.children),
       ),
       builder: (BuildContext context, MenuController controller, Widget? child) {
         return _Anchor(
@@ -143,6 +150,7 @@ class _ComboBoxState extends State<ComboBox> {
           trailing: widget.trailing,
           onSelect: widget.onSelect,
           selected: widget.selected,
+          textStyle: widget.textStyle,
         );
       },
     );
@@ -157,6 +165,7 @@ class _Anchor extends StatelessWidget {
     this.menuController,
     this.trailing,
     this.onSelect,
+    required this.textStyle,
     required this.selected,
   });
   final FocusNode focusNode;
@@ -166,6 +175,7 @@ class _Anchor extends StatelessWidget {
   final Widget? trailing;
   final ValueChanged<String>? onSelect;
   final String selected;
+  final TextStyle textStyle;
 
   static const _shortcuts = {
     SingleActivator(LogicalKeyboardKey.arrowUp): ComboBoxTraversePreviousIntent(),
@@ -275,13 +285,7 @@ class _Anchor extends StatelessWidget {
         child: Shortcuts(
           shortcuts: _shortcuts,
           child: DefaultTextStyle.merge(
-            style: const TextStyle(
-              fontFamily: 'GoogleSans',
-              fontSize: 14,
-              color: FloogleColors.midGrayText,
-              decoration: TextDecoration.none,
-              fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
-            ),
+            style: textStyle,
             overflow: TextOverflow.ellipsis,
             child: listenable,
           ),

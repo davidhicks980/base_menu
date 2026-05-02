@@ -1,11 +1,17 @@
+import 'dart:ui';
+
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../app_state_manager.dart';
 import '../../data/menu.dart';
-import '../checkbox_menu_item.dart';
+import '../../model/enum.dart';
+import '../../utilities/colors.dart';
 import '../menu_item_radio_semantics.dart';
 import '../menu_panel.dart';
 import '../select.dart';
+import '../selectable_menu_item.dart';
 
 class ViewMode extends StatelessWidget {
   const ViewMode({super.key, required this.child});
@@ -13,58 +19,66 @@ class ViewMode extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selected = Menu.viewMode.children.first;
+    final selected =
+        (AppStateManager.documentFlagsOf(context)[SelectionKey.viewMode] ??
+                Menu.viewMode.children.first.intent.value)
+            as ViewModeOption;
     return Select(
-      panel: MenuPanel(
-        constraints: const BoxConstraints(minWidth: 260),
-        padding: const EdgeInsetsGeometry.symmetric(vertical: 6),
-        children: [
-          for (final option in Menu.viewMode.children)
-            MenuItemRadioSemantics(
-              checked: selected == option,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48),
-                child: CheckboxMenuItem(
-                  key: ValueKey(option),
-                  controlAffinity: .trailing,
-                  shortcut: option.shortcut,
-                  checked: selected == option,
-                  control: const Icon(Symbols.check, size: 24),
-                  icon: Icon(option.icon, size: 20),
-                  onPressed: () {
-                    Actions.invoke(context, option.intent);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      spacing: 4,
-                      children: [
-                        Text(
-                          option.label,
-                          style: const TextStyle(
-                            fontWeight: .w500,
-                            color: Color(0xFF1f1f1f),
-                            fontSize: 14,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                        if (option.subtitle != null)
+      panel: Semantics.fromProperties(
+        container: true,
+        explicitChildNodes: true,
+        properties: const SemanticsProperties(role: SemanticsRole.radioGroup),
+        child: MenuPanel(
+          constraints: const BoxConstraints(minWidth: 260),
+          padding: const EdgeInsetsGeometry.symmetric(vertical: 6),
+          children: [
+            for (final option in Menu.viewMode.children)
+              MenuItemRadioSemantics(
+                checked: selected == option.intent.value,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  child: SelectableMenuItem(
+                    key: ValueKey(option),
+                    controlAffinity: .trailing,
+                    shortcut: option.shortcut,
+                    selected: selected == option.intent.value,
+                    control: const Icon(Symbols.check, size: 24),
+                    icon: Icon(option.icon, size: 20),
+                    onPressed: () {
+                      Actions.invoke(context, option.intent);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        spacing: 4,
+                        children: [
                           Text(
-                            option.subtitle!,
+                            option.label,
                             style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF444746),
-                              height: 1,
+                              fontWeight: .w500,
+                              color: FloogleColors.darkGray,
+                              fontSize: 14,
+                              letterSpacing: 0.2,
                             ),
                           ),
-                      ],
+                          if (option.subtitle != null)
+                            Text(
+                              option.subtitle!,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: FloogleColors.gray,
+                                height: 1,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
       buttonRadius: const BorderRadiusGeometry.all(Radius.circular(100)),
       buttonPadding: const EdgeInsetsGeometry.symmetric(vertical: 4, horizontal: 12),

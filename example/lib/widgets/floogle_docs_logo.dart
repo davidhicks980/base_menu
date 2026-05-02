@@ -7,10 +7,10 @@ class FloogleDocsLogoButton extends StatelessWidget {
   const FloogleDocsLogoButton({super.key});
 
   static const WidgetStateColor color = WidgetStateColor.fromMap({
-    WidgetState.pressed: Color.from(alpha: 1, red: 0.898, green: 0.898, blue: 0.898),
-    WidgetState.focused: Color.from(alpha: 1, red: 0.949, green: 0.949, blue: 0.949),
-    WidgetState.hovered: Color.from(alpha: 1, red: 0.949, green: 0.949, blue: 0.949),
-    WidgetState.any: Color(0x00000000),
+    WidgetState.pressed: FloogleColors.logoPressedColor,
+    WidgetState.focused: FloogleColors.logoFocusHoverColor,
+    WidgetState.hovered: FloogleColors.logoFocusHoverColor,
+    WidgetState.any: FloogleColors.transparent,
   });
 
   @override

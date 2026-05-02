@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import 'tooltip.dart';
+import '../tooltip.dart';
+import '../utilities/colors.dart';
 import 'widget_state_decorated_box.dart';
 
 class TitleIconButton extends StatelessWidget {
@@ -12,15 +13,15 @@ class TitleIconButton extends StatelessWidget {
 
   static const _decoration = WidgetStateProperty<BoxDecoration>.fromMap({
     WidgetState.pressed: BoxDecoration(
-      color: Color.from(alpha: 0.098, red: 0, green: 0, blue: 0),
+      color: FloogleColors.toolbarItemPressed,
       shape: BoxShape.circle,
     ),
     WidgetState.focused: BoxDecoration(
-      color: Color.from(alpha: 0.059, red: 0, green: 0, blue: 0),
+      color: FloogleColors.toolbarItemHoverFocus,
       shape: BoxShape.circle,
     ),
     WidgetState.hovered: BoxDecoration(
-      color: Color.from(alpha: 0.059, red: 0, green: 0, blue: 0),
+      color: FloogleColors.toolbarItemHoverFocus,
       shape: BoxShape.circle,
     ),
     WidgetState.any: BoxDecoration(),
@@ -31,7 +32,7 @@ class TitleIconButton extends StatelessWidget {
     final icon = IconTheme(
       data: const IconThemeData(
         size: 18,
-        color: Color.fromRGBO(68, 71, 70, 1),
+        color: FloogleColors.darkGray,
         grade: 90,
         weight: kIsWeb ? 500 : 400,
       ),

@@ -2,38 +2,40 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../utilities/colors.dart';
 import 'editable.dart';
 
 const _textStyle = kIsWeb
     ? TextStyle(
-        fontSize: 18,
-        fontFamily: 'GoogleSans',
-        letterSpacing: -0.3,
+        fontSize: 18.5,
+        fontFamily: 'GoogleSansFlex',
+        fontFamilyFallback: ['GoogleSans'],
         height: 1.2,
+        letterSpacing: -0.4,
         overflow: TextOverflow.ellipsis,
-        fontVariations: [FontVariation.weight(480), FontVariation.opticalSize(17)],
-        color: Color(0xFF1F1F1F),
+        fontVariations: [
+          FontVariation.weight(470),
+          FontVariation.opticalSize(17),
+          FontVariation.width(95),
+        ],
+        color: FloogleColors.darkGray,
       )
     : TextStyle(
         fontSize: 18,
         fontFamily: 'GoogleSans',
         height: 1.2,
         overflow: TextOverflow.ellipsis,
-        color: Color(0xFF1F1F1F),
+        color: FloogleColors.darkGray,
       );
 
 const _inputDecoration = WidgetStateProperty<BoxDecoration>.fromMap({
   WidgetState.focused: BoxDecoration(
     borderRadius: BorderRadius.all(Radius.circular(4.0)),
-    border: Border.fromBorderSide(
-      BorderSide(color: Color.from(alpha: 1, red: 0.043, green: 0.341, blue: 0.816), width: 2),
-    ),
+    border: Border.fromBorderSide(BorderSide(color: FloogleColors.titleInputFocusBorder, width: 2)),
   ),
   WidgetState.hovered: BoxDecoration(
     borderRadius: BorderRadius.all(Radius.circular(4.0)),
-    border: Border.fromBorderSide(
-      BorderSide(color: Color.from(alpha: 1, red: 0.455, green: 0.467, blue: 0.459)),
-    ),
+    border: Border.fromBorderSide(BorderSide(color: FloogleColors.titleInputHoverBorder)),
   ),
   WidgetState.any: BoxDecoration(),
 });

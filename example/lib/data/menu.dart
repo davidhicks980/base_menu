@@ -34,7 +34,11 @@ abstract class _SubmenuLabel {
   static const versionHistory = MenuEntry('Version history', icon: Symbols.history);
   static const download = MenuEntry('Download', icon: Symbols.download);
   static const email = MenuEntry('Email', icon: Symbols.email);
-  static const newDocument = MenuEntry('New', icon: Symbols.note_add);
+  static const newDocument = MenuEntry(
+    'New',
+    icon: Symbols.article,
+    iconConfig: IconConfiguration(fill: 1),
+  );
   static const share = MenuEntry('Share', icon: Symbols.share);
   static const main = MenuEntry('Main menu');
   static const context = MenuEntry('Context menu');

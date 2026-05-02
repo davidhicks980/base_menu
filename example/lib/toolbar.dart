@@ -6,6 +6,7 @@ import 'package:menu_utilities/menu_utilities.dart';
 import 'app_state_manager.dart';
 import 'data/entry.dart';
 import 'data/menu.dart';
+import 'utilities/colors.dart';
 import 'widgets/adapters/menu_entry_popup.dart';
 import 'widgets/adapters/menu_entry_toolbar_button.dart';
 import 'widgets/menu_divider.dart';
@@ -137,7 +138,7 @@ class _ToolbarState extends State<Toolbar> {
     final cutoffChildren = allGroups.sublist(_cutoff);
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFFF0F4F9),
+        color: FloogleColors.elevatedSurfaceColor,
         borderRadius: BorderRadius.all(Radius.circular(24.0)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8),

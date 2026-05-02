@@ -114,12 +114,8 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
             border: _isHovered
-                ? const Border.fromBorderSide(
-                    BorderSide(color: Color.from(alpha: 1, red: 0.098, green: 0.098, blue: 0.098)),
-                  )
-                : const Border.fromBorderSide(
-                    BorderSide(color: Color.from(alpha: 1, red: 0.455, green: 0.467, blue: 0.459)),
-                  ),
+                ? const Border.fromBorderSide(BorderSide(color: Color.fromRGBO(25, 25, 25, 1)))
+                : const Border.fromBorderSide(BorderSide(color: Color.fromRGBO(116, 119, 117, 1))),
           ),
           child: MergeSemantics(
             child: Semantics(

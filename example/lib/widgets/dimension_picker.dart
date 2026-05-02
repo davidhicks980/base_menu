@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../utilities/colors.dart';
+
 class DimensionPicker extends StatefulWidget {
   const DimensionPicker({super.key});
 
@@ -28,7 +30,7 @@ class _DimensionPickerState extends State<DimensionPicker> {
     }
   }
 
-  void _handleSelect() {
+  void _handleSelect([Object? _]) {
     setState(() {
       selectedRow = hoveredRow ?? selectedRow;
       selectedColumn = hoveredColumn ?? selectedColumn;
@@ -40,12 +42,7 @@ class _DimensionPickerState extends State<DimensionPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final callbackAction = CallbackAction<Intent>(
-      onInvoke: (Object? intent) {
-        _handleSelect();
-        return null;
-      },
-    );
+    final callbackAction = CallbackAction<Intent>(onInvoke: _handleSelect);
     hoveredRow = hoveredRow ?? selectedRow;
     hoveredColumn = hoveredColumn ?? selectedColumn;
     final int rowCount = clampDouble(hoveredRow! + 2, 5, 20).toInt();
@@ -109,12 +106,20 @@ class _DimensionPickerState extends State<DimensionPicker> {
                                   final bool selected =
                                       row <= hoveredRow! && column <= hoveredColumn!;
                                   final color = selected
-                                      ? const Color.fromARGB(255, 211, 227, 253)
-                                      : const Color.fromARGB(255, 248, 248, 248);
+                                      ? FloogleColors.selectedButtonBackground
+                                      : FloogleColors.dimensionPickerTileColor;
 
                                   final border = selected
-                                      ? Border.all(color: const Color.fromARGB(255, 112, 162, 249))
-                                      : Border.all(color: const Color.fromARGB(255, 230, 230, 230));
+                                      ? const Border.fromBorderSide(
+                                          BorderSide(
+                                            color: FloogleColors.dimensionPickerTileSelectedBorder,
+                                          ),
+                                        )
+                                      : const Border.fromBorderSide(
+                                          BorderSide(
+                                            color: FloogleColors.dimensionPickerTileBorder,
+                                          ),
+                                        );
 
                                   return MouseRegion(
                                     onEnter: (PointerEnterEvent event) {
@@ -160,10 +165,6 @@ class _DimensionPickerState extends State<DimensionPicker> {
     setState(() {
       switch (intent.direction) {
         case TraversalDirection.up:
-          if (hoveredRow == 0) {
-            Actions.invoke(context, intent);
-            return;
-          }
           _handleHighlight(hoveredRow! - 1, hoveredColumn!);
         case TraversalDirection.down:
           if (hoveredRow == 20) {
@@ -172,10 +173,6 @@ class _DimensionPickerState extends State<DimensionPicker> {
           }
           _handleHighlight(hoveredRow! + 1, hoveredColumn!);
         case TraversalDirection.left:
-          if (hoveredColumn == 0) {
-            Actions.invoke(context, intent);
-            break;
-          }
           _handleHighlight(hoveredRow!, hoveredColumn! - 1);
         case TraversalDirection.right:
           if (hoveredColumn == 20) {

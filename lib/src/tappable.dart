@@ -5,10 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 class _TappableStateScope extends InheritedModel<WidgetState> {
-  const _TappableStateScope({
-    required this.states,
-    required super.child,
-  });
+  const _TappableStateScope({required this.states, required super.child});
 
   final Set<WidgetState> states;
 
@@ -18,10 +15,7 @@ class _TappableStateScope extends InheritedModel<WidgetState> {
   }
 
   @override
-  bool updateShouldNotifyDependent(
-    _TappableStateScope oldWidget,
-    Set<WidgetState> dependencies,
-  ) {
+  bool updateShouldNotifyDependent(_TappableStateScope oldWidget, Set<WidgetState> dependencies) {
     for (final state in dependencies) {
       if (states.contains(state) != oldWidget.states.contains(state)) {
         return true;
@@ -54,15 +48,16 @@ class CoreTappable extends StatefulWidget {
   final Widget child;
 
   static Set<WidgetState> statesOf(BuildContext context) {
-    final _TappableStateScope? scope =
-        context.dependOnInheritedWidgetOfExactType<_TappableStateScope>();
+    final _TappableStateScope? scope = context
+        .dependOnInheritedWidgetOfExactType<_TappableStateScope>();
     return scope!.states;
   }
 
   static bool _aspectOf(BuildContext context, WidgetState aspect) {
-    return InheritedModel.inheritFrom<_TappableStateScope>(context, aspect: aspect)!
-        .states
-        .contains(aspect);
+    return InheritedModel.inheritFrom<_TappableStateScope>(
+      context,
+      aspect: aspect,
+    )!.states.contains(aspect);
   }
 
   static bool isHoveredOf(BuildContext context) {
@@ -209,13 +204,17 @@ class _CoreTappableState extends State<CoreTappable> {
     };
 
     return Semantics.fromProperties(
-      properties: SemanticsProperties(
-        enabled: isEnabled,
-      ),
+      properties: SemanticsProperties(enabled: isEnabled),
       child: Actions(
         actions: {
-          ActivateIntent: CallbackAction(onInvoke: _handleActivate),
-          ButtonActivateIntent: CallbackAction(onInvoke: _handleActivate),
+          ActivateIntent: Action<ActivateIntent>.overridable(
+            defaultAction: CallbackAction(onInvoke: _handleActivate),
+            context: context,
+          ),
+          ButtonActivateIntent: Action<ButtonActivateIntent>.overridable(
+            defaultAction: CallbackAction(onInvoke: _handleActivate),
+            context: context,
+          ),
         },
         child: Shortcuts(
           shortcuts: const <ShortcutActivator, Intent>{

@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import '../utilities/colors.dart';
 import 'menu_action_label.dart';
+import 'menu_panel.dart';
 
 class Submenu extends StatefulWidget {
   const Submenu({
     super.key,
     this.onPressed,
-    this.padding = const EdgeInsets.symmetric(vertical: 6),
     this.alignment,
     this.menuAlignment,
     this.hoverDelay = Duration.zero,
@@ -22,7 +23,6 @@ class Submenu extends StatefulWidget {
   final VoidCallback? onPressed;
   final AlignmentGeometry? alignment;
   final AlignmentGeometry? menuAlignment;
-  final EdgeInsetsGeometry padding;
   final Widget? leading;
   final Widget child;
   final Widget panel;
@@ -37,15 +37,18 @@ class _SubmenuState extends State<Submenu> {
   final MenuController controller = MenuController();
   Timer? _openTimer;
   Timer? _closeTimer;
+  final ValueNotifier<bool> focusNotifier = ValueNotifier(false);
 
   @override
   void dispose() {
     _openTimer?.cancel();
     _closeTimer?.cancel();
+    focusNotifier.dispose();
     super.dispose();
   }
 
   void _handleFocusChange(bool value) {
+    focusNotifier.value = value;
     if (!value) {
       if (_closeTimer == null) {
         setState(() {
@@ -65,8 +68,7 @@ class _SubmenuState extends State<Submenu> {
   @override
   Widget build(BuildContext context) {
     return CoreMenu(
-      alignmentOffset: const Offset(-2, 0),
-      padding: widget.padding,
+      padding: MenuPanel.defaultPadding,
       controller: controller,
       alignment: widget.alignment,
       menuAlignment: widget.menuAlignment,
@@ -119,13 +121,18 @@ class _SubmenuState extends State<Submenu> {
                 }
                 widget.onPressed?.call();
               },
-              child: Builder(
-                builder: (context) {
-                  return SubmenuActionLabel(
-                    isOpen: _closeTimer == null && (MenuController.maybeIsOpenOf(context) ?? false),
-                    leading: widget.leading,
-                    axis: Axis.vertical,
-                    child: widget.child,
+
+              child: ValueListenableBuilder<bool>(
+                valueListenable: focusNotifier,
+                child: SubmenuActionLabel(
+                  leading: widget.leading,
+                  axis: Axis.vertical,
+                  child: widget.child,
+                ),
+                builder: (context, hasFocus, child) {
+                  return ColoredBox(
+                    color: hasFocus ? FloogleColors.menuItemFocusColor : FloogleColors.transparent,
+                    child: child,
                   );
                 },
               ),

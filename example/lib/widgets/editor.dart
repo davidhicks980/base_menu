@@ -69,7 +69,7 @@ class _EditorViewState extends State<EditorView> {
                                         child: DecoratedBox(
                                           decoration: const BoxDecoration(
                                             border: Border.fromBorderSide(
-                                              BorderSide(color: FloogleColors.rulerColor),
+                                              BorderSide(color: FloogleColors.separatorColor),
                                             ),
                                             color: FloogleColors.white,
                                           ),
@@ -134,7 +134,7 @@ class _TopLeftBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = FloogleColors.rulerColor
+      ..color = FloogleColors.separatorColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1
       ..isAntiAlias = false;

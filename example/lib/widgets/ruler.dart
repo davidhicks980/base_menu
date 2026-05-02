@@ -5,24 +5,19 @@ import 'package:flutter/widgets.dart';
 
 import '../utilities/colors.dart';
 
-class HorizontalDocumentRuler extends StatefulWidget {
+class HorizontalDocumentRuler extends StatelessWidget {
   const HorizontalDocumentRuler({super.key, this.pageWidth = 96 * 8.5, this.margin = 0.0});
 
   final double pageWidth;
   final double margin;
 
   @override
-  State<HorizontalDocumentRuler> createState() => _HorizontalDocumentRulerState();
-}
-
-class _HorizontalDocumentRulerState extends State<HorizontalDocumentRuler> {
-  @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 24,
       width: double.infinity,
       child: CustomPaint(
-        painter: _RulerPainter(pageWidth: widget.pageWidth, margin: widget.margin),
+        painter: _RulerPainter(pageWidth: pageWidth, margin: margin),
       ),
     );
   }
@@ -37,7 +32,7 @@ class _RulerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = FloogleColors.rulerColor
+      ..color = FloogleColors.separatorColor
       ..style = PaintingStyle.stroke
       ..isAntiAlias = false
       ..strokeWidth = 1.0;
@@ -105,7 +100,7 @@ class VerticalDocumentRuler extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 16,
-      height: 96 * 11.0,
+      height: pageHeight,
       child: CustomPaint(
         painter: _VerticalRulerPainter(pageHeight: pageHeight, margin: margin),
       ),
@@ -122,7 +117,7 @@ class _VerticalRulerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = FloogleColors.rulerColor
+      ..color = FloogleColors.separatorColor
       ..style = PaintingStyle.stroke
       ..isAntiAlias = false
       ..strokeWidth = 1.0;

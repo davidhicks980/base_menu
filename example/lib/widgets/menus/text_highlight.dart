@@ -1,27 +1,25 @@
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../app_state_manager.dart';
 import '../../model/intents.dart';
+import '../../utilities/colors.dart';
 import '../color_grid.dart';
 import '../menu_item.dart';
 import '../menu_panel.dart';
 import '../popup.dart';
 
-class TextHighlightButton extends StatefulWidget {
+class TextHighlightButton extends StatelessWidget {
   const TextHighlightButton({super.key});
 
   @override
-  State<TextHighlightButton> createState() => _TextHighlightButtonState();
-}
-
-class _TextHighlightButtonState extends State<TextHighlightButton> {
-  Color? _selectedColor;
-  @override
   Widget build(BuildContext context) {
+    final selectedColor =
+        AppStateManager.selectedTextStyleOf(context)?.textStyle?.backgroundColor ??
+        FloogleColors.transparent;
     final button = MergeSemantics(
       child: Semantics(
-        label:
-            'Text highlight color: ${_selectedColor != null ? ': ${colorLabel(_selectedColor!)}' : ''}',
+        label: 'Text highlight color: ${': ${colorLabel(selectedColor)}'}',
         child: ExcludeSemantics(
           child: SizedBox(
             width: 20,
@@ -32,13 +30,17 @@ class _TextHighlightButtonState extends State<TextHighlightButton> {
               children: [
                 CustomPaint(
                   painter: _InkHighlighterTopFillPainter(),
-                  child: const Icon(Symbols.ink_highlighter, size: 14, color: Color(0xFF3C4043)),
+                  child: const Icon(
+                    Symbols.ink_highlighter,
+                    size: 14,
+                    color: FloogleColors.darkGray,
+                  ),
                 ),
                 Container(
                   height: 4,
                   width: 22,
                   decoration: BoxDecoration(
-                    color: _selectedColor ?? const Color(0xFF3C4043),
+                    color: selectedColor,
                     borderRadius: BorderRadius.circular(1),
                   ),
                 ),
@@ -59,7 +61,7 @@ class _TextHighlightButtonState extends State<TextHighlightButton> {
                   leading: Icon(Symbols.format_color_reset, fill: 1.0),
                   child: Text('None'),
                 ),
-                selectedColor: _selectedColor,
+                selectedColor: selectedColor,
                 onColorSelected: (Color color) {
                   Actions.invoke(context, FormatTextHighlightIntent(color));
                   MenuController.maybeOf(context)?.close();
@@ -78,7 +80,7 @@ class _InkHighlighterTopFillPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF3C4043)
+      ..color = FloogleColors.darkGray
       ..style = PaintingStyle.fill;
     final rect = Rect.fromLTWH(0, size.height / 1.75, size.width / 2.5, size.height / 3.5);
     canvas

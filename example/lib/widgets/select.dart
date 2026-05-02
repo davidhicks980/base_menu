@@ -1,16 +1,15 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
 import '../utilities/colors.dart';
 import 'dropdown_arrow.dart';
+import 'menu_panel.dart';
 
 class Select extends StatelessWidget {
   const Select({
     super.key,
     required this.child,
     required this.panel,
-    this.padding = const EdgeInsets.symmetric(vertical: 6),
     this.buttonPadding = const EdgeInsets.symmetric(horizontal: 11, vertical: 2),
     this.buttonRadius = const BorderRadiusGeometry.all(Radius.circular(4)),
   });
@@ -19,7 +18,6 @@ class Select extends StatelessWidget {
   final Widget panel;
   final EdgeInsetsGeometry buttonPadding;
   final BorderRadiusGeometry buttonRadius;
-  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +30,7 @@ class Select extends StatelessWidget {
         }
       },
       overlayPadding: const EdgeInsets.only(top: 98, bottom: 8),
-      padding: padding,
+      padding: MenuPanel.defaultPadding,
       panel: panel,
       child: _SelectTextButton(padding: buttonPadding, radius: buttonRadius, child: child),
     );
@@ -83,10 +81,10 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
             style: TextStyle(
               fontFamily: 'GoogleSans',
               fontSize: 14,
-              color: isOpen ? FloogleColors.midGrayText : FloogleColors.selectTextColor,
+              color: isOpen ? FloogleColors.gray : FloogleColors.selectTextColor,
               height: 1.0,
               letterSpacing: 0.1,
-              fontWeight: kIsWeb ? FontWeight.w500 : const FontWeight(450),
+              fontWeight: const FontWeight(450),
               fontVariations: const [FontVariation.opticalSize(17)],
               decoration: TextDecoration.none,
             ),
@@ -114,10 +112,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
               decoration: isOpen
                   ? BoxDecoration(color: FloogleColors.activeColor, borderRadius: widget.radius)
                   : CoreTappable.isFocusedOf(context) || CoreTappable.isHoveredOf(context)
-                  ? BoxDecoration(
-                      color: const Color.fromRGBO(68, 71, 70, 0.08),
-                      borderRadius: widget.radius,
-                    )
+                  ? BoxDecoration(color: FloogleColors.zoomHoverColor, borderRadius: widget.radius)
                   : const BoxDecoration(),
               child: label,
             );

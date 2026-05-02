@@ -77,10 +77,13 @@ flutter:
   fonts:
     - family: RobotoFlex
       fonts:
-        - asset: assets/RobotoFlex.ttf
+        - asset: assets/Roboto.ttf
     - family: GoogleSans
       fonts:
         - asset: assets/GoogleSans.ttf
+    - family: GoogleSansFlex
+      fonts:
+        - asset: assets/GoogleSansFlex.ttf
     - family: Amatic SC
       fonts:
         - asset: assets/Amatic_SC_400.ttf

@@ -7,12 +7,13 @@ import '../../extensions/string.dart';
 import '../../model/enum.dart';
 import '../../model/intents.dart';
 import '../../utilities/colors.dart';
-import '../checkbox_menu_item.dart';
 import '../menu_divider.dart';
 import '../menu_item.dart';
 import '../menu_panel.dart';
 import '../select.dart';
+import '../selectable_menu_item.dart';
 import '../submenu.dart';
+import '../web_label.dart';
 
 class FontMenu extends StatefulWidget {
   const FontMenu({super.key});
@@ -57,7 +58,10 @@ class _FontMenuState extends State<FontMenu> {
                   _Option(FontFamily.inter, autofocusSelected: false),
                   _Option(FontFamily.lexend, autofocusSelected: false),
                   _Option(FontFamily.merriweather, autofocusSelected: false),
-                  MenuDivider(padding: .fromLTRB(12, 8, 12, 8), color: .fromRGBO(196, 199, 197, 1)),
+                  MenuDivider(
+                    padding: .fromLTRB(12, 8, 12, 8),
+                    color: FloogleColors.separatorColor,
+                  ),
                 ],
               ),
               SingleChildScrollView(
@@ -92,11 +96,28 @@ class _FontMenuState extends State<FontMenu> {
               ),
             ],
           ),
-          child: Text(
-            family.label,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: FloogleColors.selectTextColor),
-          ),
+          child: kIsWeb
+              ? WebLabel(
+                  label: family.label,
+                  textStyle: const TextStyle(
+                    color: FloogleColors.selectTextColor,
+                    fontSize: 14.2,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.1,
+                    fontVariations: [FontVariation.width(87), FontVariation.opticalSize(14.2)],
+                  ),
+                  uppercaseTextStyle: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.3,
+                    fontVariations: [FontVariation.opticalSize(14)],
+                  ),
+                )
+              : Text(
+                  family.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: FloogleColors.selectTextColor),
+                ),
         ),
       ),
     );
@@ -119,7 +140,7 @@ class MenuSectionHeader extends StatelessWidget {
             style: const TextStyle(
               fontSize: 11,
               letterSpacing: 0.2,
-              color: Color(0xFF1f1f1f),
+              color: FloogleColors.darkGray,
               fontVariations: [FontVariation.weight(550)],
               fontFamily: 'RobotoFlex',
               decoration: TextDecoration.none,
@@ -141,9 +162,9 @@ class _Option extends StatelessWidget {
   Widget build(BuildContext context) {
     if (value.variants.isEmpty) {
       final group = _FontSelector.of(context, value);
-      return CheckboxMenuItem(
+      return SelectableMenuItem(
         autofocus: autofocusSelected && group.isFamilySelected,
-        checked: group.isFamilySelected,
+        selected: group.isFamilySelected,
         onPressed: () {
           group.select(value, FontWeight.normal);
         },
@@ -184,8 +205,8 @@ class _SubmenuOption extends StatelessWidget {
                         (AppStateManager.selectedTextStyleOf(context)?.textStyle?.fontWeight ??
                             FontWeight.normal) ==
                         variant;
-                    return CheckboxMenuItem(
-                      checked: checked && isWeightSelected,
+                    return SelectableMenuItem(
+                      selected: checked && isWeightSelected,
                       onPressed: () {
                         group.select(value, variant);
                       },

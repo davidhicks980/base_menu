@@ -5,21 +5,21 @@ import 'menu_item.dart';
 
 enum CheckboxMenuItemControlAffinity { leading, trailing }
 
-class CheckboxMenuItem extends StatelessWidget {
-  const CheckboxMenuItem({
+class SelectableMenuItem extends StatelessWidget {
+  const SelectableMenuItem({
     super.key,
     this.onPressed,
     this.icon,
     this.shortcut,
     this.isExpanded,
-    this.control = const Icon(Symbols.check, size: 16),
+    this.control = const Icon(Symbols.check, size: 18),
     this.controlAffinity = .leading,
-    required this.checked,
+    required this.selected,
     required this.child,
     this.autofocus = false,
   });
 
-  final bool checked;
+  final bool selected;
   final Widget control;
   final CheckboxMenuItemControlAffinity controlAffinity;
   final VoidCallback? onPressed;
@@ -31,10 +31,10 @@ class CheckboxMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final check = checked ? control : null;
+    final check = selected ? control : null;
     return MergeSemantics(
       child: Semantics(
-        checked: checked,
+        checked: selected,
         child: MenuItem(
           autofocus: autofocus,
           leading: controlAffinity == .leading ? check : icon,

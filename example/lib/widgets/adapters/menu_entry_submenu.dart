@@ -8,7 +8,6 @@ class MenuEntrySubmenu extends StatelessWidget {
   const MenuEntrySubmenu({
     super.key,
     required this.entry,
-    this.onPressed,
     this.alignment,
     this.menuAlignment,
     this.hoverDelay = Duration.zero,
@@ -16,7 +15,6 @@ class MenuEntrySubmenu extends StatelessWidget {
   });
 
   final SubmenuEntry entry;
-  final VoidCallback? onPressed;
   final AlignmentGeometry? alignment;
   final AlignmentGeometry? menuAlignment;
   final Duration hoverDelay;
@@ -30,7 +28,6 @@ class MenuEntrySubmenu extends StatelessWidget {
       hoverDelay: hoverDelay,
       panel: MenuEntryPanel(menuEntry: entry, constraints: constraints),
       leading: entry.child.icon != null ? Icon(entry.child.icon) : null,
-      onPressed: onPressed,
       child: Text(entry.child.label),
     );
   }

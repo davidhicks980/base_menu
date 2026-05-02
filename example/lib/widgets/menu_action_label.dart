@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import '../utilities/colors.dart';
 import '../utilities/localized_shortcut_labeler.dart';
 import 'widget_state_decorated_box.dart';
 
@@ -18,7 +19,6 @@ class SubmenuActionLabel extends StatelessWidget {
     this.leading,
     this.trailing,
     this.shortcut,
-    this.isOpen,
   });
 
   final Axis axis;
@@ -28,23 +28,14 @@ class SubmenuActionLabel extends StatelessWidget {
   final Widget? trailing;
   final MenuSerializableShortcut? shortcut;
 
-  final bool? isOpen;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final isOpen = this.isOpen ?? MenuController.maybeIsOpenOf(context) ?? false;
     return MenuActionLabel(
       leading: leading,
       leadingWidth: leadingWidth,
       leadingMidpointAlignment: leadingMidpointAlignment,
-      decoration: isOpen
-          ? WidgetStateProperty.all(
-              const BoxDecoration(
-                color: Color.from(red: 0.929726, green: 0.929726, blue: 0.929726, alpha: 1),
-              ),
-            )
-          : null,
       trailing: const _Arrow(),
       shortcut: shortcut,
 
@@ -71,16 +62,16 @@ class MenuActionLabel extends StatelessWidget {
   final WidgetStateProperty<Decoration>? decoration;
   final Widget? trailing;
   final MenuSerializableShortcut? shortcut;
-
   final Widget child;
 
   static const _labelTextStyle = TextStyle(
     fontFamily: 'RobotoFlex',
-    fontSize: 14,
-    color: Color.from(alpha: 1, red: 0.122, green: 0.122, blue: 0.122),
-    fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
-    fontVariations: kIsWeb ? [FontVariation.width(90)] : [],
+    fontSize: kIsWeb ? 14.25 : 14,
+    color: FloogleColors.darkGray,
+    fontWeight: kIsWeb ? FontWeight(475) : FontWeight.w400,
+    fontVariations: kIsWeb ? [FontVariation.width(96)] : [],
     overflow: TextOverflow.ellipsis,
+    letterSpacing: kIsWeb ? 0.1 : 0.2,
     height: 1.0,
     decoration: TextDecoration.none,
   );
@@ -90,20 +81,14 @@ class MenuActionLabel extends StatelessWidget {
     fontSize: 14,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.2,
-    color: Color(0xFFAAAAAA),
+    color: FloogleColors.lightGray,
     height: 20 / 14,
     decoration: TextDecoration.none,
   );
 
-  static const _activatedDecoration = BoxDecoration(
-    color: Color.from(alpha: 1, red: 0.929726, blue: 0.929726, green: 0.929726),
-  );
-
   static const WidgetStateProperty<BoxDecoration> _decoration = WidgetStateProperty.fromMap({
-    WidgetState.pressed: BoxDecoration(
-      color: Color.from(alpha: 1, red: 0.912156, blue: 0.912156, green: 0.912156),
-    ),
-    WidgetState.focused: _activatedDecoration,
+    WidgetState.pressed: BoxDecoration(color: FloogleColors.menuItemPressedColor),
+    WidgetState.focused: BoxDecoration(color: FloogleColors.menuItemFocusColor),
     WidgetState.any: BoxDecoration(),
   });
 
@@ -126,11 +111,7 @@ class MenuActionLabel extends StatelessWidget {
                   ? _AlignMidpoint(
                       alignment: leadingMidpointAlignment,
                       child: IconTheme.merge(
-                        data: const IconThemeData(
-                          size: 18,
-                          color: Color.fromRGBO(69, 71, 70, 1),
-                          grade: 150,
-                        ),
+                        data: const IconThemeData(size: 18, color: FloogleColors.gray, grade: 150),
                         child: leading!,
                       ),
                     )
@@ -214,7 +195,7 @@ class _RenderAlignMidpoint extends RenderPositionedBox {
 }
 
 class _Arrow extends StatelessWidget {
-  const _Arrow({super.key});
+  const _Arrow();
 
   @override
   Widget build(BuildContext context) {
@@ -225,27 +206,24 @@ class _Arrow extends StatelessWidget {
     return highlightArrow
         ? const CustomPaint(
             size: Size(8, 8),
-            painter: _ArrowPainter(
-              color: Color.from(alpha: 1, red: 0.122, green: 0.122, blue: 0.122),
-            ),
+            painter: _ArrowPainter(color: FloogleColors.darkGray),
           )
         : const CustomPaint(
             size: Size(8, 8),
-            painter: _ArrowPainter(
-              color: Color.from(alpha: 0.502, red: 0.122, green: 0.122, blue: 0.122),
-            ),
+            painter: _ArrowPainter(color: FloogleColors.darkGray, opacity: 0.5),
           );
   }
 }
 
 class _ArrowPainter extends CustomPainter {
-  const _ArrowPainter({required this.color});
+  const _ArrowPainter({required this.color, this.opacity = 1});
   final Color color;
+  final double opacity;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color
+      ..color = color.withOpacity(opacity)
       ..style = PaintingStyle.fill;
 
     final vertices = ui.Vertices(ui.VertexMode.triangles, [

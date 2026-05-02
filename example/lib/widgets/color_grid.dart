@@ -23,16 +23,16 @@ const List<List<Color>> _kColorGrid = [
     Color(0xFFFFFFFF),
   ],
   [
-    Color(0xFFB00C00),
-    Color(0xFFFF0000),
-    Color(0xFFFF9900),
-    Color(0xFFFFFF00),
-    Color(0xFF00FF00),
-    Color(0xFF00FFFF),
-    Color(0xFF478DFF),
-    Color(0xFF0000FF),
-    Color(0xFF9900FF),
-    Color(0xFFFF00FF),
+    Color(0xFFB00C00), // Maroon
+    Color(0xFFFF0000), // Red
+    Color(0xFFFF9900), // Orange
+    Color(0xFFFFFF00), // Yellow
+    Color(0xFF00FF00), // Green
+    Color(0xFF00FFFF), // Cyan
+    Color(0xFF478DFF), // Blue
+    Color(0xFF0000FF), // Dark Blue
+    Color(0xFF9900FF), // Purple
+    Color(0xFFFF00FF), // Magenta
   ],
   [
     Color(0xFFEA9999),
@@ -123,14 +123,40 @@ final _kColorNames = {
   const Color(0xFFFF00FF): 'Magenta',
 };
 
+// ...existing code...
 String colorLabel(Color color) {
-  final named = _kColorNames[color];
-  if (named != null) {
-    return named;
+  // Exact name for exact match.
+  final exact = _kColorNames[color];
+  if (exact != null) {
+    return exact;
   }
-  final hex = '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
-  return 'Color $hex';
+
+  // Find closest named color by Euclidean distance in RGB and return an "approximate"
+  // if it's reasonably close.
+  final int r = color.red, g = color.green, b = color.blue;
+  Color? closest;
+  double bestSqDist = double.infinity;
+  for (final namedColor in _kColorNames.keys) {
+    final dr = r - namedColor.red;
+    final dg = g - namedColor.green;
+    final db = b - namedColor.blue;
+    final sqDist = (dr * dr + dg * dg + db * db).toDouble();
+    if (sqDist < bestSqDist) {
+      bestSqDist = sqDist;
+      closest = namedColor;
+    }
+  }
+
+  if (closest != null && bestSqDist <= 30 * 30) {
+    return '${_kColorNames[closest]!} (approximate)';
+  }
+
+  // Fall back to a stable hex representation. Include alpha if not fully opaque.
+  String twoHex(int v) => v.toRadixString(16).padLeft(2, '0').toUpperCase();
+  final hexRgb = '#${twoHex(color.red)}${twoHex(color.green)}${twoHex(color.blue)}';
+  return 'Color $hexRgb';
 }
+// ...existing code...
 
 Brightness _estimateBrightnessForColor(Color color) {
   final double relativeLuminance = color.computeLuminance();

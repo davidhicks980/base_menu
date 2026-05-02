@@ -124,9 +124,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
-            color: _isHovered
-                ? FloogleColors.midGrayText.withValues(alpha: 0.08)
-                : FloogleColors.transparent,
+            color: _isHovered ? FloogleColors.zoomHoverColor : FloogleColors.transparent,
           ),
           child: DefaultTextStyle(
             style: const TextStyle(height: 1.5),

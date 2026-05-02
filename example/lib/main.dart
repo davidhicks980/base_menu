@@ -7,12 +7,14 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'app_state_manager.dart';
 import 'firebase_options.dart';
 import 'toolbar.dart';
+import 'utilities/colors.dart';
 import 'widgets/action_reflector.dart';
 import 'widgets/editor.dart';
 import 'widgets/floogle_docs_logo.dart';
 import 'widgets/menus/document_menu_bar.dart';
 import 'widgets/title_field.dart';
 import 'widgets/title_icon.dart';
+import 'widgets/zoomer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +41,7 @@ class _AppState extends State<App> {
       ],
       textStyle: const TextStyle(
         fontFamily: 'RobotoFlex',
-        color: Color.fromRGBO(68, 71, 70, 1),
+        color: FloogleColors.gray,
         fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
       ),
       onGenerateRoute: (settings) {
@@ -54,16 +56,21 @@ class _AppState extends State<App> {
                 return IconTheme.merge(
                   data: const IconThemeData(
                     size: 18,
-                    color: Color.fromRGBO(68, 71, 70, 1),
+                    color: FloogleColors.gray,
                     // Fonts look slightly anemic on web, so compensate with a heavier weight.
                     weight: kIsWeb ? 550 : 400,
                   ),
-                  child: const ActionReflector(child: AppStateManager(child: Main())),
+                  child: const Zoomer(
+                    minScale: 1,
+                    maxScale: 3,
+                    constrained: true,
+                    child: ActionReflector(child: AppStateManager(child: Main())),
+                  ),
                 );
               },
         );
       },
-      color: const Color(0xFFF8FAFD),
+      color: FloogleColors.surfaceColor,
     );
   }
 }
@@ -122,7 +129,7 @@ class _MainState extends State<Main> with SingleTickerProviderStateMixin {
         LogicalKeySet(LogicalKeyboardKey.arrowDown): const DoNothingAndStopPropagationIntent(),
       },
       child: ColoredBox(
-        color: const Color(0xFFF8FAFD),
+        color: FloogleColors.surfaceColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[

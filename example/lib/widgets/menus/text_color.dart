@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../app_state_manager.dart';
 import '../../model/intents.dart';
+import '../../utilities/colors.dart';
 import '../color_grid.dart';
 import '../menu_panel.dart';
 import '../popup.dart';
@@ -17,7 +18,7 @@ class _TextColorButtonState extends State<TextColorButton> {
   @override
   Widget build(BuildContext context) {
     final color =
-        AppStateManager.selectedTextStyleOf(context)?.textStyle?.color ?? const Color(0xFF3C4043);
+        AppStateManager.selectedTextStyleOf(context)?.textStyle?.color ?? FloogleColors.darkGray;
     final button = Semantics(
       label: 'Text color: ${': ${colorLabel(color)}'}',
       child: ExcludeSemantics(
@@ -33,7 +34,7 @@ class _TextColorButtonState extends State<TextColorButton> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Color(0xFF3C4043),
+                  color: FloogleColors.darkGray,
                   height: 1.0,
                 ),
               ),

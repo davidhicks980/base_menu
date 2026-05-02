@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../../app_state_manager.dart';
 import '../../model/intents.dart';
 import '../../model/model.dart';
+import '../../utilities/colors.dart';
 import '../toolbar_icon_button.dart';
 
 class MenuEntryToolbarButton extends StatelessWidget {
@@ -35,7 +36,7 @@ class MenuEntryToolbarButton extends StatelessWidget {
             decoration: toggled
                 ? const WidgetStatePropertyAll(
                     BoxDecoration(
-                      color: Color.fromRGBO(211, 226, 253, 1),
+                      color: FloogleColors.selectedButtonBackground,
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                     ),
                   )
@@ -43,9 +44,7 @@ class MenuEntryToolbarButton extends StatelessWidget {
             child: IconTheme.merge(
               data: IconThemeData(
                 size: 18,
-                color: toggled
-                    ? const Color.fromARGB(255, 5, 30, 73)
-                    : const Color.fromARGB(255, 70, 70, 70),
+                color: toggled ? FloogleColors.selectedButton : FloogleColors.gray,
               ).merge(iconTheme),
               child: Icon(item.icon, size: 18),
             ),
@@ -62,10 +61,7 @@ class MenuEntryToolbarButton extends StatelessWidget {
       },
       requestCloseOnActivate: requestCloseOnActivate,
       child: IconTheme.merge(
-        data: const IconThemeData(
-          size: 18,
-          color: Color.fromARGB(255, 70, 70, 70),
-        ).merge(iconTheme),
+        data: const IconThemeData(size: 18, color: FloogleColors.gray).merge(iconTheme),
         child: Icon(item.icon),
       ),
     );

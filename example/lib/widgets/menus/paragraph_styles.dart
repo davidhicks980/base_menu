@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -6,12 +7,14 @@ import '../../app_state_manager.dart';
 import '../../data/menu.dart';
 import '../../model/enum.dart';
 import '../../model/intents.dart';
+import '../../utilities/colors.dart';
 import '../menu_divider.dart';
 import '../menu_item.dart';
 import '../menu_item_radio_semantics.dart';
 import '../menu_panel.dart';
 import '../select.dart';
 import '../submenu.dart';
+import '../web_label.dart';
 
 class ParagraphStylesMenu extends StatefulWidget {
   const ParagraphStylesMenu({super.key});
@@ -74,7 +77,25 @@ class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
         ),
         child: Builder(
           builder: (context) {
-            return Text(AppStateManager.selectedParagraphStyleOf(context).label);
+            final selectedStyle = AppStateManager.selectedParagraphStyleOf(context).label;
+            return kIsWeb
+                ? WebLabel(
+                    label: selectedStyle,
+                    textStyle: const TextStyle(
+                      color: FloogleColors.selectTextColor,
+                      fontSize: 14.2,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.1,
+                      fontVariations: [FontVariation.width(87), FontVariation.opticalSize(14.2)],
+                    ),
+                    uppercaseTextStyle: const TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.3,
+                      fontVariations: [FontVariation.opticalSize(14)],
+                    ),
+                  )
+                : Text(selectedStyle);
           },
         ),
       ),

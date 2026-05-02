@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import '../utilities/colors.dart';
 import 'widget_state_decorated_box.dart';
 
 class ToolbarIconButton extends StatelessWidget {
@@ -37,15 +38,15 @@ class ToolbarIconButton extends StatelessWidget {
 
   static const _decoration = WidgetStateProperty<BoxDecoration>.fromMap({
     WidgetState.pressed: BoxDecoration(
-      color: Color.from(alpha: 0.098, red: 0, green: 0, blue: 0),
+      color: FloogleColors.toolbarItemPressed,
       borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
     WidgetState.focused: BoxDecoration(
-      color: Color.from(alpha: 0.059, red: 0, green: 0, blue: 0),
+      color: FloogleColors.toolbarItemHoverFocus,
       borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
     WidgetState.hovered: BoxDecoration(
-      color: Color.from(alpha: 0.059, red: 0, green: 0, blue: 0),
+      color: FloogleColors.toolbarItemHoverFocus,
       borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
     WidgetState.any: BoxDecoration(),

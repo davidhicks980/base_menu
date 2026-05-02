@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 
 // Adopted from material/menu_anchor.dart.
 
@@ -57,6 +56,7 @@ class LocalizedShortcutLabeler {
   // Caches the created shortcut key maps so that creating one of these isn't
   // expensive after the first time for each unique localizations object.
   final _ShortcutMap _cachedShortcutKeys = {};
+  static final RegExp _functionKeyRegExp = RegExp(r'F\d{1,2}');
 
   bool get _usesSymbolicModifiers =>
       defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS;
@@ -109,11 +109,16 @@ class LocalizedShortcutLabeler {
         // then fall back to the key label.
         shortcutTrigger = _getLocalizedName(trigger, localizations);
         if (shortcutTrigger == null && logicalKeyId & LogicalKeyboardKey.planeMask == 0x0) {
-          // If the trigger is a Unicode-character-producing key, then use the
-          // character.
-          shortcutTrigger = String.fromCharCode(
-            logicalKeyId & LogicalKeyboardKey.valueMask,
-          ).toUpperCase();
+          if (_functionKeyRegExp.hasMatch(trigger.keyLabel)) {
+            // If the key label is a single alphanumeric character, then use that.
+            shortcutTrigger = trigger.keyLabel.toUpperCase();
+          } else {
+            // If the trigger is a Unicode-character-producing key, then use the
+            // character.
+            shortcutTrigger = String.fromCharCode(
+              logicalKeyId & LogicalKeyboardKey.valueMask,
+            ).toUpperCase();
+          }
         }
         // Fall back to the key label if all else fails.
         shortcutTrigger ??= trigger.keyLabel;

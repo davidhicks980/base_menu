@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'utilities/colors.dart';
+
 class MenuTooltip extends StatelessWidget {
   const MenuTooltip({super.key, required this.message, required this.child});
 
@@ -21,14 +23,14 @@ class MenuTooltip extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 16.0),
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         decoration: BoxDecoration(
-          color: const Color(0xFF1F1F1F),
-          border: Border.all(color: const Color(0x00000000)),
+          color: FloogleColors.darkGray,
+          border: Border.all(color: FloogleColors.transparent),
           borderRadius: BorderRadius.circular(4.0),
         ),
         child: Text.rich(
           message,
           style: const TextStyle(
-            color: Color(0xFFF2F2F2),
+            color: FloogleColors.logoFocusHoverColor,
             fontFamily: 'RobotoFlex',
             fontSize: 12.0,
             fontVariations: [FontVariation.weight(425)],

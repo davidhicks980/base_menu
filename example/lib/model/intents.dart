@@ -157,7 +157,7 @@ class FindAndReplaceIntent extends FloogleIntent {
   const FindAndReplaceIntent();
 }
 
-class SetViewingModeIntent extends FloogleSelectableIntent<ViewMode> {
+class SetViewingModeIntent extends FloogleSelectableIntent<ViewModeOption> {
   const SetViewingModeIntent.viewing() : super(key: .viewMode, value: .viewing);
   const SetViewingModeIntent.editing() : super(key: .viewMode, value: .editing);
   const SetViewingModeIntent.suggesting() : super(key: .viewMode, value: .suggesting);

@@ -598,10 +598,8 @@ class FormatTextHighlightIntent extends FloogleSelectableIntent<Color> {
     : super(key: SelectionKey.textFormatHighlight, value: color);
 }
 
-class SetZoomLevelIntent extends FloogleSelectableIntent<double> {
-  const SetZoomLevelIntent(double zoomLevel)
-    : assert(zoomLevel > 0.1 && zoomLevel <= 2.0),
-      super(key: SelectionKey.zoomLevel, value: zoomLevel);
+class SetZoomLevelIntent extends FloogleSelectableIntent<String> {
+  const SetZoomLevelIntent(String zoomLevel) : super(key: SelectionKey.zoomLevel, value: zoomLevel);
 }
 
 class FormatFontSizeIntent extends FloogleSelectableIntent<double> {

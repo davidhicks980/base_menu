@@ -78,7 +78,7 @@ class AppStateManager extends StatefulWidget {
     )!.controller;
   }
 
-  static Map<SelectionKey, Object> documentFlagsOf(BuildContext context) {
+  static Map<SelectionKey, Object> documentStateOf(BuildContext context) {
     return InheritedModel.inheritFrom<_EditorModel>(
       context,
       aspect: _EditorModelAspect.documentFlags,
@@ -114,6 +114,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     .viewMode: ViewModeOption.editing,
     .showRuler: true,
     .showPrintLayout: true,
+    .zoomLevel: '100%',
   };
   late final shortcuts = _buildShortcuts();
   // ignore: unused_field
@@ -266,6 +267,12 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     MakeAvailableOfflineIntent: ReflectAction(),
     ViewDetailsIntent: ReflectAction(),
     SetLanguageIntent: ReflectAction(),
+    SetZoomLevelIntent: CallbackAction<SetZoomLevelIntent>(
+      onInvoke: (intent) {
+        setFlag(SelectionKey.zoomLevel, intent.value);
+        return null;
+      },
+    ),
     PageSetupIntent: ReflectAction(),
     PrintIntent: ReflectAction(),
     SetCommentVisibilityIntent: CallbackAction<SetCommentVisibilityIntent>(
@@ -418,7 +425,6 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     FormatFontSizeIntent: CallbackAction<FormatFontSizeIntent>(
       onInvoke: (intent) {
         controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(fontSize: intent.value)));
-        editorFocusNode.requestFocus();
         return null;
       },
     ),

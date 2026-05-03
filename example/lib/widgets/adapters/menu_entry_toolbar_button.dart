@@ -21,7 +21,7 @@ class MenuEntryToolbarButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (item.intent case FloogleSelectableBooleanIntent(:final key, :final value)) {
-      final toggled = AppStateManager.documentFlagsOf(context)[key] == value;
+      final toggled = AppStateManager.documentStateOf(context)[key] == value;
       return MergeSemantics(
         child: Semantics(
           toggled: toggled,
@@ -44,7 +44,7 @@ class MenuEntryToolbarButton extends StatelessWidget {
             child: IconTheme.merge(
               data: IconThemeData(
                 size: 18,
-                color: toggled ? FloogleColors.selectedButton : FloogleColors.gray,
+                color: toggled ? FloogleColors.selectedButton : FloogleColors.grey,
               ).merge(iconTheme),
               child: Icon(item.icon, size: 18),
             ),
@@ -61,7 +61,7 @@ class MenuEntryToolbarButton extends StatelessWidget {
       },
       requestCloseOnActivate: requestCloseOnActivate,
       child: IconTheme.merge(
-        data: const IconThemeData(size: 18, color: FloogleColors.gray).merge(iconTheme),
+        data: const IconThemeData(size: 18, color: FloogleColors.grey).merge(iconTheme),
         child: Icon(item.icon),
       ),
     );

@@ -26,7 +26,6 @@ void main() async {
 
 class App extends StatefulWidget {
   const App({super.key});
-
   @override
   State<App> createState() => _AppState();
 }
@@ -41,7 +40,7 @@ class _AppState extends State<App> {
       ],
       textStyle: const TextStyle(
         fontFamily: 'RobotoFlex',
-        color: FloogleColors.gray,
+        color: FloogleColors.grey,
         fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
       ),
       onGenerateRoute: (settings) {
@@ -56,7 +55,7 @@ class _AppState extends State<App> {
                 return IconTheme.merge(
                   data: const IconThemeData(
                     size: 18,
-                    color: FloogleColors.gray,
+                    color: FloogleColors.grey,
                     // Fonts look slightly anemic on web, so compensate with a heavier weight.
                     weight: kIsWeb ? 550 : 400,
                   ),

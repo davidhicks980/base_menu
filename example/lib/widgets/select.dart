@@ -81,7 +81,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
             style: TextStyle(
               fontFamily: 'GoogleSans',
               fontSize: 14,
-              color: isOpen ? FloogleColors.gray : FloogleColors.selectTextColor,
+              color: isOpen ? FloogleColors.grey : FloogleColors.selectTextColor,
               height: 1.0,
               letterSpacing: 0.1,
               fontWeight: const FontWeight(450),

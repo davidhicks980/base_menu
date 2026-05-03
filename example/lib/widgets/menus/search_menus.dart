@@ -9,7 +9,6 @@ import '../../data/entry.dart';
 import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../../utilities/colors.dart';
-import '../combo_box.dart';
 import '../editable.dart';
 import '../menu_action_label.dart';
 import '../toolbar_icon_button.dart';
@@ -23,10 +22,18 @@ const defaultStyle = TextStyle(
   fontVariations: kIsWeb ? [FontVariation.weight(400)] : [FontVariation.weight(300)],
 );
 
+class _TraversePreviousIntent extends Intent {
+  const _TraversePreviousIntent();
+}
+
+class _TraverseNextIntent extends Intent {
+  const _TraverseNextIntent();
+}
+
 const _shortcuts = {
   SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowUp): ComboBoxTraversePreviousIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowDown): ComboBoxTraverseNextIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowUp): _TraversePreviousIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowDown): _TraverseNextIntent(),
   SingleActivator(LogicalKeyboardKey.arrowLeft): ExtendSelectionByCharacterIntent(
     forward: false,
     collapseSelection: true,
@@ -124,12 +131,8 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
   ];
 
   late final Map<Type, Action<Intent>> _editorActions = {
-    ComboBoxTraversePreviousIntent: CallbackAction<ComboBoxTraversePreviousIntent>(
-      onInvoke: _handleMoveUp,
-    ),
-    ComboBoxTraverseNextIntent: CallbackAction<ComboBoxTraverseNextIntent>(
-      onInvoke: _handleMoveDown,
-    ),
+    _TraversePreviousIntent: CallbackAction<_TraversePreviousIntent>(onInvoke: _handleMoveUp),
+    _TraverseNextIntent: CallbackAction<_TraverseNextIntent>(onInvoke: _handleMoveDown),
     ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: _handleActivate),
   };
   late MenuController menuController;
@@ -232,7 +235,7 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
 
   String _query = '';
 
-  void _handleMoveUp(ComboBoxTraversePreviousIntent intent) {
+  void _handleMoveUp(_TraversePreviousIntent intent) {
     if (!menuController.isOpen) {
       menuController.open();
     }
@@ -242,7 +245,7 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
     });
   }
 
-  void _handleMoveDown(ComboBoxTraverseNextIntent intent) {
+  void _handleMoveDown(_TraverseNextIntent intent) {
     if (!menuController.isOpen) {
       menuController.open();
       if (!_focusNode.hasFocus) {

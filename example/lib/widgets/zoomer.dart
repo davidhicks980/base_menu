@@ -25,6 +25,7 @@ class _ZoomerState extends State<Zoomer> {
   final TransformationController _transformController = TransformationController();
   final GlobalKey _viewerKey = GlobalKey();
   final FocusNode _focusNode = FocusNode();
+  bool _isPanEnabled = false;
 
   @override
   void initState() {
@@ -114,6 +115,15 @@ class _ZoomerState extends State<Zoomer> {
       ..scale(scale);
   }
 
+  void _handleInteractionEnd(ScaleEndDetails details) {
+    final enablePan = !_transformController.value.isIdentity();
+    if (_isPanEnabled != enablePan) {
+      setState(() {
+        _isPanEnabled = enablePan;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Focus(
@@ -127,6 +137,8 @@ class _ZoomerState extends State<Zoomer> {
         width: MediaQuery.of(context).size.width,
         child: InteractiveViewer(
           clipBehavior: Clip.none,
+          panEnabled: !_isPanEnabled,
+          onInteractionEnd: _handleInteractionEnd,
           transformationController: _transformController,
           minScale: widget.minScale,
           maxScale: widget.maxScale,

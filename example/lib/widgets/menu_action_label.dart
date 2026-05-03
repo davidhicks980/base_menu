@@ -64,7 +64,7 @@ class MenuActionLabel extends StatelessWidget {
   final MenuSerializableShortcut? shortcut;
   final Widget child;
 
-  static const _labelTextStyle = TextStyle(
+  static const labelTextStyle = TextStyle(
     fontFamily: 'RobotoFlex',
     fontSize: kIsWeb ? 14.25 : 14,
     color: FloogleColors.darkGray,
@@ -95,7 +95,7 @@ class MenuActionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTextStyle.merge(
-      style: _labelTextStyle,
+      style: labelTextStyle,
       overflow: TextOverflow.ellipsis,
       maxLines: 1,
       softWrap: false,
@@ -111,7 +111,7 @@ class MenuActionLabel extends StatelessWidget {
                   ? _AlignMidpoint(
                       alignment: leadingMidpointAlignment,
                       child: IconTheme.merge(
-                        data: const IconThemeData(size: 18, color: FloogleColors.gray, grade: 150),
+                        data: const IconThemeData(size: 18, color: FloogleColors.grey, grade: 150),
                         child: leading!,
                       ),
                     )

@@ -45,7 +45,7 @@ class MenuEntryPanel extends StatelessWidget {
             SelectableMenuEntry() => Builder(
               builder: (context) {
                 final checked =
-                    AppStateManager.documentFlagsOf(context)[child.intent.key] ==
+                    AppStateManager.documentStateOf(context)[child.intent.key] ==
                     child.intent.value;
                 return SelectableMenuItem(
                   selected: checked,

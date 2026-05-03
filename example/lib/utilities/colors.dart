@@ -7,7 +7,7 @@ abstract class FloogleColors {
   static const lightGray = Color.fromRGBO(170, 170, 170, 1);
   static const darkGray = Color.fromRGBO(31, 31, 31, 1);
   static const selectTextColor = Color.fromRGBO(31, 31, 31, 0.705);
-  static const gray = Color.fromRGBO(68, 71, 70, 1);
+  static const grey = Color.fromRGBO(68, 71, 70, 1);
   static const activeColor = Color.fromRGBO(68, 71, 70, 0.12);
   static const zoomHoverColor = Color.fromRGBO(68, 71, 70, 0.08);
   static const elevatedSurfaceColor = Color.fromRGBO(240, 244, 249, 1);

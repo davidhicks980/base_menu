@@ -1,6 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../app_state_manager.dart';
+import '../../model/enum.dart';
+import '../../model/intents.dart';
 import '../../utilities/colors.dart';
 import '../combo_box.dart';
 import '../dropdown_arrow.dart';
@@ -15,89 +18,100 @@ class ZoomMenu extends StatefulWidget {
 
 class _ZoomMenuState extends State<ZoomMenu> {
   static const zoomLevels = ['Fit', '50%', '75%', '90%', '100%', '125%', '150%', '200%'];
-  final _focusNode = FocusNode();
+
   final _menuController = MenuController();
-  late final _actions = {
-    ComboBoxTraversePreviousIntent: CallbackAction<ComboBoxTraversePreviousIntent>(
-      onInvoke: _handleMoveUp,
-    ),
-
-    ComboBoxTraverseNextIntent: CallbackAction<ComboBoxTraverseNextIntent>(
-      onInvoke: _handleMoveDown,
-    ),
-  };
-
-  bool _isHovered = false;
-  String _selectedZoom = '100%';
   late List<Widget> zoomWidgets;
+  bool _isHovered = false;
+  String _selectedValue = '';
+  String? _highlightValue;
+  int? get highlightIndex => _highlightValue != null ? zoomLevels.indexOf(_highlightValue!) : null;
+
+  String? findClosestZoomLevel(String zoomLevel) {
+    final int? zoom = int.tryParse(zoomLevel.replaceAll('%', ''));
+    if (zoom == null) {
+      return null;
+    }
+
+    final levels = zoomLevels.skip(1).iterator;
+    if (!levels.moveNext()) {
+      return null;
+    }
+
+    int levelValue(String level) {
+      return int.parse(level.substring(0, level.length - 1));
+    }
+
+    int closest = levelValue(levels.current);
+    while (levels.moveNext()) {
+      final int current = levelValue(levels.current);
+      if ((current - zoom).abs() < (closest - zoom).abs()) {
+        closest = current;
+      } else {
+        // Since the list is sorted, we can stop once we start getting farther away.
+        break;
+      }
+    }
+    // Return the closest level with '%' appended, or the original if no levels are found.
+    return '$closest%';
+  }
 
   @override
   void initState() {
     super.initState();
     zoomWidgets = [
-      ComboBoxOption(
-        value: zoomLevels.first,
-        onPressed: () {
-          setState(() {
-            _selectedZoom = zoomLevels.first;
-          });
-          _menuController.close();
-        },
-      ),
-      const MenuDivider(padding: EdgeInsets.only(left: 16)),
-      for (var i = 1; i < zoomLevels.length; i++)
-        ComboBoxOption(
-          value: zoomLevels[i],
-          onPressed: () {
-            setState(() {
-              _selectedZoom = zoomLevels[i];
-            });
-            _menuController.close();
-          },
-        ),
+      ComboBoxOption(value: zoomLevels.first),
+      const MenuDivider(padding: EdgeInsets.only(left: 8)),
+      for (var i = 1; i < zoomLevels.length; i++) ComboBoxOption(value: zoomLevels[i]),
     ];
   }
 
   @override
-  void dispose() {
-    _focusNode.dispose();
-    super.dispose();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final zoom = AppStateManager.documentStateOf(context)[SelectionKey.zoomLevel]! as String;
+    if (_selectedValue != zoom) {
+      _selectedValue = zoom;
+      _highlightValue = zoom;
+    }
   }
 
-  Object? _handleMoveUp(ComboBoxTraversePreviousIntent intent) {
-    if (!_menuController.isOpen) {
-      _menuController.open();
-      if (!_focusNode.hasFocus) {
-        _focusNode.requestFocus();
-      }
+  void _handleMovePrevious() {
+    final int previousIndex;
+    if (highlightIndex case final int index) {
+      previousIndex = (index - 1) % zoomLevels.length;
+    } else {
+      previousIndex = zoomLevels.length - 1;
     }
-    final currentIndex = (zoomLevels.indexOf(_selectedZoom) - 1) % zoomLevels.length;
-    setState(() {
-      _selectedZoom = zoomLevels[currentIndex];
-    });
-    return null;
+    _emitValue(zoomLevels[previousIndex]);
   }
 
-  Object? _handleMoveDown(ComboBoxTraverseNextIntent intent) {
-    if (!_menuController.isOpen) {
-      _menuController.open();
-      if (!_focusNode.hasFocus) {
-        _focusNode.requestFocus();
-      }
+  void _handleMoveNext() {
+    final int nextIndex;
+    if (highlightIndex case final int index) {
+      nextIndex = (index + 1) % zoomLevels.length;
+    } else {
+      nextIndex = 0;
     }
-    final currentIndex = (zoomLevels.indexOf(_selectedZoom) + 1) % zoomLevels.length;
-    setState(() {
-      _selectedZoom = zoomLevels[currentIndex];
-    });
-    return null;
+    _emitValue(zoomLevels[nextIndex]);
+  }
+
+  // ignore: use_setters_to_change_properties
+  void _handleHighlight(String? value) {
+    _highlightValue = value;
+  }
+
+  void _emitValue(String zoomLevel) {
+    Actions.invoke(context, SetZoomLevelIntent(zoomLevel));
   }
 
   void _handleSelect(String value) {
-    if (zoomLevels.contains(value)) {
-      setState(() {
-        _selectedZoom = value;
-      });
+    final index = zoomLevels.indexOf(value);
+    if (index != -1) {
+      _emitValue(zoomLevels[index]);
+    } else if (findClosestZoomLevel(value) case final String closest) {
+      _emitValue(closest);
     }
+
     _menuController.close();
   }
 
@@ -119,33 +133,33 @@ class _ZoomMenuState extends State<ZoomMenu> {
       cursor: SystemMouseCursors.text,
       onEnter: _handlePointerEnter,
       onExit: _handlePointerExit,
-      child: Actions(
-        actions: _actions,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            color: _isHovered ? FloogleColors.zoomHoverColor : FloogleColors.transparent,
-          ),
-          child: DefaultTextStyle(
-            style: const TextStyle(height: 1.5),
-            child: MergeSemantics(
-              child: Semantics(
-                label: 'Zoom',
-                value: _selectedZoom,
-                child: ComboBox(
-                  inputConstraints: const BoxConstraints(
-                    minHeight: 29.25,
-                    maxHeight: 29.25,
-                    minWidth: 68,
-                    maxWidth: 68,
-                  ),
-                  onSelect: _handleSelect,
-                  menuController: _menuController,
-                  selected: _selectedZoom,
-                  focusNode: _focusNode,
-                  trailing: const DropdownArrow(),
-                  children: zoomWidgets,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          color: _isHovered ? FloogleColors.zoomHoverColor : FloogleColors.transparent,
+        ),
+        child: DefaultTextStyle(
+          style: const TextStyle(height: 1.5),
+          child: MergeSemantics(
+            child: Semantics(
+              label: 'Zoom',
+              value: _selectedValue,
+              child: ComboBox(
+                onTraversePrevious: _handleMovePrevious,
+                onTraverseNext: _handleMoveNext,
+                onHighlight: _handleHighlight,
+                inputConstraints: const BoxConstraints(
+                  minHeight: 29.25,
+                  maxHeight: 29.25,
+                  minWidth: 68,
+                  maxWidth: 68,
                 ),
+                onSelect: _handleSelect,
+                menuController: _menuController,
+                selected: _selectedValue,
+
+                trailing: const DropdownArrow(),
+                children: zoomWidgets,
               ),
             ),
           ),

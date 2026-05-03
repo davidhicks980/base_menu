@@ -59,7 +59,7 @@ class _AlignIndentMenuState extends State<AlignIndentMenu> {
                   entry.icon,
                   color: align == entry.intent.value
                       ? FloogleColors.selectedButton
-                      : FloogleColors.gray,
+                      : FloogleColors.grey,
                 ),
               ),
             ),

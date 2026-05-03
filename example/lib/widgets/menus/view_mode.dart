@@ -20,7 +20,7 @@ class ViewMode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected =
-        (AppStateManager.documentFlagsOf(context)[SelectionKey.viewMode] ??
+        (AppStateManager.documentStateOf(context)[SelectionKey.viewMode] ??
                 Menu.viewMode.children.first.intent.value)
             as ViewModeOption;
     return Select(
@@ -67,7 +67,7 @@ class ViewMode extends StatelessWidget {
                               option.subtitle!,
                               style: const TextStyle(
                                 fontSize: 12,
-                                color: FloogleColors.gray,
+                                color: FloogleColors.grey,
                                 height: 1,
                               ),
                             ),

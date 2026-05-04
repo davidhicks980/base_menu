@@ -37,7 +37,7 @@ class _FontMenuState extends State<FontMenu> {
             (f) => f.label == selectedFamily,
             orElse: () => FontFamily.roboto,
           )
-        : FontFamily.inter;
+        : FontFamily.roboto;
     return ConstrainedBox(
       constraints: const .tightFor(width: 97),
       child: _FontSelector(

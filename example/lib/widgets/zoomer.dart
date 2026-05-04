@@ -25,7 +25,7 @@ class _ZoomerState extends State<Zoomer> {
   final TransformationController _transformController = TransformationController();
   final GlobalKey _viewerKey = GlobalKey();
   final FocusNode _focusNode = FocusNode();
-  bool _isPanEnabled = false;
+  bool _isPanEnabled = true;
 
   @override
   void initState() {

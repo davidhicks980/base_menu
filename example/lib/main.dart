@@ -14,7 +14,6 @@ import 'widgets/floogle_docs_logo.dart';
 import 'widgets/menus/document_menu_bar.dart';
 import 'widgets/title_field.dart';
 import 'widgets/title_icon.dart';
-import 'widgets/zoomer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,33 +43,18 @@ class _AppState extends State<App> {
         fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
       ),
       onGenerateRoute: (settings) {
-        return PageRouteBuilder<void>(
-          settings: settings,
-          pageBuilder:
-              (
-                BuildContext context,
-                Animation<double> animation,
-                Animation<double> secondaryAnimation,
-              ) {
-                return IconTheme.merge(
-                  data: const IconThemeData(
-                    size: 18,
-                    color: FloogleColors.grey,
-                    // Fonts look slightly anemic on web, so compensate with a heavier weight.
-                    weight: kIsWeb ? 550 : 400,
-                  ),
-                  child: const Zoomer(
-                    minScale: 1,
-                    maxScale: 3,
-                    constrained: true,
-                    child: ActionReflector(child: AppStateManager(child: Main())),
-                  ),
-                );
-              },
-        );
+        return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
       },
       color: FloogleColors.surfaceColor,
     );
+  }
+
+  Widget _buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return const ActionReflector(child: AppStateManager(child: Main()));
   }
 }
 
@@ -120,13 +104,13 @@ class _MainState extends State<Main> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Shortcuts(
-      shortcuts: <LogicalKeySet, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.arrowLeft): const DoNothingAndStopPropagationIntent(),
-        LogicalKeySet(LogicalKeyboardKey.arrowRight): const DoNothingAndStopPropagationIntent(),
-        LogicalKeySet(LogicalKeyboardKey.arrowUp): const DoNothingAndStopPropagationIntent(),
-        LogicalKeySet(LogicalKeyboardKey.arrowDown): const DoNothingAndStopPropagationIntent(),
-      },
+    return IconTheme(
+      data: const IconThemeData(
+        size: 18,
+        color: FloogleColors.grey,
+        // Fonts look slightly anemic on web, so compensate with a heavier weight.
+        weight: kIsWeb ? 550 : 400,
+      ),
       child: ColoredBox(
         color: FloogleColors.surfaceColor,
         child: Column(

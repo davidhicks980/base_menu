@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -179,7 +180,12 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
   }
 
   Map<ShortcutActivator, Intent> _buildShortcuts() {
-    final Map<ShortcutActivator, Intent> shortcuts = {};
+    final Map<ShortcutActivator, Intent> shortcuts = {
+      LogicalKeySet(LogicalKeyboardKey.arrowLeft): const DoNothingAndStopPropagationIntent(),
+      LogicalKeySet(LogicalKeyboardKey.arrowRight): const DoNothingAndStopPropagationIntent(),
+      LogicalKeySet(LogicalKeyboardKey.arrowUp): const DoNothingAndStopPropagationIntent(),
+      LogicalKeySet(LogicalKeyboardKey.arrowDown): const DoNothingAndStopPropagationIntent(),
+    };
 
     void walkEntries(List<BaseMenuEntry> entries) {
       for (final entry in entries) {
@@ -202,6 +208,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     walkEntries(Menu.main.children);
     walkEntries(Menu.context.children);
     walkEntries([Entry.paintFormat]);
+
     return shortcuts;
   }
 

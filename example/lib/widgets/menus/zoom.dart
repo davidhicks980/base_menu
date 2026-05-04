@@ -60,7 +60,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
     super.initState();
     zoomWidgets = [
       ComboBoxOption(value: zoomLevels.first),
-      const MenuDivider(padding: EdgeInsets.only(left: 8)),
+      const MenuDivider(padding: EdgeInsets.only(left: 12)),
       for (var i = 1; i < zoomLevels.length; i++) ComboBoxOption(value: zoomLevels[i]),
     ];
   }

@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../model/enum.dart';
+import 'colors.dart';
 import 'style_segment_tree.dart';
 
 class EditorController extends TextEditingController {
@@ -10,7 +12,13 @@ class EditorController extends TextEditingController {
 
   Map<DocumentParagraphStyle, SegmentTextStyle> paragraphStyles = {
     DocumentParagraphStyle.normal: const SegmentTextStyle(
-      textStyle: TextStyle(fontSize: 14, height: 20 / 14),
+      textStyle: TextStyle(
+        fontFamily: 'RobotoFlex',
+        fontSize: kIsWeb ? 14.5 : 14.0,
+        height: 20 / 14,
+        color: FloogleColors.black,
+        fontWeight: kIsWeb ? FontWeight(475) : FontWeight.w400,
+      ),
     ),
     DocumentParagraphStyle.title: const SegmentTextStyle(
       textStyle: TextStyle(fontSize: 36, height: 32 / 26, fontWeight: FontWeight.w500),

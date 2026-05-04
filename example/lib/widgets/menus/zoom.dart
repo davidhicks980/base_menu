@@ -18,7 +18,6 @@ class ZoomMenu extends StatefulWidget {
 
 class _ZoomMenuState extends State<ZoomMenu> {
   static const zoomLevels = ['Fit', '50%', '75%', '90%', '100%', '125%', '150%', '200%'];
-
   final _menuController = MenuController();
   late List<Widget> zoomWidgets;
   bool _isHovered = false;
@@ -59,9 +58,9 @@ class _ZoomMenuState extends State<ZoomMenu> {
   void initState() {
     super.initState();
     zoomWidgets = [
-      ComboBoxOption(value: zoomLevels.first),
+      ComboBoxOption(index: 0, value: zoomLevels.first),
       const MenuDivider(padding: EdgeInsets.only(left: 12)),
-      for (var i = 1; i < zoomLevels.length; i++) ComboBoxOption(value: zoomLevels[i]),
+      for (var i = 1; i < zoomLevels.length; i++) ComboBoxOption(index: i, value: zoomLevels[i]),
     ];
   }
 
@@ -75,43 +74,20 @@ class _ZoomMenuState extends State<ZoomMenu> {
     }
   }
 
-  void _handleMovePrevious() {
-    final int previousIndex;
-    if (highlightIndex case final int index) {
-      previousIndex = (index - 1) % zoomLevels.length;
-    } else {
-      previousIndex = zoomLevels.length - 1;
-    }
-    _emitValue(zoomLevels[previousIndex]);
-  }
-
-  void _handleMoveNext() {
-    final int nextIndex;
-    if (highlightIndex case final int index) {
-      nextIndex = (index + 1) % zoomLevels.length;
-    } else {
-      nextIndex = 0;
-    }
-    _emitValue(zoomLevels[nextIndex]);
-  }
-
-  // ignore: use_setters_to_change_properties
-  void _handleHighlight(String? value) {
-    _highlightValue = value;
-  }
-
-  void _emitValue(String zoomLevel) {
+  void _handleSelect(String zoomLevel) {
+    assert(zoomLevels.contains(zoomLevel));
     Actions.invoke(context, SetZoomLevelIntent(zoomLevel));
   }
 
-  void _handleSelect(String value) {
+  void _handleSubmit(String value) {
     final index = zoomLevels.indexOf(value);
     if (index != -1) {
-      _emitValue(zoomLevels[index]);
+      _handleSelect(zoomLevels[index]);
     } else if (findClosestZoomLevel(value) case final String closest) {
-      _emitValue(closest);
+      _handleSelect(closest);
+    } else {
+      return;
     }
-
     _menuController.close();
   }
 
@@ -140,28 +116,21 @@ class _ZoomMenuState extends State<ZoomMenu> {
         ),
         child: DefaultTextStyle(
           style: const TextStyle(height: 1.5),
-          child: MergeSemantics(
-            child: Semantics(
-              label: 'Zoom',
-              value: _selectedValue,
-              child: ComboBox(
-                onTraversePrevious: _handleMovePrevious,
-                onTraverseNext: _handleMoveNext,
-                onHighlight: _handleHighlight,
-                inputConstraints: const BoxConstraints(
-                  minHeight: 29.25,
-                  maxHeight: 29.25,
-                  minWidth: 68,
-                  maxWidth: 68,
-                ),
-                onSelect: _handleSelect,
-                menuController: _menuController,
-                selected: _selectedValue,
-
-                trailing: const DropdownArrow(),
-                children: zoomWidgets,
-              ),
+          child: ComboBox(
+            semanticsLabel: 'Zoom',
+            inputConstraints: const BoxConstraints(
+              minHeight: 29.25,
+              maxHeight: 29.25,
+              minWidth: 68,
+              maxWidth: 68,
             ),
+            onSelect: _handleSelect,
+            onSubmit: _handleSubmit,
+            menuController: _menuController,
+            selected: _selectedValue,
+            trailing: const DropdownArrow(),
+            initialOffset: zoomLevels.indexOf(_selectedValue) * 30.0,
+            children: zoomWidgets,
           ),
         ),
       ),

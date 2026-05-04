@@ -1,7 +1,9 @@
+import 'dart:collection';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
 import '../utilities/colors.dart';
@@ -17,9 +19,18 @@ class _MoveNextIntent extends Intent {
   const _MoveNextIntent();
 }
 
+class _MoveFirstIntent extends Intent {
+  const _MoveFirstIntent();
+}
+
+class _MoveLastIntent extends Intent {
+  const _MoveLastIntent();
+}
+
 class _ComboBoxHighlight extends InheritedWidget {
   const _ComboBoxHighlight({
     required super.child,
+    required this.highlight,
     required this.value,
     required this.state,
     required this.alignment,
@@ -27,10 +38,15 @@ class _ComboBoxHighlight extends InheritedWidget {
 
   final _ComboBoxBehavior state;
   final Alignment alignment;
-  final String? value;
+  final String? highlight;
+  final String value;
 
-  static String? valueOf(BuildContext context) {
+  static String valueOf(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<_ComboBoxHighlight>()!.value;
+  }
+
+  static String? highlightedValueOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<_ComboBoxHighlight>()!.highlight;
   }
 
   static Alignment alignmentOf(BuildContext context) {
@@ -43,48 +59,118 @@ class _ComboBoxHighlight extends InheritedWidget {
 
   @override
   bool updateShouldNotify(_ComboBoxHighlight oldWidget) {
-    return value != oldWidget.value || state != oldWidget.state || alignment != oldWidget.alignment;
+    return highlight != oldWidget.highlight ||
+        state != oldWidget.state ||
+        alignment != oldWidget.alignment ||
+        value != oldWidget.value;
   }
 }
 
-class ComboBoxOption extends StatelessWidget {
-  const ComboBoxOption({super.key, required this.value});
-
+class ComboBoxOption extends StatefulWidget {
+  const ComboBoxOption({
+    super.key,
+    required this.value,
+    required this.index,
+    this.constraints = const BoxConstraints(minHeight: 30, maxHeight: 30),
+  });
   final String value;
+  final int index;
+  final BoxConstraints constraints;
+
+  @override
+  State<ComboBoxOption> createState() => _ComboBoxOptionState();
+}
+
+class _ComboBoxOptionState extends State<ComboBoxOption> {
+  _ComboBoxBehavior? state;
+  bool _isSelected = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final newState = _ComboBoxHighlight.stateOf(context);
+    if (state != newState) {
+      state?.unregister(widget.index);
+      state = newState;
+      state?.register(widget.index, widget.value);
+    }
+  }
+
+  @override
+  void dispose() {
+    state?.unregister(widget.index);
+    super.dispose();
+  }
+
+  void showOnScreen() {
+    final renderObject = context.findRenderObject();
+    if (renderObject != null) {
+      renderObject.showOnScreen();
+    }
+  }
+
+  void _handleSelect() {
+    state?.select(widget.value);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final child = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+      child: Align(
+        alignment: _ComboBoxHighlight.alignmentOf(context),
+        child: Text(widget.value, style: MenuActionLabel.labelTextStyle),
+      ),
+    );
     // This should be a SemanticsRole.option, but this is currently not
     // supported by Flutter's semantics system.
-    final state = _ComboBoxHighlight.stateOf(context);
-    return CoreMenuItem(
+    final body = CoreMenuItem(
       requestFocusOnHover: false,
       onHover: (bool hovered) {
         if (hovered) {
-          state.highlight(value);
+          state!.highlight(widget.value);
         } else {
-          state.removeHighlight(value);
+          state!.removeHighlight(widget.value);
         }
       },
-      onPressed: () {
-        state.select(value);
-      },
-      child: Builder(
-        builder: (context) {
-          final comboBoxValue = _ComboBoxHighlight.valueOf(context);
-          final isSelected = comboBoxValue == value;
-          return ColoredBox(
-            color: isSelected ? const Color(0xFFf2f2f2) : FloogleColors.transparent,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Align(
-                alignment: _ComboBoxHighlight.alignmentOf(context),
-                child: Text(value, style: MenuActionLabel.labelTextStyle),
-              ),
-            ),
-          );
-        },
+      onPressed: _handleSelect,
+      child: ConstrainedBox(
+        constraints: widget.constraints,
+        child: Builder(
+          builder: (context) {
+            final highlightedValue = _ComboBoxHighlight.highlightedValueOf(context);
+            return ColoredBox(
+              color: highlightedValue == widget.value
+                  ? const Color(0xFFf2f2f2)
+                  : FloogleColors.transparent,
+              child: child,
+            );
+          },
+        ),
       ),
+    );
+    return Builder(
+      builder: (context) {
+        final isSelected = _ComboBoxHighlight.valueOf(context) == widget.value;
+        if (_isSelected != isSelected) {
+          _isSelected = isSelected;
+          if (_isSelected) {
+            showOnScreen();
+          }
+        }
+
+        return Semantics.fromProperties(
+          properties: SemanticsProperties(
+            selected: isSelected,
+            inMutuallyExclusiveGroup: true,
+            onTap: _handleSelect,
+            enabled: true,
+            label: widget.value,
+            textDirection: Directionality.of(context),
+          ),
+          child: ExcludeSemantics(child: body),
+        );
+      },
     );
   }
 }
@@ -93,6 +179,8 @@ abstract interface class _ComboBoxBehavior {
   void highlight(String value);
   void removeHighlight(String value);
   void select(String value);
+  void register(int key, String value);
+  void unregister(int value);
 }
 
 class ComboBox extends StatefulWidget {
@@ -100,6 +188,7 @@ class ComboBox extends StatefulWidget {
     super.key,
     required this.children,
     this.onSelect,
+    this.onSubmit,
     this.trailing,
     this.inputConstraints = const BoxConstraints(minHeight: 28, maxHeight: 28),
     required this.selected,
@@ -112,38 +201,53 @@ class ComboBox extends StatefulWidget {
       fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
     ),
     required this.menuController,
-    this.onTraversePrevious,
-    this.onTraverseNext,
-    this.onHighlight,
     this.alignment = AlignmentDirectional.centerStart,
+    this.initialOffset = 0,
+    this.semanticsLabel = 'Combo Box',
   });
 
   final List<Widget> children;
   final ValueChanged<String>? onSelect;
+  final ValueChanged<String>? onSubmit;
   final String selected;
   final Widget? trailing;
   final BoxConstraints inputConstraints;
   final FocusNode? focusNode;
   final MenuController menuController;
   final TextStyle textStyle;
-  final VoidCallback? onTraversePrevious;
-  final VoidCallback? onTraverseNext;
-  final ValueChanged<String?>? onHighlight;
   final AlignmentGeometry alignment;
+  final double initialOffset;
+
+  final String semanticsLabel;
 
   @override
   State<ComboBox> createState() => _ComboBoxState();
 }
 
 class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
-  late final TextEditingController _textController;
   FocusNode? _internalFocusNode;
   FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
   String? _highlightValue;
   late final actions = {
     _MoveNextIntent: CallbackAction<_MoveNextIntent>(onInvoke: _handleMoveNext),
     _MovePreviousIntent: CallbackAction<_MovePreviousIntent>(onInvoke: _handleMovePrevious),
+    _MoveFirstIntent: CallbackAction<_MoveFirstIntent>(onInvoke: _handleMoveFirst),
+    _MoveLastIntent: CallbackAction<_MoveLastIntent>(onInvoke: _handleMoveLast),
   };
+
+  late ScrollController _scrollController;
+  final TextEditingController _textController = TextEditingController();
+  final SplayTreeMap<int, String> _indexToValue = SplayTreeMap<int, String>();
+
+  @override
+  void register(int key, String value) {
+    _indexToValue[key] = value;
+  }
+
+  @override
+  void unregister(int key) {
+    _indexToValue.remove(key);
+  }
 
   @override
   void highlight(String value) {
@@ -153,7 +257,6 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     setState(() {
       _highlightValue = value;
     });
-    widget.onHighlight?.call(value);
   }
 
   @override
@@ -164,7 +267,6 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     setState(() {
       _highlightValue = null;
     });
-    widget.onHighlight?.call(null);
   }
 
   @override
@@ -175,7 +277,9 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.selected);
+    _textController.text = widget.selected;
+    _highlightValue = widget.selected;
+    _scrollController = ScrollController(initialScrollOffset: widget.initialOffset);
     if (widget.focusNode == null) {
       _internalFocusNode = FocusNode();
     }
@@ -198,29 +302,71 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
 
   @override
   void dispose() {
-    _internalFocusNode?.dispose();
     _textController.dispose();
+    _internalFocusNode?.dispose();
     super.dispose();
   }
 
-  void _handleMovePrevious(_MovePreviousIntent intent) {
+  void _openMenuAndFocusButton() {
     if (!widget.menuController.isOpen) {
       widget.menuController.open();
       if (!_focusNode.hasFocus) {
         _focusNode.requestFocus();
       }
     }
-    widget.onTraversePrevious?.call();
+  }
+
+  void _traverseTo(int index) {
+    final newValue = _indexToValue[index]!;
+    SemanticsService.announce(newValue, Directionality.of(context));
+    widget.onSelect?.call(newValue);
+  }
+
+  void _handleMovePrevious(_MovePreviousIntent intent) {
+    _openMenuAndFocusButton();
+    final int previousIndex;
+    final keys = _indexToValue.keys.toList();
+    if (_highlightValue != null) {
+      final int index = keys.indexWhere((i) => _indexToValue[i] == _highlightValue);
+      previousIndex = (index - 1) % keys.length;
+    } else {
+      previousIndex = keys.length - 1;
+    }
+    _traverseTo(keys[previousIndex]);
   }
 
   void _handleMoveNext(_MoveNextIntent intent) {
-    if (!widget.menuController.isOpen) {
-      widget.menuController.open();
-      if (!_focusNode.hasFocus) {
-        _focusNode.requestFocus();
-      }
+    _openMenuAndFocusButton();
+    final int nextIndex;
+    final keys = _indexToValue.keys.toList();
+    if (_highlightValue != null) {
+      final int index = keys.indexWhere((i) => _indexToValue[i] == _highlightValue);
+      nextIndex = (index + 1) % keys.length;
+    } else {
+      nextIndex = 0;
     }
-    widget.onTraverseNext?.call();
+
+    _traverseTo(keys[nextIndex]);
+  }
+
+  void _handleMoveFirst(_MoveFirstIntent intent) {
+    _openMenuAndFocusButton();
+
+    if (_indexToValue.isEmpty) {
+      return;
+    }
+
+    _traverseTo(_indexToValue.firstKey()!);
+  }
+
+  void _handleMoveLast(_MoveLastIntent intent) {
+    _openMenuAndFocusButton();
+
+    if (_indexToValue.isEmpty) {
+      return;
+    }
+
+    _traverseTo(_indexToValue.lastKey()!);
   }
 
   @override
@@ -235,10 +381,22 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
         padding: MenuPanel.defaultPadding,
         alignmentOffset: const Offset(0, 7),
         panel: _ComboBoxHighlight(
-          value: _highlightValue,
+          value: widget.selected,
+          highlight: _highlightValue,
           alignment: alignment,
           state: this,
-          child: MenuPanel(children: widget.children),
+          child: PrimaryScrollController(
+            controller: _scrollController,
+            automaticallyInheritForPlatforms: const {
+              TargetPlatform.macOS,
+              TargetPlatform.windows,
+              TargetPlatform.linux,
+              TargetPlatform.fuchsia,
+              TargetPlatform.android,
+              TargetPlatform.iOS,
+            },
+            child: MenuPanel(children: widget.children),
+          ),
         ),
         builder: (BuildContext context, MenuController controller, Widget? child) {
           return _Anchor(
@@ -247,9 +405,10 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
             constraints: widget.inputConstraints,
             menuController: controller,
             trailing: widget.trailing,
-            onSelect: widget.onSelect,
+            onSelect: widget.onSubmit,
             selected: widget.selected,
             textStyle: widget.textStyle,
+            semanticsLabel: widget.semanticsLabel,
           );
         },
       ),
@@ -262,22 +421,27 @@ class _Anchor extends StatelessWidget {
     required this.focusNode,
     required this.textController,
     required this.constraints,
-    this.menuController,
+    required this.menuController,
     this.trailing,
     this.onSelect,
     required this.textStyle,
     required this.selected,
+    required this.semanticsLabel,
   });
   final FocusNode focusNode;
   final TextEditingController textController;
-  final MenuController? menuController;
+  final MenuController menuController;
   final BoxConstraints constraints;
   final Widget? trailing;
   final ValueChanged<String>? onSelect;
   final String selected;
+  final String semanticsLabel;
   final TextStyle textStyle;
 
   static const _shortcuts = {
+    SingleActivator(LogicalKeyboardKey.arrowDown, alt: true): ActivateIntent(),
+    SingleActivator(LogicalKeyboardKey.home): _MoveFirstIntent(),
+    SingleActivator(LogicalKeyboardKey.end): _MoveLastIntent(),
     SingleActivator(LogicalKeyboardKey.arrowUp): _MovePreviousIntent(),
     SingleActivator(LogicalKeyboardKey.arrowDown): _MoveNextIntent(),
     SingleActivator(LogicalKeyboardKey.arrowLeft): ExtendSelectionByCharacterIntent(
@@ -311,6 +475,7 @@ class _Anchor extends StatelessWidget {
               final defaultTextStyle = DefaultTextStyle.of(context).style;
               return isOpen
                   ? Editable(
+                      autofocus: true,
                       focusNode: focusNode,
                       controller: textController,
                       textAlign: TextAlign.center,
@@ -372,31 +537,62 @@ class _Anchor extends StatelessWidget {
           },
         ),
         onPressed: () {
-          menuController?.open();
+          menuController.open();
           focusNode.requestFocus();
         },
       );
     } else {
       listenable = GestureDetector(
+        excludeFromSemantics: true,
         onTap: () {
-          menuController?.close();
+          menuController.close();
         },
         behavior: HitTestBehavior.opaque,
         child: field,
       );
     }
-    return MergeSemantics(
-      child: Semantics.fromProperties(
-        properties: SemanticsProperties(expanded: isOpen, selected: true),
-        child: Shortcuts(
-          shortcuts: _shortcuts,
-          child: DefaultTextStyle.merge(
-            style: textStyle,
-            overflow: TextOverflow.ellipsis,
-            child: listenable,
-          ),
+
+    return ListenableBuilder(
+      listenable: focusNode,
+      child: Shortcuts(
+        shortcuts: _shortcuts,
+        child: DefaultTextStyle.merge(
+          style: textStyle,
+          overflow: TextOverflow.ellipsis,
+          child: listenable,
         ),
       ),
+      builder: (context, child) {
+        return Semantics.fromProperties(
+          properties: SemanticsProperties(
+            focusable: true,
+            focused: focusNode.hasFocus,
+            expanded: isOpen,
+            button: !isOpen,
+            textField: isOpen,
+            readOnly: !isOpen,
+            hint: defaultTargetPlatform == TargetPlatform.iOS
+                ? isOpen
+                      ? 'Collapse'
+                      : 'Expand'
+                : null,
+            onExpand: isOpen ? null : () => menuController.open(),
+            onCollapse: isOpen ? () => menuController.close() : null,
+            value: selected,
+            textDirection: Directionality.of(context),
+            label: semanticsLabel,
+            onTap: () {
+              if (isOpen) {
+                menuController.close();
+              } else {
+                menuController.open();
+                focusNode.requestFocus();
+              }
+            },
+          ),
+          child: child,
+        );
+      },
     );
   }
 }

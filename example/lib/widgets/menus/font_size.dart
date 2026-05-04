@@ -30,17 +30,18 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
   void initState() {
     super.initState();
     fontSizeWidgets = [
-      for (final size in _fontSizes) ComboBoxOption(value: size.toStringAsFixed(0)),
+      for (var i = 0; i < _fontSizes.length; i++)
+        ComboBoxOption(index: i, value: _fontSizes[i].toStringAsFixed(0)),
     ];
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final fontSize = AppStateManager.selectedTextStyleOf(context)?.textStyle?.fontSize ?? 14;
+    final fontSize = AppStateManager.selectedTextStyleOf(context)?.textStyle?.fontSize;
     if (_selectedFontSize != fontSize) {
-      _selectedFontSize = fontSize;
-      _highlightValue = fontSize;
+      _selectedFontSize = fontSize ?? _selectedFontSize;
+      _highlightValue = _selectedFontSize;
     }
   }
 
@@ -50,48 +51,21 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
     super.dispose();
   }
 
-  void _handleMovePrevious() {
-    final int previousIndex;
-    if (highlightIndex case final int index) {
-      previousIndex = (index - 1) % _fontSizes.length;
-    } else {
-      previousIndex = _fontSizes.length - 1;
-    }
-    _emitValue(_fontSizes[previousIndex]);
+  void _emitValue(double fontSize) {
+    assert(fontSize >= _fontSizes.first && fontSize <= _fontSizes.last);
+    Actions.invoke(context, FormatFontSizeIntent(fontSize));
   }
 
-  void _handleMoveNext() {
-    final int nextIndex;
-    if (highlightIndex case final int index) {
-      nextIndex = (index + 1) % _fontSizes.length;
-    } else {
-      nextIndex = 0;
-    }
-    _emitValue(_fontSizes[nextIndex]);
-  }
-
-  // ignore: use_setters_to_change_properties
-  void _handleHighlight(String? value) {
-    if (value == null) {
-      _highlightValue = null;
-      return;
-    }
-    _highlightValue = double.parse(value);
-  }
-
-  void _handleSelect(String value) {
-    _menuController.close();
-
+  void _handleSubmit(String value) {
     final val = double.tryParse(value);
     if (val == null) {
+      _focusNode.requestFocus();
+
       return;
     }
 
-    _emitValue(ui.clampDouble(val, 1, 96));
-  }
-
-  void _emitValue(double fontSize) {
-    Actions.invoke(context, FormatFontSizeIntent(fontSize));
+    _emitValue(ui.clampDouble(val, _fontSizes.first, _fontSizes.last));
+    _menuController.close();
   }
 
   void _handlePointerExit(PointerExitEvent event) {
@@ -120,29 +94,25 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
               : const Border.fromBorderSide(BorderSide(color: Color.fromRGBO(116, 119, 117, 1))),
         ),
         child: MergeSemantics(
-          child: Semantics(
-            label: 'Font Size List',
-            value: _selectedFontSize.toString(),
-            child: DefaultTextStyle(
-              textAlign: TextAlign.center,
-              style: const TextStyle(height: 1.3),
-              child: ComboBox(
-                alignment: Alignment.center,
-                onTraversePrevious: _handleMovePrevious,
-                onTraverseNext: _handleMoveNext,
-                onHighlight: _handleHighlight,
-                menuController: _menuController,
-                onSelect: _handleSelect,
-                selected: _selectedFontSize.toStringAsFixed(0),
-                focusNode: _focusNode,
-                inputConstraints: const BoxConstraints(
-                  minWidth: 26,
-                  maxWidth: 26,
-                  minHeight: 24,
-                  maxHeight: 24,
-                ),
-                children: fontSizeWidgets,
+          child: DefaultTextStyle(
+            textAlign: TextAlign.center,
+            style: const TextStyle(height: 1.3),
+            child: ComboBox(
+              semanticsLabel: 'Font Size',
+              alignment: Alignment.center,
+              menuController: _menuController,
+              onSelect: (value) => _emitValue(double.parse(value)),
+              onSubmit: _handleSubmit,
+              focusNode: _focusNode,
+              inputConstraints: const BoxConstraints(
+                minWidth: 26,
+                maxWidth: 26,
+                minHeight: 24,
+                maxHeight: 24,
               ),
+              initialOffset: _fontSizes.indexOf(_selectedFontSize) * 30.0,
+              selected: _selectedFontSize.toStringAsFixed(0),
+              children: fontSizeWidgets,
             ),
           ),
         ),

@@ -604,7 +604,7 @@ class SetZoomLevelIntent extends FloogleSelectableIntent<String> {
 
 class FormatFontSizeIntent extends FloogleSelectableIntent<double> {
   const FormatFontSizeIntent(double fontSize)
-    : assert(fontSize > 0 && fontSize <= 96),
+    : assert(fontSize > 0),
       super(key: SelectionKey.fontSize, value: fontSize);
 }
 

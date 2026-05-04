@@ -110,6 +110,7 @@ class _EditorWidget extends StatelessWidget {
       onTapAlwaysCalled: true,
       forceLine: true,
       enableInteractiveSelection: true,
+      autofocus: true,
       onSecondaryTapDown: (details) {
         MenuController.maybeOf(context)?.open(position: details.globalPosition);
       },

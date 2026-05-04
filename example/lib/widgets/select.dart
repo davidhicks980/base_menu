@@ -12,19 +12,21 @@ class Select extends StatelessWidget {
     required this.panel,
     this.buttonPadding = const EdgeInsets.symmetric(horizontal: 11, vertical: 2),
     this.buttonRadius = const BorderRadiusGeometry.all(Radius.circular(4)),
+    this.menuController,
   });
 
   final Widget child;
   final Widget panel;
+  final MenuController? menuController;
   final EdgeInsetsGeometry buttonPadding;
   final BorderRadiusGeometry buttonRadius;
 
   @override
   Widget build(BuildContext context) {
-    final controller = MenuController();
+    final controller = menuController ?? MenuController();
     return CoreMenu(
       controller: controller,
-      onFocusChange: (value) {
+      onFocusChange: (bool value) {
         if (!value) {
           controller.close();
         }
@@ -70,22 +72,20 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
 
   @override
   Widget build(BuildContext context) {
-    final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
     final label = Padding(
       padding: widget.padding,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          DefaultTextStyle(
-            style: TextStyle(
+          DefaultTextStyle.merge(
+            style: const TextStyle(
               fontFamily: 'GoogleSans',
               fontSize: 14,
-              color: isOpen ? FloogleColors.grey : FloogleColors.selectTextColor,
               height: 1.0,
               letterSpacing: 0.1,
-              fontWeight: const FontWeight(450),
-              fontVariations: const [FontVariation.opticalSize(17)],
+              fontWeight: FontWeight(450),
+              fontVariations: [FontVariation.opticalSize(17)],
               decoration: TextDecoration.none,
             ),
             overflow: TextOverflow.ellipsis,
@@ -96,29 +96,43 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
       ),
     );
 
-    return CoreMenuItem(
-      role: null,
-      focusNode: focusNode,
-      mouseCursor: WidgetStateMouseCursor.clickable,
-      isExpanded: isOpen,
-      requestFocusOnHover: false,
-      requestCloseOnActivate: false,
-      onPressed: _handlePressed,
-      child: SizedBox(
-        height: 30,
-        child: Builder(
-          builder: (context) {
-            return DecoratedBox(
-              decoration: isOpen
-                  ? BoxDecoration(color: FloogleColors.activeColor, borderRadius: widget.radius)
-                  : CoreTappable.isFocusedOf(context) || CoreTappable.isHoveredOf(context)
-                  ? BoxDecoration(color: FloogleColors.zoomHoverColor, borderRadius: widget.radius)
-                  : const BoxDecoration(),
-              child: label,
-            );
-          },
-        ),
-      ),
+    return Builder(
+      builder: (context) {
+        final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
+        return DefaultTextStyle(
+          style: TextStyle(color: isOpen ? FloogleColors.grey : FloogleColors.selectTextColor),
+          child: CoreMenuItem(
+            role: null,
+            focusNode: focusNode,
+            mouseCursor: WidgetStateMouseCursor.clickable,
+            isExpanded: isOpen,
+            requestFocusOnHover: false,
+            requestCloseOnActivate: false,
+            onPressed: _handlePressed,
+            child: SizedBox(
+              height: 30,
+              child: Builder(
+                builder: (context) {
+                  return DecoratedBox(
+                    decoration: isOpen
+                        ? BoxDecoration(
+                            color: FloogleColors.activeColor,
+                            borderRadius: widget.radius,
+                          )
+                        : CoreButton.isFocusedOf(context) || CoreButton.isHoveredOf(context)
+                        ? BoxDecoration(
+                            color: FloogleColors.zoomHoverColor,
+                            borderRadius: widget.radius,
+                          )
+                        : const BoxDecoration(),
+                    child: label,
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -16,14 +16,9 @@ import '../select.dart';
 import '../submenu.dart';
 import '../web_label.dart';
 
-class ParagraphStylesMenu extends StatefulWidget {
+class ParagraphStylesMenu extends StatelessWidget {
   const ParagraphStylesMenu({super.key});
 
-  @override
-  State<ParagraphStylesMenu> createState() => _ParagraphStylesMenuState();
-}
-
-class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
@@ -33,31 +28,26 @@ class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
           padding: const EdgeInsets.only(bottom: 6),
           constraints: const BoxConstraints(minWidth: 221).normalize(),
           children: [
-            Semantics.fromProperties(
-              container: true,
-              explicitChildNodes: true,
-              properties: const SemanticsProperties(role: SemanticsRole.radioGroup),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (final option in Menu.paragraphStyles.children)
-                    Builder(
-                      builder: (context) {
-                        return DecoratedBox(
-                          position: DecorationPosition.foreground,
-                          decoration: const BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Color(0xFFdadce0))),
-                          ),
-                          child: _Option(
-                            label: option.label,
-                            shortcut: option.shortcut,
-                            style: option.intent.value,
-                          ),
-                        );
-                      },
-                    ),
-                ],
-              ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (final option in Menu.paragraphStyles.children)
+                  Builder(
+                    builder: (context) {
+                      return DecoratedBox(
+                        position: DecorationPosition.foreground,
+                        decoration: const BoxDecoration(
+                          border: Border(bottom: BorderSide(color: Color(0xFFdadce0))),
+                        ),
+                        child: _Option(
+                          label: option.label,
+                          shortcut: option.shortcut,
+                          style: option.intent.value,
+                        ),
+                      );
+                    },
+                  ),
+              ],
             ),
             const SizedBox(height: 7.5),
             const Submenu(
@@ -78,24 +68,37 @@ class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
         child: Builder(
           builder: (context) {
             final selectedStyle = AppStateManager.selectedParagraphStyleOf(context).label;
-            return kIsWeb
-                ? WebLabel(
-                    label: selectedStyle,
-                    textStyle: const TextStyle(
-                      color: FloogleColors.selectTextColor,
-                      fontSize: 14.2,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.1,
-                      fontVariations: [FontVariation.width(87), FontVariation.opticalSize(14.2)],
-                    ),
-                    uppercaseTextStyle: const TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: -0.3,
-                      fontVariations: [FontVariation.opticalSize(14)],
-                    ),
-                  )
-                : Text(selectedStyle);
+            return MergeSemantics(
+              child: Semantics.fromProperties(
+                properties: SemanticsProperties(
+                  label: 'Paragraph styles. $selectedStyle is selected.',
+                  button: true,
+                ),
+                child: ExcludeSemantics(
+                  child: kIsWeb
+                      ? WebLabel(
+                          label: selectedStyle,
+                          textStyle: const TextStyle(
+                            color: FloogleColors.selectTextColor,
+                            fontSize: 14.2,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.1,
+                            fontVariations: [
+                              FontVariation.width(87),
+                              FontVariation.opticalSize(14.2),
+                            ],
+                          ),
+                          uppercaseTextStyle: const TextStyle(
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: -0.3,
+                            fontVariations: [FontVariation.opticalSize(14)],
+                          ),
+                        )
+                      : Text(selectedStyle),
+                ),
+              ),
+            );
           },
         ),
       ),

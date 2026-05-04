@@ -74,7 +74,7 @@ class SearchMenu extends StatelessWidget {
                     child: const Icon(Symbols.search, size: 18, color: placeholderColor),
                   ),
                 )
-              : CoreTappable(
+              : CoreButton(
                   mouseCursor: WidgetStateMouseCursor.textable,
                   onPressed: () {
                     MenuController.maybeOf(context)?.open();

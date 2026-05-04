@@ -32,18 +32,16 @@ class SelectableMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final check = selected ? control : null;
-    return MergeSemantics(
-      child: Semantics(
-        checked: selected,
-        child: MenuItem(
-          autofocus: autofocus,
-          leading: controlAffinity == .leading ? check : icon,
-          onPressed: onPressed,
-          isExpanded: isExpanded,
-          shortcut: shortcut,
-          trailing: controlAffinity == .trailing ? check : icon,
-          child: child,
-        ),
+    return Semantics(
+      checked: selected,
+      child: MenuItem(
+        autofocus: autofocus,
+        leading: controlAffinity == .leading ? check : icon,
+        onPressed: onPressed,
+        isExpanded: isExpanded,
+        shortcut: shortcut,
+        trailing: controlAffinity == .trailing ? check : icon,
+        child: child,
       ),
     );
   }

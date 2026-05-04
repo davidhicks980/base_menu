@@ -4,11 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 class MenuItemRadioSemantics extends StatelessWidget {
-  const MenuItemRadioSemantics({
-    super.key,
-    required this.checked,
-    required this.child,
-  });
+  const MenuItemRadioSemantics({super.key, required this.checked, required this.child});
 
   final bool checked;
   final Widget child;

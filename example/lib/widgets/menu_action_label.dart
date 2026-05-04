@@ -200,8 +200,8 @@ class _Arrow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final highlightArrow =
-        CoreTappable.isHoveredOf(context) ||
-        CoreTappable.isFocusedOf(context) ||
+        CoreButton.isHoveredOf(context) ||
+        CoreButton.isFocusedOf(context) ||
         MenuController.maybeIsOpenOf(context) == true;
     return highlightArrow
         ? const CustomPaint(

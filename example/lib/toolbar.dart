@@ -297,7 +297,7 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
       overlayPadding: const EdgeInsets.symmetric(horizontal: 4),
       menuAlignment: AlignmentDirectional.topEnd,
       alignment: AlignmentDirectional.bottomEnd,
-      axis: Axis.horizontal,
+      orientation: Axis.horizontal,
       onOpenRequest: _handleMenuOpenRequest,
       onCloseRequest: _handleMenuCloseRequest,
       panel: panel,

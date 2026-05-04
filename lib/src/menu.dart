@@ -10,7 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 export 'menu_item.dart';
-export 'tappable.dart';
+export 'button.dart';
 
 // Examples can assume:
 // late BuildContext context;
@@ -114,9 +114,9 @@ class CoreMenuEnterIntent extends Intent {
 // Used to notify anchor descendants when the menu opens and closes, and to
 // access the anchor's controller.
 class _CoreMenuScope extends InheritedWidget {
-  const _CoreMenuScope({required super.child, required this.axis, required this.isSubmenu});
+  const _CoreMenuScope({required super.child, required this.orientation, required this.isSubmenu});
 
-  final Axis axis;
+  final Axis orientation;
   final bool isSubmenu;
 
   static _CoreMenuScope? _maybeOf(BuildContext context) {
@@ -125,7 +125,7 @@ class _CoreMenuScope extends InheritedWidget {
 
   @override
   bool updateShouldNotify(_CoreMenuScope oldWidget) {
-    return axis != oldWidget.axis || isSubmenu != oldWidget.isSubmenu;
+    return orientation != oldWidget.orientation || isSubmenu != oldWidget.isSubmenu;
   }
 }
 
@@ -282,7 +282,7 @@ class CoreMenu extends StatefulWidget {
       scopesRoute: true,
       role: SemanticsRole.menu,
     ),
-    this.axis = Axis.vertical,
+    this.orientation = Axis.vertical,
   });
 
   /// An optional [MenuController] that allows opening and closing of the menu
@@ -477,7 +477,7 @@ class CoreMenu extends StatefulWidget {
   /// Properties used to annotate the menu overlay.
   final SemanticsProperties semanticProperties;
 
-  final Axis axis;
+  final Axis orientation;
 
   static void _defaultOnOpenRequested(Offset? position, VoidCallback showOverlay) {
     showOverlay();
@@ -509,24 +509,43 @@ class CoreMenu extends StatefulWidget {
 }
 
 class _CoreMenuState extends State<CoreMenu> {
-  MenuController get _menuController {
-    return widget.controller ?? _internalMenuController!;
-  }
-
-  MenuController? _internalMenuController;
-  late final FocusScopeNode _menuScopeNode = FocusScopeNode(
-    debugLabel: 'FocusScopeNode.${widget.axis}.$this',
+  late final _menuScopeNode = FocusScopeNode(
     skipTraversal: true,
     directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
   );
+
+  late final Map<Type, Action<Intent>> _anchorActions = <Type, Action<Intent>>{
+    CoreMenuEnterIntent: CallbackAction<CoreMenuEnterIntent>(onInvoke: _handleEnterMenu),
+  };
+  Map<ShortcutActivator, Intent>? _anchorShortcuts;
+  Map<Type, Action<Intent>>? _overlayActions;
   TextDirection _textDirection = TextDirection.ltr;
-  _CoreMenuScope? get _parentMenuScope => _CoreMenuScope._maybeOf(context);
+  bool _parentIsSubmenu = false;
+  Axis? _parentOrientation;
+
+  MenuController? _internalMenuController;
+  MenuController get _menuController {
+    return widget.controller ?? _internalMenuController!;
+  }
 
   @override
   void initState() {
     super.initState();
     if (widget.controller == null) {
       _internalMenuController = MenuController();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
+    final scope = _CoreMenuScope._maybeOf(context);
+    if (scope?.orientation != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
+      _parentOrientation = scope?.orientation;
+      _parentIsSubmenu = scope?.isSubmenu ?? false;
+      _anchorShortcuts = null;
+      _overlayActions = null;
     }
   }
 
@@ -543,91 +562,67 @@ class _CoreMenuState extends State<CoreMenu> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
-  }
-
-  @override
   void dispose() {
     _internalMenuController = null;
-    _anchorScope.dispose();
-    _trackingFocusNode.dispose();
     _menuScopeNode.dispose();
     super.dispose();
   }
 
-  final FocusNode _trackingFocusNode = FocusNode(
-    debugLabel: 'Menu Anchor Tracking Focus Node',
-    canRequestFocus: false,
-  );
-  bool _hasFocus = false;
-
-  void _handleFocusChange(bool focused) {
-    if (_trackingFocusNode.hasFocus != _hasFocus) {
-      _hasFocus = _trackingFocusNode.hasFocus;
-      widget.onFocusChange?.call(_hasFocus);
+  void _handleOpen() {
+    widget.onOpen?.call();
+    if (!_parentIsSubmenu) {
+      const _MenuStateChangeNotification().dispatch(context);
     }
   }
 
   void _handleClose() {
+    if (!_parentIsSubmenu) {
+      const _MenuStateChangeNotification().dispatch(context);
+    }
     widget.onClose?.call();
-    const _MenuStateChangeNotification().dispatch(context);
   }
 
-  void _handleOpen() {
-    widget.onOpen?.call();
-    const _MenuStateChangeNotification().dispatch(context);
+  void _handleEnterMenu(CoreMenuEnterIntent intent) {
+    if (_menuController.isOpen) {
+      if (intent._scopeIntent != null) {
+        _menuScopeNode.requestFocus();
+        Actions.invoke(_menuScopeNode.context!, intent._scopeIntent);
+      }
+    } else {
+      _menuController.open();
+      _menuScopeNode.requestFocus();
+      FocusManager.instance.applyFocusChangesIfNeeded();
+      if (intent._scopeIntent != null) {
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (_menuController.isOpen) {
+            Actions.invoke(_menuScopeNode.context!, intent._scopeIntent);
+          }
+        });
+      }
+    }
   }
-
-  final _anchorScope = FocusScopeNode(debugLabel: 'Menu Anchor Focus Scope');
 
   Widget _anchorBuilder(BuildContext context, MenuController controller, Widget? child) {
-    final axis = _parentMenuScope?.axis;
-    final isSubmenu = _parentMenuScope?.isSubmenu ?? false;
-    final shortcuts = switch (axis) {
-      Axis.vertical => {
-        ..._kMenuVerticalTraversalShortcuts,
-        switch (_textDirection) {
-          TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
-          TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
-        }: const CoreMenuEnterIntent.focusFirst(),
-      },
-      Axis.horizontal || null => {
-        ..._kMenuHorizontalTraversalShortcuts,
-        const SingleActivator(LogicalKeyboardKey.arrowDown): const CoreMenuEnterIntent.focusFirst(),
-        if (!isSubmenu)
-          const SingleActivator(LogicalKeyboardKey.arrowUp): const CoreMenuEnterIntent.focusLast(),
-      },
-    };
     return Actions(
-      actions: <Type, Action<Intent>>{
-        CoreMenuEnterIntent: CallbackAction<CoreMenuEnterIntent>(
-          onInvoke: (CoreMenuEnterIntent intent) {
-            if (_menuController.isOpen) {
-              if (intent._scopeIntent != null) {
-                _menuScopeNode.requestFocus();
-                Actions.invoke(_menuScopeNode.context!, intent._scopeIntent);
-              }
-            } else {
-              _menuController.open();
-              _menuScopeNode.requestFocus();
-              FocusManager.instance.applyFocusChangesIfNeeded();
-              if (intent._scopeIntent != null) {
-                SchedulerBinding.instance.addPostFrameCallback((_) {
-                  if (_menuController.isOpen) {
-                    Actions.invoke(_menuScopeNode.context!, intent._scopeIntent);
-                  }
-                });
-              }
-            }
-            return null;
-          },
-        ),
-      },
+      actions: _anchorActions,
       child: Shortcuts(
-        includeSemantics: false,
-        shortcuts: shortcuts,
+        shortcuts: _anchorShortcuts ??= switch (_parentOrientation) {
+          Axis.vertical => {
+            ..._kMenuVerticalTraversalShortcuts,
+            switch (_textDirection) {
+              TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
+              TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
+            }: const CoreMenuEnterIntent.focusFirst(),
+          },
+          Axis.horizontal || null => {
+            ..._kMenuHorizontalTraversalShortcuts,
+            const SingleActivator(LogicalKeyboardKey.arrowDown):
+                const CoreMenuEnterIntent.focusFirst(),
+            if (!_parentIsSubmenu)
+              const SingleActivator(LogicalKeyboardKey.arrowUp):
+                  const CoreMenuEnterIntent.focusLast(),
+          },
+        },
         child: Builder(
           builder: (context) {
             return widget.builder?.call(context, controller, widget.child) ??
@@ -641,6 +636,7 @@ class _CoreMenuState extends State<CoreMenu> {
 
   @override
   Widget build(BuildContext context) {
+    _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final Widget child = Actions(
       actions: {DirectionalFocusIntent: DoNothingAction()},
       child: Shortcuts(
@@ -648,12 +644,11 @@ class _CoreMenuState extends State<CoreMenu> {
         shortcuts: _kStopDirectionalPropagationShortcuts,
         child: Focus(
           includeSemantics: false,
-          focusNode: _trackingFocusNode,
           canRequestFocus: false,
           skipTraversal: true,
           descendantsAreTraversable: true,
           descendantsAreFocusable: true,
-          onFocusChange: _handleFocusChange,
+          onFocusChange: widget.onFocusChange,
           child: RawMenuAnchor(
             useRootOverlay: widget.useRootOverlay,
             onOpen: _handleOpen,
@@ -673,8 +668,7 @@ class _CoreMenuState extends State<CoreMenu> {
   }
 
   void _exitMenuActionCallback(Intent intent) {
-    final parent = _parentMenuScope;
-    if (parent != null && parent.isSubmenu && parent.axis == widget.axis) {
+    if (_parentIsSubmenu && _parentOrientation == widget.orientation) {
       _menuController.close();
       return;
     }
@@ -685,15 +679,18 @@ class _CoreMenuState extends State<CoreMenu> {
   }
 
   Widget _buildOverlay(BuildContext context, RawMenuOverlayInfo position) {
-    final Type intentType = switch (widget.axis) {
-      Axis.vertical => _HorizontalFocusPreviousIntent,
-      Axis.horizontal => _VerticalFocusPreviousIntent,
-    };
+    if (_overlayActions == null) {
+      final Type intentType = switch (widget.orientation) {
+        Axis.vertical => _HorizontalFocusPreviousIntent,
+        Axis.horizontal => _VerticalFocusPreviousIntent,
+      };
+      _overlayActions = {intentType: CallbackAction(onInvoke: _exitMenuActionCallback)};
+    }
 
     return Actions(
-      actions: {intentType: CallbackAction(onInvoke: _exitMenuActionCallback)},
+      actions: _overlayActions!,
       child: _MenuOverlay(
-        submenuAxis: widget.axis,
+        submenuAxis: widget.orientation,
         position: position,
         alignmentOffset: widget.alignmentOffset,
         alignment: widget.alignment,
@@ -707,11 +704,6 @@ class _CoreMenuState extends State<CoreMenu> {
         child: widget.panel,
       ),
     );
-  }
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.debug}) {
-    return describeIdentity(this);
   }
 }
 
@@ -735,7 +727,7 @@ class _CoreInlineMenu extends StatelessWidget {
         explicitChildNodes: true,
         properties: semanticProperties,
         child: _MenuFocusTraversal(
-          axis: _CoreMenuScope._maybeOf(context)!.axis,
+          axis: _CoreMenuScope._maybeOf(context)!.orientation,
           focusScopeNode: focusScopeNode,
           child: child,
         ),
@@ -771,6 +763,15 @@ class CoreMenuBar extends StatefulWidget {
 }
 
 class _CoreMenuBarState extends State<CoreMenuBar> {
+  late final _actions = {
+    NextFocusIntent: CallbackAction(
+      onInvoke: (intent) => _menuScopeNode.enclosingScope?.nextFocus(),
+    ),
+    PreviousFocusIntent: CallbackAction(
+      onInvoke: (intent) => _menuScopeNode.enclosingScope?.previousFocus(),
+    ),
+  };
+
   MenuController? _internalMenuController;
   MenuController get _menuController => widget.controller ?? _internalMenuController!;
 
@@ -806,6 +807,7 @@ class _CoreMenuBarState extends State<CoreMenuBar> {
         _internalMenuController = null;
       }
     }
+
     if (oldWidget.focusScopeNode != widget.focusScopeNode) {
       if (widget.focusScopeNode == null) {
         _internalFocusScopeNode = FocusScopeNode(
@@ -853,24 +855,11 @@ class _CoreMenuBarState extends State<CoreMenuBar> {
   @override
   Widget build(BuildContext context) {
     final group = Actions(
-      actions: {
-        NextFocusIntent: CallbackAction(
-          onInvoke: (intent) {
-            _menuScopeNode.enclosingScope?.nextFocus();
-            return null;
-          },
-        ),
-        PreviousFocusIntent: CallbackAction(
-          onInvoke: (intent) {
-            _menuScopeNode.enclosingScope?.previousFocus();
-            return null;
-          },
-        ),
-      },
+      actions: _actions,
       child: RawMenuAnchorGroup(
         controller: _menuController,
         child: _CoreMenuScope(
-          axis: widget.axis,
+          orientation: widget.axis,
           isSubmenu: false,
           child: _CoreInlineMenu(
             semanticProperties: widget.semanticProperties,
@@ -884,6 +873,7 @@ class _CoreMenuBarState extends State<CoreMenuBar> {
     if (widget.onOpen == null && widget.onClose == null) {
       return group;
     }
+
     return NotificationListener<_MenuStateChangeNotification>(
       onNotification: _handleNotification,
       child: group,
@@ -891,46 +881,63 @@ class _CoreMenuBarState extends State<CoreMenuBar> {
   }
 }
 
-class _MenuFocusTraversal extends StatelessWidget {
+class _MenuFocusTraversal extends StatefulWidget {
   const _MenuFocusTraversal({
     required this.child,
     required this.focusScopeNode,
     required this.axis,
   });
+
   final Widget child;
   final FocusScopeNode focusScopeNode;
   final Axis axis;
 
   @override
+  State<_MenuFocusTraversal> createState() => _MenuFocusTraversalState();
+}
+
+class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
+  final policy = WidgetOrderTraversalPolicy();
+  Map<Type, Action<Intent>>? actions;
+
+  @override
+  void didUpdateWidget(covariant _MenuFocusTraversal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.axis != widget.axis || oldWidget.focusScopeNode != widget.focusScopeNode) {
+      actions = null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FocusTraversalGroup(
-      policy: WidgetOrderTraversalPolicy(),
+      policy: policy,
       child: Shortcuts(
-        shortcuts: axis == Axis.vertical
+        shortcuts: widget.axis == Axis.vertical
             ? _kMenuVerticalTraversalShortcuts
             : _kMenuHorizontalTraversalShortcuts,
         child: Actions(
-          actions: {
-            _MenuFocusFirstIntent: _MenuFocusFirstAction(focusScopeNode),
-            _MenuFocusLastIntent: _MenuFocusLastAction(focusScopeNode),
-            _MenuSetFirstFocusIntent: _MenuSetFirstFocusAction(focusScopeNode),
-            ...switch (axis) {
+          actions: actions ??= {
+            _MenuFocusFirstIntent: _MenuFocusFirstAction(widget.focusScopeNode),
+            _MenuFocusLastIntent: _MenuFocusLastAction(widget.focusScopeNode),
+            _MenuSetFirstFocusIntent: _FocusFirstAction(widget.focusScopeNode),
+            ...switch (widget.axis) {
               Axis.vertical => {
-                _VerticalFocusNextIntent: _TraverseNextAction(focusScopeNode),
-                _VerticalFocusPreviousIntent: _TraversePreviousAction(focusScopeNode),
+                _VerticalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
+                _VerticalFocusPreviousIntent: _TraversePreviousAction(widget.focusScopeNode),
               },
               Axis.horizontal => {
-                _HorizontalFocusNextIntent: _TraverseNextAction(focusScopeNode),
-                _HorizontalFocusPreviousIntent: _TraversePreviousAction(focusScopeNode),
+                _HorizontalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
+                _HorizontalFocusPreviousIntent: _TraversePreviousAction(widget.focusScopeNode),
               },
             },
           },
           child: FocusScope(
-            node: focusScopeNode,
+            node: widget.focusScopeNode,
             canRequestFocus: true,
             descendantsAreFocusable: true,
             descendantsAreTraversable: true,
-            child: child,
+            child: widget.child,
           ),
         ),
       ),
@@ -938,8 +945,8 @@ class _MenuFocusTraversal extends StatelessWidget {
   }
 }
 
-class _MenuSetFirstFocusAction extends Action<_MenuSetFirstFocusIntent> {
-  _MenuSetFirstFocusAction(this.focusScopeNode);
+class _FocusFirstAction extends Action<_MenuSetFirstFocusIntent> {
+  _FocusFirstAction(this.focusScopeNode);
   final FocusScopeNode focusScopeNode;
 
   @override
@@ -1058,7 +1065,7 @@ class _MenuOverlay extends StatelessWidget {
         listenable: focusScopeNode,
         builder: _buildConditionalTraversal,
         child: _CoreMenuScope(
-          axis: submenuAxis,
+          orientation: submenuAxis,
           isSubmenu: true,
           child: _CoreInlineMenu(
             focusScopeNode: focusScopeNode,
@@ -1079,7 +1086,7 @@ class _MenuOverlay extends StatelessWidget {
           // being directionally-agnostic.
           final anchorAlignment =
               (alignment ??
-                      switch (_CoreMenuScope._maybeOf(context)?.axis) {
+                      switch (_CoreMenuScope._maybeOf(context)?.orientation) {
                         Axis.vertical => AlignmentDirectional.topEnd,
                         _ => AlignmentDirectional.bottomStart,
                       })

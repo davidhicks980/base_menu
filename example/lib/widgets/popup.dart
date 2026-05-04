@@ -46,7 +46,7 @@ class Popup extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = MenuController();
     return CoreMenu(
-      axis: axis,
+      orientation: axis,
       padding: MenuPanel.defaultPadding,
       panel: panel,
       onFocusChange: (value) {

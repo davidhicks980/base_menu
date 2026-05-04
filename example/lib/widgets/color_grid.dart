@@ -156,6 +156,7 @@ String colorLabel(Color color) {
   final hexRgb = '#${twoHex(color.red)}${twoHex(color.green)}${twoHex(color.blue)}';
   return 'Color $hexRgb';
 }
+
 // ...existing code...
 
 Brightness _estimateBrightnessForColor(Color color) {
@@ -219,7 +220,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
         label: colorLabel(widget.color),
         button: true,
         selected: widget.isSelected,
-        child: CoreTappable(
+        child: CoreButton(
           focusNode: _focusNode,
           onPressed: widget.onTap,
           onHover: (value) {
@@ -241,7 +242,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
                   shape: BoxShape.circle,
                   color: widget.color,
                   border: Border.all(color: borderColor, width: 0.5),
-                  boxShadow: CoreTappable.isFocusedOf(context)
+                  boxShadow: CoreButton.isFocusedOf(context)
                       ? [
                           BoxShadow(
                             color: FloogleColors.black.withOpacity(0.6),
@@ -249,7 +250,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
                             spreadRadius: 1,
                           ),
                         ]
-                      : CoreTappable.isHoveredOf(context) || widget.isSelected
+                      : CoreButton.isHoveredOf(context) || widget.isSelected
                       ? [
                           BoxShadow(
                             color: FloogleColors.black.withOpacity(0.35),
@@ -504,12 +505,12 @@ class CustomAction extends StatelessWidget {
     return Semantics(
       label: label,
       button: true,
-      child: CoreTappable(
+      child: CoreButton(
         onPressed: () {},
         child: Builder(
           builder: (context) {
             return DecoratedBox(
-              decoration: CoreTappable.isPressedOf(context)
+              decoration: CoreButton.isPressedOf(context)
                   ? const BoxDecoration(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(4),
@@ -517,7 +518,7 @@ class CustomAction extends StatelessWidget {
                       ),
                       color: Color.fromARGB(25, 0, 0, 0),
                     )
-                  : CoreTappable.isHoveredOf(context) || CoreTappable.isFocusedOf(context)
+                  : CoreButton.isHoveredOf(context) || CoreButton.isFocusedOf(context)
                   ? const BoxDecoration(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(4),

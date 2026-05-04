@@ -316,7 +316,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     }
   }
 
-  void _traverseTo(int index) {
+  void _traversalSelect(int index) {
     final newValue = _indexToValue[index]!;
     SemanticsService.announce(newValue, Directionality.of(context));
     widget.onSelect?.call(newValue);
@@ -332,7 +332,8 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     } else {
       previousIndex = keys.length - 1;
     }
-    _traverseTo(keys[previousIndex]);
+
+    _traversalSelect(keys[previousIndex]);
   }
 
   void _handleMoveNext(_MoveNextIntent intent) {
@@ -346,7 +347,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
       nextIndex = 0;
     }
 
-    _traverseTo(keys[nextIndex]);
+    _traversalSelect(keys[nextIndex]);
   }
 
   void _handleMoveFirst(_MoveFirstIntent intent) {
@@ -356,7 +357,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
       return;
     }
 
-    _traverseTo(_indexToValue.firstKey()!);
+    _traversalSelect(_indexToValue.firstKey()!);
   }
 
   void _handleMoveLast(_MoveLastIntent intent) {
@@ -366,7 +367,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
       return;
     }
 
-    _traverseTo(_indexToValue.lastKey()!);
+    _traversalSelect(_indexToValue.lastKey()!);
   }
 
   @override
@@ -405,7 +406,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
             constraints: widget.inputConstraints,
             menuController: controller,
             trailing: widget.trailing,
-            onSelect: widget.onSubmit,
+            onSubmit: widget.onSubmit,
             selected: widget.selected,
             textStyle: widget.textStyle,
             semanticsLabel: widget.semanticsLabel,
@@ -423,7 +424,7 @@ class _Anchor extends StatelessWidget {
     required this.constraints,
     required this.menuController,
     this.trailing,
-    this.onSelect,
+    this.onSubmit,
     required this.textStyle,
     required this.selected,
     required this.semanticsLabel,
@@ -433,7 +434,7 @@ class _Anchor extends StatelessWidget {
   final MenuController menuController;
   final BoxConstraints constraints;
   final Widget? trailing;
-  final ValueChanged<String>? onSelect;
+  final ValueChanged<String>? onSubmit;
   final String selected;
   final String semanticsLabel;
   final TextStyle textStyle;
@@ -465,71 +466,62 @@ class _Anchor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
-    final Widget field = ListenableBuilder(
-      listenable: focusNode,
-      child: Padding(
-        padding: const EdgeInsetsDirectional.only(start: 3),
-        child: Center(
-          child: Builder(
-            builder: (context) {
-              final defaultTextStyle = DefaultTextStyle.of(context).style;
-              return isOpen
-                  ? Editable(
-                      autofocus: true,
-                      focusNode: focusNode,
-                      controller: textController,
-                      textAlign: TextAlign.center,
-                      textInputAction: TextInputAction.done,
-                      onSubmitted: onSelect,
-                      blurredSelectionColor: FloogleColors.transparent,
-                      style: defaultTextStyle.copyWith(
-                        color: FloogleColors.darkGray,
-                        decoration: TextDecoration.none,
-                        fontWeight: const FontWeight(450),
-                      ),
-                      selectionColor: const Color.fromRGBO(211, 227, 253, 1),
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.only(right: 3),
-                      child: ExcludeSemantics(child: Text(selected, style: defaultTextStyle)),
-                    );
-            },
-          ),
-        ),
-      ),
-      builder: (context, child) {
-        final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
-        Widget field = Center(child: child);
-        if (trailing != null) {
-          field = Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [field, trailing!],
+    final defaultTextStyle = DefaultTextStyle.of(context).style;
+    Widget field = isOpen
+        ? Editable(
+            autofocus: true,
+            focusNode: focusNode,
+            controller: textController,
+            textAlign: TextAlign.center,
+            textInputAction: TextInputAction.done,
+            onSubmitted: onSubmit,
+            blurredSelectionColor: FloogleColors.transparent,
+            style: defaultTextStyle.copyWith(
+              color: FloogleColors.darkGray,
+              decoration: TextDecoration.none,
+              fontWeight: const FontWeight(450),
+            ),
+            selectionColor: const Color.fromRGBO(211, 227, 253, 1),
+          )
+        : Padding(
+            padding: const EdgeInsets.only(right: 3),
+            child: ExcludeSemantics(child: Text(selected, style: defaultTextStyle)),
           );
-        }
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            border: isOpen
-                ? Border.all(color: const Color.fromARGB(255, 10, 86, 207), width: 2)
-                : Border.all(color: FloogleColors.transparent, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: ConstrainedBox(constraints: constraints, child: field),
-          ),
-        );
-      },
+
+    field = Padding(
+      padding: const EdgeInsetsDirectional.only(start: 3),
+      child: Center(child: field),
+    );
+
+    if (trailing != null) {
+      field = Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [field, trailing!],
+      );
+    }
+
+    field = DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+        border: isOpen
+            ? Border.all(color: const Color.fromARGB(255, 10, 86, 207), width: 2)
+            : Border.all(color: FloogleColors.transparent, width: 2),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: ConstrainedBox(constraints: constraints, child: field),
+      ),
     );
 
     Widget listenable;
     if (!isOpen) {
-      listenable = CoreTappable(
+      listenable = CoreButton(
         child: Builder(
           builder: (context) {
             return DecoratedBox(
               decoration: BoxDecoration(
-                color: CoreTappable.isFocusedOf(context) ? const Color.fromARGB(15, 0, 0, 0) : null,
+                color: CoreButton.isFocusedOf(context) ? const Color.fromARGB(15, 0, 0, 0) : null,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: field,

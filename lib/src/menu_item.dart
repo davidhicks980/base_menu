@@ -1,9 +1,9 @@
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 
-import 'tappable.dart';
+import 'button.dart';
 
-export 'tappable.dart';
+export 'button.dart';
 
 class CoreMenuItem extends StatefulWidget {
   const CoreMenuItem({
@@ -90,11 +90,8 @@ class _CoreMenuItemState extends State<CoreMenuItem> {
   Widget build(BuildContext context) {
     return MergeSemantics(
       child: Semantics.fromProperties(
-        properties: SemanticsProperties(
-          role: widget.role,
-          expanded: widget.isExpanded,
-        ),
-        child: CoreTappable(
+        properties: SemanticsProperties(role: widget.role, expanded: widget.isExpanded),
+        child: CoreButton(
           mouseCursor: widget.mouseCursor ?? WidgetStateMouseCursor.clickable,
           behavior: widget.behavior,
           onFocusChange: widget.onFocusChange,

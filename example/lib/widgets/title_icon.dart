@@ -40,7 +40,7 @@ class TitleIconButton extends StatelessWidget {
     );
     return MenuTooltip(
       message: tooltip,
-      child: CoreTappable(
+      child: CoreButton(
         mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
         child: SizedBox(
           width: 28,

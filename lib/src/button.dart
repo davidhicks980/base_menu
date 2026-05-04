@@ -25,8 +25,8 @@ class _TappableStateScope extends InheritedModel<WidgetState> {
   }
 }
 
-class CoreTappable extends StatefulWidget {
-  const CoreTappable({
+class CoreButton extends StatefulWidget {
+  const CoreButton({
     super.key,
     this.onHover,
     this.onPressed,
@@ -77,16 +77,31 @@ class CoreTappable extends StatefulWidget {
   }
 
   @override
-  State<CoreTappable> createState() => _CoreTappableState();
+  State<CoreButton> createState() => _CoreButtonState();
 }
 
-class _CoreTappableState extends State<CoreTappable> {
+class _CoreButtonState extends State<CoreButton> {
+  static const _shortcuts = <ShortcutActivator, Intent>{
+    SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+    SingleActivator(LogicalKeyboardKey.space): ButtonActivateIntent(),
+  };
+  late final _actions = {
+    ActivateIntent: Action<ActivateIntent>.overridable(
+      defaultAction: CallbackAction(onInvoke: _handleActivate),
+      context: context,
+    ),
+    ButtonActivateIntent: Action<ButtonActivateIntent>.overridable(
+      defaultAction: CallbackAction(onInvoke: _handleActivate),
+      context: context,
+    ),
+  };
+
   final WidgetStatesController _statesController = WidgetStatesController();
   Map<Type, GestureRecognizerFactory>? _gestures;
   DeviceGestureSettings? _gestureSettings;
 
   FocusNode? _internalFocusNode;
-  FocusNode get focusNode => widget.focusNode ?? _internalFocusNode!;
+  FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
 
   bool get isHovered => _statesController.value.contains(WidgetState.hovered);
   set isHovered(bool value) {
@@ -115,11 +130,11 @@ class _CoreTappableState extends State<CoreTappable> {
       _internalFocusNode = FocusNode();
     }
     isEnabled = widget.onPressed != null;
-    isFocused = focusNode.hasPrimaryFocus;
+    isFocused = _focusNode.hasPrimaryFocus;
   }
 
   @override
-  void didUpdateWidget(CoreTappable oldWidget) {
+  void didUpdateWidget(CoreButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.focusNode != oldWidget.focusNode) {
       if (widget.focusNode == null) {
@@ -128,7 +143,7 @@ class _CoreTappableState extends State<CoreTappable> {
         _internalFocusNode?.dispose();
         _internalFocusNode = null;
       }
-      isFocused = focusNode.hasFocus;
+      isFocused = _focusNode.hasFocus;
     }
 
     if (widget.onPressed != oldWidget.onPressed) {
@@ -147,7 +162,7 @@ class _CoreTappableState extends State<CoreTappable> {
   }
 
   void _handleFocusChange([bool? focused]) {
-    isFocused = focusNode.hasFocus;
+    isFocused = _focusNode.hasFocus;
     widget.onFocusChange?.call(isFocused);
   }
 
@@ -206,24 +221,12 @@ class _CoreTappableState extends State<CoreTappable> {
     return Semantics.fromProperties(
       properties: SemanticsProperties(enabled: isEnabled),
       child: Actions(
-        actions: {
-          ActivateIntent: Action<ActivateIntent>.overridable(
-            defaultAction: CallbackAction(onInvoke: _handleActivate),
-            context: context,
-          ),
-          ButtonActivateIntent: Action<ButtonActivateIntent>.overridable(
-            defaultAction: CallbackAction(onInvoke: _handleActivate),
-            context: context,
-          ),
-        },
+        actions: _actions,
         child: Shortcuts(
-          shortcuts: const <ShortcutActivator, Intent>{
-            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-            SingleActivator(LogicalKeyboardKey.space): ButtonActivateIntent(),
-          },
+          shortcuts: _shortcuts,
           child: Focus(
             autofocus: isEnabled && widget.autofocus,
-            focusNode: focusNode,
+            focusNode: _focusNode,
             canRequestFocus: isEnabled,
             skipTraversal: !isEnabled,
             onFocusChange: _handleFocusChange,
@@ -243,14 +246,15 @@ class _CoreTappableState extends State<CoreTappable> {
   }
 
   Widget _buildStatefulScope(BuildContext context, Set<WidgetState> value, Widget? child) {
-    final MouseCursor? cursor = widget.mouseCursor?.resolve(value);
+    final MouseCursor cursor =
+        widget.mouseCursor?.resolve(value) ?? WidgetStateMouseCursor.clickable.resolve(value);
     return _TappableStateScope(
       states: Set.from(value),
       child: MouseRegion(
         onHover: isEnabled ? _handlePointerEnter : null,
         onExit: isEnabled ? _handlePointerExit : null,
         hitTestBehavior: HitTestBehavior.deferToChild,
-        cursor: cursor ?? MouseCursor.defer,
+        cursor: cursor,
         child: child,
       ),
     );

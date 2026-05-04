@@ -54,7 +54,7 @@ class _MenuBarSubmenuState extends State<MenuBarSubmenu> {
         return CoreMenu(
           onFocusChange: _handleFocusChange,
           overlayPadding: const EdgeInsets.only(top: 55, bottom: 8),
-          axis: widget.overflow ? Axis.horizontal : Axis.vertical,
+          orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
           panel:
               widget.panel ??
               MenuEntryPanel(

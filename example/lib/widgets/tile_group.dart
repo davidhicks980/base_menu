@@ -185,7 +185,7 @@ class _Tile extends StatelessWidget {
           builder: (context) {
             return DecoratedBox(
               decoration: _decoration.resolve(
-                CoreTappable.statesOf(context).union({if (checked) WidgetState.selected}),
+                CoreButton.statesOf(context).union({if (checked) WidgetState.selected}),
               ),
               child: child,
             );

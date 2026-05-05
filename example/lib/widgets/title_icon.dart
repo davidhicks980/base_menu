@@ -4,7 +4,6 @@ import 'package:menu_utilities/menu_utilities.dart';
 
 import '../tooltip.dart';
 import '../utilities/colors.dart';
-import 'widget_state_decorated_box.dart';
 
 class TitleIconButton extends StatelessWidget {
   const TitleIconButton({super.key, required this.child, required this.tooltip});
@@ -40,14 +39,21 @@ class TitleIconButton extends StatelessWidget {
     );
     return MenuTooltip(
       message: tooltip,
-      child: BaseButton(
+      child: BaseControl(
         mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
         child: SizedBox(
           width: 28,
           height: 28,
-          child: WidgetStateDecoratedBox(decoration: _decoration, child: icon),
+          child: Builder(
+            builder: (BuildContext context) {
+              return DecoratedBox(
+                decoration: _decoration.resolve(BaseControl.statesOf(context)),
+                child: icon,
+              );
+            },
+          ),
         ),
-        onPressed: () {},
+        onTap: () {},
       ),
     );
   }

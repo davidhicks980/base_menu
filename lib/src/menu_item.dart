@@ -1,9 +1,7 @@
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 
-import 'button.dart';
-
-export 'button.dart';
+import 'control.dart';
 
 class BaseMenuItem extends StatefulWidget {
   const BaseMenuItem({
@@ -34,6 +32,26 @@ class BaseMenuItem extends StatefulWidget {
   final bool? isExpanded;
   final SemanticsRole? role;
   final Widget child;
+
+  static Set<WidgetState> statesOf(BuildContext context) {
+    return BaseControl.statesOf<BaseMenuItem>(context);
+  }
+
+  static bool isHoveredOf(BuildContext context) {
+    return BaseControl.isHoveredOf<BaseMenuItem>(context);
+  }
+
+  static bool isPressedOf(BuildContext context) {
+    return BaseControl.isPressedOf<BaseMenuItem>(context);
+  }
+
+  static bool isFocusedOf(BuildContext context) {
+    return BaseControl.isFocusedOf<BaseMenuItem>(context);
+  }
+
+  static bool isDisabledOf(BuildContext context) {
+    return BaseControl.isDisabledOf<BaseMenuItem>(context);
+  }
 
   @override
   State<BaseMenuItem> createState() => _BaseMenuItemState();
@@ -91,12 +109,12 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
     return MergeSemantics(
       child: Semantics.fromProperties(
         properties: SemanticsProperties(role: widget.role, expanded: widget.isExpanded),
-        child: BaseButton(
-          mouseCursor: widget.mouseCursor ?? WidgetStateMouseCursor.clickable,
+        child: BaseControl<BaseMenuItem>(
+          mouseCursor: widget.mouseCursor ?? WidgetStateMouseCursor.adaptiveClickable,
           behavior: widget.behavior,
           onFocusChange: widget.onFocusChange,
           onHover: _handleHover,
-          onPressed: _handlePressed,
+          onTap: _handlePressed,
           focusNode: _focusNode,
           autofocus: widget.autofocus,
           child: widget.child,

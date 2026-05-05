@@ -7,7 +7,6 @@ import 'package:menu_utilities/menu_utilities.dart';
 
 import '../utilities/colors.dart';
 import '../utilities/localized_shortcut_labeler.dart';
-import 'widget_state_decorated_box.dart';
 
 class SubmenuActionLabel extends StatelessWidget {
   const SubmenuActionLabel({
@@ -94,43 +93,48 @@ class MenuActionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTextStyle.merge(
+    final Widget label = DefaultTextStyle.merge(
       style: labelTextStyle,
       overflow: TextOverflow.ellipsis,
       maxLines: 1,
       softWrap: false,
-      child: WidgetStateDecoratedBox(
-        decoration: decoration ?? _decoration,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          spacing: 4,
-          children: [
-            SizedBox(
-              width: leadingWidth,
-              child: leading != null
-                  ? _AlignMidpoint(
-                      alignment: leadingMidpointAlignment,
-                      child: IconTheme.merge(
-                        data: const IconThemeData(size: 18, color: FloogleColors.grey, grade: 150),
-                        child: leading!,
-                      ),
-                    )
-                  : null,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 4,
+        children: [
+          SizedBox(
+            width: leadingWidth,
+            child: leading != null
+                ? _AlignMidpoint(
+                    alignment: leadingMidpointAlignment,
+                    child: IconTheme.merge(
+                      data: const IconThemeData(size: 18, color: FloogleColors.grey, grade: 150),
+                      child: leading!,
+                    ),
+                  )
+                : null,
+          ),
+          Flexible(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 512, minHeight: 33),
+              child: Align(alignment: Alignment.centerLeft, child: child),
             ),
-            Flexible(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 512, minHeight: 33),
-                child: Align(alignment: Alignment.centerLeft, child: child),
-              ),
-            ),
-            const SizedBox(width: 16),
-            if (shortcut != null)
-              _ShortcutLabel(accelTextStyle: _acceleratorTextStyle, shortcut: shortcut),
-            if (trailing != null) trailing!,
-            const SizedBox(width: 15),
-          ],
-        ),
+          ),
+          const SizedBox(width: 16),
+          if (shortcut != null)
+            _ShortcutLabel(accelTextStyle: _acceleratorTextStyle, shortcut: shortcut),
+          if (trailing != null) trailing!,
+          const SizedBox(width: 15),
+        ],
       ),
+    );
+    return Builder(
+      builder: (BuildContext context) {
+        return DecoratedBox(
+          decoration: (decoration ?? _decoration).resolve(BaseMenuItem.statesOf(context)),
+          child: label,
+        );
+      },
     );
   }
 }
@@ -200,8 +204,8 @@ class _Arrow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final highlightArrow =
-        BaseButton.isHoveredOf(context) ||
-        BaseButton.isFocusedOf(context) ||
+        BaseMenuItem.isHoveredOf(context) ||
+        BaseMenuItem.isFocusedOf(context) ||
         MenuController.maybeIsOpenOf(context) == true;
     return highlightArrow
         ? const CustomPaint(

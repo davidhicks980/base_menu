@@ -64,7 +64,7 @@ class MenuBarButtonLabel extends StatelessWidget {
     return Builder(
       builder: (context) {
         final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
-        BoxDecoration decoration = _decoration.resolve(BaseButton.statesOf(context));
+        BoxDecoration decoration = _decoration.resolve(BaseMenuItem.statesOf(context));
         if (isOpen) {
           decoration = decoration.copyWith(
             borderRadius: _openBorderRadius,

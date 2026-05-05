@@ -516,19 +516,19 @@ class _Anchor extends StatelessWidget {
 
     Widget listenable;
     if (!isOpen) {
-      listenable = BaseButton(
+      listenable = BaseControl(
         child: Builder(
           builder: (context) {
             return DecoratedBox(
               decoration: BoxDecoration(
-                color: BaseButton.isFocusedOf(context) ? const Color.fromARGB(15, 0, 0, 0) : null,
+                color: BaseControl.isFocusedOf(context) ? const Color.fromARGB(15, 0, 0, 0) : null,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: field,
             );
           },
         ),
-        onPressed: () {
+        onTap: () {
           menuController.open();
           focusNode.requestFocus();
         },

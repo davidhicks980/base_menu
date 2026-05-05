@@ -119,7 +119,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
                             color: FloogleColors.activeColor,
                             borderRadius: widget.radius,
                           )
-                        : BaseButton.isFocusedOf(context) || BaseButton.isHoveredOf(context)
+                        : BaseControl.isFocusedOf(context) || BaseControl.isHoveredOf(context)
                         ? BoxDecoration(
                             color: FloogleColors.zoomHoverColor,
                             borderRadius: widget.radius,

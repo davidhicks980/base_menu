@@ -82,7 +82,7 @@ class MyDropdownMenu extends StatelessWidget {
 ## Advanced Interactions
 
 You can hook into the interactive state of your menu items to dynamically apply
-styles using `BaseButton` scopes:
+styles using `BaseControl` scopes:
 
 ```dart
 class StyledMenuItem extends StatelessWidget {
@@ -92,8 +92,8 @@ class StyledMenuItem extends StatelessWidget {
       onPressed: () {},
       child: Builder(
         builder: (context) {
-          final isHovered = BaseButton.isHoveredOf(context);
-          final isFocused = BaseButton.isFocusedOf(context);
+          final isHovered = BaseControl.isHoveredOf(context);
+          final isFocused = BaseControl.isFocusedOf(context);
           return Container(
             color: isHovered || isFocused ? Colors.blue : Colors.transparent,
             child: const Text('Interactive Item'),

@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
 import '../utilities/colors.dart';
-import 'widget_state_decorated_box.dart';
 
 class ToolbarIconButton extends StatelessWidget {
   const ToolbarIconButton({
@@ -64,7 +63,14 @@ class ToolbarIconButton extends StatelessWidget {
       role: null,
       child: ConstrainedBox(
         constraints: constraints,
-        child: WidgetStateDecoratedBox(decoration: decoration ?? _decoration, child: child),
+        child: Builder(
+          builder: (context) {
+            return DecoratedBox(
+              decoration: (decoration ?? _decoration).resolve(BaseMenuItem.statesOf(context)),
+              child: child,
+            );
+          },
+        ),
       ),
     );
   }

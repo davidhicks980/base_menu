@@ -15,13 +15,13 @@ class FloogleDocsLogoButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseButton(
+    return BaseControl(
       mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
-      onPressed: () {},
+      onTap: () {},
       child: Builder(
         builder: (context) {
           return CustomPaint(
-            painter: _CircleBackgroundPainter(color: color.resolve(BaseButton.statesOf(context))),
+            painter: _CircleBackgroundPainter(color: color.resolve(BaseControl.statesOf(context))),
             child: const _FloogleDocsLogo(),
           );
         },

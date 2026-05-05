@@ -185,7 +185,7 @@ class _Tile extends StatelessWidget {
           builder: (context) {
             return DecoratedBox(
               decoration: _decoration.resolve(
-                BaseButton.statesOf(context).union({if (checked) WidgetState.selected}),
+                BaseMenuItem.statesOf(context).union({if (checked) WidgetState.selected}),
               ),
               child: child,
             );

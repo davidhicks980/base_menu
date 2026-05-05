@@ -45,7 +45,7 @@ class Popup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = MenuController();
-    return CoreMenu(
+    return BaseMenu(
       orientation: axis,
       padding: MenuPanel.defaultPadding,
       panel: panel,
@@ -68,7 +68,7 @@ class Popup extends StatelessWidget {
                 controller.close();
               } else {
                 if (focusFirstOnOpen) {
-                  Actions.invoke(context, const CoreMenuEnterIntent.focusFirst());
+                  Actions.invoke(context, const MenuEnterIntent.focusFirst());
                 } else {
                   controller.open();
                 }

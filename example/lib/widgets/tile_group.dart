@@ -176,7 +176,7 @@ class _Tile extends StatelessWidget {
   Widget build(BuildContext context) {
     return MenuItemRadioSemantics(
       checked: checked,
-      child: CoreMenuItem(
+      child: BaseMenuItem(
         role: null,
         onPressed: onPressed,
         onFocusChange: onFocusChange,
@@ -185,7 +185,7 @@ class _Tile extends StatelessWidget {
           builder: (context) {
             return DecoratedBox(
               decoration: _decoration.resolve(
-                CoreButton.statesOf(context).union({if (checked) WidgetState.selected}),
+                BaseButton.statesOf(context).union({if (checked) WidgetState.selected}),
               ),
               child: child,
             );

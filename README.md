@@ -45,7 +45,7 @@ class MyDropdownMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CoreMenu(
+    return BaseMenu(
       builder: (BuildContext context, MenuController controller, Widget? child) {
         return CoreTappable(
           onPressed: () {
@@ -60,14 +60,14 @@ class MyDropdownMenu extends StatelessWidget {
       },
       panel: ColoredBox(
         color: const Color(0xFFFFFFFF),
-        child: CoreMenuPanel(
+        child: BaseMenuPanel(
           axis: Axis.vertical,
           menuChildren: [
-            CoreMenuItem(
+            BaseMenuItem(
               onPressed: () => print('Item 1 clicked'),
               child: const Text('Menu Item 1'),
             ),
-            CoreMenuItem(
+            BaseMenuItem(
               onPressed: () => print('Item 2 clicked'),
               child: const Text('Menu Item 2'),
             ),
@@ -88,7 +88,7 @@ styles using `CoreTappable` scopes:
 class StyledMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return CoreMenuItem(
+    return BaseMenuItem(
       onPressed: () {},
       child: Builder(
         builder: (context) {

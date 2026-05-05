@@ -5,8 +5,8 @@ import 'button.dart';
 
 export 'button.dart';
 
-class CoreMenuItem extends StatefulWidget {
-  const CoreMenuItem({
+class BaseMenuItem extends StatefulWidget {
+  const BaseMenuItem({
     super.key,
     this.onHover,
     this.onPressed,
@@ -36,10 +36,10 @@ class CoreMenuItem extends StatefulWidget {
   final Widget child;
 
   @override
-  State<CoreMenuItem> createState() => _CoreMenuItemState();
+  State<BaseMenuItem> createState() => _BaseMenuItemState();
 }
 
-class _CoreMenuItemState extends State<CoreMenuItem> {
+class _BaseMenuItemState extends State<BaseMenuItem> {
   FocusNode? _internalFocusNode;
   FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
 
@@ -52,7 +52,7 @@ class _CoreMenuItemState extends State<CoreMenuItem> {
   }
 
   @override
-  void didUpdateWidget(CoreMenuItem oldWidget) {
+  void didUpdateWidget(BaseMenuItem oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.focusNode != widget.focusNode) {
       if (widget.focusNode == null) {
@@ -91,7 +91,7 @@ class _CoreMenuItemState extends State<CoreMenuItem> {
     return MergeSemantics(
       child: Semantics.fromProperties(
         properties: SemanticsProperties(role: widget.role, expanded: widget.isExpanded),
-        child: CoreButton(
+        child: BaseButton(
           mouseCursor: widget.mouseCursor ?? WidgetStateMouseCursor.clickable,
           behavior: widget.behavior,
           onFocusChange: widget.onFocusChange,

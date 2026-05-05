@@ -29,7 +29,7 @@ class MenuPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final panel = CoreMenuPanel(
+    final panel = BaseMenuPanel(
       padding: padding,
       constraints: constraints,
       axis: axis,

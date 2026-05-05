@@ -54,7 +54,7 @@ class ToolbarIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CoreMenuItem(
+    return BaseMenuItem(
       autofocus: autofocus,
       onPressed: onPressed,
       onHover: onHover,

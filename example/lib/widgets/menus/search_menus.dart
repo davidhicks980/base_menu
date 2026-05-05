@@ -74,7 +74,7 @@ class SearchMenu extends StatelessWidget {
                     child: const Icon(Symbols.search, size: 18, color: placeholderColor),
                   ),
                 )
-              : CoreButton(
+              : BaseButton(
                   mouseCursor: WidgetStateMouseCursor.textable,
                   onPressed: () {
                     MenuController.maybeOf(context)?.open();
@@ -282,14 +282,14 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
 
   @override
   Widget build(BuildContext context) {
-    return CoreMenu(
+    return BaseMenu(
       overlayPadding: EdgeInsets.zero,
       controller: AppStateManager.searchMenuControllerOf(context),
       alignment: AlignmentDirectional.topStart,
       menuAlignment: AlignmentDirectional.topStart,
       onClose: _handleClose,
       onFocusChange: _handleFocusChange,
-      panel: CoreMenuPanel(
+      panel: BaseMenuPanel(
         constraints: const BoxConstraints(minWidth: 348),
         axis: Axis.vertical,
         menuChildren: [
@@ -481,7 +481,7 @@ class SearchEntry extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 40),
         child: Semantics(
           selected: selected,
-          child: CoreMenuItem(
+          child: BaseMenuItem(
             onPressed: onPressed,
             onHover: onHovered,
             requestFocusOnHover: false,

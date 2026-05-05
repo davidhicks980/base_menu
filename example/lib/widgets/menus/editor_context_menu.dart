@@ -107,7 +107,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return CoreMenu(
+    return BaseMenu(
       padding: const EdgeInsets.symmetric(vertical: 6),
       panel: panel,
       controller: widget.menuController,

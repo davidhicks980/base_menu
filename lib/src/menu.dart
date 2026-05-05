@@ -9,8 +9,8 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-export 'menu_item.dart';
 export 'button.dart';
+export 'menu_item.dart';
 
 // Examples can assume:
 // late BuildContext context;
@@ -63,23 +63,23 @@ const Map<ShortcutActivator, Intent> _kStopDirectionalPropagationShortcuts =
       SingleActivator(LogicalKeyboardKey.arrowRight): DoNothingAndStopPropagationIntent(),
     };
 
-sealed class _CoreMenuFocusTraversalIntent extends Intent {
-  const _CoreMenuFocusTraversalIntent();
+sealed class _BaseMenuFocusTraversalIntent extends Intent {
+  const _BaseMenuFocusTraversalIntent();
 }
 
-final class _HorizontalFocusNextIntent extends _CoreMenuFocusTraversalIntent {
+final class _HorizontalFocusNextIntent extends _BaseMenuFocusTraversalIntent {
   const _HorizontalFocusNextIntent();
 }
 
-final class _HorizontalFocusPreviousIntent extends _CoreMenuFocusTraversalIntent {
+final class _HorizontalFocusPreviousIntent extends _BaseMenuFocusTraversalIntent {
   const _HorizontalFocusPreviousIntent();
 }
 
-final class _VerticalFocusNextIntent extends _CoreMenuFocusTraversalIntent {
+final class _VerticalFocusNextIntent extends _BaseMenuFocusTraversalIntent {
   const _VerticalFocusNextIntent();
 }
 
-final class _VerticalFocusPreviousIntent extends _CoreMenuFocusTraversalIntent {
+final class _VerticalFocusPreviousIntent extends _BaseMenuFocusTraversalIntent {
   const _VerticalFocusPreviousIntent();
 }
 
@@ -95,11 +95,11 @@ class _MenuSetFirstFocusIntent extends Intent {
   const _MenuSetFirstFocusIntent();
 }
 
-class CoreMenuEnterIntent extends Intent {
-  const CoreMenuEnterIntent() : _scopeIntent = null;
-  const CoreMenuEnterIntent.focusFirst() : _scopeIntent = const _MenuFocusFirstIntent();
-  const CoreMenuEnterIntent.focusLast() : _scopeIntent = const _MenuFocusLastIntent();
-  const CoreMenuEnterIntent.setFirstFocus() : _scopeIntent = const _MenuSetFirstFocusIntent();
+class MenuEnterIntent extends Intent {
+  const MenuEnterIntent() : _scopeIntent = null;
+  const MenuEnterIntent.focusFirst() : _scopeIntent = const _MenuFocusFirstIntent();
+  const MenuEnterIntent.focusLast() : _scopeIntent = const _MenuFocusLastIntent();
+  const MenuEnterIntent.setFirstFocus() : _scopeIntent = const _MenuSetFirstFocusIntent();
 
   /// An optional intent to fire on the menu's focus scope after it is opened
   /// and focused.
@@ -113,49 +113,49 @@ class CoreMenuEnterIntent extends Intent {
 //
 // Used to notify anchor descendants when the menu opens and closes, and to
 // access the anchor's controller.
-class _CoreMenuScope extends InheritedWidget {
-  const _CoreMenuScope({required super.child, required this.orientation, required this.isSubmenu});
+class _MenuScope extends InheritedWidget {
+  const _MenuScope({required super.child, required this.orientation, required this.isSubmenu});
 
   final Axis orientation;
   final bool isSubmenu;
 
-  static _CoreMenuScope? _maybeOf(BuildContext context) {
-    return context.getInheritedWidgetOfExactType<_CoreMenuScope>();
+  static _MenuScope? _maybeOf(BuildContext context) {
+    return context.getInheritedWidgetOfExactType<_MenuScope>();
   }
 
   @override
-  bool updateShouldNotify(_CoreMenuScope oldWidget) {
+  bool updateShouldNotify(_MenuScope oldWidget) {
     return orientation != oldWidget.orientation || isSubmenu != oldWidget.isSubmenu;
   }
 }
 
 /// A simple menu surface that displays a vertical list of menu items.
 ///
-/// The [CoreMenuPanel] is painted with a dark theme when
+/// The [BaseMenuPanel] is painted with a dark theme when
 /// [MediaQuery.maybePlatformBrightnessOf] returns [Brightness.dark], and a
 /// light theme when the brightness is [Brightness.light] or null. To override
 /// this behavior, a [decoration] can be provided.
 ///
-/// Any [padding] applied to the [CoreMenu] is inherited by [CoreMenuPanel].
+/// Any [padding] applied to the [BaseMenu] is inherited by [BaseMenuPanel].
 /// This behavior can be overridden by supplying a custom [padding].
 ///
-/// The [CoreMenuPanel] is only responsible for the size, appearance, and layout
+/// The [BaseMenuPanel] is only responsible for the size, appearance, and layout
 /// of menu items. To manage the positioning, semantics, and interaction of the
 /// menu overlay, the [Menu.overlayBuilder] constructor should be used.
 ///
 /// See also:
 ///
-///  * [CoreMenu], for a widget that creates a menu anchor that can be
-///    paired with a [CoreMenuPanel].
-///  * [CoreMenu.overlayBuilder], for a widget that creates a menu anchor
+///  * [BaseMenu], for a widget that creates a menu anchor that can be
+///    paired with a [BaseMenuPanel].
+///  * [BaseMenu.overlayBuilder], for a widget that creates a menu anchor
 ///    with a custom overlay.
-///  * [CoreMenuBar], for a widget that creates a menu that is always
+///  * [BaseMenuBar], for a widget that creates a menu that is always
 ///    visible and is not displayed in an [OverlayPortal].
-class CoreMenuPanel extends StatelessWidget {
-  /// Creates a [CoreMenuPanel].
+class BaseMenuPanel extends StatelessWidget {
+  /// Creates a [BaseMenuPanel].
   ///
   /// The [menuChildren] argument is required.
-  const CoreMenuPanel({
+  const BaseMenuPanel({
     super.key,
     this.constraints,
     this.constrainCrossAxis = false,
@@ -171,7 +171,7 @@ class CoreMenuPanel extends StatelessWidget {
   /// children.
   final BoxConstraints? constraints;
 
-  /// The menu items that should be displayed by this [CoreMenuPanel].
+  /// The menu items that should be displayed by this [BaseMenuPanel].
   final List<Widget> menuChildren;
 
   /// Whether the menu's cross axis should be laid out with regard to the bounds
@@ -188,9 +188,9 @@ class CoreMenuPanel extends StatelessWidget {
 
   /// The [EdgeInsetsGeometry] applied to the menu surface.
   ///
-  /// When a [CoreMenuPanel] is used with a [CoreMenu], [padding] applied to
+  /// When a [BaseMenuPanel] is used with a [BaseMenu], [padding] applied to
   /// the menu surface can be ignored during layout by supplying an equivalent
-  /// amount of [padding] to the [CoreMenu] constructor. This is useful
+  /// amount of [padding] to the [BaseMenu] constructor. This is useful
   /// when aligning a submenu with its anchor.
   ///
   /// Defaults to null, which applies no padding.
@@ -259,8 +259,8 @@ class CoreMenuPanel extends StatelessWidget {
   }
 }
 
-class CoreMenu extends StatefulWidget {
-  const CoreMenu({
+class BaseMenu extends StatefulWidget {
+  const BaseMenu({
     super.key,
     this.onOpen,
     this.onClose,
@@ -289,7 +289,7 @@ class CoreMenu extends StatefulWidget {
   /// from other widgets.
   ///
   /// If not supplied, a new [MenuController] will be created and managed by the
-  /// [CoreMenu].
+  /// [BaseMenu].
   final MenuController? controller;
 
   /// Whether or not a tap event that closes the menu will be permitted to
@@ -377,12 +377,12 @@ class CoreMenu extends StatefulWidget {
   /// Defaults to a callback that immediately hides the menu.
   final RawMenuAnchorCloseRequestedCallback onCloseRequest;
 
-  /// The widget that this [CoreMenu] surrounds.
+  /// The widget that this [BaseMenu] surrounds.
   ///
   /// Typically, this is a button used to open the menu by calling
   /// [MenuController.open] on the `controller` passed to the builder.
   ///
-  /// If not supplied, then the [CoreMenu] will be the size that its parent
+  /// If not supplied, then the [BaseMenu] will be the size that its parent
   /// allocates for it.
   final RawMenuAnchorChildBuilder? builder;
 
@@ -488,7 +488,7 @@ class CoreMenu extends StatefulWidget {
   }
 
   @override
-  State<CoreMenu> createState() => _CoreMenuState();
+  State<BaseMenu> createState() => _BaseMenuState();
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -508,14 +508,14 @@ class CoreMenu extends StatefulWidget {
   }
 }
 
-class _CoreMenuState extends State<CoreMenu> {
+class _BaseMenuState extends State<BaseMenu> {
   late final _menuScopeNode = FocusScopeNode(
     skipTraversal: true,
     directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
   );
 
   late final Map<Type, Action<Intent>> _anchorActions = <Type, Action<Intent>>{
-    CoreMenuEnterIntent: CallbackAction<CoreMenuEnterIntent>(onInvoke: _handleEnterMenu),
+    MenuEnterIntent: CallbackAction<MenuEnterIntent>(onInvoke: _handleEnterMenu),
   };
   Map<ShortcutActivator, Intent>? _anchorShortcuts;
   Map<Type, Action<Intent>>? _overlayActions;
@@ -540,7 +540,7 @@ class _CoreMenuState extends State<CoreMenu> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
-    final scope = _CoreMenuScope._maybeOf(context);
+    final scope = _MenuScope._maybeOf(context);
     if (scope?.orientation != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
       _parentOrientation = scope?.orientation;
       _parentIsSubmenu = scope?.isSubmenu ?? false;
@@ -550,7 +550,7 @@ class _CoreMenuState extends State<CoreMenu> {
   }
 
   @override
-  void didUpdateWidget(CoreMenu oldWidget) {
+  void didUpdateWidget(BaseMenu oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
       if (widget.controller == null) {
@@ -582,7 +582,7 @@ class _CoreMenuState extends State<CoreMenu> {
     widget.onClose?.call();
   }
 
-  void _handleEnterMenu(CoreMenuEnterIntent intent) {
+  void _handleEnterMenu(MenuEnterIntent intent) {
     if (_menuController.isOpen) {
       if (intent._scopeIntent != null) {
         _menuScopeNode.requestFocus();
@@ -612,15 +612,13 @@ class _CoreMenuState extends State<CoreMenu> {
             switch (_textDirection) {
               TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
               TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
-            }: const CoreMenuEnterIntent.focusFirst(),
+            }: const MenuEnterIntent.focusFirst(),
           },
           Axis.horizontal || null => {
             ..._kMenuHorizontalTraversalShortcuts,
-            const SingleActivator(LogicalKeyboardKey.arrowDown):
-                const CoreMenuEnterIntent.focusFirst(),
+            const SingleActivator(LogicalKeyboardKey.arrowDown): const MenuEnterIntent.focusFirst(),
             if (!_parentIsSubmenu)
-              const SingleActivator(LogicalKeyboardKey.arrowUp):
-                  const CoreMenuEnterIntent.focusLast(),
+              const SingleActivator(LogicalKeyboardKey.arrowUp): const MenuEnterIntent.focusLast(),
           },
         },
         child: Builder(
@@ -727,7 +725,7 @@ class _CoreInlineMenu extends StatelessWidget {
         explicitChildNodes: true,
         properties: semanticProperties,
         child: _MenuFocusTraversal(
-          axis: _CoreMenuScope._maybeOf(context)!.orientation,
+          axis: _MenuScope._maybeOf(context)!.orientation,
           focusScopeNode: focusScopeNode,
           child: child,
         ),
@@ -736,8 +734,8 @@ class _CoreInlineMenu extends StatelessWidget {
   }
 }
 
-class CoreMenuBar extends StatefulWidget {
-  const CoreMenuBar({
+class BaseMenuBar extends StatefulWidget {
+  const BaseMenuBar({
     super.key,
     this.controller,
     required this.child,
@@ -759,10 +757,10 @@ class CoreMenuBar extends StatefulWidget {
   final VoidCallback? onClose;
 
   @override
-  State<CoreMenuBar> createState() => _CoreMenuBarState();
+  State<BaseMenuBar> createState() => _BaseMenuBarState();
 }
 
-class _CoreMenuBarState extends State<CoreMenuBar> {
+class _BaseMenuBarState extends State<BaseMenuBar> {
   late final _actions = {
     NextFocusIntent: CallbackAction(
       onInvoke: (intent) => _menuScopeNode.enclosingScope?.nextFocus(),
@@ -790,7 +788,7 @@ class _CoreMenuBarState extends State<CoreMenuBar> {
 
     if (widget.focusScopeNode == null) {
       _internalFocusScopeNode = FocusScopeNode(
-        debugLabel: 'CoreMenuBar.focusScopeNode ${widget.axis}',
+        debugLabel: 'BaseMenuBar.focusScopeNode ${widget.axis}',
         traversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
         directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
       );
@@ -798,7 +796,7 @@ class _CoreMenuBarState extends State<CoreMenuBar> {
   }
 
   @override
-  void didUpdateWidget(CoreMenuBar oldWidget) {
+  void didUpdateWidget(BaseMenuBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
       if (widget.controller == null) {
@@ -811,7 +809,7 @@ class _CoreMenuBarState extends State<CoreMenuBar> {
     if (oldWidget.focusScopeNode != widget.focusScopeNode) {
       if (widget.focusScopeNode == null) {
         _internalFocusScopeNode = FocusScopeNode(
-          debugLabel: 'CoreMenuBar.focusScopeNode ${widget.axis}',
+          debugLabel: 'BaseMenuBar.focusScopeNode ${widget.axis}',
           traversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
           directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
         );
@@ -858,7 +856,7 @@ class _CoreMenuBarState extends State<CoreMenuBar> {
       actions: _actions,
       child: RawMenuAnchorGroup(
         controller: _menuController,
-        child: _CoreMenuScope(
+        child: _MenuScope(
           orientation: widget.axis,
           isSubmenu: false,
           child: _CoreInlineMenu(
@@ -1064,7 +1062,7 @@ class _MenuOverlay extends StatelessWidget {
       child: ListenableBuilder(
         listenable: focusScopeNode,
         builder: _buildConditionalTraversal,
-        child: _CoreMenuScope(
+        child: _MenuScope(
           orientation: submenuAxis,
           isSubmenu: true,
           child: _CoreInlineMenu(
@@ -1086,7 +1084,7 @@ class _MenuOverlay extends StatelessWidget {
           // being directionally-agnostic.
           final anchorAlignment =
               (alignment ??
-                      switch (_CoreMenuScope._maybeOf(context)?.orientation) {
+                      switch (_MenuScope._maybeOf(context)?.orientation) {
                         Axis.vertical => AlignmentDirectional.topEnd,
                         _ => AlignmentDirectional.bottomStart,
                       })

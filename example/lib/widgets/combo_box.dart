@@ -124,7 +124,7 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
     );
     // This should be a SemanticsRole.option, but this is currently not
     // supported by Flutter's semantics system.
-    final body = CoreMenuItem(
+    final body = BaseMenuItem(
       requestFocusOnHover: false,
       onHover: (bool hovered) {
         if (hovered) {
@@ -375,7 +375,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     final alignment = widget.alignment.resolve(Directionality.of(context));
     return Actions(
       actions: actions,
-      child: CoreMenu(
+      child: BaseMenu(
         menuAlignment: Alignment(alignment.x, -1),
         alignment: Alignment(alignment.x, 1),
         controller: widget.menuController,
@@ -516,12 +516,12 @@ class _Anchor extends StatelessWidget {
 
     Widget listenable;
     if (!isOpen) {
-      listenable = CoreButton(
+      listenable = BaseButton(
         child: Builder(
           builder: (context) {
             return DecoratedBox(
               decoration: BoxDecoration(
-                color: CoreButton.isFocusedOf(context) ? const Color.fromARGB(15, 0, 0, 0) : null,
+                color: BaseButton.isFocusedOf(context) ? const Color.fromARGB(15, 0, 0, 0) : null,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: field,

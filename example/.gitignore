@@ -52,3 +52,5 @@ firebase.json
 .fvm/
 .fvmrc
 .vscode
+
+bust.sh

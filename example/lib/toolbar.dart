@@ -150,7 +150,7 @@ class _ToolbarState extends State<Toolbar> {
             child: ListenableBuilder(
               listenable: scopeNode,
               builder: _buildConditionalTraversal,
-              child: CoreMenuBar(
+              child: BaseMenuBar(
                 controller: menuController,
                 focusScopeNode: scopeNode,
                 child: Row(
@@ -292,7 +292,7 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
       ),
     );
 
-    return CoreMenu(
+    return BaseMenu(
       controller: widget.controller,
       overlayPadding: const EdgeInsets.symmetric(horizontal: 4),
       menuAlignment: AlignmentDirectional.topEnd,

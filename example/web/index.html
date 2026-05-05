@@ -19,231 +19,31 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="A demo of menu utilities for Flutter.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="example">
+  <meta name="apple-mobile-web-app-title" content="Floogle Docs">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png" />
 
-  <title>example</title>
+  <title>Floogle Docs</title>
   <link rel="manifest" href="manifest.json">
 </head>
+  <body>
+    <!--
+      You can customize the "flutter_bootstrap.js" script.
+      This is useful to provide a custom configuration to the Flutter loader
+      or to give the user feedback during the initialization process.
 
-<body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+      For more details:
+      * https://docs.flutter.dev/platform-integration/web/initialization
+    -->
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+    <script>{{flutter_bootstrap_js}}</script>
 
-
-  <!-- Loading indicator -->
-  <!-- <div id="loading">
-    <style>
-      .viewport-img {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        object-fit: cover;
-        z-index: -1;
-      }
-
-      body {
-        margin: 0;
-        background-color: #F8FAFD;
-      }
-
-      #loading {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        width: 100vw;
-        overflow: hidden;
-        opacity: 0.5;
-      }
-
-      .shimmer {
-        border: 1.5px solid #222;
-        background: #b0b3b8;
-        background-image: linear-gradient(to right,
-            #b0b3b8 0%,
-            #444950 20%,
-            #b0b3b8 40%,
-            #b0b3b8 100%);
-        background-repeat: no-repeat;
-        background-size: 800px 100%;
-        display: inline-block;
-        position: relative;
-        animation: shimmer 1.5s infinite linear;
-        box-shadow: 0 2px 8px rgba(40, 40, 40, 0.08);
-      }
-
-      @keyframes shimmer {
-        0% {
-          background-position: -468px 0;
-        }
-
-        100% {
-          background-position: 468px 0;
-        }
-      }
-
-      .header-row {
-        display: flex;
-        padding: 15px 0 10px 15px;
-        align-items: center;
-        opacity: 0.5;
-
-      }
-
-      .logo-shimmer {
-        width: 36px;
-        height: 40px;
-        border-radius: 4px;
-        margin-right: 4px;
-      }
-
-      .title-container {
-        flex: 1;
-      }
-
-      .title-shimmer {
-        width: 160px;
-        height: 20px;
-        border-radius: 4px;
-      }
-
-      .menu-row {
-        display: flex;
-        gap: 4px;
-      }
-
-      .menu-item-shimmer {
-        color: transparent;
-        border-radius: 4px;
-        font-size: 14px;
-        padding: 0px 6px;
-      }
-
-      .toolbar-container {
-        padding: 0 16px 16px 16px;
-      }
-
-      .toolbar-shimmer {
-        color: transparent;
-        border: 1px solid black;
-        width: 100%;
-        max-width: 1200px;
-        height: 34px;
-        border-radius: 24px;
-        display: flex;
-        align-items: center;
-        padding: 0 12px;
-      }
-
-      .tool-icon-shimmer {
-        width: 22px;
-        height: 20px;
-        border-radius: 4px;
-        opacity: 0.6;
-        margin: 0 4px;
-      }
-
-      .tool-vertical-divider {
-        width: 1px;
-        height: 20px;
-        background: #c4c7c5;
-        margin: 0 2px;
-      }
-    </style>
-    <div class="header-row">
-      <div class="shimmer logo-shimmer"></div>
-      <div class="title-container">
-        <div class="shimmer title-shimmer"></div>
-        <div class="menu-row">
-          <div class="shimmer menu-item-shimmer">
-            File
-          </div>
-          <div class="shimmer menu-item-shimmer">
-            Edit
-          </div>
-          <div class="shimmer menu-item-shimmer">
-            View
-          </div>
-          <div class="shimmer menu-item-shimmer">
-            Insert
-          </div>
-          <div class="shimmer menu-item-shimmer">
-            Format
-          </div>
-          <div class="shimmer menu-item-shimmer">
-            Tools
-          </div>
-          <div class="shimmer menu-item-shimmer">
-            Extensions
-          </div>
-          <div class="shimmer menu-item-shimmer">
-            Help
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="toolbar-container">
-      <div class="toolbar-shimmer">
-        <div class="shimmer tool-icon-shimmer"></div>
-        <div class="shimmer tool-icon-shimmer"></div>
-        <div class="shimmer tool-icon-shimmer"></div>
-        <div class="shimmer tool-icon-shimmer"></div>
-        <div class="shimmer tool-icon-shimmer"></div>
-        <div class="tool-vertical-divider"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 60px;"></div>
-        <div class="tool-vertical-divider"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 112px;"></div>
-        <div class="tool-vertical-divider"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 93px;"></div>
-        <div class="tool-vertical-divider"></div>
-
-        <div class="shimmer tool-icon-shimmer" style="width: 20px;"></div>
-
-        <div class="shimmer tool-icon-shimmer" style="width: 30px;"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 22px;"></div>
-        <div class="tool-vertical-divider"></div>
-        <div class="shimmer tool-icon-shimmer"></div>
-        <div class="shimmer tool-icon-shimmer"></div>
-        <div class="shimmer tool-icon-shimmer"></div>
-        <div class="tool-vertical-divider"></div>
-        <div class="shimmer tool-icon-shimmer"></div>
-        <div class="shimmer tool-icon-shimmer"></div>
-        <div class="tool-vertical-divider"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 24px"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 24px"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 24px"></div>
-        <div class="tool-vertical-divider"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 32px"></div>
-        <div style="width: 28px" class="shimmer tool-icon-shimmer"></div>
-        <div style="width: 36px" class="shimmer tool-icon-shimmer"></div>
-        <div style="width: 36px" class="shimmer tool-icon-shimmer"></div>
-
-        <div class="shimmer tool-icon-shimmer" style="width: 24px"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 24px"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 24px"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 24px"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 24px"></div>
-        <div class="shimmer tool-icon-shimmer" style="width: 24px"></div>
-      </div>
-    </div>
-  </div> -->
-
-</body>
-
+  </body>
 </html>

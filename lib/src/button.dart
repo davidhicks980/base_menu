@@ -25,8 +25,8 @@ class _TappableStateScope extends InheritedModel<WidgetState> {
   }
 }
 
-class CoreButton extends StatefulWidget {
-  const CoreButton({
+class BaseButton extends StatefulWidget {
+  const BaseButton({
     super.key,
     this.onHover,
     this.onPressed,
@@ -77,10 +77,10 @@ class CoreButton extends StatefulWidget {
   }
 
   @override
-  State<CoreButton> createState() => _CoreButtonState();
+  State<BaseButton> createState() => _BaseButtonState();
 }
 
-class _CoreButtonState extends State<CoreButton> {
+class _BaseButtonState extends State<BaseButton> {
   static const _shortcuts = <ShortcutActivator, Intent>{
     SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
     SingleActivator(LogicalKeyboardKey.space): ButtonActivateIntent(),
@@ -134,7 +134,7 @@ class _CoreButtonState extends State<CoreButton> {
   }
 
   @override
-  void didUpdateWidget(CoreButton oldWidget) {
+  void didUpdateWidget(BaseButton oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.focusNode != oldWidget.focusNode) {
       if (widget.focusNode == null) {

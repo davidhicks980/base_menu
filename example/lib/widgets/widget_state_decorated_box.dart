@@ -17,7 +17,7 @@ class WidgetStateDecoratedBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       position: position,
-      decoration: decoration.resolve(CoreButton.statesOf(context)),
+      decoration: decoration.resolve(BaseButton.statesOf(context)),
       child: child,
     );
   }

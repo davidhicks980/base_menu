@@ -27,7 +27,7 @@ class _DocumentMenuBarState extends State<DocumentMenuBar> {
   @override
   Widget build(BuildContext context) {
     final bool hasOverflow = _cutoff < Menu.main.children.length;
-    return CoreMenuBar(
+    return BaseMenuBar(
       onClose: () {
         _focusScopeNode.unfocus(disposition: UnfocusDisposition.previouslyFocusedChild);
       },

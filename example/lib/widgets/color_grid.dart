@@ -220,7 +220,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
         label: colorLabel(widget.color),
         button: true,
         selected: widget.isSelected,
-        child: CoreButton(
+        child: BaseButton(
           focusNode: _focusNode,
           onPressed: widget.onTap,
           onHover: (value) {
@@ -242,7 +242,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
                   shape: BoxShape.circle,
                   color: widget.color,
                   border: Border.all(color: borderColor, width: 0.5),
-                  boxShadow: CoreButton.isFocusedOf(context)
+                  boxShadow: BaseButton.isFocusedOf(context)
                       ? [
                           BoxShadow(
                             color: FloogleColors.black.withOpacity(0.6),
@@ -250,7 +250,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
                             spreadRadius: 1,
                           ),
                         ]
-                      : CoreButton.isHoveredOf(context) || widget.isSelected
+                      : BaseButton.isHoveredOf(context) || widget.isSelected
                       ? [
                           BoxShadow(
                             color: FloogleColors.black.withOpacity(0.35),
@@ -425,10 +425,8 @@ class _ColorPickerPanelState extends State<ColorPickerPanel> {
                   ),
                 ),
                 const SizedBox(height: 2),
-                CoreMenuItem(
-                  onPressed: () {
-                    print('PRESSED CUSTOM COLOR');
-                  },
+                BaseMenuItem(
+                  onPressed: () {},
                   child: ClipRRect(
                     borderRadius: const BorderRadius.all(Radius.circular(8)),
                     child: ConstrainedBox(
@@ -505,12 +503,12 @@ class CustomAction extends StatelessWidget {
     return Semantics(
       label: label,
       button: true,
-      child: CoreButton(
+      child: BaseButton(
         onPressed: () {},
         child: Builder(
           builder: (context) {
             return DecoratedBox(
-              decoration: CoreButton.isPressedOf(context)
+              decoration: BaseButton.isPressedOf(context)
                   ? const BoxDecoration(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(4),
@@ -518,7 +516,7 @@ class CustomAction extends StatelessWidget {
                       ),
                       color: Color.fromARGB(25, 0, 0, 0),
                     )
-                  : CoreButton.isHoveredOf(context) || CoreButton.isFocusedOf(context)
+                  : BaseButton.isHoveredOf(context) || BaseButton.isFocusedOf(context)
                   ? const BoxDecoration(
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(4),

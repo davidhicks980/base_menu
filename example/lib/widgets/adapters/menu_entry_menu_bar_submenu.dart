@@ -51,7 +51,7 @@ class _MenuBarSubmenuState extends State<MenuBarSubmenu> {
     return Builder(
       builder: (context) {
         final isRootOpen = MenuController.maybeIsOpenOf(context) ?? false;
-        return CoreMenu(
+        return BaseMenu(
           onFocusChange: _handleFocusChange,
           overlayPadding: const EdgeInsets.only(top: 55, bottom: 8),
           orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
@@ -71,7 +71,7 @@ class _MenuBarSubmenuState extends State<MenuBarSubmenu> {
           child: Builder(
             builder: (context) {
               final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
-              return CoreMenuItem(
+              return BaseMenuItem(
                 isExpanded: isOpen,
                 requestFocusOnHover: isRootOpen,
                 focusNode: anchorFocusNode,

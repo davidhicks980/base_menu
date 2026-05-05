@@ -24,7 +24,7 @@ class Select extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = menuController ?? MenuController();
-    return CoreMenu(
+    return BaseMenu(
       controller: controller,
       onFocusChange: (bool value) {
         if (!value) {
@@ -66,7 +66,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
     if (controller.isOpen) {
       controller.close();
     } else {
-      Actions.invoke(context, const CoreMenuEnterIntent.focusFirst());
+      Actions.invoke(context, const MenuEnterIntent.focusFirst());
     }
   }
 
@@ -82,7 +82,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
             style: const TextStyle(
               fontFamily: 'GoogleSans',
               fontSize: 14,
-              height: 1.0,
+              height: 1.2,
               letterSpacing: 0.1,
               fontWeight: FontWeight(450),
               fontVariations: [FontVariation.opticalSize(17)],
@@ -101,16 +101,16 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
         final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
         return DefaultTextStyle(
           style: TextStyle(color: isOpen ? FloogleColors.grey : FloogleColors.selectTextColor),
-          child: CoreMenuItem(
-            role: null,
-            focusNode: focusNode,
-            mouseCursor: WidgetStateMouseCursor.clickable,
-            isExpanded: isOpen,
-            requestFocusOnHover: false,
-            requestCloseOnActivate: false,
-            onPressed: _handlePressed,
-            child: SizedBox(
-              height: 30,
+          child: SizedBox(
+            height: 30,
+            child: BaseMenuItem(
+              role: null,
+              focusNode: focusNode,
+              mouseCursor: WidgetStateMouseCursor.clickable,
+              isExpanded: isOpen,
+              requestFocusOnHover: false,
+              requestCloseOnActivate: false,
+              onPressed: _handlePressed,
               child: Builder(
                 builder: (context) {
                   return DecoratedBox(
@@ -119,7 +119,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
                             color: FloogleColors.activeColor,
                             borderRadius: widget.radius,
                           )
-                        : CoreButton.isFocusedOf(context) || CoreButton.isHoveredOf(context)
+                        : BaseButton.isFocusedOf(context) || BaseButton.isHoveredOf(context)
                         ? BoxDecoration(
                             color: FloogleColors.zoomHoverColor,
                             borderRadius: widget.radius,

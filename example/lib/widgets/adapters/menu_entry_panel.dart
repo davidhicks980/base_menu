@@ -1,11 +1,13 @@
 import 'package:flutter/widgets.dart';
 
 import '../../app_state_manager.dart';
+import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../dimension_picker.dart';
 import '../menu_divider.dart';
 import '../menu_item.dart';
 import '../menu_panel.dart';
+import 'menu_entry_view_mode_panel.dart';
 import '../selectable_menu_item.dart';
 import 'menu_entry_submenu.dart';
 import 'menu_entry_tile_group.dart';
@@ -28,6 +30,9 @@ class MenuEntryPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (menuEntry == Menu.viewMode) {
+      return const ViewModePanel();
+    }
     return MenuPanel(
       axis: axis,
       constraints: constraints,
@@ -42,11 +47,13 @@ class MenuEntryPanel extends StatelessWidget {
               entry: entry,
               hoverDelay: const Duration(milliseconds: 260),
             ),
+
             SelectableMenuEntry() => Builder(
               builder: (context) {
                 final checked =
                     AppStateManager.documentStateOf(context)[child.intent.key] ==
                     child.intent.value;
+                if (child.iconConfig?.affinity != null) print(child.iconConfig?.affinity);
                 return SelectableMenuItem(
                   selected: checked,
                   onPressed: () {
@@ -69,28 +76,21 @@ class MenuEntryPanel extends StatelessWidget {
               },
             ),
 
-            MenuEntryWithIntent(
-              :final intent,
-              :final icon,
-              :final shortcut,
-              :final label,
-              :final iconConfig,
-            ) =>
-              MenuItem(
-                intent: intent,
-                leading: icon != null
-                    ? Icon(
-                        child.icon,
-                        weight: iconConfig?.weight,
-                        fill: iconConfig?.fill,
-                        grade: iconConfig?.grade,
-                        opticalSize: iconConfig?.opticalSize,
-                        size: iconConfig?.size,
-                      )
-                    : null,
-                shortcut: shortcut,
-                child: Text(label),
-              ),
+            MenuEntryWithIntent() => MenuItem(
+              intent: child.intent,
+              leading: child.icon != null
+                  ? Icon(
+                      child.icon,
+                      weight: child.iconConfig?.weight,
+                      fill: child.iconConfig?.fill,
+                      grade: child.iconConfig?.grade,
+                      opticalSize: child.iconConfig?.opticalSize,
+                      size: child.iconConfig?.size,
+                    )
+                  : null,
+              shortcut: child.shortcut,
+              child: Text(child.label),
+            ),
             MenuEntry() => MenuItem(
               leading: child.icon != null
                   ? Icon(

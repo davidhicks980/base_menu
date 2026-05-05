@@ -272,6 +272,7 @@ abstract class Entry {
     'Editing',
     subtitle: 'Edit documents directly',
     icon: Symbols.edit,
+    iconConfig: IconConfiguration(weight: 500),
     intent: SetViewingModeIntent.editing(),
   );
 
@@ -279,6 +280,7 @@ abstract class Entry {
     'Suggesting',
     subtitle: 'Edits become suggestions',
     icon: Symbols.rate_review,
+    iconConfig: IconConfiguration(weight: 500),
     intent: SetViewingModeIntent.suggesting(),
   );
 
@@ -286,6 +288,7 @@ abstract class Entry {
     'Viewing',
     subtitle: 'Read or print final document',
     icon: Symbols.visibility,
+    iconConfig: IconConfiguration(weight: 500),
     intent: SetViewingModeIntent.viewing(),
   );
 
@@ -310,70 +313,70 @@ abstract class Entry {
     intent: CheckSpellingGrammarIntent(),
   );
 
-  static const boldFormat = SelectableMenuEntry(
+  static const boldFormat = MenuEntryWithIntent(
     'Bold',
     icon: Symbols.format_bold,
     shortcut: SingleActivator(LogicalKeyboardKey.keyB, meta: true),
     intent: FormatBoldIntent(),
   );
 
-  static const italicFormat = SelectableMenuEntry(
+  static const italicFormat = MenuEntryWithIntent(
     'Italic',
     icon: Symbols.format_italic,
     shortcut: SingleActivator(LogicalKeyboardKey.keyI, meta: true),
     intent: FormatItalicIntent(),
   );
 
-  static const underlineFormat = SelectableMenuEntry(
+  static const underlineFormat = MenuEntryWithIntent(
     'Underline',
     icon: Symbols.format_underlined,
     shortcut: SingleActivator(LogicalKeyboardKey.keyU, meta: true),
     intent: FormatUnderlineIntent(),
   );
 
-  static const strikethroughFormat = SelectableMenuEntry(
+  static const strikethroughFormat = MenuEntryWithIntent(
     'Strikethrough',
     icon: Symbols.strikethrough_s,
     shortcut: SingleActivator(LogicalKeyboardKey.digit5, meta: true, alt: true, shift: true),
     intent: FormatStrikethroughIntent(),
   );
 
-  static const superscriptFormat = SelectableMenuEntry(
+  static const superscriptFormat = MenuEntryWithIntent(
     'Superscript',
     icon: Symbols.superscript,
     shortcut: SingleActivator(LogicalKeyboardKey.period, meta: true),
     intent: FormatSuperscriptIntent(),
   );
 
-  static const subscriptFormat = SelectableMenuEntry(
+  static const subscriptFormat = MenuEntryWithIntent(
     'Subscript',
     icon: Symbols.subscript,
     shortcut: SingleActivator(LogicalKeyboardKey.comma, meta: true),
     intent: FormatSubscriptIntent(),
   );
 
-  static const alignLeft = SelectableMenuEntry(
+  static const alignLeft = MenuEntryWithIntent(
     'Left',
     icon: Symbols.format_align_left,
     shortcut: SingleActivator(LogicalKeyboardKey.keyL, meta: true, shift: true),
     intent: SetBlockAlignIntent.left(),
   );
 
-  static const alignCenter = SelectableMenuEntry(
+  static const alignCenter = MenuEntryWithIntent(
     'Center',
     icon: Symbols.format_align_center,
     shortcut: SingleActivator(LogicalKeyboardKey.keyE, meta: true, shift: true),
     intent: SetBlockAlignIntent.center(),
   );
 
-  static const alignRight = SelectableMenuEntry(
+  static const alignRight = MenuEntryWithIntent(
     'Right',
     icon: Symbols.format_align_right,
     shortcut: SingleActivator(LogicalKeyboardKey.keyR, meta: true, shift: true),
     intent: SetBlockAlignIntent.right(),
   );
 
-  static const alignJustified = SelectableMenuEntry(
+  static const alignJustified = MenuEntryWithIntent(
     'Justified',
     icon: Symbols.format_align_justify,
     shortcut: SingleActivator(LogicalKeyboardKey.keyJ, meta: true, shift: true),
@@ -394,40 +397,40 @@ abstract class Entry {
     shortcut: SingleActivator(LogicalKeyboardKey.digit8, meta: true, shift: true),
   );
 
-  static const paragraphStyleNormalText = SelectableMenuEntry(
+  static const paragraphStyleNormalText = MenuEntryWithIntent(
     'Normal text',
     icon: Symbols.text_fields,
     shortcut: SingleActivator(LogicalKeyboardKey.digit0, meta: true, alt: true),
     intent: ApplyParagraphStyleIntent(.normal),
   );
 
-  static const paragraphStyleTitle = SelectableMenuEntry(
+  static const paragraphStyleTitle = MenuEntryWithIntent(
     'Title',
     icon: Symbols.text_fields,
     intent: ApplyParagraphStyleIntent(.title),
   );
 
-  static const paragraphStyleSubtitle = SelectableMenuEntry(
+  static const paragraphStyleSubtitle = MenuEntryWithIntent(
     'Subtitle',
     icon: Symbols.text_fields,
     intent: ApplyParagraphStyleIntent(.subtitle),
   );
 
-  static const paragraphStyleHeading1 = SelectableMenuEntry(
+  static const paragraphStyleHeading1 = MenuEntryWithIntent(
     'Heading 1',
     icon: Symbols.format_h1,
     shortcut: SingleActivator(LogicalKeyboardKey.digit1, meta: true, alt: true),
     intent: ApplyParagraphStyleIntent(.heading1),
   );
 
-  static const paragraphStyleHeading2 = SelectableMenuEntry(
+  static const paragraphStyleHeading2 = MenuEntryWithIntent(
     'Heading 2',
     icon: Symbols.format_h2,
     shortcut: SingleActivator(LogicalKeyboardKey.digit2, meta: true, alt: true),
     intent: ApplyParagraphStyleIntent(.heading2),
   );
 
-  static const paragraphStyleHeading3 = SelectableMenuEntry(
+  static const paragraphStyleHeading3 = MenuEntryWithIntent(
     'Heading 3',
     icon: Symbols.format_h3,
     shortcut: SingleActivator(LogicalKeyboardKey.digit3, meta: true, alt: true),

@@ -122,7 +122,6 @@ class _Option extends StatelessWidget {
       checked: isSelected,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 64),
-
         child: Submenu(
           onPressed: () {
             MenuController.maybeOf(context)?.close();
@@ -131,7 +130,6 @@ class _Option extends StatelessWidget {
           leading: isSelected ? const Icon(Symbols.check, size: 16) : null,
           panel: MenuPanel(
             padding: const EdgeInsets.symmetric(vertical: 6),
-
             children: [
               MenuItem(
                 onPressed: () {

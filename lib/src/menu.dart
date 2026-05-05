@@ -705,8 +705,8 @@ class _BaseMenuState extends State<BaseMenu> {
   }
 }
 
-class _CoreInlineMenu extends StatelessWidget {
-  const _CoreInlineMenu({
+class _InlineMenu extends StatelessWidget {
+  const _InlineMenu({
     required this.child,
     required this.focusScopeNode,
     required this.semanticProperties,
@@ -859,7 +859,7 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
         child: _MenuScope(
           orientation: widget.axis,
           isSubmenu: false,
-          child: _CoreInlineMenu(
+          child: _InlineMenu(
             semanticProperties: widget.semanticProperties,
             focusScopeNode: _menuScopeNode,
             child: widget.child,
@@ -1065,7 +1065,7 @@ class _MenuOverlay extends StatelessWidget {
         child: _MenuScope(
           orientation: submenuAxis,
           isSubmenu: true,
-          child: _CoreInlineMenu(
+          child: _InlineMenu(
             focusScopeNode: focusScopeNode,
             semanticProperties: semanticProperties,
             child: child,

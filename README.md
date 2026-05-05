@@ -47,7 +47,7 @@ class MyDropdownMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseMenu(
       builder: (BuildContext context, MenuController controller, Widget? child) {
-        return CoreTappable(
+        return BaseButton(
           onPressed: () {
             if (controller.isOpen) {
               controller.close();

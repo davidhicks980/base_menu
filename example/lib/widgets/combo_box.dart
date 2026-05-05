@@ -236,7 +236,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   };
 
   late ScrollController _scrollController;
-  final TextEditingController _textController = TextEditingController();
+  late final TextEditingController _textController;
   final SplayTreeMap<int, String> _indexToValue = SplayTreeMap<int, String>();
 
   @override
@@ -277,7 +277,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   @override
   void initState() {
     super.initState();
-    _textController.text = widget.selected;
+    _textController = TextEditingController(text: widget.selected);
     _highlightValue = widget.selected;
     _scrollController = ScrollController(initialScrollOffset: widget.initialOffset);
     if (widget.focusNode == null) {
@@ -570,7 +570,6 @@ class _Anchor extends StatelessWidget {
                 : null,
             onExpand: isOpen ? null : () => menuController.open(),
             onCollapse: isOpen ? () => menuController.close() : null,
-            value: selected,
             textDirection: Directionality.of(context),
             label: semanticsLabel,
             onTap: () {

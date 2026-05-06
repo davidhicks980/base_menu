@@ -323,7 +323,10 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   }
 
   void _handleMovePrevious(_MovePreviousIntent intent) {
-    _openMenuAndFocusButton();
+    if (!widget.menuController.isOpen) {
+      _openMenuAndFocusButton();
+      return;
+    }
     final int previousIndex;
     final keys = _indexToValue.keys.toList();
     if (_highlightValue != null) {
@@ -337,7 +340,10 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   }
 
   void _handleMoveNext(_MoveNextIntent intent) {
-    _openMenuAndFocusButton();
+    if (!widget.menuController.isOpen) {
+      _openMenuAndFocusButton();
+      return;
+    }
     final int nextIndex;
     final keys = _indexToValue.keys.toList();
     if (_highlightValue != null) {
@@ -351,8 +357,6 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   }
 
   void _handleMoveFirst(_MoveFirstIntent intent) {
-    _openMenuAndFocusButton();
-
     if (_indexToValue.isEmpty) {
       return;
     }
@@ -361,7 +365,10 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   }
 
   void _handleMoveLast(_MoveLastIntent intent) {
-    _openMenuAndFocusButton();
+    if (!widget.menuController.isOpen) {
+      _openMenuAndFocusButton();
+      return;
+    }
 
     if (_indexToValue.isEmpty) {
       return;
@@ -441,8 +448,6 @@ class _Anchor extends StatelessWidget {
 
   static const _shortcuts = {
     SingleActivator(LogicalKeyboardKey.arrowDown, alt: true): ActivateIntent(),
-    SingleActivator(LogicalKeyboardKey.home): _MoveFirstIntent(),
-    SingleActivator(LogicalKeyboardKey.end): _MoveLastIntent(),
     SingleActivator(LogicalKeyboardKey.arrowUp): _MovePreviousIntent(),
     SingleActivator(LogicalKeyboardKey.arrowDown): _MoveNextIntent(),
     SingleActivator(LogicalKeyboardKey.arrowLeft): ExtendSelectionByCharacterIntent(
@@ -461,6 +466,12 @@ class _Anchor extends StatelessWidget {
       forward: true,
       collapseSelection: false,
     ),
+  };
+
+  static const _shortcutsWhenOpen = {
+    ..._shortcuts,
+    SingleActivator(LogicalKeyboardKey.home): _MoveFirstIntent(),
+    SingleActivator(LogicalKeyboardKey.end): _MoveLastIntent(),
   };
 
   @override
@@ -547,7 +558,7 @@ class _Anchor extends StatelessWidget {
     return ListenableBuilder(
       listenable: focusNode,
       child: Shortcuts(
-        shortcuts: _shortcuts,
+        shortcuts: isOpen ? _shortcutsWhenOpen : _shortcuts,
         child: DefaultTextStyle.merge(
           style: textStyle,
           overflow: TextOverflow.ellipsis,

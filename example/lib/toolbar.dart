@@ -1,5 +1,4 @@
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
@@ -112,15 +111,71 @@ class Toolbar extends StatefulWidget {
 }
 
 class _ToolbarState extends State<Toolbar> {
-  final toolbarFocusScopeNode = FocusScopeNode();
+  final toolbarFocusScopeNode = FocusScopeNode(
+    debugLabel: 'Toolbar Focus Scope',
+    skipTraversal: true,
+    directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
+  );
   final MenuController menuController = MenuController();
-  final MenuController menuOverflowController = MenuController();
+  final MenuController overflowMenuController = MenuController();
+  final FocusNode overflowButtonFocusNode = FocusNode();
   int _cutoff = children.length;
+
+  Map<Type, Action<Intent>>? _actions;
+  late final enterForwardAction = {
+    HorizontalMenuNextFocusIntent: CallbackAction<HorizontalMenuNextFocusIntent>(
+      onInvoke: (intent) =>
+          Actions.invoke(overflowButtonFocusNode.context!, const MenuEnterIntent.focusFirst()),
+    ),
+  };
+
+  late final enterReverseAction = {
+    HorizontalMenuPreviousFocusIntent: CallbackAction<HorizontalMenuPreviousFocusIntent>(
+      onInvoke: (intent) =>
+          Actions.invoke(overflowButtonFocusNode.context!, const MenuEnterIntent.focusLast()),
+    ),
+  };
 
   @override
   void dispose() {
+    overflowButtonFocusNode.dispose();
     toolbarFocusScopeNode.dispose();
     super.dispose();
+  }
+
+  void _handleFocusChange(bool value) {
+    if (value) {
+      FocusManager.instance.addListener(_focusListener);
+      _focusListener();
+    } else {
+      FocusManager.instance.removeListener(_focusListener);
+      if (_actions != null) {
+        setState(() {
+          _actions = null;
+        });
+      }
+    }
+  }
+
+  void _focusListener() {
+    if (primaryFocus == null) {
+      return;
+    }
+
+    final descendants = toolbarFocusScopeNode.traversalDescendants;
+    if (primaryFocus == descendants.lastOrNull) {
+      setState(() {
+        _actions = enterForwardAction;
+      });
+    } else if (primaryFocus == descendants.firstOrNull) {
+      setState(() {
+        _actions = enterReverseAction;
+      });
+    } else if (_actions != null) {
+      setState(() {
+        _actions = null;
+      });
+    }
   }
 
   Widget _buildConditionalTraversal(BuildContext context, Widget? child) {
@@ -128,6 +183,7 @@ class _ToolbarState extends State<Toolbar> {
       includeSemantics: false,
       canRequestFocus: false,
       skipTraversal: !toolbarFocusScopeNode.hasFocus,
+      onFocusChange: _handleFocusChange,
       descendantsAreTraversable: true,
       descendantsAreFocusable: true,
       child: child!,
@@ -160,31 +216,33 @@ class _ToolbarState extends State<Toolbar> {
             child: ListenableBuilder(
               listenable: toolbarFocusScopeNode,
               builder: _buildConditionalTraversal,
-              child: BaseMenuBar(
-                controller: menuController,
-                focusScopeNode: toolbarFocusScopeNode,
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: OverflowRow(onOverflow: _handleOverflow, children: children),
-                    ),
-                    if (cutoffChildren.isNotEmpty)
-                      NotificationListener<_TraverseBoundaryNotification>(
-                        onNotification: (notification) {
-                          if (notification is _TraversedEndNotification) {
-                            toolbarFocusScopeNode.nextFocus();
-                          } else if (notification is _TraversedStartNotification) {
-                            toolbarFocusScopeNode.previousFocus();
-                          }
-                          return true;
-                        },
-                        child: OverflowButton(
-                          controller: menuOverflowController,
-                          children: cutoffChildren.expand((group) => group).toList(growable: false),
-                        ),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: BaseMenuBar(
+                      controller: menuController,
+                      focusScopeNode: toolbarFocusScopeNode,
+                      child: Actions(
+                        actions: cutoffChildren.isNotEmpty && _actions != null
+                            ? _actions!
+                            : const {},
+                        child: OverflowRow(onOverflow: _handleOverflow, children: children),
                       ),
-                  ],
-                ),
+                    ),
+                  ),
+                  if (cutoffChildren.isNotEmpty)
+                    OverflowButton(
+                      onMoveToNext: () {
+                        toolbarFocusScopeNode.traversalDescendants.firstOrNull?.requestFocus();
+                      },
+                      onMoveToPrevious: () {
+                        toolbarFocusScopeNode.traversalDescendants.lastOrNull?.requestFocus();
+                      },
+                      buttonFocusNode: overflowButtonFocusNode,
+                      controller: overflowMenuController,
+                      children: cutoffChildren.expand((group) => group).toList(growable: false),
+                    ),
+                ],
               ),
             ),
           ),
@@ -214,47 +272,70 @@ class _ToolbarState extends State<Toolbar> {
 }
 
 class OverflowButton extends StatefulWidget {
-  const OverflowButton({super.key, required this.children, required this.controller});
+  const OverflowButton({
+    super.key,
+    required this.children,
+    required this.controller,
+    required this.buttonFocusNode,
+    required this.onMoveToNext,
+    required this.onMoveToPrevious,
+  });
   final List<Widget> children;
   final MenuController controller;
+  final FocusNode buttonFocusNode;
+  final VoidCallback onMoveToPrevious;
+  final VoidCallback onMoveToNext;
 
   @override
   State<OverflowButton> createState() => _OverflowButtonState();
 }
 
 class _OverflowButtonState extends State<OverflowButton> with SingleTickerProviderStateMixin {
-  late final FocusNode focusNode = FocusNode();
   late final AnimationController animationController;
-  bool isFocused = false;
+  bool isEntered = false;
 
-  bool _hasFocus = false;
   AnimationStatus get _animationStatus => animationController.status;
-  // Key and lock for keeping the panel size while closing
 
   void _handleMenuOpenRequest(Offset? position, VoidCallback showOverlay) {
-    // Mount or reposition the menu before animating the menu open.
     showOverlay();
-
-    if (_animationStatus.isForwardOrCompleted) {
-      // If the menu is already open or opening, the animation is already
-      // running forward.
-      return;
-    }
-
-    // Animate the menu into view.
     animationController.forward();
     setState(() {});
   }
 
   void _handleMenuCloseRequest(VoidCallback hideOverlay) {
-    if (!_animationStatus.isForwardOrCompleted) {
-      // If the menu is already closed or closing, do nothing.
+    isEntered = false;
+    animationController.reverse();
+    setState(() {});
+  }
+
+  void _handleTrailingFocusChange(bool hasFocus) {
+    if (!hasFocus) {
       return;
     }
 
-    // Animate the menu out of view.
-    animationController.reverse().whenComplete(hideOverlay);
-    setState(() {});
+    if (!isEntered) {
+      isEntered = true;
+      widget.controller.open();
+      primaryFocus?.previousFocus();
+      return;
+    }
+
+    widget.onMoveToNext.call();
+  }
+
+  void _handleLeadingFocusChange(bool hasFocus) {
+    if (!hasFocus) {
+      return;
+    }
+
+    if (!isEntered) {
+      isEntered = true;
+      widget.controller.open();
+      primaryFocus?.nextFocus();
+      return;
+    }
+
+    widget.onMoveToPrevious.call();
   }
 
   @override
@@ -268,7 +349,6 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
 
   @override
   void dispose() {
-    focusNode.dispose();
     animationController.dispose();
     super.dispose();
   }
@@ -294,11 +374,14 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
           padding: const EdgeInsets.all(5),
           child: IgnorePointer(
             ignoring: !_animationStatus.isForwardOrCompleted,
-            child: ExcludeSemantics(
-              excluding: !_animationStatus.isForwardOrCompleted,
-              child: ExcludeFocus(
-                excluding: !_animationStatus.isForwardOrCompleted,
-                child: FocusWrap(children: widget.children),
+            child: FocusBoundaryHandler(
+              onLeadingFocusChange: _handleLeadingFocusChange,
+              onTrailingFocusChange: _handleTrailingFocusChange,
+              child: Wrap(
+                runSpacing: 5,
+                spacing: 2,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: widget.children,
               ),
             ),
           ),
@@ -317,24 +400,18 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
       onFocusChange: (value) {
         if (!value) {
           widget.controller.close();
-          _hasFocus = false;
         }
       },
       panel: panel,
       builder: (context, controller, child) {
         return ToolbarIconButton(
-          focusNode: focusNode,
+          focusNode: widget.buttonFocusNode,
           requestCloseOnActivate: false,
-          onFocusChange: (focused) {
-            if (!_hasFocus && focused) {
-              _hasFocus = true;
-              Actions.invoke(context, const MenuEnterIntent.focusFirst());
-            }
-          },
           onPressed: () {
-            if (controller.isOpen) {
+            if (_animationStatus.isForwardOrCompleted) {
               controller.close();
             } else {
+              controller.open();
               Actions.invoke(context, const MenuEnterIntent.setFirstFocus());
             }
           },
@@ -346,92 +423,36 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
   }
 }
 
-class FocusWrap extends StatefulWidget {
-  const FocusWrap({super.key, required this.children});
-  final List<Widget> children;
-
-  @override
-  State<FocusWrap> createState() => _FocusWrapState();
-}
-
-class _FocusWrapState extends State<FocusWrap> {
-  bool didFocus = false;
-
-  void _handleSentinelFocusChange(bool focused) {
-    if (focused) {
-      // Only close the menu if focus is leaving the menu entirely, not just moving between items.
-      if (didFocus) {
-        MenuController.maybeOf(context)?.close();
-        didFocus = false;
-        return;
-      }
-      didFocus = true;
-    }
-  }
+class FocusBoundaryHandler extends StatelessWidget {
+  const FocusBoundaryHandler({
+    super.key,
+    required this.child,
+    required this.onLeadingFocusChange,
+    required this.onTrailingFocusChange,
+  });
+  final Widget child;
+  final ValueChanged<bool> onLeadingFocusChange;
+  final ValueChanged<bool> onTrailingFocusChange;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      runSpacing: 5,
-      spacing: 2,
-      crossAxisAlignment: WrapCrossAlignment.center,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Focus(
-          onKeyEvent: (node, event) {
-            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-              const _TraversedStartNotification().dispatch(context);
-              return KeyEventResult.handled;
-            }
-            return KeyEventResult.ignored;
-          },
           debugLabel: 'START',
           includeSemantics: false,
-          onFocusChange: (bool focused) {
-            if (focused) {
-              final hasBeenFocused = didFocus;
-              _handleSentinelFocusChange(focused);
-              if (hasBeenFocused) {
-                const _TraversedStartNotification().dispatch(context);
-              }
-            }
-          },
+          onFocusChange: onLeadingFocusChange,
           child: const SizedBox.shrink(),
         ),
-        ...widget.children,
+        child,
         Focus(
           debugLabel: 'END',
           includeSemantics: false,
-          onKeyEvent: (node, event) {
-            if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.arrowRight) {
-              const _TraversedEndNotification().dispatch(context);
-              return KeyEventResult.handled;
-            }
-            return KeyEventResult.ignored;
-          },
-          onFocusChange: (bool focused) {
-            if (focused) {
-              final hasBeenFocused = didFocus;
-              _handleSentinelFocusChange(focused);
-              if (hasBeenFocused) {
-                const _TraversedEndNotification().dispatch(context);
-              }
-            }
-          },
+          onFocusChange: onTrailingFocusChange,
           child: const SizedBox.shrink(),
         ),
       ],
     );
   }
-}
-
-class _TraverseBoundaryNotification extends Notification {
-  const _TraverseBoundaryNotification();
-}
-
-class _TraversedEndNotification extends _TraverseBoundaryNotification {
-  const _TraversedEndNotification();
-}
-
-class _TraversedStartNotification extends _TraverseBoundaryNotification {
-  const _TraversedStartNotification();
 }

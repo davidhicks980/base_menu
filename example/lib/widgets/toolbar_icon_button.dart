@@ -9,6 +9,7 @@ class ToolbarIconButton extends StatelessWidget {
     required this.child,
     this.onPressed,
     this.onHover,
+    this.onFocusChange,
     this.focusNode,
     this.tooltip,
     this.shortcut,
@@ -26,6 +27,7 @@ class ToolbarIconButton extends StatelessWidget {
   final FocusNode? focusNode;
   final String? tooltip;
   final void Function(bool)? onHover;
+  final void Function(bool)? onFocusChange;
   final MenuSerializableShortcut? shortcut;
   final bool showShortcutInTooltip;
   final WidgetStateProperty<BoxDecoration>? decoration;
@@ -57,9 +59,11 @@ class ToolbarIconButton extends StatelessWidget {
       autofocus: autofocus,
       onPressed: onPressed,
       onHover: onHover,
+      onFocusChange: onFocusChange,
       mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
       requestFocusOnHover: false,
       requestCloseOnActivate: requestCloseOnActivate,
+      focusNode: focusNode,
       role: null,
       child: ConstrainedBox(
         constraints: constraints,

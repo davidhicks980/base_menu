@@ -528,7 +528,7 @@ class _Anchor extends StatelessWidget {
             );
           },
         ),
-        onTap: () {
+        onPressed: () {
           menuController.open();
           focusNode.requestFocus();
         },

@@ -52,7 +52,7 @@ class _ViewMode extends StatelessWidget {
       buttonRadius: const BorderRadiusGeometry.all(Radius.circular(100)),
       buttonPadding: const EdgeInsetsGeometry.symmetric(vertical: 4, horizontal: 12),
       child: Builder(
-        builder: (context) {
+        builder: (BuildContext context) {
           final selected =
               AppStateManager.documentStateOf(context)[SelectionKey.viewMode]! as ViewModeOption;
           return Semantics(

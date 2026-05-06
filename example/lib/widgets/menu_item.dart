@@ -6,7 +6,7 @@ import 'menu_action_label.dart';
 class MenuItem extends StatelessWidget {
   const MenuItem({
     super.key,
-    this.onPressed,
+    this.onTap,
     required this.child,
     this.leading,
     this.leadingWidth = 34,
@@ -20,7 +20,7 @@ class MenuItem extends StatelessWidget {
     this.intent,
   });
 
-  final VoidCallback? onPressed;
+  final VoidCallback? onTap;
   final Widget child;
   final Widget? leading;
   final double leadingWidth;
@@ -40,9 +40,9 @@ class MenuItem extends StatelessWidget {
       onPressed: intent != null
           ? () {
               Actions.invoke(context, intent!);
-              onPressed?.call();
+              onTap?.call();
             }
-          : onPressed,
+          : onTap,
       requestFocusOnHover: requestFocusOnHover,
       isExpanded: isExpanded,
       mouseCursor: mouseCursor,

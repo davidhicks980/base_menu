@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../app_state_manager.dart';
 import '../../model/intents.dart';
@@ -21,7 +22,6 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
   late final List<Widget> fontSizeWidgets;
   final _focusNode = FocusNode();
   final _menuController = MenuController();
-  bool _isHovered = false;
   double _selectedFontSize = 14;
   double? _highlightValue;
   int? get highlightIndex => _highlightValue != null ? _fontSizes.indexOf(_highlightValue!) : null;
@@ -68,54 +68,47 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
     _menuController.close();
   }
 
-  void _handlePointerExit(PointerExitEvent event) {
-    setState(() {
-      _isHovered = false;
-    });
-  }
-
-  void _handlePointerEnter(PointerEnterEvent event) {
-    setState(() {
-      _isHovered = true;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.text,
-      onEnter: _handlePointerEnter,
-      onExit: _handlePointerExit,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-          border: _isHovered
-              ? const Border.fromBorderSide(BorderSide(color: Color.fromRGBO(25, 25, 25, 1)))
-              : const Border.fromBorderSide(BorderSide(color: Color.fromRGBO(116, 119, 117, 1))),
-        ),
-        child: MergeSemantics(
-          child: DefaultTextStyle(
-            textAlign: TextAlign.center,
-            style: const TextStyle(height: 1.3),
-            child: ComboBox(
-              semanticsLabel: 'Font Size',
-              alignment: Alignment.center,
-              menuController: _menuController,
-              onSelect: (value) => _emitValue(double.parse(value)),
-              onSubmit: _handleSubmit,
-              focusNode: _focusNode,
-              inputConstraints: const BoxConstraints(
-                minWidth: 26,
-                maxWidth: 26,
-                minHeight: 24,
-                maxHeight: 24,
-              ),
-              initialOffset: _fontSizes.indexOf(_selectedFontSize) * 30.0,
-              selected: _selectedFontSize.toStringAsFixed(0),
-              children: fontSizeWidgets,
-            ),
+    final child = MergeSemantics(
+      child: DefaultTextStyle(
+        textAlign: TextAlign.center,
+        style: const TextStyle(height: 1.3),
+        child: ComboBox(
+          semanticsLabel: 'Font Size',
+          alignment: Alignment.center,
+          menuController: _menuController,
+          onSelect: (value) => _emitValue(double.parse(value)),
+          onSubmit: _handleSubmit,
+          focusNode: _focusNode,
+          inputConstraints: const BoxConstraints(
+            minWidth: 26,
+            maxWidth: 26,
+            minHeight: 24,
+            maxHeight: 24,
           ),
+          initialOffset: _fontSizes.indexOf(_selectedFontSize) * 30.0,
+          selected: _selectedFontSize.toStringAsFixed(0),
+          children: fontSizeWidgets,
         ),
+      ),
+    );
+    return Hoverable(
+      mouseCursor: WidgetStateMouseCursor.textable,
+      child: Builder(
+        builder: (context) {
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              border: Hoverable.isHoveredOf(context)
+                  ? const Border.fromBorderSide(BorderSide(color: Color.fromRGBO(25, 25, 25, 1)))
+                  : const Border.fromBorderSide(
+                      BorderSide(color: Color.fromRGBO(116, 119, 117, 1)),
+                    ),
+            ),
+            child: child,
+          );
+        },
       ),
     );
   }

@@ -1,13 +1,12 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 @optionalTypeArgs
-class BaseTappable<T> extends StatefulWidget {
-  const BaseTappable({
+class Pressable<T> extends StatefulWidget {
+  const Pressable({
     super.key,
     this.enabled = true,
-    this.onTap,
+    this.onPressed,
     this.behavior = HitTestBehavior.deferToChild,
     this.semanticsGestureDelegate,
     this.excludeFromSemantics = false,
@@ -15,7 +14,7 @@ class BaseTappable<T> extends StatefulWidget {
   });
 
   final bool enabled;
-  final VoidCallback? onTap;
+  final VoidCallback? onPressed;
   final HitTestBehavior behavior;
   final SemanticsGestureDelegate? semanticsGestureDelegate;
   final bool excludeFromSemantics;
@@ -30,26 +29,10 @@ class BaseTappable<T> extends StatefulWidget {
   }
 
   @override
-  State<BaseTappable<T>> createState() => _BaseTappableState<T>();
+  State<Pressable<T>> createState() => _PressableState<T>();
 }
 
-class _BaseTappableState<T> extends State<BaseTappable<T>> {
-  static const _shortcuts = <ShortcutActivator, Intent>{
-    SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-    SingleActivator(LogicalKeyboardKey.space): ButtonActivateIntent(),
-  };
-
-  late final _actions = {
-    ActivateIntent: Action<ActivateIntent>.overridable(
-      defaultAction: CallbackAction(onInvoke: _handleActivate),
-      context: context,
-    ),
-    ButtonActivateIntent: Action<ButtonActivateIntent>.overridable(
-      defaultAction: CallbackAction(onInvoke: _handleActivate),
-      context: context,
-    ),
-  };
-
+class _PressableState<T> extends State<Pressable<T>> {
   Map<Type, GestureRecognizerFactory>? _gestures;
   DeviceGestureSettings? _gestureSettings;
   bool isPressed = false;
@@ -64,17 +47,13 @@ class _BaseTappableState<T> extends State<BaseTappable<T>> {
     setState(() {
       isPressed = false;
     });
-    widget.onTap?.call();
+    widget.onPressed?.call();
   }
 
   void _handleTapCancel() {
     setState(() {
       isPressed = false;
     });
-  }
-
-  void _handleActivate(Intent intent) {
-    widget.onTap?.call();
   }
 
   @override
@@ -98,18 +77,12 @@ class _BaseTappableState<T> extends State<BaseTappable<T>> {
       ),
     };
 
-    return Actions(
-      actions: _actions,
-      child: Shortcuts(
-        shortcuts: _shortcuts,
-        child: RawGestureDetector(
-          excludeFromSemantics: widget.excludeFromSemantics,
-          semantics: widget.semanticsGestureDelegate,
-          behavior: widget.behavior,
-          gestures: widget.enabled ? _gestures! : const <Type, GestureRecognizerFactory>{},
-          child: _PressableScope<T>(pressed: isPressed, child: widget.child),
-        ),
-      ),
+    return RawGestureDetector(
+      excludeFromSemantics: widget.excludeFromSemantics,
+      semantics: widget.semanticsGestureDelegate,
+      behavior: widget.behavior,
+      gestures: widget.enabled ? _gestures! : const <Type, GestureRecognizerFactory>{},
+      child: _PressableScope<T>(pressed: isPressed, child: widget.child),
     );
   }
 }

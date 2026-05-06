@@ -1,5 +1,5 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../app_state_manager.dart';
 import '../../model/enum.dart';
@@ -20,7 +20,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
   static const zoomLevels = ['Fit', '50%', '75%', '90%', '100%', '125%', '150%', '200%'];
   final _menuController = MenuController();
   late List<Widget> zoomWidgets;
-  bool _isHovered = false;
+
   String _selectedValue = '';
   String? _highlightValue;
   int? get highlightIndex => _highlightValue != null ? zoomLevels.indexOf(_highlightValue!) : null;
@@ -91,48 +91,40 @@ class _ZoomMenuState extends State<ZoomMenu> {
     _menuController.close();
   }
 
-  void _handlePointerExit(PointerExitEvent event) {
-    setState(() {
-      _isHovered = false;
-    });
-  }
-
-  void _handlePointerEnter(PointerEnterEvent event) {
-    setState(() {
-      _isHovered = true;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.text,
-      onEnter: _handlePointerEnter,
-      onExit: _handlePointerExit,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-          color: _isHovered ? FloogleColors.zoomHoverColor : FloogleColors.transparent,
+    final child = DefaultTextStyle(
+      style: const TextStyle(height: 1.5),
+      child: ComboBox(
+        semanticsLabel: 'Zoom',
+        inputConstraints: const BoxConstraints(
+          minHeight: 29.25,
+          maxHeight: 29.25,
+          minWidth: 68,
+          maxWidth: 68,
         ),
-        child: DefaultTextStyle(
-          style: const TextStyle(height: 1.5),
-          child: ComboBox(
-            semanticsLabel: 'Zoom',
-            inputConstraints: const BoxConstraints(
-              minHeight: 29.25,
-              maxHeight: 29.25,
-              minWidth: 68,
-              maxWidth: 68,
+        onSelect: _handleSelect,
+        onSubmit: _handleSubmit,
+        menuController: _menuController,
+        selected: _selectedValue,
+        trailing: const DropdownArrow(),
+        initialOffset: zoomLevels.indexOf(_selectedValue) * 30.0,
+        children: zoomWidgets,
+      ),
+    );
+    return Hoverable(
+      child: Builder(
+        builder: (context) {
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              color: Hoverable.isHoveredOf(context)
+                  ? FloogleColors.zoomHoverColor
+                  : FloogleColors.transparent,
             ),
-            onSelect: _handleSelect,
-            onSubmit: _handleSubmit,
-            menuController: _menuController,
-            selected: _selectedValue,
-            trailing: const DropdownArrow(),
-            initialOffset: zoomLevels.indexOf(_selectedValue) * 30.0,
-            children: zoomWidgets,
-          ),
-        ),
+            child: child,
+          );
+        },
       ),
     );
   }

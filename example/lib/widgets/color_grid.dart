@@ -220,7 +220,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
         selected: widget.isSelected,
         child: BaseControl(
           focusNode: _focusNode,
-          onTap: widget.onTap,
+          onPressed: widget.onTap,
           onHover: (value) {
             if (value) {
               // Announce the color name on hover for accessibility
@@ -502,7 +502,7 @@ class CustomAction extends StatelessWidget {
       label: label,
       button: true,
       child: BaseControl(
-        onTap: () {},
+        onPressed: () {},
         child: Builder(
           builder: (context) {
             return DecoratedBox(

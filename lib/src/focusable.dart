@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
 @optionalTypeArgs
-class BaseFocusable<T> extends StatefulWidget {
-  const BaseFocusable({
+class Focusable<T> extends StatefulWidget {
+  const Focusable({
     super.key,
     this.autofocus = false,
     this.enabled = true,
@@ -26,10 +26,10 @@ class BaseFocusable<T> extends StatefulWidget {
   }
 
   @override
-  State<BaseFocusable<T>> createState() => _BaseFocusableState<T>();
+  State<Focusable<T>> createState() => _FocusableState<T>();
 }
 
-class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
+class _FocusableState<T> extends State<Focusable<T>> {
   bool _isFocused = false;
 
   void _handleFocusChange(bool focused) {

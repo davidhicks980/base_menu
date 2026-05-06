@@ -114,7 +114,7 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
           behavior: widget.behavior,
           onFocusChange: widget.onFocusChange,
           onHover: _handleHover,
-          onTap: _handlePressed,
+          onPressed: _handlePressed,
           focusNode: _focusNode,
           autofocus: widget.autofocus,
           child: widget.child,

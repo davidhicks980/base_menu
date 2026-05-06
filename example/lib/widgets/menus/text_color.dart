@@ -7,14 +7,9 @@ import '../color_grid.dart';
 import '../menu_panel.dart';
 import '../popup.dart';
 
-class TextColorButton extends StatefulWidget {
+class TextColorButton extends StatelessWidget {
   const TextColorButton({super.key});
 
-  @override
-  State<TextColorButton> createState() => _TextColorButtonState();
-}
-
-class _TextColorButtonState extends State<TextColorButton> {
   @override
   Widget build(BuildContext context) {
     final color =

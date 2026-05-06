@@ -9,14 +9,9 @@ import '../menu_panel.dart';
 import '../popup.dart';
 import '../toolbar_icon_button.dart';
 
-class AlignIndentMenu extends StatefulWidget {
+class AlignIndentMenu extends StatelessWidget {
   const AlignIndentMenu({super.key});
 
-  @override
-  State<AlignIndentMenu> createState() => _AlignIndentMenuState();
-}
-
-class _AlignIndentMenuState extends State<AlignIndentMenu> {
   @override
   Widget build(BuildContext context) {
     final align = AppStateManager.selectedTextStyleOf(context)?.textAlign ?? TextAlign.left;
@@ -47,7 +42,7 @@ class _AlignIndentMenuState extends State<AlignIndentMenu> {
                       )
                     : null,
                 onPressed: () {
-                  Actions.invoke<SetBlockAlignIntent>(context, entry.intent as SetBlockAlignIntent);
+                  Actions.invoke<SetBlockAlignIntent>(context, entry.intent);
                   FocusScope.of(
                     context,
                     createDependency: false,

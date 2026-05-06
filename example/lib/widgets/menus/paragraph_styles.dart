@@ -132,7 +132,7 @@ class _Option extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 6),
             children: [
               MenuItem(
-                onPressed: () {
+                onTap: () {
                   MenuController.maybeOf(context)?.close();
                   Actions.invoke(context, ApplyParagraphStyleIntent(style));
                 },
@@ -141,7 +141,7 @@ class _Option extends StatelessWidget {
               ),
               const MenuDivider(padding: EdgeInsets.fromLTRB(30, 7.5, 0, 7.5)),
               MenuItem(
-                onPressed: () {
+                onTap: () {
                   MenuController.maybeOf(context)?.close();
                   Actions.invoke(context, UpdateParagraphStyleToMatchIntent(style));
                 },

@@ -37,7 +37,7 @@ class SelectableMenuItem extends StatelessWidget {
       child: MenuItem(
         autofocus: autofocus,
         leading: controlAffinity == .leading ? check : icon,
-        onPressed: onPressed,
+        onTap: onPressed,
         isExpanded: isExpanded,
         shortcut: shortcut,
         trailing: controlAffinity == .trailing ? check : icon,

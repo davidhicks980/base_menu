@@ -588,7 +588,6 @@ class _BaseMenuState extends State<BaseMenu> {
     } else {
       _menuController.open();
       _menuScopeNode.requestFocus();
-      FocusManager.instance.applyFocusChangesIfNeeded();
       if (intent._scopeIntent != null) {
         SchedulerBinding.instance.addPostFrameCallback((_) {
           if (_menuController.isOpen) {
@@ -915,7 +914,7 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
           actions: actions ??= {
             _MenuFocusFirstIntent: _MenuFocusFirstAction(widget.focusScopeNode),
             _MenuFocusLastIntent: _MenuFocusLastAction(widget.focusScopeNode),
-            _MenuSetFirstFocusIntent: _FocusFirstAction(widget.focusScopeNode),
+            _MenuSetFirstFocusIntent: _SetFirstFocusAction(widget.focusScopeNode),
             ...switch (widget.axis) {
               Axis.vertical => {
                 _VerticalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
@@ -927,12 +926,16 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
               },
             },
           },
-          child: FocusScope(
-            node: widget.focusScopeNode,
-            canRequestFocus: true,
-            descendantsAreFocusable: true,
-            descendantsAreTraversable: true,
-            child: widget.child,
+          child: Builder(
+            builder: (context) {
+              return FocusScope(
+                node: widget.focusScopeNode,
+                canRequestFocus: true,
+                descendantsAreFocusable: true,
+                descendantsAreTraversable: true,
+                child: widget.child,
+              );
+            },
           ),
         ),
       ),
@@ -940,8 +943,34 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
   }
 }
 
-class _FocusFirstAction extends Action<_MenuSetFirstFocusIntent> {
-  _FocusFirstAction(this.focusScopeNode);
+class _MenuFocusFirstAction extends Action<_MenuFocusFirstIntent> {
+  _MenuFocusFirstAction(this.focusScopeNode);
+  final FocusScopeNode focusScopeNode;
+
+  @override
+  void invoke(_MenuFocusFirstIntent intent) {
+    final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
+    final FocusNode? firstNode = policy.findFirstFocus(focusScopeNode, ignoreCurrentFocus: true);
+    if (firstNode != null) {
+      policy.requestFocusCallback(firstNode);
+    }
+  }
+}
+
+class _MenuFocusLastAction extends Action<_MenuFocusLastIntent> {
+  _MenuFocusLastAction(this.focusScopeNode);
+  final FocusScopeNode focusScopeNode;
+
+  @override
+  void invoke(_MenuFocusLastIntent intent) {
+    final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
+    final FocusNode lastNode = policy.findLastFocus(focusScopeNode, ignoreCurrentFocus: true);
+    policy.requestFocusCallback(lastNode);
+  }
+}
+
+class _SetFirstFocusAction extends Action<_MenuSetFirstFocusIntent> {
+  _SetFirstFocusAction(this.focusScopeNode);
   final FocusScopeNode focusScopeNode;
 
   @override
@@ -1115,32 +1144,6 @@ class _MenuOverlay extends StatelessWidget {
       }
     }
     return bounds;
-  }
-}
-
-class _MenuFocusFirstAction extends Action<_MenuFocusFirstIntent> {
-  _MenuFocusFirstAction(this.focusScopeNode);
-  final FocusScopeNode focusScopeNode;
-
-  @override
-  void invoke(_MenuFocusFirstIntent intent) {
-    final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
-    final FocusNode? firstNode = policy.findFirstFocus(focusScopeNode, ignoreCurrentFocus: true);
-    if (firstNode != null) {
-      policy.requestFocusCallback(firstNode);
-    }
-  }
-}
-
-class _MenuFocusLastAction extends Action<_MenuFocusLastIntent> {
-  _MenuFocusLastAction(this.focusScopeNode);
-  final FocusScopeNode focusScopeNode;
-
-  @override
-  void invoke(_MenuFocusLastIntent intent) {
-    final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
-    final FocusNode lastNode = policy.findLastFocus(focusScopeNode, ignoreCurrentFocus: true);
-    policy.requestFocusCallback(lastNode);
   }
 }
 

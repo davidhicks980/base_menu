@@ -1,4 +1,5 @@
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'control.dart';
@@ -6,7 +7,9 @@ import 'control.dart';
 class BaseMenuItem extends StatefulWidget {
   const BaseMenuItem({
     super.key,
-    this.onHover,
+    this.onPointerHover,
+    this.onPointerEnter,
+    this.onPointerLeave,
     this.onPressed,
     this.onFocusChange,
     this.focusNode,
@@ -15,12 +18,13 @@ class BaseMenuItem extends StatefulWidget {
     this.requestCloseOnActivate = true,
     this.behavior = HitTestBehavior.deferToChild,
     this.mouseCursor,
-    this.isExpanded,
     this.role = SemanticsRole.menuItem,
     required this.child,
   });
 
-  final ValueChanged<bool>? onHover;
+  final PointerHoverEventListener? onPointerHover;
+  final PointerHoverEventListener? onPointerEnter;
+  final PointerExitEventListener? onPointerLeave;
   final VoidCallback? onPressed;
   final ValueChanged<bool>? onFocusChange;
   final FocusNode? focusNode;
@@ -29,7 +33,6 @@ class BaseMenuItem extends StatefulWidget {
   final WidgetStateProperty<MouseCursor>? mouseCursor;
   final bool requestFocusOnHover;
   final bool requestCloseOnActivate;
-  final bool? isExpanded;
   final SemanticsRole? role;
   final Widget child;
 
@@ -97,23 +100,26 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
     widget.onPressed?.call();
   }
 
-  void _handleHover(bool hovering) {
-    if (hovering && widget.requestFocusOnHover && !_focusNode.hasFocus) {
+  void _handleHoverEnter(PointerHoverEvent event) {
+    if (widget.requestFocusOnHover && !_focusNode.hasFocus) {
       _focusNode.requestFocus();
     }
-    widget.onHover?.call(hovering);
+
+    widget.onPointerEnter?.call(event);
   }
 
   @override
   Widget build(BuildContext context) {
     return MergeSemantics(
       child: Semantics.fromProperties(
-        properties: SemanticsProperties(role: widget.role, expanded: widget.isExpanded),
+        properties: SemanticsProperties(role: widget.role),
         child: BaseControl<BaseMenuItem>(
           mouseCursor: widget.mouseCursor ?? WidgetStateMouseCursor.adaptiveClickable,
           behavior: widget.behavior,
           onFocusChange: widget.onFocusChange,
-          onHover: _handleHover,
+          onPointerHover: widget.onPointerHover,
+          onPointerEnter: _handleHoverEnter,
+          onPointerLeave: widget.onPointerLeave,
           onPressed: _handlePressed,
           focusNode: _focusNode,
           autofocus: widget.autofocus,

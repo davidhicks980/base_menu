@@ -24,6 +24,8 @@ class ParagraphStylesMenu extends StatelessWidget {
     return ConstrainedBox(
       constraints: const BoxConstraints.tightFor(width: 122),
       child: Select(
+        requestFocusOnHover:
+            MenuController.maybeIsOpenOf(context) != true && FocusScope.of(context).hasFocus,
         panel: MenuPanel(
           padding: const EdgeInsets.only(bottom: 6),
           constraints: const BoxConstraints(minWidth: 221).normalize(),

@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
@@ -36,7 +37,7 @@ class MenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasSubmenu = isExpanded != null;
-    return BaseMenuItem(
+    final item = BaseMenuItem(
       onPressed: intent != null
           ? () {
               Actions.invoke(context, intent!);
@@ -44,7 +45,6 @@ class MenuItem extends StatelessWidget {
             }
           : onTap,
       requestFocusOnHover: requestFocusOnHover,
-      isExpanded: isExpanded,
       mouseCursor: mouseCursor,
       autofocus: autofocus,
       child: hasSubmenu
@@ -65,6 +65,16 @@ class MenuItem extends StatelessWidget {
               trailing: trailing,
               child: child,
             ),
+    );
+
+    if (!hasSubmenu) {
+      return item;
+    }
+    return MergeSemantics(
+      child: Semantics.fromProperties(
+        properties: SemanticsProperties(expanded: isExpanded),
+        child: item,
+      ),
     );
   }
 }

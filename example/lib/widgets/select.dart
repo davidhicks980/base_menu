@@ -10,9 +10,14 @@ class Select extends StatelessWidget {
     super.key,
     required this.child,
     required this.panel,
+    this.focusNode,
+    this.onOpen,
+    this.onClose,
     this.buttonPadding = const EdgeInsets.symmetric(horizontal: 11, vertical: 2),
     this.buttonRadius = const BorderRadiusGeometry.all(Radius.circular(4)),
+    this.buttonDecoration,
     this.menuController,
+    this.requestFocusOnHover = false,
   });
 
   final Widget child;
@@ -20,11 +25,18 @@ class Select extends StatelessWidget {
   final MenuController? menuController;
   final EdgeInsetsGeometry buttonPadding;
   final BorderRadiusGeometry buttonRadius;
+  final WidgetStateProperty<BoxDecoration>? buttonDecoration;
+  final bool requestFocusOnHover;
+  final VoidCallback? onOpen;
+  final VoidCallback? onClose;
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     final controller = menuController ?? MenuController();
     return BaseMenu(
+      onOpen: onOpen,
+      onClose: onClose,
       controller: controller,
       onFocusChange: (bool value) {
         if (!value) {
@@ -34,14 +46,34 @@ class Select extends StatelessWidget {
       overlayPadding: const EdgeInsets.only(top: 98, bottom: 8),
       padding: MenuPanel.defaultPadding,
       panel: panel,
-      child: _SelectTextButton(padding: buttonPadding, radius: buttonRadius, child: child),
+      child: _SelectTextButton(
+        focusNode: focusNode,
+        padding: buttonPadding,
+        radius: buttonRadius,
+        decoration: buttonDecoration,
+        requestFocusOnHover: requestFocusOnHover,
+        menuController: controller,
+        child: child,
+      ),
     );
   }
 }
 
 class _SelectTextButton extends StatefulWidget {
-  const _SelectTextButton({required this.child, required this.padding, required this.radius});
+  const _SelectTextButton({
+    required this.child,
+    required this.padding,
+    required this.menuController,
+    required this.radius,
+    required this.focusNode,
+    required this.decoration,
+    required this.requestFocusOnHover,
+  });
   final EdgeInsetsGeometry padding;
+  final FocusNode? focusNode;
+  final WidgetStateProperty<Decoration>? decoration;
+  final bool requestFocusOnHover;
+  final MenuController menuController;
   final BorderRadiusGeometry radius;
   final Widget child;
 
@@ -50,21 +82,9 @@ class _SelectTextButton extends StatefulWidget {
 }
 
 class _SelectTextButtonState extends State<_SelectTextButton> {
-  final focusNode = FocusNode(debugLabel: 'SelectTextButton');
-
-  @override
-  void dispose() {
-    focusNode.dispose();
-    super.dispose();
-  }
-
   void _handlePressed() {
-    final controller = MenuController.maybeOf(context);
-    if (controller == null) {
-      return;
-    }
-    if (controller.isOpen) {
-      controller.close();
+    if (widget.menuController.isOpen) {
+      widget.menuController.close();
     } else {
       Actions.invoke(context, const MenuEnterIntent.focusFirst());
     }
@@ -103,31 +123,40 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
           style: TextStyle(color: isOpen ? FloogleColors.grey : FloogleColors.selectTextColor),
           child: SizedBox(
             height: 30,
-            child: BaseMenuItem(
-              role: null,
-              focusNode: focusNode,
-              mouseCursor: WidgetStateMouseCursor.clickable,
-              isExpanded: isOpen,
-              requestFocusOnHover: false,
-              requestCloseOnActivate: false,
-              onPressed: _handlePressed,
-              child: Builder(
-                builder: (context) {
-                  return DecoratedBox(
-                    decoration: isOpen
-                        ? BoxDecoration(
-                            color: FloogleColors.activeColor,
-                            borderRadius: widget.radius,
-                          )
-                        : BaseMenuItem.isFocusedOf(context) || BaseMenuItem.isHoveredOf(context)
-                        ? BoxDecoration(
-                            color: FloogleColors.zoomHoverColor,
-                            borderRadius: widget.radius,
-                          )
-                        : const BoxDecoration(),
-                    child: label,
-                  );
-                },
+            child: MergeSemantics(
+              child: Semantics(
+                expanded: isOpen,
+                child: BaseMenuItem(
+                  role: null,
+                  focusNode: widget.focusNode,
+                  mouseCursor: WidgetStateMouseCursor.adaptiveClickable,
+                  requestFocusOnHover: widget.requestFocusOnHover,
+                  requestCloseOnActivate: false,
+                  onPressed: _handlePressed,
+                  child: Builder(
+                    builder: (context) {
+                      Decoration decoration;
+                      if (widget.decoration != null) {
+                        decoration = widget.decoration!.resolve(BaseMenuItem.statesOf(context));
+                      } else if (isOpen) {
+                        decoration = BoxDecoration(
+                          color: FloogleColors.activeColor,
+                          borderRadius: widget.radius,
+                        );
+                      } else if (BaseMenuItem.isFocusedOf(context) ||
+                          BaseMenuItem.isHoveredOf(context)) {
+                        decoration = BoxDecoration(
+                          color: FloogleColors.zoomHoverColor,
+                          borderRadius: widget.radius,
+                        );
+                      } else {
+                        decoration = const BoxDecoration();
+                      }
+
+                      return DecoratedBox(decoration: decoration, child: label);
+                    },
+                  ),
+                ),
               ),
             ),
           ),

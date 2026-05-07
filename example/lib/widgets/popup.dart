@@ -1,9 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import '../utilities/colors.dart';
+import 'icon_button.dart';
 import 'menu_panel.dart';
-import 'toolbar_icon_button.dart';
 
 class Popup extends StatelessWidget {
   const Popup({
@@ -14,6 +13,7 @@ class Popup extends StatelessWidget {
     required this.child,
     this.axis = Axis.vertical,
     this.buttonDecoration,
+    this.requestFocusOnHover = false,
     this.focusFirstOnOpen = true,
   });
 
@@ -23,24 +23,8 @@ class Popup extends StatelessWidget {
   final Axis axis;
   final BoxConstraints buttonConstraints;
   final WidgetStateProperty<BoxDecoration>? buttonDecoration;
+  final bool requestFocusOnHover;
   final bool focusFirstOnOpen;
-
-  static const WidgetStateProperty<BoxDecoration> _decoration = WidgetStateProperty.fromMap({
-    WidgetState.pressed: BoxDecoration(
-      color: FloogleColors.toolbarItemPressed,
-      borderRadius: BorderRadius.all(Radius.circular(4)),
-    ),
-    WidgetState.focused: BoxDecoration(
-      color: FloogleColors.toolbarItemHoverFocus,
-      borderRadius: BorderRadius.all(Radius.circular(4)),
-    ),
-    WidgetState.hovered: BoxDecoration(
-      color: FloogleColors.toolbarItemHoverFocus,
-      borderRadius: BorderRadius.all(Radius.circular(4)),
-    ),
-
-    WidgetState.any: BoxDecoration(),
-  });
 
   @override
   Widget build(BuildContext context) {
@@ -58,9 +42,9 @@ class Popup extends StatelessWidget {
       controller: controller,
       child: Builder(
         builder: (context) {
-          return ToolbarIconButton(
-            decoration: buttonDecoration ?? _decoration,
-            requestCloseOnActivate: false,
+          return IconButton(
+            requestFocusOnHover: requestFocusOnHover,
+            decoration: buttonDecoration,
             constraints: buttonConstraints,
             tooltip: tooltip?.toPlainText(includePlaceholders: false),
             onPressed: () {

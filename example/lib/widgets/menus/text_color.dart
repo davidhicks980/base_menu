@@ -44,6 +44,9 @@ class TextColorButton extends StatelessWidget {
       ),
     );
     return Popup(
+      requestFocusOnHover:
+          MenuController.maybeIsOpenOf(context) != true && FocusScope.of(context).hasFocus,
+
       panel: MenuPanel(
         children: [
           Builder(

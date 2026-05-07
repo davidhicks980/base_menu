@@ -7,8 +7,8 @@ import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../app_state_manager.dart';
 import '../../model/intents.dart';
+import '../adapters/menu_entry_toolbar_button.dart';
 import '../combo_box.dart';
-import '../toolbar_icon_button.dart';
 
 class FontSizeMenu extends StatefulWidget {
   const FontSizeMenu({super.key});
@@ -68,6 +68,12 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
     _menuController.close();
   }
 
+  void _handleHover(PointerHoverEvent event) {
+    if (MenuController.maybeIsOpenOf(context) != true && Focus.of(context).hasFocus) {
+      _focusNode.requestFocus();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final child = MergeSemantics(
@@ -94,24 +100,30 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
       ),
     );
     return Hoverable(
+      onEnter: _handleHover,
       mouseCursor: WidgetStateMouseCursor.textable,
       child: Builder(
         builder: (context) {
           return DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              border: Hoverable.isHoveredOf(context)
-                  ? const Border.fromBorderSide(BorderSide(color: Color.fromRGBO(25, 25, 25, 1)))
-                  : const Border.fromBorderSide(
-                      BorderSide(color: Color.fromRGBO(116, 119, 117, 1)),
-                    ),
-            ),
+            decoration: Hoverable.isHoveredOf(context) && !FocusScope.of(context).hasFocus
+                ? _outlineHovered
+                : _outline,
             child: child,
           );
         },
       ),
     );
   }
+
+  static const _outlineHovered = BoxDecoration(
+    border: Border.fromBorderSide(BorderSide(color: Color.fromRGBO(25, 25, 25, 1))),
+    borderRadius: BorderRadius.all(Radius.circular(4)),
+  );
+
+  static const _outline = BoxDecoration(
+    border: Border.fromBorderSide(BorderSide(color: Color.fromRGBO(116, 119, 117, 1))),
+    borderRadius: BorderRadius.all(Radius.circular(4)),
+  );
 }
 
 class DecrementFontSizeButton extends StatelessWidget {
@@ -121,7 +133,6 @@ class DecrementFontSizeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ToolbarIconButton(
       constraints: const BoxConstraints.tightFor(width: 24, height: 24),
-      shortcut: const SingleActivator(LogicalKeyboardKey.comma, meta: true, shift: true),
       onPressed: () {
         Actions.invoke(context, const FormatDecrementFontSizeIntent());
       },
@@ -137,7 +148,6 @@ class IncrementFontSizeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ToolbarIconButton(
       constraints: const BoxConstraints.tightFor(width: 24, height: 24),
-      shortcut: const SingleActivator(LogicalKeyboardKey.period, meta: true, shift: true),
       onPressed: () {
         Actions.invoke(context, const FormatIncrementFontSizeIntent());
       },

@@ -10,8 +10,8 @@ import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../../utilities/colors.dart';
 import '../editable.dart';
+import '../icon_button.dart';
 import '../menu_action_label.dart';
-import '../toolbar_icon_button.dart';
 
 const defaultStyle = TextStyle(
   fontFamily: 'RobotoFlex',
@@ -67,7 +67,7 @@ class SearchMenu extends StatelessWidget {
           return MediaQuery.widthOf(context) < breakpoint
               ? Padding(
                   padding: const EdgeInsetsDirectional.only(start: 4, end: 2),
-                  child: ToolbarIconButton(
+                  child: IconButton(
                     onPressed: () {
                       MenuController.maybeOf(context)?.open();
                     },
@@ -365,12 +365,10 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
                     entry: entries[i],
                     query: _textController.text,
                     onPressed: () => _selectEntry(entries[i]),
-                    onHovered: (hovering) {
-                      if (hovering) {
-                        setState(() {
-                          selectedIndex = i;
-                        });
-                      }
+                    onEntered: (_) {
+                      setState(() {
+                        selectedIndex = i;
+                      });
                     },
                     selected: i == selectedIndex,
                   ),
@@ -465,13 +463,13 @@ class SearchEntry extends StatelessWidget {
     required this.entry,
     required this.query,
     required this.onPressed,
-    required this.onHovered,
+    required this.onEntered,
     required this.selected,
   });
   final MenuEntryWithIntent entry;
   final String query;
   final VoidCallback onPressed;
-  final ValueChanged<bool> onHovered;
+  final PointerHoverEventListener? onEntered;
   final bool selected;
 
   @override
@@ -483,7 +481,7 @@ class SearchEntry extends StatelessWidget {
           selected: selected,
           child: BaseMenuItem(
             onPressed: onPressed,
-            onHover: onHovered,
+            onPointerEnter: onEntered,
             requestFocusOnHover: false,
             child: MenuActionLabel(
               decoration: selected

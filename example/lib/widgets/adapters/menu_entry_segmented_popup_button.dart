@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../model/model.dart';
-import '../toolbar_icon_button.dart';
+import '../icon_button.dart';
 import 'menu_entry_popup.dart';
 
 class SegmentedPopupButton extends StatefulWidget {
@@ -75,7 +75,7 @@ class _SegmentedPopupButtonState extends State<SegmentedPopupButton> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ToolbarIconButton(
+          IconButton(
             focusNode: leftFocusNode,
             tooltip: widget.entry.child.label,
             decoration: _leftDecoration,

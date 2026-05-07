@@ -221,13 +221,11 @@ class _ColorSwatchState extends State<_ColorSwatch> {
         child: BaseControl(
           focusNode: _focusNode,
           onPressed: widget.onTap,
-          onHover: (value) {
-            if (value) {
-              // Announce the color name on hover for accessibility
-              final label = colorLabel(widget.color);
-              SemanticsService.announce(label, TextDirection.ltr);
-              _focusNode.requestFocus();
-            }
+          onPointerEnter: (event) {
+            // Announce the color name on hover for accessibility
+            final label = colorLabel(widget.color);
+            SemanticsService.announce(label, TextDirection.ltr);
+            _focusNode.requestFocus();
           },
           mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
           child: Builder(

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
@@ -48,31 +49,31 @@ class _MenuBarSubmenuState extends State<MenuBarSubmenu> {
 
   @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (context) {
-        final isRootOpen = MenuController.maybeIsOpenOf(context) ?? false;
-        return BaseMenu(
-          onFocusChange: _handleFocusChange,
-          overlayPadding: const EdgeInsets.only(top: 55, bottom: 8),
-          orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
-          panel:
-              widget.panel ??
-              MenuEntryPanel(
-                menuEntry: widget.entry,
-                borderRadius: const BorderRadiusDirectional.only(
-                  bottomStart: Radius.circular(4),
-                  bottomEnd: Radius.circular(4),
-                  topEnd: Radius.circular(4),
-                ),
-                constraints: widget.overflow
-                    ? const BoxConstraints(minWidth: 200)
-                    : const BoxConstraints(minWidth: 320),
-              ),
-          child: Builder(
-            builder: (context) {
-              final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
-              return BaseMenuItem(
-                isExpanded: isOpen,
+    final isRootOpen = MenuController.maybeIsOpenOf(context) ?? false;
+    return BaseMenu(
+      onFocusChange: _handleFocusChange,
+      overlayPadding: const EdgeInsets.only(top: 55, bottom: 8),
+      orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
+      panel:
+          widget.panel ??
+          MenuEntryPanel(
+            menuEntry: widget.entry,
+            borderRadius: const BorderRadiusDirectional.only(
+              bottomStart: Radius.circular(4),
+              bottomEnd: Radius.circular(4),
+              topEnd: Radius.circular(4),
+            ),
+            constraints: widget.overflow
+                ? const BoxConstraints(minWidth: 200)
+                : const BoxConstraints(minWidth: 320),
+          ),
+      child: Builder(
+        builder: (context) {
+          final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
+          return MergeSemantics(
+            child: Semantics.fromProperties(
+              properties: SemanticsProperties(expanded: isOpen),
+              child: BaseMenuItem(
                 requestFocusOnHover: isRootOpen,
                 focusNode: anchorFocusNode,
                 onFocusChange: (value) {
@@ -85,13 +86,16 @@ class _MenuBarSubmenuState extends State<MenuBarSubmenu> {
                     }
                   }
                 },
-                onHover: (value) {
-                  _isAnchorHovered = value;
-                  if (_blockDecoration && value) {
+                onPointerEnter: (_) {
+                  _isAnchorHovered = true;
+                  if (_blockDecoration) {
                     setState(() {
                       _blockDecoration = false;
                     });
                   }
+                },
+                onPointerLeave: (_) {
+                  _isAnchorHovered = false;
                 },
                 onPressed: () {
                   final controller = MenuController.maybeOf(context);
@@ -132,11 +136,11 @@ class _MenuBarSubmenuState extends State<MenuBarSubmenu> {
                       : Text(widget.entry.child.label),
                   decoration: _blockDecoration ? const BoxDecoration() : null,
                 ),
-              );
-            },
-          ),
-        );
-      },
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

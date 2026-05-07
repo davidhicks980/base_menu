@@ -35,7 +35,7 @@ class VerticalMenuDivider extends StatelessWidget {
     // This should be a SemanticsRole.separator, but this is currently not
     // supported by Flutter's semantics system.
     return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 2, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 2, vertical: 5),
       child: ColoredBox(
         color: FloogleColors.separatorColor,
         isAntiAlias: false,

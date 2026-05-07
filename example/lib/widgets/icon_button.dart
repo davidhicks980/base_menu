@@ -3,39 +3,16 @@ import 'package:menu_utilities/menu_utilities.dart';
 
 import '../utilities/colors.dart';
 
-class ToolbarIconButton extends StatelessWidget {
-  const ToolbarIconButton({
+class IconLabel extends StatelessWidget {
+  const IconLabel({
     super.key,
-    required this.child,
-    this.onPressed,
-    this.onHover,
-    this.onFocusChange,
-    this.focusNode,
-    this.tooltip,
-    this.shortcut,
-    this.showShortcutInTooltip = true,
-    this.autofocus = false,
-    this.intent,
     this.decoration,
     this.constraints = const BoxConstraints.tightFor(width: 30, height: 30),
-    this.requestFocusOnHover = false,
-    this.requestCloseOnActivate = true,
+    required this.child,
   });
-
-  final Widget child;
-  final VoidCallback? onPressed;
-  final FocusNode? focusNode;
-  final String? tooltip;
-  final void Function(bool)? onHover;
-  final void Function(bool)? onFocusChange;
-  final MenuSerializableShortcut? shortcut;
-  final bool showShortcutInTooltip;
   final WidgetStateProperty<BoxDecoration>? decoration;
   final BoxConstraints constraints;
-  final bool requestFocusOnHover;
-  final bool requestCloseOnActivate;
-  final bool autofocus;
-  final Intent? intent;
+  final Widget child;
 
   static const _decoration = WidgetStateProperty<BoxDecoration>.fromMap({
     WidgetState.pressed: BoxDecoration(
@@ -55,27 +32,50 @@ class ToolbarIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: (decoration ?? _decoration).resolve(BaseMenuItem.statesOf(context)),
+      child: ConstrainedBox(constraints: constraints, child: child),
+    );
+  }
+}
+
+class IconButton extends StatelessWidget {
+  const IconButton({
+    super.key,
+    required this.child,
+    this.onPressed,
+    this.onFocusChange,
+    this.focusNode,
+    this.tooltip,
+    this.requestFocusOnHover = false,
+    this.autofocus = false,
+    this.decoration,
+    this.constraints = const BoxConstraints.tightFor(width: 30, height: 30),
+  });
+
+  final Widget child;
+  final VoidCallback? onPressed;
+  final FocusNode? focusNode;
+  final String? tooltip;
+  final void Function(bool)? onFocusChange;
+  final WidgetStateProperty<BoxDecoration>? decoration;
+  final BoxConstraints constraints;
+  final bool autofocus;
+  final bool requestFocusOnHover;
+
+  @override
+  Widget build(BuildContext context) {
     return BaseMenuItem(
+      debugLabel: 'IconButton',
       autofocus: autofocus,
       onPressed: onPressed,
-      onHover: onHover,
       onFocusChange: onFocusChange,
       mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
-      requestFocusOnHover: false,
-      requestCloseOnActivate: requestCloseOnActivate,
       focusNode: focusNode,
       role: null,
-      child: ConstrainedBox(
-        constraints: constraints,
-        child: Builder(
-          builder: (context) {
-            return DecoratedBox(
-              decoration: (decoration ?? _decoration).resolve(BaseMenuItem.statesOf(context)),
-              child: child,
-            );
-          },
-        ),
-      ),
+      requestCloseOnActivate: false,
+      requestFocusOnHover: requestFocusOnHover,
+      child: IconLabel(decoration: decoration, constraints: constraints, child: child),
     );
   }
 }

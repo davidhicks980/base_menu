@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
@@ -144,13 +145,13 @@ class __SubmenuButtonState extends State<_SubmenuButton> {
     _openTimer = null;
   }
 
-  void _handleHover(bool value) {
-    if (value) {
-      _openTimer ??= Timer(widget.hoverDelay, _handleDelayedOpen);
-    } else {
-      _openTimer?.cancel();
-      _openTimer = null;
-    }
+  void _handlePointerEnter(PointerHoverEvent event) {
+    _openTimer ??= Timer(widget.hoverDelay, _handleDelayedOpen);
+  }
+
+  void _handlePointerLeave(PointerExitEvent event) {
+    _openTimer?.cancel();
+    _openTimer = null;
   }
 
   void _handlePressed() {
@@ -167,7 +168,8 @@ class __SubmenuButtonState extends State<_SubmenuButton> {
       child: BaseMenuItem(
         autofocus: widget.autofocus,
         requestCloseOnActivate: false,
-        onHover: _handleHover,
+        onPointerEnter: _handlePointerEnter,
+        onPointerLeave: _handlePointerLeave,
         onPressed: _handlePressed,
         child: widget.child,
       ),

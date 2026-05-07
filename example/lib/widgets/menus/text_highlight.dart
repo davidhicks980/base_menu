@@ -36,12 +36,14 @@ class TextHighlightButton extends StatelessWidget {
                     color: FloogleColors.darkGray,
                   ),
                 ),
-                Container(
+                SizedBox(
                   height: 4,
                   width: 22,
-                  decoration: BoxDecoration(
-                    color: selectedColor,
-                    borderRadius: BorderRadius.circular(1),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: selectedColor,
+                      borderRadius: BorderRadius.circular(1),
+                    ),
                   ),
                 ),
               ],
@@ -51,6 +53,8 @@ class TextHighlightButton extends StatelessWidget {
       ),
     );
     return Popup(
+      requestFocusOnHover:
+          MenuController.maybeIsOpenOf(context) != true &&  FocusScope.of(context).hasFocus,
       panel: Builder(
         builder: (context) {
           return MenuPanel(

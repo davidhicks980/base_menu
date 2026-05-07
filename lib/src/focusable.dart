@@ -7,11 +7,11 @@ class Focusable<T> extends StatefulWidget {
     this.autofocus = false,
     this.enabled = true,
     this.onFocusChange,
-    required this.focusNode,
+    this.focusNode,
     required this.child,
   });
 
-  final FocusNode focusNode;
+  final FocusNode? focusNode;
   final bool autofocus;
   final bool enabled;
   final ValueChanged<bool>? onFocusChange;
@@ -33,9 +33,9 @@ class _FocusableState<T> extends State<Focusable<T>> {
   bool _isFocused = false;
 
   void _handleFocusChange(bool focused) {
-    if (_isFocused != widget.focusNode.hasFocus) {
+    if (_isFocused != focused) {
       setState(() {
-        _isFocused = widget.focusNode.hasFocus;
+        _isFocused = focused;
       });
       widget.onFocusChange?.call(_isFocused);
     }

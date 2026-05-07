@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
@@ -20,6 +21,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
   static const zoomLevels = ['Fit', '50%', '75%', '90%', '100%', '125%', '150%', '200%'];
   final _menuController = MenuController();
   late List<Widget> zoomWidgets;
+  final _focusNode = FocusNode();
 
   String _selectedValue = '';
   String? _highlightValue;
@@ -74,6 +76,12 @@ class _ZoomMenuState extends State<ZoomMenu> {
     }
   }
 
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   void _handleSelect(String zoomLevel) {
     assert(zoomLevels.contains(zoomLevel));
     Actions.invoke(context, SetZoomLevelIntent(zoomLevel));
@@ -91,6 +99,12 @@ class _ZoomMenuState extends State<ZoomMenu> {
     _menuController.close();
   }
 
+  void _handleHover(PointerHoverEvent event) {
+    if (MenuController.maybeIsOpenOf(context) != true && FocusScope.of(context).hasFocus) {
+      _focusNode.requestFocus();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final child = DefaultTextStyle(
@@ -103,6 +117,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
           minWidth: 68,
           maxWidth: 68,
         ),
+        focusNode: _focusNode,
         onSelect: _handleSelect,
         onSubmit: _handleSubmit,
         menuController: _menuController,
@@ -113,12 +128,14 @@ class _ZoomMenuState extends State<ZoomMenu> {
       ),
     );
     return Hoverable(
+      onEnter: _handleHover,
+      mouseCursor: WidgetStateMouseCursor.textable,
       child: Builder(
         builder: (context) {
           return DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              color: Hoverable.isHoveredOf(context)
+              color: Hoverable.isHoveredOf(context) && !FocusScope.of(context).hasFocus
                   ? FloogleColors.zoomHoverColor
                   : FloogleColors.transparent,
             ),

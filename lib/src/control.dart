@@ -32,7 +32,9 @@ class _ControlScope<T> extends InheritedModel<WidgetState> {
 class BaseControl<T> extends StatefulWidget {
   const BaseControl({
     super.key,
-    this.onHover,
+    this.onPointerHover,
+    this.onPointerEnter,
+    this.onPointerLeave,
     this.onPressed,
     this.onFocusChange,
     this.focusNode,
@@ -43,7 +45,9 @@ class BaseControl<T> extends StatefulWidget {
     required this.child,
   });
 
-  final ValueChanged<bool>? onHover;
+  final PointerHoverEventListener? onPointerHover;
+  final PointerHoverEventListener? onPointerEnter;
+  final PointerExitEventListener? onPointerLeave;
   final VoidCallback? onPressed;
   final ValueChanged<bool>? onFocusChange;
   final FocusNode? focusNode;
@@ -102,35 +106,13 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
     ),
   };
 
-  FocusNode? _internalFocusNode;
-  FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.focusNode == null) {
-      _internalFocusNode = FocusNode();
-    }
-  }
-
-  @override
-  void didUpdateWidget(BaseControl<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.focusNode != oldWidget.focusNode) {
-      if (widget.focusNode == null) {
-        _internalFocusNode = FocusNode();
-      } else {
-        _internalFocusNode?.dispose();
-        _internalFocusNode = null;
-      }
-    }
-  }
-
   Widget _buildHoverable(BuildContext context) {
     return Hoverable<BaseControl<T>>(
       behavior: widget.behavior,
       enabled: widget.enabled,
-      onHover: widget.onHover,
+      onHover: widget.onPointerHover,
+      onEnter: widget.onPointerEnter,
+      onExit: widget.onPointerLeave,
       states: widget.mouseCursor != null
           ? {
               if (Pressable.isPressedOf<BaseControl<T>>(context)) WidgetState.pressed,
@@ -168,7 +150,7 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
           shortcuts: _shortcuts,
           child: Focusable<BaseControl<T>>(
             onFocusChange: widget.onFocusChange,
-            focusNode: _focusNode,
+            focusNode: widget.focusNode,
             autofocus: widget.autofocus,
             enabled: widget.enabled,
             child: Pressable<BaseControl<T>>(

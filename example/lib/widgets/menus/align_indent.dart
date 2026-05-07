@@ -5,9 +5,9 @@ import '../../app_state_manager.dart';
 import '../../data/menu.dart';
 import '../../model/intents.dart';
 import '../../utilities/colors.dart';
+import '../icon_button.dart';
 import '../menu_panel.dart';
 import '../popup.dart';
-import '../toolbar_icon_button.dart';
 
 class AlignIndentMenu extends StatelessWidget {
   const AlignIndentMenu({super.key});
@@ -16,7 +16,8 @@ class AlignIndentMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final align = AppStateManager.selectedTextStyleOf(context)?.textAlign ?? TextAlign.left;
     return Popup(
-      focusFirstOnOpen: false,
+      requestFocusOnHover:
+          MenuController.maybeIsOpenOf(context) != true && Focus.of(context).hasFocus,
       buttonConstraints: const BoxConstraints(),
       panel: MenuPanel(
         spacing: 4,
@@ -31,7 +32,7 @@ class AlignIndentMenu extends StatelessWidget {
                 color: FloogleColors.alignUnselectedColor,
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: ToolbarIconButton(
+              child: IconButton(
                 autofocus: align == entry.intent.value,
                 decoration: align == entry.intent.value
                     ? WidgetStatePropertyAll(
@@ -48,7 +49,6 @@ class AlignIndentMenu extends StatelessWidget {
                     createDependency: false,
                   ).unfocus(disposition: UnfocusDisposition.previouslyFocusedChild);
                 },
-                shortcut: entry.shortcut,
                 tooltip: entry.label[0].toUpperCase() + entry.label.substring(1),
                 child: Icon(
                   entry.icon,

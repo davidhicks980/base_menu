@@ -44,6 +44,8 @@ class _FontMenuState extends State<FontMenu> {
         family: family,
         onChanged: _handleChanged,
         child: Select(
+          requestFocusOnHover:
+              MenuController.maybeIsOpenOf(context) != true && FocusScope.of(context).hasFocus,
           panel: const MenuPanel(
             padding: .symmetric(vertical: 6),
             constraints: .tightFor(width: 272),

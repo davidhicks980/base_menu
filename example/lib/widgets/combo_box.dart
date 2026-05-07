@@ -113,6 +113,14 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
     state?.select(widget.value);
   }
 
+  void _handlePointerLeave(PointerExitEvent event) {
+    state!.removeHighlight(widget.value);
+  }
+
+  void _handlePointerEnter(PointerHoverEvent event) {
+    state!.highlight(widget.value);
+  }
+
   @override
   Widget build(BuildContext context) {
     final child = Padding(
@@ -126,13 +134,8 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
     // supported by Flutter's semantics system.
     final body = BaseMenuItem(
       requestFocusOnHover: false,
-      onHover: (bool hovered) {
-        if (hovered) {
-          state!.highlight(widget.value);
-        } else {
-          state!.removeHighlight(widget.value);
-        }
-      },
+      onPointerEnter: _handlePointerEnter,
+      onPointerLeave: _handlePointerLeave,
       onPressed: _handleSelect,
       child: ConstrainedBox(
         constraints: widget.constraints,

@@ -6,6 +6,8 @@ class Hoverable<T> extends StatefulWidget {
   const Hoverable({
     super.key,
     this.onHover,
+    this.onEnter,
+    this.onExit,
     this.behavior = HitTestBehavior.deferToChild,
     this.mouseCursor,
     this.opaque = true,
@@ -14,7 +16,9 @@ class Hoverable<T> extends StatefulWidget {
     required this.child,
   });
 
-  final ValueChanged<bool>? onHover;
+  final PointerHoverEventListener? onHover;
+  final PointerHoverEventListener? onEnter;
+  final PointerExitEventListener? onExit;
   final WidgetStateProperty<MouseCursor>? mouseCursor;
   final HitTestBehavior behavior;
   final bool enabled;
@@ -48,12 +52,17 @@ class _HoverableState<T> extends State<Hoverable<T>> {
   }
 
   void _handleEnter(PointerHoverEvent event) {
+    setState(() {
+      isHovered = true;
+    });
+    widget.onEnter?.call(event);
+  }
+
+  void _handleHover(PointerHoverEvent event) {
     if (!isHovered) {
-      setState(() {
-        isHovered = true;
-      });
-      widget.onHover?.call(true);
+      _handleEnter(event);
     }
+    widget.onHover?.call(event);
   }
 
   void _handleLeave(PointerExitEvent event) {
@@ -61,15 +70,26 @@ class _HoverableState<T> extends State<Hoverable<T>> {
       setState(() {
         isHovered = false;
       });
-      widget.onHover?.call(false);
+      widget.onExit?.call(event);
     }
+  }
+
+  PointerHoverEventListener? get _hoverCallback {
+    if (!widget.enabled) {
+      return null;
+    } else if (widget.onHover != null) {
+      return _handleHover;
+    } else if (!isHovered) {
+      return _handleEnter;
+    }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
       opaque: widget.opaque,
-      onHover: widget.enabled && !isHovered ? _handleEnter : null,
+      onHover: _hoverCallback,
       onExit: widget.enabled ? _handleLeave : null,
       hitTestBehavior: widget.behavior,
       cursor: widget.mouseCursor != null

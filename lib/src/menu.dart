@@ -927,16 +927,12 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
               },
             },
           },
-          child: Builder(
-            builder: (context) {
-              return FocusScope(
-                node: widget.focusScopeNode,
-                canRequestFocus: true,
-                descendantsAreFocusable: true,
-                descendantsAreTraversable: true,
-                child: widget.child,
-              );
-            },
+          child: FocusScope(
+            node: widget.focusScopeNode,
+            canRequestFocus: true,
+            descendantsAreFocusable: true,
+            descendantsAreTraversable: true,
+            child: widget.child,
           ),
         ),
       ),

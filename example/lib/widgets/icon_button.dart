@@ -66,7 +66,6 @@ class IconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BaseMenuItem(
-      debugLabel: 'IconButton',
       autofocus: autofocus,
       onPressed: onPressed,
       onFocusChange: onFocusChange,

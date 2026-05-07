@@ -118,8 +118,6 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     .zoomLevel: '100%',
   };
   late final shortcuts = _buildShortcuts();
-  // ignore: unused_field
-  final ViewModeOption _viewMode = ViewModeOption.editing;
   bool _isHeaderShown = true;
   SegmentTextStyle? _lastTextStyle;
 
@@ -226,7 +224,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return null;
       },
     ),
-    CopyAsMarkdownIntent: ReflectAction(),
+    CopyAsMarkdownIntent: ReflectAction('Copy as Markdown'),
     PasteIntent: CallbackAction(onInvoke: _handlePaste),
     PasteWithoutFormattingIntent: CallbackAction(onInvoke: _handlePaste),
     PasteFromMarkdownIntent: CallbackAction(onInvoke: _handlePaste),
@@ -248,40 +246,40 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return null;
       },
     ),
-    FindAndReplaceIntent: ReflectAction(),
+    FindAndReplaceIntent: ReflectAction('Find and Replace'),
     PaintFormatIntent: _ToggleEntryAction(this),
 
     // File
-    NewDocumentIntent: ReflectAction(),
-    NewSpreadsheetIntent: ReflectAction(),
-    NewPresentationIntent: ReflectAction(),
-    OpenFileIntent: ReflectAction(),
-    MakeCopyIntent: ReflectAction(),
-    ShareWithPeopleIntent: ReflectAction(),
-    GetLinkIntent: ReflectAction(),
-    EmailFileIntent: ReflectAction(),
-    EmailCollaboratorsIntent: ReflectAction(),
-    DownloadDocXIntent: ReflectAction(),
-    DownloadPdfIntent: ReflectAction(),
-    DownloadTextIntent: ReflectAction(),
-    DownloadOdtIntent: ReflectAction(),
-    RenameFileIntent: ReflectAction(),
-    MoveFileIntent: ReflectAction(),
-    AddDriveShortcutIntent: ReflectAction(),
-    MoveToTrashIntent: ReflectAction(),
-    SeeVersionHistoryIntent: ReflectAction(),
-    NameCurrentVersionIntent: ReflectAction(),
-    MakeAvailableOfflineIntent: ReflectAction(),
-    ViewDetailsIntent: ReflectAction(),
-    SetLanguageIntent: ReflectAction(),
+    NewDocumentIntent: ReflectAction('New Document'),
+    NewSpreadsheetIntent: ReflectAction('New Spreadsheet'),
+    NewPresentationIntent: ReflectAction('New Presentation'),
+    OpenFileIntent: ReflectAction('Open File'),
+    MakeCopyIntent: ReflectAction('Make Copy'),
+    ShareWithPeopleIntent: ReflectAction('Share With People'),
+    GetLinkIntent: ReflectAction('Get Link'),
+    EmailFileIntent: ReflectAction('Email File'),
+    EmailCollaboratorsIntent: ReflectAction('Email Collaborators'),
+    DownloadDocXIntent: ReflectAction('Download DocX'),
+    DownloadPdfIntent: ReflectAction('Download PDF'),
+    DownloadTextIntent: ReflectAction('Download Text'),
+    DownloadOdtIntent: ReflectAction('Download ODT'),
+    RenameFileIntent: ReflectAction('Rename File'),
+    MoveFileIntent: ReflectAction('Move File'),
+    AddDriveShortcutIntent: ReflectAction('Add Drive Shortcut'),
+    MoveToTrashIntent: ReflectAction('Move to Trash'),
+    SeeVersionHistoryIntent: ReflectAction('See Version History'),
+    NameCurrentVersionIntent: ReflectAction('Name Current Version'),
+    MakeAvailableOfflineIntent: ReflectAction('Make Available Offline'),
+    ViewDetailsIntent: ReflectAction('View Details'),
+    SetLanguageIntent: ReflectAction('Set Language'),
     SetZoomLevelIntent: CallbackAction<SetZoomLevelIntent>(
       onInvoke: (intent) {
         setFlag(SelectionKey.zoomLevel, intent.value);
         return null;
       },
     ),
-    PageSetupIntent: ReflectAction(),
-    PrintIntent: ReflectAction(),
+    PageSetupIntent: ReflectAction('Page Setup'),
+    PrintIntent: ReflectAction('Print'),
     SetCommentVisibilityIntent: CallbackAction<SetCommentVisibilityIntent>(
       onInvoke: (intent) {
         setFlag(intent.key, intent.value);
@@ -296,16 +294,16 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return null;
       },
     ),
-    ViewResolvedCommentsIntent: ReflectAction(),
-    CollapseSidebarIntent: ReflectAction(),
+    ViewResolvedCommentsIntent: ReflectAction('View Resolved Comments'),
+    CollapseSidebarIntent: ReflectAction('Collapse Sidebar'),
     TogglePrintLayoutIntent: _ToggleEntryAction(this),
     ToggleRulerIntent: _ToggleEntryAction(this),
     ToggleEquationToolbarIntent: _ToggleEntryAction(this),
     ToggleNonPrintingCharactersIntent: _ToggleEntryAction(this),
-    FullScreenIntent: ReflectAction(),
+    FullScreenIntent: ReflectAction('Full Screen'),
 
     // Insert
-    InsertImageIntent: ReflectAction(),
+    InsertImageIntent: ReflectAction('Insert Image'),
     InsertTableIntent: CallbackAction<InsertTableIntent>(
       onInvoke: (intent) {
         Actions.invoke(
@@ -317,25 +315,25 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return null;
       },
     ),
-    InsertDrawingIntent: ReflectAction(),
-    InsertBarChartIntent: ReflectAction(),
-    InsertColumnChartIntent: ReflectAction(),
-    InsertLineChartIntent: ReflectAction(),
-    InsertPieChartIntent: ReflectAction(),
-    InsertLinkIntent: ReflectAction(),
-    InsertTabIntent: ReflectAction(),
-    InsertHorizontalLineIntent: ReflectAction(),
-    PageBreakIntent: ReflectAction(),
-    ColumnBreakIntent: ReflectAction(),
-    ContinuousSectionBreakIntent: ReflectAction(),
-    NextPageSectionBreakIntent: ReflectAction(),
-    InsertBookmarkIntent: ReflectAction(),
-    InsertHeaderIntent: ReflectAction(),
-    InsertFooterIntent: ReflectAction(),
-    InsertFootnoteIntent: ReflectAction(),
-    InsertPageNumberIntent: ReflectAction(),
-    InsertPageCountIntent: ReflectAction(),
-    AddCommentIntent: ReflectAction(),
+    InsertDrawingIntent: ReflectAction('Insert Drawing'),
+    InsertBarChartIntent: ReflectAction('Insert Bar Chart'),
+    InsertColumnChartIntent: ReflectAction('Insert Column Chart'),
+    InsertLineChartIntent: ReflectAction('Insert Line Chart'),
+    InsertPieChartIntent: ReflectAction('Insert Pie Chart'),
+    InsertLinkIntent: ReflectAction('Insert Link'),
+    InsertTabIntent: ReflectAction('Insert Tab'),
+    InsertHorizontalLineIntent: ReflectAction('Insert Horizontal Line'),
+    PageBreakIntent: ReflectAction('Page Break'),
+    ColumnBreakIntent: ReflectAction('Column Break'),
+    ContinuousSectionBreakIntent: ReflectAction('Continuous Section Break'),
+    NextPageSectionBreakIntent: ReflectAction('Next Page Section Break'),
+    InsertBookmarkIntent: ReflectAction('Insert Bookmark'),
+    InsertHeaderIntent: ReflectAction('Insert Header'),
+    InsertFooterIntent: ReflectAction('Insert Footer'),
+    InsertFootnoteIntent: ReflectAction('Insert Footnote'),
+    InsertPageNumberIntent: ReflectAction('Insert Page Number'),
+    InsertPageCountIntent: ReflectAction('Insert Page Count'),
+    AddCommentIntent: ReflectAction('Add Comment'),
 
     // Format
     FormatBoldIntent: CallbackAction<FormatBoldIntent>(
@@ -512,8 +510,8 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return;
       },
     ),
-    IncreaseIndentIntent: ReflectAction(),
-    DecreaseIndentIntent: ReflectAction(),
+    IncreaseIndentIntent: ReflectAction('Increase Indent'),
+    DecreaseIndentIntent: ReflectAction('Decrease Indent'),
     SetLineSpacingIntent: CallbackAction<SetLineSpacingIntent>(
       onInvoke: (intent) {
         controller.applyStyle(SegmentTextStyle(textStyle: TextStyle(height: intent.value)));
@@ -533,37 +531,39 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     KeepLinesTogetherIntent: _ToggleEntryAction(this),
     KeepWithNextIntent: _ToggleEntryAction(this),
     PreventSingleLinesIntent: _ToggleEntryAction(this),
-    SetColumnsIntent: ReflectAction(),
-    SetBulletedListIntent: ReflectAction(),
-    SetNumberedListIntent: ReflectAction(),
-    FormatNumberedListIntent: ReflectAction(),
-    MoreColumnsOptionsIntent: ReflectAction(),
-    HeadersAndFootersIntent: ReflectAction(),
-    PageNumbersIntent: ReflectAction(),
-    PageOrientationIntent: ReflectAction(),
-    SwitchToPagelessIntent: ReflectAction(),
+    SetColumnsIntent: ReflectAction<SetColumnsIntent>('Set Columns'),
+    SetBulletedListIntent: ReflectAction<SetBulletedListIntent>('Set Bulleted List'),
+    SetNumberedListIntent: ReflectAction<SetNumberedListIntent>('Set Numbered List'),
+    FormatNumberedListIntent: ReflectAction<FormatNumberedListIntent>('Format Numbered List'),
+    FormatBulletedListIntent: ReflectAction<FormatBulletedListIntent>('Format Bulleted List'),
+    FormatChecklistIntent: ReflectAction<FormatChecklistIntent>('Format Checklist'),
+    MoreColumnsOptionsIntent: ReflectAction<MoreColumnsOptionsIntent>('More Columns Options'),
+    HeadersAndFootersIntent: ReflectAction<HeadersAndFootersIntent>('Headers and Footers'),
+    PageNumbersIntent: ReflectAction('Page Numbers'),
+    PageOrientationIntent: ReflectAction('Page Orientation'),
+    SwitchToPagelessIntent: ReflectAction('Switch to Pageless'),
 
     // Tools
     CheckSpellingGrammarIntent: _ToggleEntryAction(this),
     ToggleSpellingSuggestionsIntent: _ToggleEntryAction(this),
     ToggleGrammarSuggestionsIntent: _ToggleEntryAction(this),
     ToggleUnderlineErrorsIntent: _ToggleEntryAction(this),
-    WordCountIntent: ReflectAction(),
-    ReviewSuggestedEditsIntent: ReflectAction(),
-    CompareDocumentsIntent: ReflectAction(),
-    CitationsIntent: ReflectAction(),
-    LineNumbersIntent: ReflectAction(),
-    LinkedObjectsIntent: ReflectAction(),
-    DictionaryIntent: ReflectAction(),
-    TranslateDocumentIntent: ReflectAction(),
-    VoiceTypingIntent: ReflectAction(),
-    NotificationSettingsIntent: ReflectAction(),
-    PreferencesIntent: ReflectAction(),
-    AccessibilityIntent: ReflectAction(),
+    WordCountIntent: ReflectAction('Word Count'),
+    ReviewSuggestedEditsIntent: ReflectAction('Review Suggested Edits'),
+    CompareDocumentsIntent: ReflectAction('Compare Documents'),
+    CitationsIntent: ReflectAction('Citations'),
+    LineNumbersIntent: ReflectAction('Line Numbers'),
+    LinkedObjectsIntent: ReflectAction('Linked Objects'),
+    DictionaryIntent: ReflectAction('Dictionary'),
+    TranslateDocumentIntent: ReflectAction('Translate Document'),
+    VoiceTypingIntent: ReflectAction('Voice Typing'),
+    NotificationSettingsIntent: ReflectAction('Notification Settings'),
+    PreferencesIntent: ReflectAction('Preferences'),
+    AccessibilityIntent: ReflectAction('Accessibility'),
 
     // Extensions
-    GetAddOnsIntent: ReflectAction(),
-    ManageAddOnsIntent: ReflectAction(),
+    GetAddOnsIntent: ReflectAction('Get Add-Ons'),
+    ManageAddOnsIntent: ReflectAction('Manage Add-Ons'),
 
     // Help
     SearchMenusIntent: CallbackAction<SearchMenusIntent>(
@@ -572,19 +572,19 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return null;
       },
     ),
-    HelpIntent: ReflectAction(),
-    TrainingIntent: ReflectAction(),
-    UpdatesIntent: ReflectAction(),
-    HelpFloogleDocsImproveIntent: ReflectAction(),
-    PrivacyPolicyIntent: ReflectAction(),
-    TermsOfServiceIntent: ReflectAction(),
-    KeyboardShortcutsIntent: ReflectAction(),
+    HelpIntent: ReflectAction('Help'),
+    TrainingIntent: ReflectAction('Training'),
+    UpdatesIntent: ReflectAction('Updates'),
+    HelpFloogleDocsImproveIntent: ReflectAction('Help Floogle Docs Improve'),
+    PrivacyPolicyIntent: ReflectAction('Privacy Policy'),
+    TermsOfServiceIntent: ReflectAction('Terms of Service'),
+    KeyboardShortcutsIntent: ReflectAction('Keyboard Shortcuts'),
 
     // Context menu
-    CommentIntent: ReflectAction(),
-    SuggestEditsIntent: ReflectAction(),
-    DefineIntent: ReflectAction(),
-    SelectAllMatchingTextIntent: ReflectAction(),
+    CommentIntent: ReflectAction('Comment'),
+    SuggestEditsIntent: ReflectAction('Suggest Edits'),
+    DefineIntent: ReflectAction('Define'),
+    SelectAllMatchingTextIntent: ReflectAction('Select All Matching Text'),
   };
 
   @override

@@ -133,10 +133,16 @@ class ShowSnackbarAction extends ContextAction<Intent> {
   }
 }
 
-class ReflectAction extends ContextAction<Intent> {
+class ReflectAction<T extends Intent> extends ContextAction<T> {
+  ReflectAction(this.label);
+  final String label;
+
   @override
-  Object? invoke(Intent intent, [BuildContext? context]) {
-    context?.findAncestorStateOfType<_ActionReflectorState>()?._notify(context, 'Intent invoked');
+  Object? invoke(T intent, [BuildContext? context]) {
+    context?.findAncestorStateOfType<_ActionReflectorState>()?._notify(
+      context,
+      'Intent invoked: $label',
+    );
     return null;
   }
 }

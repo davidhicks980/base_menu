@@ -81,7 +81,6 @@ class _SegmentedPopupButtonState extends State<SegmentedPopupButton> {
             decoration: _leftDecoration,
             child: widget.child.icon != null ? Icon(widget.child.icon) : const SizedBox(),
           ),
-
           IconTheme.merge(
             data: const IconThemeData(size: 13),
             child: MenuEntryPopup(

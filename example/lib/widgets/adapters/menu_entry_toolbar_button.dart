@@ -19,9 +19,8 @@ class MenuEntryToolbarButton extends StatelessWidget {
       return MergeSemantics(
         child: Semantics(
           toggled: toggled,
-          child: ToolbarIconButton(
+          child: IconButton(
             tooltip: item.label,
-            intent: item.intent,
             onPressed: () {
               Actions.invoke(context, item.intent);
             },
@@ -44,9 +43,8 @@ class MenuEntryToolbarButton extends StatelessWidget {
         ),
       );
     }
-    return ToolbarIconButton(
+    return IconButton(
       tooltip: item.label,
-      intent: item.intent,
       onPressed: () {
         Actions.invoke(context, item.intent);
       },
@@ -54,62 +52,6 @@ class MenuEntryToolbarButton extends StatelessWidget {
         data: const IconThemeData(size: 18, color: FloogleColors.grey).merge(iconTheme),
         child: Icon(item.icon),
       ),
-    );
-  }
-}
-
-class ToolbarIconButton extends StatelessWidget {
-  const ToolbarIconButton({
-    super.key,
-    required this.child,
-    this.onPressed,
-    this.onFocusChange,
-    this.focusNode,
-    this.tooltip,
-    this.autofocus = false,
-    this.intent,
-    this.decoration,
-    this.constraints = const BoxConstraints.tightFor(width: 30, height: 30),
-  });
-
-  final Widget child;
-  final VoidCallback? onPressed;
-  final FocusNode? focusNode;
-  final String? tooltip;
-  final void Function(bool)? onFocusChange;
-  final WidgetStateProperty<BoxDecoration>? decoration;
-  final BoxConstraints constraints;
-  final bool autofocus;
-  final Intent? intent;
-
-  static const _focusedScopeDecoration = WidgetStateProperty<BoxDecoration>.fromMap({
-    WidgetState.pressed: BoxDecoration(
-      color: FloogleColors.toolbarItemPressed,
-      borderRadius: BorderRadius.all(Radius.circular(4)),
-    ),
-    WidgetState.focused: BoxDecoration(
-      color: FloogleColors.toolbarItemHoverFocus,
-      borderRadius: BorderRadius.all(Radius.circular(4)),
-    ),
-    WidgetState.hovered: BoxDecoration(
-      color: FloogleColors.toolbarItemHoverFocus,
-      borderRadius: BorderRadius.all(Radius.circular(4)),
-    ),
-    WidgetState.any: BoxDecoration(),
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final focusOnHover =
-        MenuController.maybeIsOpenOf(context) != true && FocusScope.of(context).hasFocus;
-    return IconButton(
-      autofocus: autofocus,
-      onPressed: onPressed,
-      onFocusChange: onFocusChange,
-      focusNode: focusNode,
-      requestFocusOnHover: focusOnHover,
-      decoration: decoration ?? (focusOnHover ? _focusedScopeDecoration : null),
-      child: child,
     );
   }
 }

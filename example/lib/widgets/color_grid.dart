@@ -462,9 +462,7 @@ class _ColorPickerPanelState extends State<ColorPickerPanel> {
                     CustomAction(
                       icon: Symbols.add_circle_outline,
                       label: 'Add custom color',
-                      onPressed: () {
-                        print('PRESSED ADD CUSTOM COLOR');
-                      },
+                      onPressed: () {},
                     ),
 
                     const SizedBox(width: 4),
@@ -472,9 +470,7 @@ class _ColorPickerPanelState extends State<ColorPickerPanel> {
                     CustomAction(
                       icon: Symbols.colorize,
                       label: 'Pick color from screen',
-                      onPressed: () {
-                        print('PRESSED EYEDROPPER');
-                      },
+                      onPressed: () {},
                     ),
                   ],
                 ),

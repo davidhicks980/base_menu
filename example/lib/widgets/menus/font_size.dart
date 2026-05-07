@@ -1,14 +1,13 @@
 import 'dart:ui' as ui;
 
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../app_state_manager.dart';
 import '../../model/intents.dart';
-import '../adapters/menu_entry_toolbar_button.dart';
 import '../combo_box.dart';
+import '../icon_button.dart';
 
 class FontSizeMenu extends StatefulWidget {
   const FontSizeMenu({super.key});
@@ -68,12 +67,6 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
     _menuController.close();
   }
 
-  void _handleHover(PointerHoverEvent event) {
-    if (MenuController.maybeIsOpenOf(context) != true && Focus.of(context).hasFocus) {
-      _focusNode.requestFocus();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final child = MergeSemantics(
@@ -100,14 +93,11 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
       ),
     );
     return Hoverable(
-      onEnter: _handleHover,
       mouseCursor: WidgetStateMouseCursor.textable,
       child: Builder(
         builder: (context) {
           return DecoratedBox(
-            decoration: Hoverable.isHoveredOf(context) && !FocusScope.of(context).hasFocus
-                ? _outlineHovered
-                : _outline,
+            decoration: Hoverable.isHoveredOf(context) ? _outlineHovered : _outline,
             child: child,
           );
         },
@@ -131,7 +121,7 @@ class DecrementFontSizeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ToolbarIconButton(
+    return IconButton(
       constraints: const BoxConstraints.tightFor(width: 24, height: 24),
       onPressed: () {
         Actions.invoke(context, const FormatDecrementFontSizeIntent());
@@ -146,7 +136,7 @@ class IncrementFontSizeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ToolbarIconButton(
+    return IconButton(
       constraints: const BoxConstraints.tightFor(width: 24, height: 24),
       onPressed: () {
         Actions.invoke(context, const FormatIncrementFontSizeIntent());

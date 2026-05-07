@@ -254,12 +254,7 @@ class _ToolbarState extends State<Toolbar> {
                           actions: cutoffChildren.isNotEmpty && _actions != null
                               ? _actions!
                               : const {},
-                          child: Builder(
-                            builder: (context) {
-                              print(FocusScope.of(context).hasFocus);
-                              return OverflowRow(onOverflow: _handleOverflow, children: children);
-                            },
-                          ),
+                          child: OverflowRow(onOverflow: _handleOverflow, children: children),
                         ),
                       ),
                     ),

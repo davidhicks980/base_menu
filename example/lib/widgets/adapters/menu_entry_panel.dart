@@ -7,10 +7,10 @@ import '../dimension_picker.dart';
 import '../menu_divider.dart';
 import '../menu_item.dart';
 import '../menu_panel.dart';
-import 'menu_entry_view_mode_panel.dart';
 import '../selectable_menu_item.dart';
 import 'menu_entry_submenu.dart';
 import 'menu_entry_tile_group.dart';
+import 'menu_entry_view_mode_panel.dart';
 
 class MenuEntryPanel extends StatelessWidget {
   const MenuEntryPanel({
@@ -53,7 +53,6 @@ class MenuEntryPanel extends StatelessWidget {
                 final checked =
                     AppStateManager.documentStateOf(context)[child.intent.key] ==
                     child.intent.value;
-                if (child.iconConfig?.affinity != null) print(child.iconConfig?.affinity);
                 return SelectableMenuItem(
                   selected: checked,
                   onPressed: () {

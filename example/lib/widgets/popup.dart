@@ -13,7 +13,6 @@ class Popup extends StatelessWidget {
     required this.child,
     this.axis = Axis.vertical,
     this.buttonDecoration,
-    this.requestFocusOnHover = false,
     this.focusFirstOnOpen = true,
   });
 
@@ -23,7 +22,6 @@ class Popup extends StatelessWidget {
   final Axis axis;
   final BoxConstraints buttonConstraints;
   final WidgetStateProperty<BoxDecoration>? buttonDecoration;
-  final bool requestFocusOnHover;
   final bool focusFirstOnOpen;
 
   @override
@@ -43,7 +41,6 @@ class Popup extends StatelessWidget {
       child: Builder(
         builder: (context) {
           return IconButton(
-            requestFocusOnHover: requestFocusOnHover,
             decoration: buttonDecoration,
             constraints: buttonConstraints,
             tooltip: tooltip?.toPlainText(includePlaceholders: false),

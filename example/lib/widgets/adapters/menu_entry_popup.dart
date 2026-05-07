@@ -24,8 +24,6 @@ class MenuEntryPopup extends StatelessWidget {
     return Popup(
       buttonConstraints: buttonConstraints,
       buttonDecoration: buttonDecoration,
-      requestFocusOnHover:
-          MenuController.maybeIsOpenOf(context) != true && FocusScope.of(context).hasFocus,
       tooltip: tooltip,
       panel: MenuEntryPanel(constraints: constraints, menuEntry: model),
       child: Icon(model.child.icon),

@@ -53,8 +53,6 @@ class TextHighlightButton extends StatelessWidget {
       ),
     );
     return Popup(
-      requestFocusOnHover:
-          MenuController.maybeIsOpenOf(context) != true &&  FocusScope.of(context).hasFocus,
       panel: Builder(
         builder: (context) {
           return MenuPanel(

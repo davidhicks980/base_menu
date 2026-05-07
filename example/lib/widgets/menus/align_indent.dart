@@ -16,8 +16,6 @@ class AlignIndentMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final align = AppStateManager.selectedTextStyleOf(context)?.textAlign ?? TextAlign.left;
     return Popup(
-      requestFocusOnHover:
-          MenuController.maybeIsOpenOf(context) != true && Focus.of(context).hasFocus,
       buttonConstraints: const BoxConstraints(),
       panel: MenuPanel(
         spacing: 4,

@@ -5,19 +5,14 @@ import '../utilities/colors.dart';
 import 'dropdown_arrow.dart';
 import 'menu_panel.dart';
 
-class Select extends StatelessWidget {
+class Select extends StatefulWidget {
   const Select({
     super.key,
     required this.child,
     required this.panel,
-    this.focusNode,
-    this.onOpen,
-    this.onClose,
     this.buttonPadding = const EdgeInsets.symmetric(horizontal: 11, vertical: 2),
     this.buttonRadius = const BorderRadiusGeometry.all(Radius.circular(4)),
-    this.buttonDecoration,
     this.menuController,
-    this.requestFocusOnHover = false,
   });
 
   final Widget child;
@@ -25,18 +20,24 @@ class Select extends StatelessWidget {
   final MenuController? menuController;
   final EdgeInsetsGeometry buttonPadding;
   final BorderRadiusGeometry buttonRadius;
-  final WidgetStateProperty<BoxDecoration>? buttonDecoration;
-  final bool requestFocusOnHover;
-  final VoidCallback? onOpen;
-  final VoidCallback? onClose;
-  final FocusNode? focusNode;
+
+  @override
+  State<Select> createState() => _SelectState();
+}
+
+class _SelectState extends State<Select> {
+  final FocusNode focusNode = FocusNode(debugLabel: 'Select');
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = menuController ?? MenuController();
+    final controller = widget.menuController ?? MenuController();
     return BaseMenu(
-      onOpen: onOpen,
-      onClose: onClose,
       controller: controller,
       onFocusChange: (bool value) {
         if (!value) {
@@ -45,15 +46,13 @@ class Select extends StatelessWidget {
       },
       overlayPadding: const EdgeInsets.only(top: 98, bottom: 8),
       padding: MenuPanel.defaultPadding,
-      panel: panel,
+      panel: widget.panel,
       child: _SelectTextButton(
         focusNode: focusNode,
-        padding: buttonPadding,
-        radius: buttonRadius,
-        decoration: buttonDecoration,
-        requestFocusOnHover: requestFocusOnHover,
-        menuController: controller,
-        child: child,
+        padding: widget.buttonPadding,
+        radius: widget.buttonRadius,
+        controller: controller,
+        child: widget.child,
       ),
     );
   }
@@ -61,19 +60,15 @@ class Select extends StatelessWidget {
 
 class _SelectTextButton extends StatefulWidget {
   const _SelectTextButton({
-    required this.child,
+    required this.controller,
     required this.padding,
-    required this.menuController,
     required this.radius,
     required this.focusNode,
-    required this.decoration,
-    required this.requestFocusOnHover,
+    required this.child,
   });
   final EdgeInsetsGeometry padding;
-  final FocusNode? focusNode;
-  final WidgetStateProperty<Decoration>? decoration;
-  final bool requestFocusOnHover;
-  final MenuController menuController;
+  final MenuController controller;
+  final FocusNode focusNode;
   final BorderRadiusGeometry radius;
   final Widget child;
 
@@ -83,8 +78,8 @@ class _SelectTextButton extends StatefulWidget {
 
 class _SelectTextButtonState extends State<_SelectTextButton> {
   void _handlePressed() {
-    if (widget.menuController.isOpen) {
-      widget.menuController.close();
+    if (widget.controller.isOpen) {
+      widget.controller.close();
     } else {
       Actions.invoke(context, const MenuEnterIntent.focusFirst());
     }
@@ -129,31 +124,28 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
                 child: BaseMenuItem(
                   role: null,
                   focusNode: widget.focusNode,
-                  mouseCursor: WidgetStateMouseCursor.adaptiveClickable,
-                  requestFocusOnHover: widget.requestFocusOnHover,
+                  mouseCursor: WidgetStateMouseCursor.clickable,
                   requestCloseOnActivate: false,
+                  requestFocusOnHover: false,
                   onPressed: _handlePressed,
                   child: Builder(
                     builder: (context) {
-                      Decoration decoration;
-                      if (widget.decoration != null) {
-                        decoration = widget.decoration!.resolve(BaseMenuItem.statesOf(context));
-                      } else if (isOpen) {
-                        decoration = BoxDecoration(
-                          color: FloogleColors.activeColor,
-                          borderRadius: widget.radius,
-                        );
-                      } else if (BaseMenuItem.isFocusedOf(context) ||
-                          BaseMenuItem.isHoveredOf(context)) {
-                        decoration = BoxDecoration(
-                          color: FloogleColors.zoomHoverColor,
-                          borderRadius: widget.radius,
-                        );
-                      } else {
-                        decoration = const BoxDecoration();
-                      }
-
-                      return DecoratedBox(decoration: decoration, child: label);
+                      return DecoratedBox(
+                        decoration: isOpen
+                            ? BoxDecoration(
+                                color: FloogleColors.activeColor,
+                                borderRadius: widget.radius,
+                              )
+                            : BaseMenuItem.isFocusedOf(context) ||
+                                  (!FocusScope.of(context).hasFocus &&
+                                      BaseMenuItem.isHoveredOf(context))
+                            ? BoxDecoration(
+                                color: FloogleColors.zoomHoverColor,
+                                borderRadius: widget.radius,
+                              )
+                            : const BoxDecoration(),
+                        child: label,
+                      );
                     },
                   ),
                 ),

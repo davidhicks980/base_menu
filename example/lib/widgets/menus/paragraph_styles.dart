@@ -24,8 +24,6 @@ class ParagraphStylesMenu extends StatelessWidget {
     return ConstrainedBox(
       constraints: const BoxConstraints.tightFor(width: 122),
       child: Select(
-        requestFocusOnHover:
-            MenuController.maybeIsOpenOf(context) != true && FocusScope.of(context).hasFocus,
         panel: MenuPanel(
           padding: const EdgeInsets.only(bottom: 6),
           constraints: const BoxConstraints(minWidth: 221).normalize(),
@@ -85,6 +83,7 @@ class ParagraphStylesMenu extends StatelessWidget {
                             fontSize: 14.2,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.1,
+                            overflow: TextOverflow.ellipsis,
                             fontVariations: [
                               FontVariation.width(87),
                               FontVariation.opticalSize(14.2),
@@ -94,10 +93,15 @@ class ParagraphStylesMenu extends StatelessWidget {
                             fontSize: 14.5,
                             fontWeight: FontWeight.w500,
                             letterSpacing: -0.3,
+                            overflow: TextOverflow.ellipsis,
                             fontVariations: [FontVariation.opticalSize(14)],
                           ),
                         )
-                      : Text(selectedStyle),
+                      : Text(
+                          selectedStyle,
+                          style: const TextStyle(color: FloogleColors.selectTextColor),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                 ),
               ),
             );

@@ -106,6 +106,7 @@ const children = [
 class ToolbarScope extends InheritedWidget {
   const ToolbarScope({super.key, required this.child}) : super(child: child);
 
+  @override
   final Widget child;
 
   static ToolbarScope? of(BuildContext context) {
@@ -450,6 +451,14 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
       panel: panel,
       builder: (context, controller, child) {
         return IconButton(
+          decoration: _animationStatus.isForwardOrCompleted
+              ? WidgetStatePropertyAll(
+                  BoxDecoration(
+                    color: FloogleColors.selectedButtonBackground,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                )
+              : null,
           focusNode: widget.buttonFocusNode,
           onPressed: () {
             if (_animationStatus.isForwardOrCompleted) {
@@ -458,7 +467,15 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
               Actions.invoke(context, const MenuEnterIntent.setFirstFocus());
             }
           },
-          child: child!,
+          child: IconTheme(
+            data: IconThemeData(
+              color: _animationStatus.isForwardOrCompleted
+                  ? FloogleColors.selectedButton
+                  : FloogleColors.grey,
+              size: 18,
+            ),
+            child: child!,
+          ),
         );
       },
       child: const Icon(Symbols.more_vert, size: 18, opticalSize: 30),

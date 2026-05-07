@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:menu_utilities/menu_utilities.dart';
 
+import '../model/intents.dart';
 import '../utilities/colors.dart';
 
 class DimensionPicker extends StatefulWidget {
@@ -14,39 +16,37 @@ class DimensionPicker extends StatefulWidget {
 class _DimensionPickerState extends State<DimensionPicker> {
   int selectedRow = 0;
   int selectedColumn = 0;
-  int? hoveredRow;
-  int? hoveredColumn;
+  int? highlightedRow;
+  int? highlightedColumn;
 
   void _handleHighlight(int row, int column) {
-    if (row != hoveredRow || column != hoveredColumn) {
-      if (row < 0 || column < 0) {
-        FocusScope.of(context).previousFocus();
-      } else {
-        setState(() {
-          hoveredRow = row.clamp(0, 20);
-          hoveredColumn = column.clamp(0, 20);
-        });
-      }
+    if (row != highlightedRow || column != highlightedColumn) {
+      setState(() {
+        highlightedRow = row.clamp(0, 19);
+        highlightedColumn = column.clamp(0, 19);
+      });
     }
   }
 
   void _handleSelect([Object? _]) {
     setState(() {
-      selectedRow = hoveredRow ?? selectedRow;
-      selectedColumn = hoveredColumn ?? selectedColumn;
-      hoveredRow = null;
-      hoveredColumn = null;
+      selectedRow = highlightedRow ?? selectedRow;
+      selectedColumn = highlightedColumn ?? selectedColumn;
+      highlightedRow = null;
+      highlightedColumn = null;
     });
+    Actions.invoke(context, InsertTableIntent(selectedRow + 1, selectedColumn + 1));
     Actions.invoke(context, const DismissIntent());
+    print('Selected ${selectedRow + 1} x ${selectedColumn + 1}');
   }
 
   @override
   Widget build(BuildContext context) {
     final callbackAction = CallbackAction<Intent>(onInvoke: _handleSelect);
-    hoveredRow = hoveredRow ?? selectedRow;
-    hoveredColumn = hoveredColumn ?? selectedColumn;
-    final int rowCount = clampDouble(hoveredRow! + 2, 5, 20).toInt();
-    final int columnCount = clampDouble(hoveredColumn! + 2, 11, 20).toInt();
+    highlightedRow = highlightedRow ?? selectedRow;
+    highlightedColumn = highlightedColumn ?? selectedColumn;
+    final int rowCount = clampDouble(highlightedRow! + 2, 5, 20).toInt();
+    final int columnCount = clampDouble(highlightedColumn! + 2, 11, 20).toInt();
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Actions(
@@ -70,28 +70,30 @@ class _DimensionPickerState extends State<DimensionPicker> {
           ),
         },
         child: Shortcuts(
-          shortcuts: const <ShortcutActivator, Intent>{
-            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-            SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
-            SingleActivator(LogicalKeyboardKey.arrowUp): DirectionalFocusIntent(
+          shortcuts: <ShortcutActivator, Intent>{
+            const SingleActivator(LogicalKeyboardKey.enter): const ActivateIntent(),
+            const SingleActivator(LogicalKeyboardKey.space): const ActivateIntent(),
+            const SingleActivator(LogicalKeyboardKey.arrowUp): const DirectionalFocusIntent(
               TraversalDirection.up,
             ),
-            SingleActivator(LogicalKeyboardKey.arrowDown): DirectionalFocusIntent(
+            const SingleActivator(LogicalKeyboardKey.arrowDown): const DirectionalFocusIntent(
               TraversalDirection.down,
             ),
-            SingleActivator(LogicalKeyboardKey.arrowLeft): DirectionalFocusIntent(
-              TraversalDirection.left,
-            ),
-            SingleActivator(LogicalKeyboardKey.arrowRight): DirectionalFocusIntent(
-              TraversalDirection.right,
-            ),
+            if (highlightedColumn! > 0)
+              const SingleActivator(LogicalKeyboardKey.arrowLeft): const DirectionalFocusIntent(
+                TraversalDirection.left,
+              ),
+            if (highlightedColumn! < columnCount - 1)
+              const SingleActivator(LogicalKeyboardKey.arrowRight): const DirectionalFocusIntent(
+                TraversalDirection.right,
+              ),
           },
           child: Focus(
             canRequestFocus: true,
             child: Column(
               children: [
                 Semantics(
-                  label: '${hoveredRow ?? 0} by ${hoveredColumn ?? 0}',
+                  label: '${highlightedRow ?? 0} by ${highlightedColumn ?? 0}',
                   liveRegion: true,
                   child: Table(
                     defaultColumnWidth: const FixedColumnWidth(18.0),
@@ -101,50 +103,10 @@ class _DimensionPickerState extends State<DimensionPicker> {
                           key: ValueKey<int>(row),
                           children: <Widget>[
                             for (int column = 0; column < columnCount; column++)
-                              Builder(
-                                builder: (BuildContext context) {
-                                  final bool selected =
-                                      row <= hoveredRow! && column <= hoveredColumn!;
-                                  final color = selected
-                                      ? FloogleColors.selectedButtonBackground
-                                      : FloogleColors.dimensionPickerTileColor;
-
-                                  final border = selected
-                                      ? const Border.fromBorderSide(
-                                          BorderSide(
-                                            color: FloogleColors.dimensionPickerTileSelectedBorder,
-                                          ),
-                                        )
-                                      : const Border.fromBorderSide(
-                                          BorderSide(
-                                            color: FloogleColors.dimensionPickerTileBorder,
-                                          ),
-                                        );
-
-                                  return MouseRegion(
-                                    onEnter: (PointerEnterEvent event) {
-                                      _handleHighlight(row, column);
-                                    },
-                                    child: GestureDetector(
-                                      onTap: _handleSelect,
-                                      child: Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 1.0),
-                                          child: SizedBox(
-                                            height: 16.0,
-                                            width: 16.0,
-                                            child: DecoratedBox(
-                                              decoration: BoxDecoration(
-                                                color: color,
-                                                border: border,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
+                              Cell(
+                                selected: row <= highlightedRow! && column <= highlightedColumn!,
+                                onTap: () => _handleSelect(),
+                                onPointerEnter: (event) => _handleHighlight(row, column),
                               ),
                           ],
                         ),
@@ -152,7 +114,7 @@ class _DimensionPickerState extends State<DimensionPicker> {
                   ),
                 ),
                 const SizedBox(height: 8.0),
-                Text('${(hoveredRow ?? 0) + 1} x ${(hoveredColumn ?? 0) + 1}'),
+                Text('${(highlightedRow ?? 0) + 1} x ${(highlightedColumn ?? 0) + 1}'),
               ],
             ),
           ),
@@ -162,25 +124,64 @@ class _DimensionPickerState extends State<DimensionPicker> {
   }
 
   void onDirectionalFocus(DirectionalFocusIntent intent) {
-    setState(() {
-      switch (intent.direction) {
-        case TraversalDirection.up:
-          _handleHighlight(hoveredRow! - 1, hoveredColumn!);
-        case TraversalDirection.down:
-          if (hoveredRow == 20) {
-            Actions.invoke(context, intent);
-            return;
-          }
-          _handleHighlight(hoveredRow! + 1, hoveredColumn!);
-        case TraversalDirection.left:
-          _handleHighlight(hoveredRow!, hoveredColumn! - 1);
-        case TraversalDirection.right:
-          if (hoveredColumn == 20) {
-            MenuController.maybeOf(context)?.close();
-            break;
-          }
-          _handleHighlight(hoveredRow!, hoveredColumn! + 1);
-      }
-    });
+    switch (intent.direction) {
+      case TraversalDirection.up:
+        _handleHighlight(highlightedRow! - 1, highlightedColumn!);
+      case TraversalDirection.down:
+        _handleHighlight(highlightedRow! + 1, highlightedColumn!);
+      case TraversalDirection.left:
+        _handleHighlight(highlightedRow!, highlightedColumn! - 1);
+      case TraversalDirection.right:
+        _handleHighlight(highlightedRow!, highlightedColumn! + 1);
+    }
+  }
+}
+
+class Cell extends StatelessWidget {
+  const Cell({
+    super.key,
+    required this.selected,
+    required this.onTap,
+    required this.onPointerEnter,
+  });
+
+  final bool selected;
+  final VoidCallback onTap;
+  final PointerHoverEventListener onPointerEnter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (BuildContext context) {
+        final color = selected
+            ? FloogleColors.selectedButtonBackground
+            : FloogleColors.dimensionPickerTileColor;
+
+        final border = selected
+            ? const Border.fromBorderSide(
+                BorderSide(color: FloogleColors.dimensionPickerTileSelectedBorder),
+              )
+            : const Border.fromBorderSide(
+                BorderSide(color: FloogleColors.dimensionPickerTileBorder),
+              );
+
+        return BaseMenuItem(
+          onPointerEnter: onPointerEnter,
+          onPressed: onTap,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 1.0),
+              child: SizedBox(
+                height: 16.0,
+                width: 16.0,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: color, border: border),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

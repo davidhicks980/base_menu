@@ -306,7 +306,17 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
     // Insert
     InsertImageIntent: ReflectAction(),
-    InsertTableIntent: ReflectAction(),
+    InsertTableIntent: CallbackAction<InsertTableIntent>(
+      onInvoke: (intent) {
+        Actions.invoke(
+          editorFocusNode.context!,
+          ShowSnackbarTextIntent(
+            'Pretending to insert a ${intent.rows}x${intent.columns} table...',
+          ),
+        );
+        return null;
+      },
+    ),
     InsertDrawingIntent: ReflectAction(),
     InsertBarChartIntent: ReflectAction(),
     InsertColumnChartIntent: ReflectAction(),
@@ -340,12 +350,12 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
         final textStyle =
             controller.selectedTextStyle?.textStyle ??
-            const TextStyle(fontWeight: FontWeight.normal, fontFamily: 'RobotoFlex');
+            TextStyle(fontWeight: FontWeight.normal, fontFamily: FontFamily.roboto.label);
 
         controller.applyStyle(
           SegmentTextStyle(
             textStyle: GoogleFonts.getFont(
-              textStyle.fontFamily?.withSpaceAfterCapitals.split('_')[0] ?? 'RobotoFlex',
+              textStyle.fontFamily?.withSpaceAfterCapitals.split('_')[0] ?? FontFamily.roboto.label,
               fontWeight: fontWeight,
               textStyle: textStyle,
             ),

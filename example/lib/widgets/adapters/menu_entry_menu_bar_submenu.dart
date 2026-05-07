@@ -8,18 +8,18 @@ import '../menu_bar_button_label.dart';
 import '../web_label.dart';
 import 'menu_entry_panel.dart';
 
-class MenuBarSubmenu extends StatefulWidget {
-  const MenuBarSubmenu({super.key, required this.entry, this.overflow = false, this.panel});
+class MenuBarMenu extends StatefulWidget {
+  const MenuBarMenu({super.key, required this.entry, this.overflow = false, this.panel});
 
   final SubmenuEntry entry;
   final bool overflow;
   final Widget? panel;
 
   @override
-  State<MenuBarSubmenu> createState() => _MenuBarSubmenuState();
+  State<MenuBarMenu> createState() => _MenuBarMenuState();
 }
 
-class _MenuBarSubmenuState extends State<MenuBarSubmenu> {
+class _MenuBarMenuState extends State<MenuBarMenu> {
   final anchorFocusNode = FocusNode();
   bool _hasAnchorFocus = false;
   bool _isAnchorHovered = false;

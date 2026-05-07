@@ -197,7 +197,11 @@ class InsertImageIntent extends FloogleIntent {
 }
 
 class InsertTableIntent extends FloogleIntent {
-  const InsertTableIntent();
+  const InsertTableIntent(this.rows, this.columns)
+    : assert(rows > 0 && columns > 0, 'Row and column counts must be greater than zero');
+
+  final int rows;
+  final int columns;
 }
 
 class InsertDrawingIntent extends FloogleIntent {

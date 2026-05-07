@@ -8,8 +8,8 @@ abstract class FloogleColors {
   static const darkGray = Color.fromRGBO(31, 31, 31, 1);
   static const selectTextColor = Color.fromRGBO(31, 31, 31, 0.705);
   static const grey = Color.fromRGBO(68, 71, 70, 1);
-  static const activeColor = Color.fromRGBO(68, 71, 70, 0.12);
-  static const zoomHoverColor = Color.fromRGBO(68, 71, 70, 0.078);
+  static const toolbarItemPressed = Color.fromRGBO(68, 71, 70, 0.12);
+  static const toolbarItemHoverFocus = Color.fromRGBO(68, 71, 70, 0.078);
   static const elevatedSurfaceColor = Color.fromRGBO(240, 244, 249, 1);
   static const surfaceColor = Color.fromRGBO(248, 250, 253, 1);
   static const editorBlurredSelectionColor = Color.fromRGBO(200, 200, 200, 1);
@@ -31,6 +31,4 @@ abstract class FloogleColors {
   static const titleInputHoverBorder = Color.fromRGBO(116, 119, 117, 1);
   static const logoPressedColor = Color.fromRGBO(229, 229, 229, 1);
   static const logoFocusHoverColor = Color.fromRGBO(242, 242, 242, 1);
-  static const toolbarItemPressed = activeColor;
-  static const toolbarItemHoverFocus = zoomHoverColor;
 }

@@ -133,14 +133,12 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
                       return DecoratedBox(
                         decoration: isOpen
                             ? BoxDecoration(
-                                color: FloogleColors.activeColor,
+                                color: FloogleColors.toolbarItemPressed,
                                 borderRadius: widget.radius,
                               )
-                            : BaseMenuItem.isFocusedOf(context) ||
-                                  (!FocusScope.of(context).hasFocus &&
-                                      BaseMenuItem.isHoveredOf(context))
+                            : BaseMenuItem.isFocusedOf(context) || BaseMenuItem.isHoveredOf(context)
                             ? BoxDecoration(
-                                color: FloogleColors.zoomHoverColor,
+                                color: FloogleColors.toolbarItemHoverFocus,
                                 borderRadius: widget.radius,
                               )
                             : const BoxDecoration(),

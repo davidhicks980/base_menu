@@ -136,10 +136,7 @@ class ShowSnackbarAction extends ContextAction<Intent> {
 class ReflectAction extends ContextAction<Intent> {
   @override
   Object? invoke(Intent intent, [BuildContext? context]) {
-    context?.findAncestorStateOfType<_ActionReflectorState>()?._notify(
-      context,
-      intent.runtimeType.toString().replaceAll('Intent', ''),
-    );
+    context?.findAncestorStateOfType<_ActionReflectorState>()?._notify(context, 'Intent invoked');
     return null;
   }
 }

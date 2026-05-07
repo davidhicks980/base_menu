@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../submenu.dart';
 import 'menu_entry_panel.dart';
@@ -26,7 +27,10 @@ class MenuEntrySubmenu extends StatelessWidget {
       alignment: alignment,
       menuAlignment: menuAlignment,
       hoverDelay: hoverDelay,
-      panel: MenuEntryPanel(menuEntry: entry, constraints: constraints),
+      panel: MenuEntryPanel(
+        menuEntry: entry,
+        constraints: entry == Menu.table ? null : constraints,
+      ),
       leading: entry.child.icon != null ? Icon(entry.child.icon) : null,
       child: Text(entry.child.label),
     );

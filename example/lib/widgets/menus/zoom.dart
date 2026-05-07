@@ -136,7 +136,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
               color: Hoverable.isHoveredOf(context) && !FocusScope.of(context).hasFocus
-                  ? FloogleColors.zoomHoverColor
+                  ? FloogleColors.toolbarItemHoverFocus
                   : FloogleColors.transparent,
             ),
             child: child,

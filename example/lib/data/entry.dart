@@ -869,7 +869,7 @@ abstract class Entry {
 
   static const insertTable = DimensionalPickerMenuEntry(
     'Insert table',
-    intent: InsertTableIntent(),
+    intent: InsertTableIntent(1, 1),
   );
 
   static const checkList = MenuEntryWithIntent(

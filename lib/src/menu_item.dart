@@ -7,10 +7,10 @@ import 'control.dart';
 class BaseMenuItem extends StatefulWidget {
   const BaseMenuItem({
     super.key,
+    this.onTap,
     this.onPointerHover,
     this.onPointerEnter,
     this.onPointerLeave,
-    this.onPressed,
     this.onFocusChange,
     this.focusNode,
     this.autofocus = false,
@@ -22,17 +22,17 @@ class BaseMenuItem extends StatefulWidget {
     required this.child,
   });
 
+  final VoidCallback? onTap;
   final PointerHoverEventListener? onPointerHover;
   final PointerHoverEventListener? onPointerEnter;
   final PointerExitEventListener? onPointerLeave;
-  final VoidCallback? onPressed;
   final ValueChanged<bool>? onFocusChange;
   final FocusNode? focusNode;
   final bool autofocus;
-  final HitTestBehavior behavior;
-  final WidgetStateProperty<MouseCursor>? mouseCursor;
   final bool requestFocusOnHover;
   final bool requestCloseOnActivate;
+  final HitTestBehavior behavior;
+  final WidgetStateProperty<MouseCursor>? mouseCursor;
   final SemanticsRole? role;
   final Widget child;
 
@@ -97,7 +97,8 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
         Actions.invoke(context, const DismissIntent());
       }
     }
-    widget.onPressed?.call();
+
+    widget.onTap?.call();
   }
 
   void _handleHoverEnter(PointerHoverEvent event) {
@@ -114,15 +115,15 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
       child: Semantics.fromProperties(
         properties: SemanticsProperties(role: widget.role),
         child: BaseControl<BaseMenuItem>(
-          mouseCursor: widget.mouseCursor ?? WidgetStateMouseCursor.adaptiveClickable,
-          behavior: widget.behavior,
-          onFocusChange: widget.onFocusChange,
-          onPointerHover: widget.onPointerHover,
+          onTap: _handlePressed,
           onPointerEnter: _handleHoverEnter,
+          onPointerHover: widget.onPointerHover,
           onPointerLeave: widget.onPointerLeave,
-          onPressed: _handlePressed,
           focusNode: _focusNode,
+          onFocusChange: widget.onFocusChange,
           autofocus: widget.autofocus,
+          mouseCursor: widget.mouseCursor,
+          behavior: widget.behavior,
           child: widget.child,
         ),
       ),

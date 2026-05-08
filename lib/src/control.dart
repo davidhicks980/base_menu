@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import 'focusable.dart';
 import 'hoverable.dart';
-import 'pressable.dart';
+import 'tappable.dart';
 
 class _ControlScope<T> extends InheritedModel<WidgetState> {
   const _ControlScope({required this.states, required super.child});
@@ -35,7 +35,7 @@ class BaseControl<T> extends StatefulWidget {
     this.onPointerHover,
     this.onPointerEnter,
     this.onPointerLeave,
-    this.onPressed,
+    this.onTap,
     this.onFocusChange,
     this.focusNode,
     this.autofocus = false,
@@ -48,7 +48,7 @@ class BaseControl<T> extends StatefulWidget {
   final PointerHoverEventListener? onPointerHover;
   final PointerHoverEventListener? onPointerEnter;
   final PointerExitEventListener? onPointerLeave;
-  final VoidCallback? onPressed;
+  final VoidCallback? onTap;
   final ValueChanged<bool>? onFocusChange;
   final FocusNode? focusNode;
   final bool autofocus;
@@ -64,17 +64,27 @@ class BaseControl<T> extends StatefulWidget {
 
   @optionalTypeArgs
   static bool isHoveredOf<T>(BuildContext context) {
-    return Hoverable.isHoveredOf<BaseControl<T>>(context);
+    return BaseHoverable.isHoveredOf<BaseControl<T>>(context);
   }
 
   @optionalTypeArgs
   static bool isPressedOf<T>(BuildContext context) {
-    return Pressable.isPressedOf<BaseControl<T>>(context);
+    return BaseTappable.isPressedOf<BaseControl<T>>(context);
   }
 
   @optionalTypeArgs
   static bool isFocusedOf<T>(BuildContext context) {
-    return Focusable.isFocusedOf<BaseControl<T>>(context);
+    return BaseFocusable.isFocusedOf<BaseControl<T>>(context);
+  }
+
+  @optionalTypeArgs
+  static bool isFocusHighlightShownOf<T>(BuildContext context) {
+    return BaseFocusable.isFocusHighlightShownOf<BaseControl<T>>(context);
+  }
+
+  @optionalTypeArgs
+  static bool isHoverHighlightShownOf<T>(BuildContext context) {
+    return BaseHoverable.isHoverHighlightShownOf<BaseControl<T>>(context);
   }
 
   @optionalTypeArgs
@@ -106,38 +116,64 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
     ),
   };
 
+  bool isHovered = false;
+
+  void _handleActivate(Intent intent) {
+    widget.onTap?.call();
+  }
+
   Widget _buildHoverable(BuildContext context) {
-    return Hoverable<BaseControl<T>>(
-      behavior: widget.behavior,
-      enabled: widget.enabled,
-      onHover: widget.onPointerHover,
-      onEnter: widget.onPointerEnter,
-      onExit: widget.onPointerLeave,
-      states: widget.mouseCursor != null
-          ? {
-              if (Pressable.isPressedOf<BaseControl<T>>(context)) WidgetState.pressed,
-              if (Focusable.isFocusedOf<BaseControl<T>>(context)) WidgetState.focused,
-            }
-          : null,
-      mouseCursor: widget.mouseCursor,
-      child: Builder(
-        builder: (BuildContext context) {
-          return _ControlScope<T>(
-            states: {
-              if (Hoverable.isHoveredOf<BaseControl<T>>(context)) WidgetState.hovered,
-              if (Pressable.isPressedOf<BaseControl<T>>(context)) WidgetState.pressed,
-              if (Focusable.isFocusedOf<BaseControl<T>>(context)) WidgetState.focused,
-              if (!widget.enabled) WidgetState.disabled,
-            },
-            child: widget.child,
-          );
-        },
-      ),
+    return StatefulBuilder(
+      builder: (BuildContext context, void Function(void Function()) setState) {
+        final hasMouseCursor = widget.mouseCursor != null;
+        return BaseHoverable<BaseControl<T>>(
+          behavior: widget.behavior,
+          enabled: widget.enabled,
+          onHover: widget.onPointerHover,
+          onEnter: hasMouseCursor
+              ? widget.onPointerEnter
+              : (PointerHoverEvent event) {
+                  widget.onPointerEnter?.call(event);
+                  setState(() {
+                    isHovered = true;
+                  });
+                },
+          onExit: !isHovered
+              ? widget.onPointerLeave
+              : (PointerExitEvent event) {
+                  setState(() {
+                    isHovered = false;
+                  });
+                  widget.onPointerLeave?.call(event);
+                },
+          mouseCursor: hasMouseCursor
+              ? widget.mouseCursor!.resolve({
+                  if (isHovered) WidgetState.hovered,
+                  if (BaseTappable.isPressedOf<BaseControl<T>>(context)) WidgetState.pressed,
+                  if (BaseFocusable.isFocusedOf<BaseControl<T>>(context)) WidgetState.focused,
+                  if (!widget.enabled) WidgetState.disabled,
+                })
+              : MouseCursor.defer,
+          child: _buildControlScope(),
+        );
+      },
     );
   }
 
-  void _handleActivate(Intent intent) {
-    widget.onPressed?.call();
+  Widget _buildControlScope() {
+    return Builder(
+      builder: (context) {
+        return _ControlScope<T>(
+          states: {
+            if (BaseHoverable.isHoveredOf<BaseControl<T>>(context)) WidgetState.hovered,
+            if (BaseTappable.isPressedOf<BaseControl<T>>(context)) WidgetState.pressed,
+            if (BaseFocusable.isFocusedOf<BaseControl<T>>(context)) WidgetState.focused,
+            if (!widget.enabled) WidgetState.disabled,
+          },
+          child: widget.child,
+        );
+      },
+    );
   }
 
   @override
@@ -148,14 +184,14 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
         actions: _actions,
         child: Shortcuts(
           shortcuts: _shortcuts,
-          child: Focusable<BaseControl<T>>(
+          child: BaseFocusable<BaseControl<T>>(
             onFocusChange: widget.onFocusChange,
             focusNode: widget.focusNode,
             autofocus: widget.autofocus,
             enabled: widget.enabled,
-            child: Pressable<BaseControl<T>>(
+            child: BaseTappable<BaseControl<T>>(
               enabled: widget.enabled,
-              onPressed: widget.onPressed,
+              onTap: widget.onTap,
               child: Builder(builder: _buildHoverable),
             ),
           ),

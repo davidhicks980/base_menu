@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
@@ -99,12 +98,6 @@ class _ZoomMenuState extends State<ZoomMenu> {
     _menuController.close();
   }
 
-  void _handleHover(PointerHoverEvent event) {
-    if (MenuController.maybeIsOpenOf(context) != true && FocusScope.of(context).hasFocus) {
-      _focusNode.requestFocus();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final child = DefaultTextStyle(
@@ -127,15 +120,14 @@ class _ZoomMenuState extends State<ZoomMenu> {
         children: zoomWidgets,
       ),
     );
-    return Hoverable(
-      onEnter: _handleHover,
+    return BaseHoverable(
       mouseCursor: WidgetStateMouseCursor.textable,
       child: Builder(
         builder: (context) {
           return DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(4),
-              color: Hoverable.isHoveredOf(context) && !FocusScope.of(context).hasFocus
+              color: BaseHoverable.isHoveredOf(context)
                   ? FloogleColors.toolbarItemHoverFocus
                   : FloogleColors.transparent,
             ),

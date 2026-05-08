@@ -2,11 +2,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 @optionalTypeArgs
-class Pressable<T> extends StatefulWidget {
-  const Pressable({
+class BaseTappable<T> extends StatefulWidget {
+  const BaseTappable({
     super.key,
     this.enabled = true,
-    this.onPressed,
+    this.onTap,
     this.behavior = HitTestBehavior.deferToChild,
     this.semanticsGestureDelegate,
     this.excludeFromSemantics = false,
@@ -14,7 +14,7 @@ class Pressable<T> extends StatefulWidget {
   });
 
   final bool enabled;
-  final VoidCallback? onPressed;
+  final VoidCallback? onTap;
   final HitTestBehavior behavior;
   final SemanticsGestureDelegate? semanticsGestureDelegate;
   final bool excludeFromSemantics;
@@ -24,15 +24,11 @@ class Pressable<T> extends StatefulWidget {
     return context.dependOnInheritedWidgetOfExactType<_PressableScope<T>>()?.pressed ?? false;
   }
 
-  static bool readIsPressedOf<T>(BuildContext context) {
-    return context.getInheritedWidgetOfExactType<_PressableScope<T>>()?.pressed ?? false;
-  }
-
   @override
-  State<Pressable<T>> createState() => _PressableState<T>();
+  State<BaseTappable<T>> createState() => _BaseTappableState<T>();
 }
 
-class _PressableState<T> extends State<Pressable<T>> {
+class _BaseTappableState<T> extends State<BaseTappable<T>> {
   Map<Type, GestureRecognizerFactory>? _gestures;
   DeviceGestureSettings? _gestureSettings;
   bool isPressed = false;
@@ -47,7 +43,7 @@ class _PressableState<T> extends State<Pressable<T>> {
     setState(() {
       isPressed = false;
     });
-    widget.onPressed?.call();
+    widget.onTap?.call();
   }
 
   void _handleTapCancel() {

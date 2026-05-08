@@ -38,7 +38,7 @@ class MenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasSubmenu = isExpanded != null;
     final item = BaseMenuItem(
-      onPressed: intent != null
+      onTap: intent != null
           ? () {
               Actions.invoke(context, intent!);
               onTap?.call();

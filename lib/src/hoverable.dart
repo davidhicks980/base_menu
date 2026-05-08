@@ -2,53 +2,70 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 @optionalTypeArgs
-class Hoverable<T> extends StatefulWidget {
-  const Hoverable({
+class BaseHoverable<T> extends StatefulWidget {
+  const BaseHoverable({
     super.key,
     this.onHover,
     this.onEnter,
     this.onExit,
     this.behavior = HitTestBehavior.deferToChild,
-    this.mouseCursor,
+    this.mouseCursor = MouseCursor.defer,
     this.opaque = true,
     this.enabled = true,
-    this.states,
     required this.child,
   });
 
   final PointerHoverEventListener? onHover;
   final PointerHoverEventListener? onEnter;
   final PointerExitEventListener? onExit;
-  final WidgetStateProperty<MouseCursor>? mouseCursor;
+  final MouseCursor mouseCursor;
   final HitTestBehavior behavior;
   final bool enabled;
   final bool opaque;
-  final Set<WidgetState>? states;
   final Widget child;
 
   @optionalTypeArgs
   static bool isHoveredOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()?.hovered ?? false;
+    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()!.hovered;
   }
 
   @optionalTypeArgs
-  static bool readIsHoveredOf<T>(BuildContext context) {
-    return context.getInheritedWidgetOfExactType<_HoverableScope<T>>()?.hovered ?? false;
+  static bool isHoverHighlightShownOf<T>(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()!.showHoverHighlight;
   }
 
   @override
-  State<Hoverable<T>> createState() => _HoverableState<T>();
+  State<BaseHoverable<T>> createState() => _BaseHoverableState<T>();
 }
 
-class _HoverableState<T> extends State<Hoverable<T>> {
+class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
   bool isHovered = false;
 
   @override
-  void didUpdateWidget(Hoverable<T> oldWidget) {
+  void initState() {
+    super.initState();
+    FocusManager.instance.addHighlightModeListener(_handleHighlightModeChange);
+  }
+
+  @override
+  void didUpdateWidget(BaseHoverable<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!widget.enabled && isHovered) {
       isHovered = false;
     }
+  }
+
+  @override
+  void dispose() {
+    FocusManager.instance.removeHighlightModeListener(_handleHighlightModeChange);
+    super.dispose();
+  }
+
+  void _handleHighlightModeChange(FocusHighlightMode _) {
+    setState(() {
+      // Update the highlight mode to trigger a rebuild, which will update the
+      // focus highlight if needed.
+    });
   }
 
   void _handleEnter(PointerHoverEvent event) {
@@ -62,6 +79,7 @@ class _HoverableState<T> extends State<Hoverable<T>> {
     if (!isHovered) {
       _handleEnter(event);
     }
+
     widget.onHover?.call(event);
   }
 
@@ -85,6 +103,14 @@ class _HoverableState<T> extends State<Hoverable<T>> {
     return null;
   }
 
+  bool get _showHoverHighlight {
+    // Hover highlights are only shown in traditional highlight modes (e.g. mouse),
+    // and not in touch modes.
+    return isHovered &&
+        widget.enabled &&
+        FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
+  }
+
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
@@ -92,25 +118,28 @@ class _HoverableState<T> extends State<Hoverable<T>> {
       onHover: _hoverCallback,
       onExit: widget.enabled ? _handleLeave : null,
       hitTestBehavior: widget.behavior,
-      cursor: widget.mouseCursor != null
-          ? widget.mouseCursor!.resolve({
-              if (!widget.enabled) WidgetState.disabled,
-              if (isHovered) WidgetState.hovered,
-              ...?widget.states,
-            })
-          : MouseCursor.defer,
-      child: _HoverableScope<T>(hovered: isHovered, child: widget.child),
+      cursor: widget.mouseCursor,
+      child: _HoverableScope<T>(
+        hovered: isHovered,
+        showHoverHighlight: _showHoverHighlight,
+        child: widget.child,
+      ),
     );
   }
 }
 
 class _HoverableScope<T> extends InheritedWidget {
-  const _HoverableScope({required this.hovered, required super.child});
+  const _HoverableScope({
+    required this.hovered,
+    required super.child,
+    required this.showHoverHighlight,
+  });
 
   final bool hovered;
+  final bool showHoverHighlight;
 
   @override
   bool updateShouldNotify(_HoverableScope<T> oldWidget) {
-    return hovered != oldWidget.hovered;
+    return hovered != oldWidget.hovered || showHoverHighlight != oldWidget.showHoverHighlight;
   }
 }

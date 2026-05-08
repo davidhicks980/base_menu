@@ -111,6 +111,7 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
 
   void _handleSelect() {
     state?.select(widget.value);
+    MenuController.maybeOf(context)?.close();
   }
 
   void _handlePointerLeave(PointerExitEvent event) {
@@ -136,7 +137,7 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
       requestFocusOnHover: false,
       onPointerEnter: _handlePointerEnter,
       onPointerLeave: _handlePointerLeave,
-      onPressed: _handleSelect,
+      onTap: _handleSelect,
       child: ConstrainedBox(
         constraints: widget.constraints,
         child: Builder(
@@ -542,7 +543,7 @@ class _Anchor extends StatelessWidget {
             );
           },
         ),
-        onPressed: () {
+        onTap: () {
           menuController.open();
           focusNode.requestFocus();
         },

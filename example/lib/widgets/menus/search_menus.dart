@@ -76,7 +76,7 @@ class SearchMenu extends StatelessWidget {
                 )
               : BaseControl(
                   mouseCursor: WidgetStateMouseCursor.textable,
-                  onPressed: () {
+                  onTap: () {
                     MenuController.maybeOf(context)?.open();
                   },
                   child: const Padding(
@@ -480,7 +480,7 @@ class SearchEntry extends StatelessWidget {
         child: Semantics(
           selected: selected,
           child: BaseMenuItem(
-            onPressed: onPressed,
+            onTap: onPressed,
             onPointerEnter: onEntered,
             requestFocusOnHover: false,
             child: MenuActionLabel(

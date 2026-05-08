@@ -514,6 +514,7 @@ class _BaseMenuState extends State<BaseMenu> {
   late final Map<Type, Action<Intent>> _anchorActions = <Type, Action<Intent>>{
     MenuEnterIntent: CallbackAction<MenuEnterIntent>(onInvoke: _handleEnterMenu),
   };
+
   Map<ShortcutActivator, Intent>? _anchorShortcuts;
   Map<Type, Action<Intent>>? _overlayActions;
   TextDirection _textDirection = TextDirection.ltr;
@@ -598,7 +599,18 @@ class _BaseMenuState extends State<BaseMenu> {
     }
   }
 
-  Widget _anchorBuilder(BuildContext context, MenuController controller, Widget? child) {
+  void _handleMenuExit(Intent intent) {
+    if (_parentIsSubmenu && _parentOrientation == widget.orientation) {
+      _menuController.close();
+      return;
+    }
+
+    FocusScope.of(context).previousFocus();
+    FocusManager.instance.applyFocusChangesIfNeeded();
+    Actions.maybeInvoke(context, intent);
+  }
+
+  Widget _buildAnchor(BuildContext context, MenuController controller, Widget? child) {
     return Actions(
       actions: _anchorActions,
       child: Shortcuts(
@@ -628,7 +640,34 @@ class _BaseMenuState extends State<BaseMenu> {
     );
   }
 
-  bool isMounted = false;
+  Widget _buildOverlay(BuildContext context, RawMenuOverlayInfo position) {
+    if (_overlayActions == null) {
+      final Type intentType = switch (widget.orientation) {
+        Axis.vertical => HorizontalMenuPreviousFocusIntent,
+        Axis.horizontal => VerticalMenuPreviousFocusIntent,
+      };
+      _overlayActions = {intentType: CallbackAction(onInvoke: _handleMenuExit)};
+    }
+
+    return Actions(
+      actions: _overlayActions!,
+      child: _MenuOverlay(
+        submenuAxis: widget.orientation,
+        position: position,
+        alignmentOffset: widget.alignmentOffset,
+        alignment: widget.alignment,
+        menuAlignment: widget.menuAlignment,
+        consumeOutsideTaps: widget.consumeOutsideTaps,
+        padding: widget.padding,
+        semanticProperties: widget.semanticProperties,
+        overlayPadding: widget.overlayPadding,
+        menuController: _menuController,
+        focusScopeNode: _menuScopeNode,
+        child: widget.panel,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
@@ -653,7 +692,7 @@ class _BaseMenuState extends State<BaseMenu> {
             consumeOutsideTaps: widget.consumeOutsideTaps,
             controller: _menuController,
             overlayBuilder: _buildOverlay,
-            builder: _anchorBuilder,
+            builder: _buildAnchor,
           ),
         ),
       ),
@@ -661,44 +700,116 @@ class _BaseMenuState extends State<BaseMenu> {
 
     return child;
   }
+}
 
-  void _exitMenuActionCallback(Intent intent) {
-    if (_parentIsSubmenu && _parentOrientation == widget.orientation) {
-      _menuController.close();
-      return;
-    }
+class _MenuOverlay extends StatelessWidget {
+  const _MenuOverlay({
+    required this.alignmentOffset,
+    required this.alignment,
+    required this.menuAlignment,
+    required this.position,
+    required this.padding,
+    required this.overlayPadding,
+    required this.menuController,
+    required this.focusScopeNode,
+    required this.child,
+    required this.semanticProperties,
+    required this.consumeOutsideTaps,
+    required this.submenuAxis,
+  });
 
-    FocusScope.of(context).previousFocus();
-    FocusManager.instance.applyFocusChangesIfNeeded();
-    Actions.maybeInvoke(context, intent);
+  final Offset alignmentOffset;
+  final AlignmentGeometry? alignment;
+  final AlignmentGeometry? menuAlignment;
+  final RawMenuOverlayInfo position;
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry overlayPadding;
+  final bool consumeOutsideTaps;
+  final MenuController menuController;
+  final FocusScopeNode focusScopeNode;
+  final Axis submenuAxis;
+  final SemanticsProperties semanticProperties;
+
+  Widget _buildConditionalTraversal(BuildContext context, Widget? child) {
+    return Focus(
+      includeSemantics: false,
+      canRequestFocus: false,
+      skipTraversal: !focusScopeNode.hasFocus,
+      descendantsAreTraversable: true,
+      descendantsAreFocusable: true,
+      child: child!,
+    );
   }
 
-  Widget _buildOverlay(BuildContext context, RawMenuOverlayInfo position) {
-    if (_overlayActions == null) {
-      final Type intentType = switch (widget.orientation) {
-        Axis.vertical => HorizontalMenuPreviousFocusIntent,
-        Axis.horizontal => VerticalMenuPreviousFocusIntent,
-      };
-      _overlayActions = {intentType: CallbackAction(onInvoke: _exitMenuActionCallback)};
-    }
-
-    return Actions(
-      actions: _overlayActions!,
-      child: _MenuOverlay(
-        submenuAxis: widget.orientation,
-        position: position,
-        alignmentOffset: widget.alignmentOffset,
-        alignment: widget.alignment,
-        menuAlignment: widget.menuAlignment,
-        consumeOutsideTaps: widget.consumeOutsideTaps,
-        padding: widget.padding,
-        semanticProperties: widget.semanticProperties,
-        overlayPadding: widget.overlayPadding,
-        menuController: _menuController,
-        focusScopeNode: _menuScopeNode,
-        child: widget.panel,
+  @override
+  Widget build(BuildContext context) {
+    final MenuController menuController = MenuController.maybeOf(context)!;
+    final Widget panel = TapRegion(
+      groupId: position.tapRegionGroupId,
+      consumeOutsideTaps: consumeOutsideTaps,
+      onTapOutside: (PointerDownEvent event) {
+        menuController.close();
+      },
+      child: ListenableBuilder(
+        listenable: focusScopeNode,
+        builder: _buildConditionalTraversal,
+        child: _MenuScope(
+          orientation: submenuAxis,
+          isSubmenu: true,
+          child: _InlineMenu(
+            focusScopeNode: focusScopeNode,
+            semanticProperties: semanticProperties,
+            child: child,
+          ),
+        ),
       ),
     );
+
+    return ConstrainedBox(
+      constraints: BoxConstraints.loose(position.overlaySize),
+      child: Builder(
+        builder: (BuildContext context) {
+          final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
+          final TextDirection textDirection = Directionality.of(context);
+          // Resolve fallback alignment here so that alignmentOffset defaults to
+          // being directionally-agnostic.
+          final anchorAlignment =
+              (alignment ??
+                      switch (_MenuScope._maybeOf(context)?.orientation) {
+                        Axis.vertical => AlignmentDirectional.topEnd,
+                        _ => AlignmentDirectional.bottomStart,
+                      })
+                  .resolve(textDirection);
+
+          return CustomSingleChildLayout(
+            delegate: _MenuLayout(
+              overlayPadding: overlayPadding.resolve(textDirection),
+              padding: padding,
+              avoidBounds: displayFeatures != null ? avoidBounds(displayFeatures) : const {},
+              textDirection: textDirection,
+              anchorRect: position.anchorRect,
+              alignmentOffset: alignmentOffset,
+              menuPosition: position.position,
+              menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+              alignment: anchorAlignment,
+            ),
+            child: panel,
+          );
+        },
+      ),
+    );
+  }
+
+  static Set<ui.Rect> avoidBounds(List<ui.DisplayFeature> displayFeatures) {
+    final bounds = <ui.Rect>{};
+    for (final feature in displayFeatures) {
+      if (feature.bounds.shortestSide > 0 ||
+          feature.state == ui.DisplayFeatureState.postureHalfOpened) {
+        bounds.add(feature.bounds);
+      }
+    }
+    return bounds;
   }
 }
 
@@ -878,14 +989,14 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
 
 class _MenuFocusTraversal extends StatefulWidget {
   const _MenuFocusTraversal({
-    required this.child,
-    required this.focusScopeNode,
     required this.axis,
+    required this.focusScopeNode,
+    required this.child,
   });
 
-  final Widget child;
-  final FocusScopeNode focusScopeNode;
   final Axis axis;
+  final FocusScopeNode focusScopeNode;
+  final Widget child;
 
   @override
   State<_MenuFocusTraversal> createState() => _MenuFocusTraversalState();
@@ -1030,117 +1141,6 @@ class _TraversePreviousAction extends Action<_BaseMenuFocusTraversalIntent> {
     }
 
     policy.requestFocusCallback(last);
-  }
-}
-
-class _MenuOverlay extends StatelessWidget {
-  const _MenuOverlay({
-    required this.alignmentOffset,
-    required this.alignment,
-    required this.menuAlignment,
-    required this.position,
-    required this.padding,
-    required this.overlayPadding,
-    required this.menuController,
-    required this.focusScopeNode,
-    required this.child,
-    required this.semanticProperties,
-    required this.consumeOutsideTaps,
-    required this.submenuAxis,
-  });
-
-  final Offset alignmentOffset;
-  final AlignmentGeometry? alignment;
-  final AlignmentGeometry? menuAlignment;
-  final RawMenuOverlayInfo position;
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final EdgeInsetsGeometry overlayPadding;
-  final bool consumeOutsideTaps;
-  final MenuController menuController;
-  final FocusScopeNode focusScopeNode;
-  final Axis submenuAxis;
-  final SemanticsProperties semanticProperties;
-
-  Widget _buildConditionalTraversal(BuildContext context, Widget? child) {
-    return Focus(
-      includeSemantics: false,
-      canRequestFocus: false,
-      skipTraversal: !focusScopeNode.hasFocus,
-      descendantsAreTraversable: true,
-      descendantsAreFocusable: true,
-      child: child!,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final MenuController menuController = MenuController.maybeOf(context)!;
-    final Widget panel = TapRegion(
-      groupId: position.tapRegionGroupId,
-      consumeOutsideTaps: consumeOutsideTaps,
-      onTapOutside: (PointerDownEvent event) {
-        menuController.close();
-      },
-      child: ListenableBuilder(
-        listenable: focusScopeNode,
-        builder: _buildConditionalTraversal,
-        child: _MenuScope(
-          orientation: submenuAxis,
-          isSubmenu: true,
-          child: _InlineMenu(
-            focusScopeNode: focusScopeNode,
-            semanticProperties: semanticProperties,
-            child: child,
-          ),
-        ),
-      ),
-    );
-
-    return ConstrainedBox(
-      constraints: BoxConstraints.loose(position.overlaySize),
-      child: Builder(
-        builder: (BuildContext context) {
-          final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
-          final TextDirection textDirection = Directionality.of(context);
-          // Resolve fallback alignment here so that alignmentOffset defaults to
-          // being directionally-agnostic.
-          final anchorAlignment =
-              (alignment ??
-                      switch (_MenuScope._maybeOf(context)?.orientation) {
-                        Axis.vertical => AlignmentDirectional.topEnd,
-                        _ => AlignmentDirectional.bottomStart,
-                      })
-                  .resolve(textDirection);
-
-          return CustomSingleChildLayout(
-            delegate: _MenuLayout(
-              overlayPadding: overlayPadding.resolve(textDirection),
-              padding: padding,
-              avoidBounds: displayFeatures != null ? avoidBounds(displayFeatures) : const {},
-              textDirection: textDirection,
-              anchorRect: position.anchorRect,
-              alignmentOffset: alignmentOffset,
-              menuPosition: position.position,
-              menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
-              alignment: anchorAlignment,
-            ),
-            child: panel,
-          );
-        },
-      ),
-    );
-  }
-
-  static Set<ui.Rect> avoidBounds(List<ui.DisplayFeature> displayFeatures) {
-    final bounds = <ui.Rect>{};
-    for (final feature in displayFeatures) {
-      if (feature.bounds.shortestSide > 0 ||
-          feature.state == ui.DisplayFeatureState.postureHalfOpened) {
-        bounds.add(feature.bounds);
-      }
-    }
-    return bounds;
   }
 }
 

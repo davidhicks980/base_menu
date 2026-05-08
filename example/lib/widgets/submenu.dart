@@ -170,7 +170,7 @@ class __SubmenuButtonState extends State<_SubmenuButton> {
         requestCloseOnActivate: false,
         onPointerEnter: _handlePointerEnter,
         onPointerLeave: _handlePointerLeave,
-        onPressed: _handlePressed,
+        onTap: _handlePressed,
         child: widget.child,
       ),
     );

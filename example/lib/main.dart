@@ -70,45 +70,25 @@ class Main extends StatefulWidget {
   State<Main> createState() => _MainState();
 }
 
-class _MainState extends State<Main> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 100),
-    value: 1,
-  );
-  bool _isHeaderShown = true;
+class _MainState extends State<Main> {
+  final WidgetOrderTraversalPolicy _headerTraversal = WidgetOrderTraversalPolicy();
+  bool _isHeaderExpanded = true;
+  bool _isHeaderVisible = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller.addStatusListener((status) {
+  void _handleHeaderAnimationEnd() {
+    if (!_isHeaderExpanded) {
       setState(() {
-        _isHeaderShown = !_controller.isDismissed;
+        _isHeaderVisible = false;
       });
-    });
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final bool isHeaderShown = AppStateManager.isHeaderShownOf(context);
-    if (isHeaderShown != _controller.isForwardOrCompleted) {
-      if (isHeaderShown) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
     }
   }
 
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    _isHeaderExpanded = AppStateManager.isHeaderShownOf(context);
+    if (_isHeaderExpanded) {
+      _isHeaderVisible = true;
+    }
     return IconTheme(
       data: const IconThemeData(
         size: 18,
@@ -121,64 +101,58 @@ class _MainState extends State<Main> with SingleTickerProviderStateMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            if (_isHeaderShown)
-              FocusTraversalGroup(
-                policy: WidgetOrderTraversalPolicy(),
-                child: FadeTransition(
-                  opacity: _controller,
-                  child: MatrixTransition(
-                    animation: _controller,
-                    onTransform: (double animationValue) {
-                      return Matrix4.translationValues(0, -30 * (1 - animationValue), 0);
-                    },
-                    child: SizedBox(
-                      height: 62,
-                      child: Stack(
-                        children: [
-                          const Positioned(top: 16, left: 17, child: FloogleDocsLogoButton()),
-                          const Positioned(
-                            top: 7,
-                            left: 55,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              spacing: 3,
-                              children: [
-                                Flexible(child: TitleField()),
-                                TitleIconButton(
-                                  tooltip: TextSpan(text: 'Star'),
-                                  child: Icon(Symbols.star_border, weight: kIsWeb ? 500 : 350),
-                                ),
-                                TitleIconButton(
-                                  tooltip: TextSpan(text: 'Add shortcut to drive'),
-                                  child: Icon(Symbols.add_to_drive),
-                                ),
-                                TitleIconButton(
-                                  tooltip: TextSpan(text: 'See document status'),
-                                  child: _CloudIcon(),
-                                ),
-                              ],
-                            ),
+            FocusTraversalGroup(
+              policy: _headerTraversal,
+              child: AnimatedOpacity(
+                opacity: _isHeaderExpanded ? 1 : 0,
+                duration: const Duration(milliseconds: 100),
+                onEnd: _handleHeaderAnimationEnd,
+                child: Visibility(
+                  visible: _isHeaderVisible,
+                  maintainState: true,
+                  child: SizedBox(
+                    height: 62,
+                    child: Stack(
+                      children: [
+                        AnimatedPositioned(
+                          top: _isHeaderExpanded ? 16 : 16 - 40,
+                          left: 17,
+                          duration: const Duration(milliseconds: 100),
+                          child: const FloogleDocsLogoButton(),
+                        ),
+                        AnimatedPositioned(
+                          top: _isHeaderExpanded ? 7 : 7 - 40,
+                          left: 55,
+                          duration: const Duration(milliseconds: 100),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            spacing: 3,
+                            children: [
+                              Flexible(child: TitleField()),
+                              TitleIconButton(
+                                tooltip: TextSpan(text: 'Star'),
+                                child: Icon(Symbols.star_border, weight: kIsWeb ? 500 : 350),
+                              ),
+                              TitleIconButton(
+                                tooltip: TextSpan(text: 'Add shortcut to drive'),
+                                child: Icon(Symbols.add_to_drive),
+                              ),
+                              TitleIconButton(
+                                tooltip: TextSpan(text: 'See document status'),
+                                child: _CloudIcon(),
+                              ),
+                            ],
                           ),
+                        ),
 
-                          Positioned(
-                            top: 34,
-                            left: 54,
-                            right: 0,
-                            child: MatrixTransition(
-                              animation: _controller,
-                              onTransform: (animationValue) {
-                                return Matrix4.translationValues(0, 30 * (1 - animationValue), 0);
-                              },
-                              child: const DocumentMenuBar(),
-                            ),
-                          ),
-                        ],
-                      ),
+                        const Positioned(top: 34, left: 54, right: 0, child: DocumentMenuBar()),
+                      ],
                     ),
                   ),
                 ),
               ),
+            ),
 
             const Padding(
               padding: EdgeInsets.only(left: 16, right: 16, bottom: 2, top: 2),

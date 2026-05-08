@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
 @optionalTypeArgs
-class Focusable<T> extends StatefulWidget {
-  const Focusable({
+class BaseFocusable<T> extends StatefulWidget {
+  const BaseFocusable({
     super.key,
     this.autofocus = false,
     this.enabled = true,
@@ -18,19 +18,44 @@ class Focusable<T> extends StatefulWidget {
   final Widget child;
 
   static bool isFocusedOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>()?.focused ?? false;
+    return context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>()!.focused;
   }
 
-  static bool readIsFocusedOf<T>(BuildContext context) {
-    return context.getInheritedWidgetOfExactType<_FocusableScope<T>>()?.focused ?? false;
+  static bool isFocusHighlightShownOf<T>(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>()!.showFocusHighlight;
   }
 
   @override
-  State<Focusable<T>> createState() => _FocusableState<T>();
+  State<BaseFocusable<T>> createState() => _BaseFocusableState<T>();
 }
 
-class _FocusableState<T> extends State<Focusable<T>> {
+class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
   bool _isFocused = false;
+  NavigationMode? _navigationMode;
+
+  @override
+  void initState() {
+    super.initState();
+    FocusManager.instance.addHighlightModeListener(_handleHighlightModeChange);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _navigationMode = MediaQuery.maybeNavigationModeOf(context);
+  }
+
+  @override
+  void dispose() {
+    FocusManager.instance.removeHighlightModeListener(_handleHighlightModeChange);
+    super.dispose();
+  }
+
+  void _handleHighlightModeChange(FocusHighlightMode _) {
+    setState(() {
+      // Rebuild to update the focus highlight when the highlight mode changes.
+    });
+  }
 
   void _handleFocusChange(bool focused) {
     if (_isFocused != focused) {
@@ -41,26 +66,45 @@ class _FocusableState<T> extends State<Focusable<T>> {
     }
   }
 
+  bool get _canRequestFocus => switch (_navigationMode) {
+    NavigationMode.traditional || null => widget.enabled,
+    NavigationMode.directional => true,
+  };
+
+  bool get _showFocusHighlight {
+    return _isFocused &&
+        FocusManager.instance.highlightMode == FocusHighlightMode.traditional &&
+        _canRequestFocus;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Focus(
-      autofocus: widget.enabled && widget.autofocus,
+      autofocus: widget.autofocus,
       focusNode: widget.focusNode,
-      canRequestFocus: widget.enabled,
-      skipTraversal: !widget.enabled,
+      canRequestFocus: _canRequestFocus,
       onFocusChange: _handleFocusChange,
-      child: _FocusableScope<T>(focused: _isFocused, child: widget.child),
+      child: _FocusableScope<T>(
+        focused: _isFocused,
+        showFocusHighlight: _showFocusHighlight,
+        child: widget.child,
+      ),
     );
   }
 }
 
 class _FocusableScope<T> extends InheritedWidget {
-  const _FocusableScope({required this.focused, required super.child});
+  const _FocusableScope({
+    required this.focused,
+    required this.showFocusHighlight,
+    required super.child,
+  });
 
   final bool focused;
+  final bool showFocusHighlight;
 
   @override
   bool updateShouldNotify(_FocusableScope<T> oldWidget) {
-    return focused != oldWidget.focused;
+    return focused != oldWidget.focused || showFocusHighlight != oldWidget.showFocusHighlight;
   }
 }

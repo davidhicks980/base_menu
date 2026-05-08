@@ -167,7 +167,7 @@ class Cell extends StatelessWidget {
 
         return BaseMenuItem(
           onPointerEnter: onPointerEnter,
-          onPressed: onTap,
+          onTap: onTap,
           child: Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 1.0),

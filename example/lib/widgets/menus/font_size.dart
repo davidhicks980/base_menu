@@ -59,7 +59,6 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
     final val = double.tryParse(value);
     if (val == null) {
       _focusNode.requestFocus();
-
       return;
     }
 
@@ -92,12 +91,12 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
         ),
       ),
     );
-    return Hoverable(
+    return BaseHoverable(
       mouseCursor: WidgetStateMouseCursor.textable,
       child: Builder(
         builder: (context) {
           return DecoratedBox(
-            decoration: Hoverable.isHoveredOf(context) ? _outlineHovered : _outline,
+            decoration: BaseHoverable.isHoveredOf(context) ? _outlineHovered : _outline,
             child: child,
           );
         },

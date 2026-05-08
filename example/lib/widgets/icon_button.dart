@@ -65,16 +65,19 @@ class IconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseMenuItem(
-      autofocus: autofocus,
-      onPressed: onPressed,
-      onFocusChange: onFocusChange,
-      mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
-      focusNode: focusNode,
-      role: null,
-      requestCloseOnActivate: false,
-      requestFocusOnHover: requestFocusOnHover,
-      child: IconLabel(decoration: decoration, constraints: constraints, child: child),
+    return Semantics(
+      label: tooltip,
+      child: BaseMenuItem(
+        autofocus: autofocus,
+        onTap: onPressed,
+        onFocusChange: onFocusChange,
+        mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
+        focusNode: focusNode,
+        role: null,
+        requestCloseOnActivate: false,
+        requestFocusOnHover: requestFocusOnHover,
+        child: IconLabel(decoration: decoration, constraints: constraints, child: child),
+      ),
     );
   }
 }

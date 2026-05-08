@@ -53,7 +53,7 @@ class TitleIconButton extends StatelessWidget {
             },
           ),
         ),
-        onPressed: () {},
+        onTap: () {},
       ),
     );
   }

@@ -127,7 +127,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
                   mouseCursor: WidgetStateMouseCursor.clickable,
                   requestCloseOnActivate: false,
                   requestFocusOnHover: false,
-                  onPressed: _handlePressed,
+                  onTap: _handlePressed,
                   child: Builder(
                     builder: (context) {
                       return DecoratedBox(

@@ -97,7 +97,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
                 onPointerLeave: (_) {
                   _isAnchorHovered = false;
                 },
-                onPressed: () {
+                onTap: () {
                   final controller = MenuController.maybeOf(context);
                   if (isOpen) {
                     controller?.close();

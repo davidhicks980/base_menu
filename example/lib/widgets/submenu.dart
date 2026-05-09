@@ -44,6 +44,7 @@ class _SubmenuState extends State<Submenu> {
   @override
   void dispose() {
     _closeTimer?.cancel();
+    _closeTimer = null;
     focusNotifier.dispose();
     super.dispose();
   }
@@ -71,24 +72,26 @@ class _SubmenuState extends State<Submenu> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseMenu(
-      padding: MenuPanel.defaultPadding,
-      controller: controller,
-      alignment: widget.alignment,
-      menuAlignment: widget.menuAlignment,
-      onFocusChange: _handleFocusChange,
-      menu: widget.panel,
-      child: _SubmenuButton(
-        hoverDelay: widget.hoverDelay,
-        autofocus: widget.autofocus,
-        onPressed: widget.onPressed,
-        child: ValueListenableBuilder<bool>(
-          valueListenable: focusNotifier,
-          builder: _buildHoverBackground,
-          child: SubmenuActionLabel(
-            leading: widget.leading,
-            axis: Axis.vertical,
-            child: widget.child,
+    return MenuAimAnchor(
+      child: BaseMenu(
+        padding: MenuPanel.defaultPadding,
+        controller: controller,
+        alignment: widget.alignment,
+        menuAlignment: widget.menuAlignment,
+        onFocusChange: _handleFocusChange,
+        menu: MenuAimTarget(child: widget.panel),
+        child: _SubmenuButton(
+          hoverDelay: widget.hoverDelay,
+          autofocus: widget.autofocus,
+          onPressed: widget.onPressed,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: focusNotifier,
+            builder: _buildHoverBackground,
+            child: SubmenuActionLabel(
+              leading: widget.leading,
+              axis: Axis.vertical,
+              child: widget.child,
+            ),
           ),
         ),
       ),
@@ -129,6 +132,7 @@ class __SubmenuButtonState extends State<_SubmenuButton> {
   @override
   void dispose() {
     _openTimer?.cancel();
+    _openTimer = null;
     super.dispose();
   }
 

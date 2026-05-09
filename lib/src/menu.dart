@@ -8,6 +8,8 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../menu_utilities.dart';
+
 // Examples can assume:
 // late BuildContext context;
 // late StateSetter setState;
@@ -260,7 +262,8 @@ class BaseMenuPanel extends StatelessWidget {
   }
 }
 
-abstract class BaseMenuInterface {
+// This is only used so that documentation can be shared.
+abstract class _BaseMenuInterface {
   /// An optional [MenuController] that allows opening and closing of the menu
   /// from other widgets.
   ///
@@ -407,7 +410,7 @@ void _defaultOnCloseRequested(VoidCallback hideOverlay) {
   hideOverlay();
 }
 
-class BaseMenu extends StatelessWidget implements BaseMenuInterface {
+class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
   const BaseMenu({
     super.key,
     this.onOpen,
@@ -531,9 +534,10 @@ class BaseMenu extends StatelessWidget implements BaseMenuInterface {
   /// screen when the menu is open.
   final EdgeInsetsGeometry overlayPadding;
 
-  Widget _buildPosition(BuildContext context, RawMenuOverlayInfo position, Widget panel) {
+  Widget _buildPosition(BuildContext context, RawMenuOverlayInfo position, Widget child) {
     final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
     final TextDirection textDirection = Directionality.of(context);
+
     // Resolve fallback alignment here so that alignmentOffset defaults to
     // being directionally-agnostic.
     final anchorAlignment =
@@ -544,19 +548,29 @@ class BaseMenu extends StatelessWidget implements BaseMenuInterface {
                 })
             .resolve(textDirection);
 
-    return CustomSingleChildLayout(
-      delegate: _MenuLayout(
-        overlayPadding: overlayPadding.resolve(textDirection),
-        padding: padding,
-        avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
-        textDirection: textDirection,
-        anchorRect: position.anchorRect,
-        alignmentOffset: alignmentOffset,
-        menuPosition: position.position,
-        menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
-        alignment: anchorAlignment,
-      ),
-      child: panel,
+    return Stack(
+      children: [
+        CustomSingleChildLayout(
+          delegate: _MenuLayout(
+            overlayPadding: overlayPadding.resolve(textDirection),
+            padding: padding,
+            avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
+            textDirection: textDirection,
+            anchorRect: position.anchorRect,
+            alignmentOffset: alignmentOffset,
+            menuPosition: position.position,
+            menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+            alignment: anchorAlignment,
+            onPositionUpdated: (position) {},
+          ),
+          child: child,
+        ),
+        MenuAimListener(
+          delegate: AimDelegate()
+            ..anchorRect = position.anchorRect
+            ..targetRect,
+        ),
+      ],
     );
   }
 
@@ -607,7 +621,7 @@ class BaseMenu extends StatelessWidget implements BaseMenuInterface {
   }
 }
 
-class BasePositionedMenu extends StatefulWidget implements BaseMenuInterface {
+class BasePositionedMenu extends StatefulWidget implements _BaseMenuInterface {
   const BasePositionedMenu({
     super.key,
     this.onOpen,
@@ -1257,6 +1271,7 @@ class _MenuLayout extends SingleChildLayoutDelegate {
     required this.textDirection,
     required EdgeInsetsGeometry? padding,
     this.menuPosition,
+    this.onPositionUpdated,
   }) : menuPadding = padding;
 
   // Rectangle of the button anchoring the menu overlay.
@@ -1288,6 +1303,8 @@ class _MenuLayout extends SingleChildLayoutDelegate {
 
   // The direction in which the text flows within the menu.
   final ui.TextDirection textDirection;
+
+  final void Function(Rect position)? onPositionUpdated;
 
   // Finds the closest screen to the anchor position.
   //
@@ -1467,12 +1484,15 @@ class _MenuLayout extends SingleChildLayoutDelegate {
       anchorOffset = anchorRect.topLeft + menuPosition!;
     }
 
-    final ui.Offset position =
-        anchorOffset - menuAlignment.resolve(textDirection).alongSize(childSize);
-
+    ui.Offset position = anchorOffset - menuAlignment.resolve(textDirection).alongSize(childSize);
     final Rect screen = _findClosestScreen(size, anchorRect.center, avoidBounds);
+    position = _fitInsideScreen(screen, childSize, position, anchorOffset);
+    if (onPositionUpdated == null) {
+      return position;
+    }
 
-    return _fitInsideScreen(screen, childSize, position, anchorOffset);
+    onPositionUpdated!(position & childSize);
+    return position;
   }
 
   @override

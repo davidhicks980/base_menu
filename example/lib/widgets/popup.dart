@@ -11,7 +11,7 @@ class Popup extends StatelessWidget {
     this.tooltip,
     required this.panel,
     required this.child,
-    this.axis = Axis.vertical,
+    this.orientation = Axis.vertical,
     this.buttonDecoration,
     this.focusFirstOnOpen = true,
   });
@@ -19,7 +19,7 @@ class Popup extends StatelessWidget {
   final Widget panel;
   final Widget child;
   final InlineSpan? tooltip;
-  final Axis axis;
+  final Axis orientation;
   final BoxConstraints buttonConstraints;
   final WidgetStateProperty<BoxDecoration>? buttonDecoration;
   final bool focusFirstOnOpen;
@@ -28,7 +28,7 @@ class Popup extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = MenuController();
     return BaseMenu(
-      orientation: axis,
+      orientation: orientation,
       padding: MenuPanel.defaultPadding,
       menu: panel,
       onFocusChange: (value) {

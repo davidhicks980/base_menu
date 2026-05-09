@@ -548,6 +548,7 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
                   _ => AlignmentDirectional.bottomStart,
                 })
             .resolve(textDirection);
+    print(scope?.orientation);
 
     final delegate = _MenuLayout(
       overlayPadding: overlayPadding.resolve(textDirection),
@@ -604,6 +605,7 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
       onFocusChange: onFocusChange,
       semanticProperties: semanticProperties,
       positionBuilder: _buildPosition,
+      orientation: orientation,
       child: child,
     );
   }
@@ -1485,7 +1487,9 @@ class _MenuLayout extends SingleChildLayoutDelegate {
 
     final ui.Offset position =
         anchorOffset - menuAlignment.resolve(textDirection).alongSize(childSize);
+
     final Rect screen = _findClosestScreen(size, anchorRect.center, avoidBounds);
+
     return _fitInsideScreen(screen, childSize, position, anchorOffset);
   }
 

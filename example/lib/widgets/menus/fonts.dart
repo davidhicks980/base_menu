@@ -45,6 +45,7 @@ class _FontMenuState extends State<FontMenu> {
         onChanged: _handleChanged,
         child: Select(
           panel: const MenuPanel(
+            clipBehavior: Clip.hardEdge,
             padding: .symmetric(vertical: 6),
             constraints: .tightFor(width: 272),
             children: [

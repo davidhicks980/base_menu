@@ -61,7 +61,7 @@ class _RenderMenuAimListener extends RenderProxyBox {
   static bool _isMovingTowardsTarget(Offset start, Offset end, Rect target) {
     final Offset movement = end - start;
 
-    if (movement.distanceSquared < 60.0) {
+    if (movement.distanceSquared < 35.0) {
       return false;
     }
 

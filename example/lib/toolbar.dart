@@ -448,7 +448,7 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
           widget.controller.close();
         }
       },
-      panel: panel,
+      menu: panel,
       builder: (context, controller, child) {
         return IconButton(
           decoration: _animationStatus.isForwardOrCompleted

@@ -289,7 +289,7 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
       menuAlignment: AlignmentDirectional.topStart,
       onClose: _handleClose,
       onFocusChange: _handleFocusChange,
-      panel: BaseMenuPanel(
+      menu: BaseMenuPanel(
         constraints: const BoxConstraints(minWidth: 348),
         axis: Axis.vertical,
         menuChildren: [

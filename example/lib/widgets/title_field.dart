@@ -35,7 +35,7 @@ const _inputDecoration = WidgetStateProperty<BoxDecoration>.fromMap({
   ),
   WidgetState.hovered: BoxDecoration(
     borderRadius: BorderRadius.all(Radius.circular(4.0)),
-    border: Border.fromBorderSide(BorderSide(color: FloogleColors.titleInputHoverBorder)),
+    border: Border.fromBorderSide(BorderSide(color: FloogleColors.greyOutline)),
   ),
   WidgetState.any: BoxDecoration(),
 });

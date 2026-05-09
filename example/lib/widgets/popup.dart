@@ -30,7 +30,7 @@ class Popup extends StatelessWidget {
     return BaseMenu(
       orientation: axis,
       padding: MenuPanel.defaultPadding,
-      panel: panel,
+      menu: panel,
       onFocusChange: (value) {
         if (!value) {
           controller.close();

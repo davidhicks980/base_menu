@@ -392,7 +392,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
         controller: widget.menuController,
         padding: MenuPanel.defaultPadding,
         alignmentOffset: const Offset(0, 7),
-        panel: _ComboBoxHighlight(
+        menu: _ComboBoxHighlight(
           value: widget.selected,
           highlight: _highlightValue,
           alignment: alignment,

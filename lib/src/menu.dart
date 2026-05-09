@@ -537,41 +537,45 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
   Widget _buildPosition(BuildContext context, RawMenuOverlayInfo position, Widget child) {
     final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
     final TextDirection textDirection = Directionality.of(context);
+    final scope = _MenuScope._maybeOf(context);
 
     // Resolve fallback alignment here so that alignmentOffset defaults to
     // being directionally-agnostic.
     final anchorAlignment =
         (alignment ??
-                switch (_MenuScope._maybeOf(context)?.orientation) {
+                switch (scope?.orientation) {
                   Axis.vertical => AlignmentDirectional.topEnd,
                   _ => AlignmentDirectional.bottomStart,
                 })
             .resolve(textDirection);
 
-    return Stack(
-      children: [
-        CustomSingleChildLayout(
-          delegate: _MenuLayout(
-            overlayPadding: overlayPadding.resolve(textDirection),
-            padding: padding,
-            avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
-            textDirection: textDirection,
-            anchorRect: position.anchorRect,
-            alignmentOffset: alignmentOffset,
-            menuPosition: position.position,
-            menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
-            alignment: anchorAlignment,
-            onPositionUpdated: (position) {},
-          ),
-          child: child,
-        ),
-        MenuAimListener(
-          delegate: AimDelegate()
-            ..anchorRect = position.anchorRect
-            ..targetRect,
-        ),
-      ],
+    final delegate = _MenuLayout(
+      overlayPadding: overlayPadding.resolve(textDirection),
+      padding: padding,
+      avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
+      textDirection: textDirection,
+      anchorRect: position.anchorRect,
+      alignmentOffset: alignmentOffset,
+      menuPosition: position.position,
+      menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+      alignment: anchorAlignment,
     );
+
+    if (scope?.isSubmenu == true &&
+        context.dependOnInheritedWidgetOfExactType<MenuAimScope>()?.enable == true) {
+      final geometry = MenuAimGeometry()..anchorRect = position.anchorRect;
+      return Stack(
+        children: [
+          CustomSingleChildLayout(
+            delegate: _MenuAimLayoutDecorator(delegate: delegate, geometry: geometry),
+            child: child,
+          ),
+          MenuAimListener(geometry: geometry),
+        ],
+      );
+    }
+
+    return CustomSingleChildLayout(delegate: delegate, child: child);
   }
 
   static Set<ui.Rect> _avoidBounds(List<ui.DisplayFeature> displayFeatures) {
@@ -629,7 +633,6 @@ class BasePositionedMenu extends StatefulWidget implements _BaseMenuInterface {
     this.onOpenRequest = _defaultOnOpenRequested,
     this.onCloseRequest = _defaultOnCloseRequested,
     this.useRootOverlay = false,
-
     this.controller,
     this.consumeOutsideTaps = false,
     this.onFocusChange,
@@ -638,7 +641,6 @@ class BasePositionedMenu extends StatefulWidget implements _BaseMenuInterface {
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
-
     required this.menu,
     required this.positionBuilder,
     this.builder,
@@ -951,7 +953,7 @@ class _MenuOverlay extends StatelessWidget {
     return ConstrainedBox(
       constraints: BoxConstraints.loose(position.overlaySize),
       child: Builder(
-        builder: (context) {
+        builder: (BuildContext context) {
           return positionBuilder.call(context, position, panel);
         },
       ),
@@ -1271,7 +1273,6 @@ class _MenuLayout extends SingleChildLayoutDelegate {
     required this.textDirection,
     required EdgeInsetsGeometry? padding,
     this.menuPosition,
-    this.onPositionUpdated,
   }) : menuPadding = padding;
 
   // Rectangle of the button anchoring the menu overlay.
@@ -1303,8 +1304,6 @@ class _MenuLayout extends SingleChildLayoutDelegate {
 
   // The direction in which the text flows within the menu.
   final ui.TextDirection textDirection;
-
-  final void Function(Rect position)? onPositionUpdated;
 
   // Finds the closest screen to the anchor position.
   //
@@ -1484,15 +1483,10 @@ class _MenuLayout extends SingleChildLayoutDelegate {
       anchorOffset = anchorRect.topLeft + menuPosition!;
     }
 
-    ui.Offset position = anchorOffset - menuAlignment.resolve(textDirection).alongSize(childSize);
+    final ui.Offset position =
+        anchorOffset - menuAlignment.resolve(textDirection).alongSize(childSize);
     final Rect screen = _findClosestScreen(size, anchorRect.center, avoidBounds);
-    position = _fitInsideScreen(screen, childSize, position, anchorOffset);
-    if (onPositionUpdated == null) {
-      return position;
-    }
-
-    onPositionUpdated!(position & childSize);
-    return position;
+    return _fitInsideScreen(screen, childSize, position, anchorOffset);
   }
 
   @override
@@ -1506,5 +1500,35 @@ class _MenuLayout extends SingleChildLayoutDelegate {
         overlayPadding != oldDelegate.overlayPadding ||
         textDirection != oldDelegate.textDirection ||
         !setEquals(avoidBounds, oldDelegate.avoidBounds);
+  }
+}
+
+class _MenuAimLayoutDecorator<T extends SingleChildLayoutDelegate>
+    extends SingleChildLayoutDelegate {
+  const _MenuAimLayoutDecorator({required this.delegate, required this.geometry});
+
+  final T delegate;
+  final MenuAimGeometry geometry;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    return delegate.getConstraintsForChild(constraints);
+  }
+
+  @override
+  ui.Offset getPositionForChild(Size size, Size childSize) {
+    final position = delegate.getPositionForChild(size, childSize);
+    geometry.targetRect = position & childSize;
+    return position;
+  }
+
+  @override
+  Size getSize(BoxConstraints constraints) {
+    return delegate.getSize(constraints);
+  }
+
+  @override
+  bool shouldRelayout(covariant _MenuAimLayoutDecorator<T> oldDelegate) {
+    return geometry != oldDelegate.geometry || delegate.shouldRelayout(oldDelegate.delegate);
   }
 }

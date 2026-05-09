@@ -72,26 +72,24 @@ class _SubmenuState extends State<Submenu> {
 
   @override
   Widget build(BuildContext context) {
-    return MenuAimAnchor(
-      child: BaseMenu(
-        padding: MenuPanel.defaultPadding,
-        controller: controller,
-        alignment: widget.alignment,
-        menuAlignment: widget.menuAlignment,
-        onFocusChange: _handleFocusChange,
-        menu: MenuAimTarget(child: widget.panel),
-        child: _SubmenuButton(
-          hoverDelay: widget.hoverDelay,
-          autofocus: widget.autofocus,
-          onPressed: widget.onPressed,
-          child: ValueListenableBuilder<bool>(
-            valueListenable: focusNotifier,
-            builder: _buildHoverBackground,
-            child: SubmenuActionLabel(
-              leading: widget.leading,
-              axis: Axis.vertical,
-              child: widget.child,
-            ),
+    return BaseMenu(
+      padding: MenuPanel.defaultPadding,
+      controller: controller,
+      alignment: widget.alignment,
+      menuAlignment: widget.menuAlignment,
+      onFocusChange: _handleFocusChange,
+      menu: widget.panel,
+      child: _SubmenuButton(
+        hoverDelay: widget.hoverDelay,
+        autofocus: widget.autofocus,
+        onPressed: widget.onPressed,
+        child: ValueListenableBuilder<bool>(
+          valueListenable: focusNotifier,
+          builder: _buildHoverBackground,
+          child: SubmenuActionLabel(
+            leading: widget.leading,
+            axis: Axis.vertical,
+            child: widget.child,
           ),
         ),
       ),

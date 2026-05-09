@@ -82,6 +82,8 @@ enum SelectionKey {
   firstLineIndent,
   leftIndent,
   rightIndent,
+  menuAimAssist, 
+  menuAimAssistDebugPaint
 }
 
 enum DocumentParagraphStyle {

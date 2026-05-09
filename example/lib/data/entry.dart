@@ -758,6 +758,16 @@ abstract class Entry {
     intent: KeyboardShortcutsIntent(),
   );
 
+  static const menuAimAssist = SelectableMenuEntry(
+    'Use aim assistance to open submenus',
+    intent: ToggleMenuAimAssistIntent(),
+  );
+
+  static const menuAimAssistDebugPaint = SelectableMenuEntry(
+    'Show cursor trajectory',
+    intent: ToggleMenuAimDebugPaintIntent(),
+  );
+
   static const selectAll = MenuEntryWithIntent(
     'Select all',
     icon: Symbols.select_all,

@@ -653,3 +653,11 @@ class SetParagraphRightIndentIntent extends FloogleSelectableIntent<double> {
   const SetParagraphRightIndentIntent(double indent)
     : super(key: SelectionKey.rightIndent, value: indent);
 }
+
+class ToggleMenuAimAssistIntent extends FloogleSelectableBooleanIntent {
+  const ToggleMenuAimAssistIntent() : super(SelectionKey.menuAimAssist);
+}
+
+class ToggleMenuAimDebugPaintIntent extends FloogleSelectableBooleanIntent {
+  const ToggleMenuAimDebugPaintIntent() : super(SelectionKey.menuAimAssistDebugPaint);
+}

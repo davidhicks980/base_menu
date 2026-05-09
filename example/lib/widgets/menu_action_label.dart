@@ -37,7 +37,6 @@ class SubmenuActionLabel extends StatelessWidget {
       leadingMidpointAlignment: leadingMidpointAlignment,
       trailing: const _Arrow(),
       shortcut: shortcut,
-
       child: child,
     );
   }
@@ -203,10 +202,7 @@ class _Arrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final highlightArrow =
-        BaseMenuItem.isHoveredOf(context) ||
-        BaseMenuItem.isFocusedOf(context) ||
-        MenuController.maybeIsOpenOf(context) == true;
+    final highlightArrow = BaseMenuItem.isHoveredOf(context) || BaseMenuItem.isFocusedOf(context);
     return highlightArrow
         ? const CustomPaint(
             size: Size(8, 8),

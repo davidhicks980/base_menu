@@ -4,8 +4,8 @@ import 'dart:ui' as ui;
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
 import '../app_state_manager.dart';
 import '../model/enum.dart';
@@ -40,19 +40,31 @@ double _quantize(double value, {required double to}) {
   return (value / to).round() * to;
 }
 
-class HorizontalDocumentRuler extends StatelessWidget {
+class HorizontalDocumentRuler extends StatefulWidget {
   const HorizontalDocumentRuler({super.key, this.pageWidth = pixelsPerInch * 8.5});
 
   final double pageWidth;
 
   @override
-  Widget build(BuildContext context) {
-    var totalLDelta = 0.0;
-    var totalRDelta = 0.0;
+  State<HorizontalDocumentRuler> createState() => _HorizontalDocumentRulerState();
+}
 
+class _HorizontalDocumentRulerState extends State<HorizontalDocumentRuler> {
+  double totalLDelta = 0.0;
+  double totalRDelta = 0.0;
+  double firstLineIndentDelta = 0.0;
+  double leftIndentDelta = 0.0;
+  double rightIndentDelta = 0.0;
+  double _initialLeftMargin = 0.0;
+  double _initialRightMargin = 0.0;
+  double _initialLeftIndent = 0.0;
+  double _initialFirstLineIndent = 0.0;
+  double _initialRightIndent = 0.0;
+  @override
+  Widget build(BuildContext context) {
     final double totalWidth = MediaQuery.widthOf(context);
     final double pageStart =
-        ui.clampDouble(totalWidth - pageWidth + 16, 160.0, math.max(totalWidth, 161)) / 2;
+        ui.clampDouble(totalWidth - widget.pageWidth + 16, 160.0, math.max(totalWidth, 161)) / 2;
 
     final double leftMargin =
         AppStateManager.documentStateOf(context)[SelectionKey.leftMargin] as double? ??
@@ -62,8 +74,23 @@ class HorizontalDocumentRuler extends StatelessWidget {
         AppStateManager.documentStateOf(context)[SelectionKey.rightMargin] as double? ??
         pixelsPerInch;
 
-    final double minimumRightMargin = pageWidth - leftMargin - 2 * pixelsPerInch;
-    final double minimumLeftMargin = pageWidth - rightMargin - 2 * pixelsPerInch;
+    final double leftIndent =
+        AppStateManager.documentStateOf(context)[SelectionKey.leftIndent] as double? ?? 0.0;
+
+    final double rightIndent =
+        AppStateManager.documentStateOf(context)[SelectionKey.rightIndent] as double? ?? 0.0;
+
+    final double firstLineIndent =
+        AppStateManager.documentStateOf(context)[SelectionKey.firstLineIndent] as double? ?? 0.0;
+
+    const double minIndentGap = pixelsPerInch / 2;
+    final double maxRightMargin =
+        widget.pageWidth - leftMargin - leftIndent - rightIndent - minIndentGap;
+    final double minimumRightMargin = math.max(0, maxRightMargin);
+    final double maxLeftMargin =
+        widget.pageWidth - rightMargin - leftIndent - rightIndent - minIndentGap;
+    final double minimumLeftMargin = math.max(0, maxLeftMargin);
+
     return SizedBox(
       height: 24,
       width: double.infinity,
@@ -72,7 +99,7 @@ class HorizontalDocumentRuler extends StatelessWidget {
           Positioned.fill(
             child: CustomPaint(
               painter: _RulerPainter(
-                pageWidth: pageWidth,
+                pageWidth: widget.pageWidth,
                 leftMargin: leftMargin,
                 rightMargin: rightMargin,
               ),
@@ -83,12 +110,17 @@ class HorizontalDocumentRuler extends StatelessWidget {
             bottom: 0,
             left: pageStart,
             width: math.max(leftMargin, pixelsPerTick * 2),
-            child: BaseHoverable(
-              mouseCursor: SystemMouseCursors.resizeRight,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.resizeRight,
               child: GestureDetector(
+                dragStartBehavior: DragStartBehavior.down,
+                onHorizontalDragStart: (details) {
+                  totalLDelta = 0.0;
+                  _initialLeftMargin = leftMargin;
+                },
                 onHorizontalDragUpdate: (details) {
                   totalLDelta += details.delta.dx;
-                  final quantized = _quantize(totalLDelta + leftMargin, to: pixelsPerTick);
+                  final quantized = _quantize(totalLDelta + _initialLeftMargin, to: pixelsPerTick);
                   if (quantized != leftMargin) {
                     final value = ui.clampDouble(quantized, 0.0, minimumLeftMargin);
                     Actions.maybeInvoke(context, SetDocumentLeftMarginIntent(value));
@@ -98,23 +130,132 @@ class HorizontalDocumentRuler extends StatelessWidget {
               ),
             ),
           ),
+
+          // Right Margin Drag Handle
           Positioned(
             top: 0,
             bottom: 0,
-            left: pageStart + pageWidth - math.max(rightMargin, pixelsPerTick * 2),
+            left: pageStart + widget.pageWidth - math.max(rightMargin, pixelsPerTick * 2),
             width: math.max(rightMargin, pixelsPerTick * 2),
-            child: BaseHoverable(
-              mouseCursor: SystemMouseCursors.resizeLeft,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.resizeLeft,
               child: GestureDetector(
+                dragStartBehavior: DragStartBehavior.down,
+                onHorizontalDragStart: (details) {
+                  totalRDelta = 0.0;
+                  _initialRightMargin = rightMargin;
+                },
                 onHorizontalDragUpdate: (DragUpdateDetails details) {
                   totalRDelta -= details.delta.dx;
-                  final quantized = _quantize(totalRDelta + rightMargin, to: pixelsPerTick);
+                  final quantized = _quantize(totalRDelta + _initialRightMargin, to: pixelsPerTick);
                   if (quantized != rightMargin) {
                     final value = ui.clampDouble(quantized, 0.0, minimumRightMargin);
                     Actions.maybeInvoke(context, SetDocumentRightMarginIntent(value));
                   }
                 },
                 child: const ColoredBox(color: Color(0x00000000)),
+              ),
+            ),
+          ),
+
+          // Left Indent Drag Handle (triangle)
+          Positioned(
+            bottom: 0,
+            left: pageStart + leftMargin + leftIndent - 14,
+            width: 28,
+            height: 10.5,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.basic,
+              child: GestureDetector(
+                dragStartBehavior: .down,
+                onHorizontalDragStart: (DragStartDetails details) {
+                  leftIndentDelta = 0.0;
+                  _initialLeftIndent = leftIndent;
+                },
+                onHorizontalDragUpdate: (details) {
+                  leftIndentDelta += details.delta.dx;
+                  final quantized = _quantize(
+                    leftIndentDelta + _initialLeftIndent,
+                    to: pixelsPerTick,
+                  );
+
+                  if (quantized != leftIndent) {
+                    final double maxLeftIndent =
+                        widget.pageWidth - leftMargin - rightMargin - rightIndent - minIndentGap;
+
+                    final value = ui.clampDouble(quantized, 0.0, math.max(0, maxLeftIndent));
+
+                    Actions.maybeInvoke(context, SetParagraphLeftIndentIntent(value));
+                  }
+                },
+
+                child: CustomPaint(painter: _ParagraphIndentHandlePainter()),
+              ),
+            ),
+          ),
+
+          // First Line Indent Handle (rectangle)
+          Positioned(
+            bottom: 10.5,
+            left: pageStart + leftMargin + firstLineIndent - 14,
+            width: 28,
+            height: 16,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.basic,
+              child: GestureDetector(
+                dragStartBehavior: DragStartBehavior.down,
+                onHorizontalDragStart: (DragStartDetails details) {
+                  firstLineIndentDelta = 0.0;
+                  _initialFirstLineIndent = firstLineIndent;
+                },
+                onHorizontalDragUpdate: (details) {
+                  firstLineIndentDelta += details.delta.dx;
+                  final quantized = _quantize(
+                    firstLineIndentDelta + _initialFirstLineIndent,
+                    to: pixelsPerTick,
+                  );
+                  if (quantized != firstLineIndent) {
+                    final double maxFirstLineIndent =
+                        widget.pageWidth - leftMargin - rightMargin - rightIndent - minIndentGap;
+
+                    final value = ui.clampDouble(quantized, 0.0, math.max(0, maxFirstLineIndent));
+                    Actions.maybeInvoke(context, SetParagraphFirstLineIndentIntent(value));
+                  }
+                },
+                child: const CustomPaint(painter: _FirstLineIndentHandlePainter()),
+              ),
+            ),
+          ),
+
+          // Right Indent Handle (triangle)
+          Positioned(
+            bottom: 0,
+            left: pageStart + widget.pageWidth - rightMargin - rightIndent - 14,
+            width: 28,
+            height: 10.5,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.basic,
+              child: GestureDetector(
+                dragStartBehavior: DragStartBehavior.down,
+                onHorizontalDragStart: (DragStartDetails details) {
+                  rightIndentDelta = 0.0;
+                  _initialRightIndent = rightIndent;
+                },
+                onHorizontalDragUpdate: (details) {
+                  rightIndentDelta -= details.delta.dx;
+                  final quantized = _quantize(
+                    rightIndentDelta + _initialRightIndent,
+                    to: pixelsPerTick,
+                  );
+                  if (quantized != rightIndent) {
+                    final double maxRightIndent =
+                        widget.pageWidth - leftMargin - rightMargin - leftIndent - minIndentGap;
+
+                    final value = ui.clampDouble(quantized, 0.0, math.max(0, maxRightIndent));
+                    Actions.maybeInvoke(context, SetParagraphRightIndentIntent(value));
+                  }
+                },
+                child: CustomPaint(painter: _ParagraphIndentHandlePainter()),
               ),
             ),
           ),
@@ -194,6 +335,41 @@ class _RulerPainter extends CustomPainter {
       oldDelegate.rightMargin != rightMargin;
 }
 
+// Triangle handle painter for the indent
+class _ParagraphIndentHandlePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF4285f4)
+      ..style = PaintingStyle.fill;
+    final path = Path()
+      ..moveTo(size.width / 2, size.height - 4)
+      ..lineTo(size.width / 2 - 6, size.height - 10)
+      ..lineTo(size.width / 2 + 6, size.height - 10)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_ParagraphIndentHandlePainter oldDelegate) => false;
+}
+
+class _FirstLineIndentHandlePainter extends CustomPainter {
+  const _FirstLineIndentHandlePainter();
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF4285f4)
+      ..style = PaintingStyle.fill;
+    // 12 by 4 rect centered horizontally
+    final rect = Rect.fromLTWH((size.width - 12) / 2, size.height - 5, 12, 4);
+    canvas.drawRect(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(_FirstLineIndentHandlePainter oldDelegate) => false;
+}
+
 class VerticalDocumentRuler extends StatelessWidget {
   const VerticalDocumentRuler({super.key, this.pageHeight = pixelsPerInch * 11});
   final double pageHeight;
@@ -230,8 +406,8 @@ class VerticalDocumentRuler extends StatelessWidget {
             right: 0,
             bottom: 0,
             height: math.max(bottomMargin, pixelsPerTick * 2),
-            child: BaseHoverable(
-              mouseCursor: SystemMouseCursors.resizeUp,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.resizeUp,
               child: GestureDetector(
                 onVerticalDragUpdate: (details) {
                   totalBDelta -= details.delta.dy;
@@ -241,7 +417,7 @@ class VerticalDocumentRuler extends StatelessWidget {
                     Actions.maybeInvoke(context, SetDocumentBottomMarginIntent(value));
                   }
                 },
-                child: const ColoredBox(color: Color(0x0ff00000)),
+                child: const ColoredBox(color: Color(0x00000000)),
               ),
             ),
           ),
@@ -250,8 +426,8 @@ class VerticalDocumentRuler extends StatelessWidget {
             left: 0,
             right: 0,
             height: math.max(topMargin, pixelsPerTick * 2),
-            child: BaseHoverable(
-              mouseCursor: SystemMouseCursors.resizeDown,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.resizeDown,
               child: GestureDetector(
                 onVerticalDragUpdate: (details) {
                   totalTDelta += details.delta.dy;
@@ -261,7 +437,7 @@ class VerticalDocumentRuler extends StatelessWidget {
                     Actions.maybeInvoke(context, SetDocumentTopMarginIntent(value));
                   }
                 },
-                child: const ColoredBox(color: Color(0x0ff00000)),
+                child: const ColoredBox(color: Color(0x00000000)),
               ),
             ),
           ),

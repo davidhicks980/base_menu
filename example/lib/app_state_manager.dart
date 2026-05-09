@@ -118,6 +118,13 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     .zoomLevel: '100%',
     .menuAimAssist: false,
     .menuAimAssistDebugPaint: false,
+    .topMargin: 96.0,
+    .bottomMargin: 96.0,
+    .leftMargin: 96.0,
+    .rightMargin: 96.0,
+    .leftIndent: 0.0,
+    .rightIndent: 0.0,
+    .firstLineIndent: 0.0,
   };
   late final shortcuts = _buildShortcuts();
   bool _isHeaderShown = true;

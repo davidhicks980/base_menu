@@ -109,7 +109,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
   Widget build(BuildContext context) {
     return BaseMenu(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      panel: panel,
+      menu: panel,
       controller: widget.menuController,
       child: RawGestureDetector(
         gestures: gestures,

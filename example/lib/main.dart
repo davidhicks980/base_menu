@@ -37,6 +37,7 @@ class _AppState extends State<App> {
     debugProfileBuildsEnabled = true;
     debugProfileBuildsEnabledUserWidgets = true;
     debugProfilePaintsEnabled = true;
+
     return WidgetsApp(
       localizationsDelegates: const [
         DefaultWidgetsLocalizations.delegate,
@@ -158,6 +159,7 @@ class _MainState extends State<Main> {
               padding: EdgeInsets.only(left: 16, right: 16, bottom: 2, top: 2),
               child: Toolbar(),
             ),
+
             const Expanded(child: EditorView()),
           ],
         ),

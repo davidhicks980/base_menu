@@ -618,3 +618,38 @@ class SetFontFamilyIntent extends FloogleSelectableIntent<FontFamilyWeightPair> 
   const SetFontFamilyIntent(FontFamilyWeightPair value)
     : super(key: SelectionKey.fontFamily, value: value);
 }
+
+class SetDocumentTopMarginIntent extends FloogleSelectableIntent<double> {
+  const SetDocumentTopMarginIntent(double margin)
+    : super(key: SelectionKey.topMargin, value: margin);
+}
+
+class SetDocumentBottomMarginIntent extends FloogleSelectableIntent<double> {
+  const SetDocumentBottomMarginIntent(double margin)
+    : super(key: SelectionKey.bottomMargin, value: margin);
+}
+
+class SetDocumentLeftMarginIntent extends FloogleSelectableIntent<double> {
+  const SetDocumentLeftMarginIntent(double margin)
+    : super(key: SelectionKey.leftMargin, value: margin);
+}
+
+class SetDocumentRightMarginIntent extends FloogleSelectableIntent<double> {
+  const SetDocumentRightMarginIntent(double margin)
+    : super(key: SelectionKey.rightMargin, value: margin);
+}
+
+class SetParagraphFirstLineIndentIntent extends FloogleSelectableIntent<double> {
+  const SetParagraphFirstLineIndentIntent(double indent)
+    : super(key: SelectionKey.firstLineIndent, value: indent);
+}
+
+class SetParagraphLeftIndentIntent extends FloogleSelectableIntent<double> {
+  const SetParagraphLeftIndentIntent(double indent)
+    : super(key: SelectionKey.leftIndent, value: indent);
+}
+
+class SetParagraphRightIndentIntent extends FloogleSelectableIntent<double> {
+  const SetParagraphRightIndentIntent(double indent)
+    : super(key: SelectionKey.rightIndent, value: indent);
+}

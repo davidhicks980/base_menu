@@ -75,6 +75,13 @@ enum SelectionKey {
   textFormatBold,
   paragraphStyle,
   paintFormat,
+  topMargin,
+  bottomMargin,
+  leftMargin,
+  rightMargin,
+  firstLineIndent,
+  leftIndent,
+  rightIndent,
 }
 
 enum DocumentParagraphStyle {

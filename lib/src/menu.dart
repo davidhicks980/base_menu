@@ -1,7 +1,6 @@
-import 'dart:async';
 import 'dart:ui'
     as ui
-    show DisplayFeature, DisplayFeatureState, Offset, Rect, TextDirection, clampDouble;
+    show Clip, DisplayFeature, DisplayFeatureState, Offset, Rect, TextDirection, clampDouble;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
@@ -14,10 +13,6 @@ import 'package:flutter/widgets.dart';
 // late StateSetter setState;
 // late List<Widget> menuItems;
 // late RawMenuAnchorOverlayPosition position;
-
-class _MenuStateChangeNotification extends Notification {
-  const _MenuStateChangeNotification();
-}
 
 double _computeSquaredDistanceToRect(Offset point, Rect rect) {
   final double dx = point.dx - ui.clampDouble(point.dx, rect.left, rect.right);
@@ -126,6 +121,9 @@ class _MenuScope extends InheritedWidget {
   }
 }
 
+typedef BaseMenuPositionBuilder =
+    Widget Function(BuildContext context, RawMenuOverlayInfo position, Widget child);
+
 /// A simple menu surface that displays a vertical list of menu items.
 ///
 /// The [BaseMenuPanel] is painted with a dark theme when
@@ -158,6 +156,7 @@ class BaseMenuPanel extends StatelessWidget {
     this.constrainCrossAxis = false,
     this.padding = EdgeInsets.zero,
     this.spacing = 0,
+    this.clipBehavior = Clip.none,
     required this.axis,
     required this.menuChildren,
   });
@@ -195,11 +194,13 @@ class BaseMenuPanel extends StatelessWidget {
 
   final double spacing;
   final Axis axis;
+  final ui.Clip clipBehavior;
 
   @override
   Widget build(BuildContext context) {
     Widget child = SingleChildScrollView(
       scrollDirection: axis,
+      clipBehavior: clipBehavior,
       child: Flex(
         direction: axis,
         mainAxisSize: MainAxisSize.min,
@@ -253,41 +254,19 @@ class BaseMenuPanel extends StatelessWidget {
     super.debugFillProperties(properties);
     properties.add(DiagnosticsProperty<bool>('constrainCrossAxis', constrainCrossAxis));
     properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('padding override', padding));
+    properties.add(DoubleProperty('spacing', spacing, defaultValue: 0));
+    properties.add(EnumProperty<Axis>('axis', axis));
+    properties.add(EnumProperty<ui.Clip>('clipBehavior', clipBehavior, defaultValue: ui.Clip.none));
   }
 }
 
-class BaseMenu extends StatefulWidget {
-  const BaseMenu({
-    super.key,
-    this.onOpen,
-    this.onClose,
-    this.onOpenRequest = _defaultOnOpenRequested,
-    this.onCloseRequest = _defaultOnCloseRequested,
-    this.useRootOverlay = false,
-    this.builder,
-    this.child,
-    this.padding = EdgeInsets.zero,
-    this.overlayPadding = const EdgeInsets.all(8),
-    required this.panel,
-    this.controller,
-    this.consumeOutsideTaps = false,
-    this.alignment,
-    this.alignmentOffset = Offset.zero,
-    this.menuAlignment,
-    this.onFocusChange,
-    this.semanticProperties = const SemanticsProperties(
-      scopesRoute: true,
-      role: SemanticsRole.menu,
-    ),
-    this.orientation = Axis.vertical,
-  });
-
+abstract class BaseMenuInterface {
   /// An optional [MenuController] that allows opening and closing of the menu
   /// from other widgets.
   ///
   /// If not supplied, a new [MenuController] will be created and managed by the
   /// [BaseMenu].
-  final MenuController? controller;
+  MenuController? get controller;
 
   /// Whether or not a tap event that closes the menu will be permitted to
   /// continue on to the gesture arena.
@@ -299,10 +278,10 @@ class BaseMenu extends StatefulWidget {
   /// consumed.
   ///
   /// Defaults to false.
-  final bool consumeOutsideTaps;
+  bool get consumeOutsideTaps;
 
   /// A callback that is invoked when the menu is opened.
-  final VoidCallback? onOpen;
+  VoidCallback? get onOpen;
 
   /// Called when a request is made to open the menu.
   ///
@@ -336,10 +315,10 @@ class BaseMenu extends StatefulWidget {
   ///  3. Optionally start the opening animation.
   ///
   /// Defaults to a callback that immediately shows the menu.
-  final RawMenuAnchorOpenRequestedCallback onOpenRequest;
+  RawMenuAnchorOpenRequestedCallback get onOpenRequest;
 
   /// A callback that is invoked when the menu is closed.
-  final VoidCallback? onClose;
+  VoidCallback? get onClose;
 
   /// Called when a request is made to close the menu.
   ///
@@ -372,7 +351,7 @@ class BaseMenu extends StatefulWidget {
   /// or interactive.
   ///
   /// Defaults to a callback that immediately hides the menu.
-  final RawMenuAnchorCloseRequestedCallback onCloseRequest;
+  RawMenuAnchorCloseRequestedCallback get onCloseRequest;
 
   /// The widget that this [BaseMenu] surrounds.
   ///
@@ -381,7 +360,7 @@ class BaseMenu extends StatefulWidget {
   ///
   /// If not supplied, then the [BaseMenu] will be the size that its parent
   /// allocates for it.
-  final RawMenuAnchorChildBuilder? builder;
+  RawMenuAnchorChildBuilder? get builder;
 
   /// The optional child to be passed to the [builder].
   ///
@@ -389,7 +368,120 @@ class BaseMenu extends StatefulWidget {
   /// [builder] that doesn't depend on the `controller` or `context` supplied to
   /// the [builder]. It will be more efficient, since Flutter doesn't then need
   /// to rebuild this child when those change.
+  Widget? get child;
+
+  /// {@template flutter.widgets.RawMenuAnchor.useRootOverlay}
+  /// Whether the menu panel should be rendered in the root [Overlay].
+  ///
+  /// When true, the menu is mounted in the root overlay. Rendering the menu in
+  /// the root overlay prevents the menu from being obscured by other widgets.
+  ///
+  /// When false, the menu is rendered in the nearest ancestor [Overlay].
+  ///
+  /// Submenus will always use the same overlay as their top-level ancestor, so
+  /// setting a [useRootOverlay] value on a submenu will have no effect.
+  /// {@endtemplate}
+  ///
+  /// Defaults to false.
+  bool get useRootOverlay;
+
+  // The menu panel that is displayed when the menu is opened.
+  //
+  // The panel should lay out its menu children in a vertical list.
+  Widget get menu;
+
+  /// Called when focus leaves the menu anchor and overlay.
+  ValueChanged<bool>? get onFocusChange;
+
+  /// Properties used to annotate the menu overlay.
+  SemanticsProperties get semanticProperties;
+
+  Axis get orientation;
+}
+
+void _defaultOnOpenRequested(Offset? position, VoidCallback showOverlay) {
+  showOverlay();
+}
+
+void _defaultOnCloseRequested(VoidCallback hideOverlay) {
+  hideOverlay();
+}
+
+class BaseMenu extends StatelessWidget implements BaseMenuInterface {
+  const BaseMenu({
+    super.key,
+    this.onOpen,
+    this.onOpenRequest = _defaultOnOpenRequested,
+    this.onClose,
+    this.onCloseRequest = _defaultOnCloseRequested,
+    this.useRootOverlay = false,
+    this.builder,
+    this.child,
+    required this.menu,
+    this.controller,
+    this.consumeOutsideTaps = false,
+    this.onFocusChange,
+    this.semanticProperties = const SemanticsProperties(
+      scopesRoute: true,
+      role: SemanticsRole.menu,
+    ),
+    this.orientation = Axis.vertical,
+
+    // Positioning parameters
+    this.padding = EdgeInsets.zero,
+    this.overlayPadding = const EdgeInsets.all(8),
+    this.alignment,
+    this.alignmentOffset = Offset.zero,
+    this.menuAlignment,
+  });
+
+  @override
+  final MenuController? controller;
+
+  @override
+  final bool consumeOutsideTaps;
+
+  @override
+  final VoidCallback? onOpen;
+
+  @override
+  final RawMenuAnchorOpenRequestedCallback onOpenRequest;
+
+  @override
+  final VoidCallback? onClose;
+
+  @override
+  final RawMenuAnchorCloseRequestedCallback onCloseRequest;
+
+  @override
+  final RawMenuAnchorChildBuilder? builder;
+
+  @override
   final Widget? child;
+
+  @override
+  final bool useRootOverlay;
+
+  @override
+  final Widget menu;
+
+  @override
+  final ValueChanged<bool>? onFocusChange;
+
+  @override
+  final SemanticsProperties semanticProperties;
+
+  @override
+  final Axis orientation;
+
+  /// The point on the menu surface that attaches to the anchor.
+  ///
+  /// Unlike [alignment] and [alignmentOffset], the [menuAlignment] will be
+  /// applied when the menu is opened with a `position` argument.
+  ///
+  /// Defaults to [AlignmentDirectional.bottomStart] if this is a root menu, and
+  /// [AlignmentDirectional.topEnd] if this is a submenu.
+  final AlignmentGeometry? menuAlignment;
 
   /// The point on the anchor surface that attaches to the menu.
   ///
@@ -435,63 +527,73 @@ class BaseMenu extends StatefulWidget {
   /// Defaults to [EdgeInsets.zero].
   final EdgeInsetsGeometry padding;
 
-  /// The point on the menu surface that attaches to the anchor.
-  ///
-  /// Unlike [alignment] and [alignmentOffset], the [menuAlignment] will be
-  /// applied when the menu is opened with a `position` argument.
-  ///
-  /// Defaults to [AlignmentDirectional.bottomStart] if this is a root menu, and
-  /// [AlignmentDirectional.topEnd] if this is a submenu.
-  final AlignmentGeometry? menuAlignment;
-
-  /// {@template flutter.widgets.RawMenuAnchor.useRootOverlay}
-  /// Whether the menu panel should be rendered in the root [Overlay].
-  ///
-  /// When true, the menu is mounted in the root overlay. Rendering the menu in
-  /// the root overlay prevents the menu from being obscured by other widgets.
-  ///
-  /// When false, the menu is rendered in the nearest ancestor [Overlay].
-  ///
-  /// Submenus will always use the same overlay as their top-level ancestor, so
-  /// setting a [useRootOverlay] value on a submenu will have no effect.
-  /// {@endtemplate}
-  ///
-  /// Defaults to false.
-  final bool useRootOverlay;
-
-  // The menu panel that is displayed when the menu is opened.
-  //
-  // The panel should lay out its menu children in a vertical list.
-  final Widget panel;
-
   /// A minimum distance to apply between the menu overlay and the edges of the
   /// screen when the menu is open.
   final EdgeInsetsGeometry overlayPadding;
 
-  /// Called when focus leaves the menu anchor and overlay.
-  final ValueChanged<bool>? onFocusChange;
+  Widget _buildPosition(BuildContext context, RawMenuOverlayInfo position, Widget panel) {
+    final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
+    final TextDirection textDirection = Directionality.of(context);
+    // Resolve fallback alignment here so that alignmentOffset defaults to
+    // being directionally-agnostic.
+    final anchorAlignment =
+        (alignment ??
+                switch (_MenuScope._maybeOf(context)?.orientation) {
+                  Axis.vertical => AlignmentDirectional.topEnd,
+                  _ => AlignmentDirectional.bottomStart,
+                })
+            .resolve(textDirection);
 
-  /// Properties used to annotate the menu overlay.
-  final SemanticsProperties semanticProperties;
-
-  final Axis orientation;
-
-  static void _defaultOnOpenRequested(Offset? position, VoidCallback showOverlay) {
-    showOverlay();
+    return CustomSingleChildLayout(
+      delegate: _MenuLayout(
+        overlayPadding: overlayPadding.resolve(textDirection),
+        padding: padding,
+        avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
+        textDirection: textDirection,
+        anchorRect: position.anchorRect,
+        alignmentOffset: alignmentOffset,
+        menuPosition: position.position,
+        menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+        alignment: anchorAlignment,
+      ),
+      child: panel,
+    );
   }
 
-  static void _defaultOnCloseRequested(VoidCallback hideOverlay) {
-    hideOverlay();
+  static Set<ui.Rect> _avoidBounds(List<ui.DisplayFeature> displayFeatures) {
+    final bounds = <ui.Rect>{};
+    for (final feature in displayFeatures) {
+      if (feature.bounds.shortestSide > 0 ||
+          feature.state == ui.DisplayFeatureState.postureHalfOpened) {
+        bounds.add(feature.bounds);
+      }
+    }
+    return bounds;
   }
 
   @override
-  State<BaseMenu> createState() => _BaseMenuState();
+  Widget build(BuildContext context) {
+    return BasePositionedMenu(
+      onOpen: onOpen,
+      onClose: onClose,
+      onOpenRequest: onOpenRequest,
+      onCloseRequest: onCloseRequest,
+      useRootOverlay: useRootOverlay,
+      builder: builder,
+      menu: menu,
+      controller: controller,
+      consumeOutsideTaps: consumeOutsideTaps,
+      onFocusChange: onFocusChange,
+      semanticProperties: semanticProperties,
+      positionBuilder: _buildPosition,
+      child: child,
+    );
+  }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(ObjectFlagProperty<MenuController>.has('controller', controller));
-    properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('padding', padding, defaultValue: null));
     properties.add(
       DiagnosticsProperty<EdgeInsetsGeometry>(
         'overlayPadding',
@@ -505,7 +607,90 @@ class BaseMenu extends StatefulWidget {
   }
 }
 
-class _BaseMenuState extends State<BaseMenu> {
+class BasePositionedMenu extends StatefulWidget implements BaseMenuInterface {
+  const BasePositionedMenu({
+    super.key,
+    this.onOpen,
+    this.onClose,
+    this.onOpenRequest = _defaultOnOpenRequested,
+    this.onCloseRequest = _defaultOnCloseRequested,
+    this.useRootOverlay = false,
+
+    this.controller,
+    this.consumeOutsideTaps = false,
+    this.onFocusChange,
+    this.semanticProperties = const SemanticsProperties(
+      scopesRoute: true,
+      role: SemanticsRole.menu,
+    ),
+    this.orientation = Axis.vertical,
+
+    required this.menu,
+    required this.positionBuilder,
+    this.builder,
+    this.child,
+  });
+
+  @override
+  final MenuController? controller;
+
+  @override
+  final bool consumeOutsideTaps;
+
+  @override
+  final VoidCallback? onOpen;
+
+  @override
+  final RawMenuAnchorOpenRequestedCallback onOpenRequest;
+
+  @override
+  final VoidCallback? onClose;
+
+  @override
+  final RawMenuAnchorCloseRequestedCallback onCloseRequest;
+
+  @override
+  final RawMenuAnchorChildBuilder? builder;
+
+  @override
+  final Widget? child;
+
+  @override
+  final bool useRootOverlay;
+
+  @override
+  final Widget menu;
+
+  @override
+  final ValueChanged<bool>? onFocusChange;
+
+  @override
+  final SemanticsProperties semanticProperties;
+
+  @override
+  final Axis orientation;
+
+  final BaseMenuPositionBuilder positionBuilder;
+
+  static void _defaultOnOpenRequested(Offset? position, VoidCallback showOverlay) {
+    showOverlay();
+  }
+
+  static void _defaultOnCloseRequested(VoidCallback hideOverlay) {
+    hideOverlay();
+  }
+
+  @override
+  State<BasePositionedMenu> createState() => _BaseMenuState();
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(ObjectFlagProperty<MenuController>.has('controller', controller));
+  }
+}
+
+class _BaseMenuState extends State<BasePositionedMenu> {
   late final _menuScopeNode = FocusScopeNode(
     skipTraversal: true,
     directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
@@ -548,7 +733,7 @@ class _BaseMenuState extends State<BaseMenu> {
   }
 
   @override
-  void didUpdateWidget(BaseMenu oldWidget) {
+  void didUpdateWidget(BasePositionedMenu oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
       if (widget.controller == null) {
@@ -566,20 +751,6 @@ class _BaseMenuState extends State<BaseMenu> {
     super.dispose();
   }
 
-  void _handleOpen() {
-    widget.onOpen?.call();
-    if (!_parentIsSubmenu) {
-      const _MenuStateChangeNotification().dispatch(context);
-    }
-  }
-
-  void _handleClose() {
-    if (!_parentIsSubmenu) {
-      const _MenuStateChangeNotification().dispatch(context);
-    }
-    widget.onClose?.call();
-  }
-
   void _handleEnterMenu(MenuEnterIntent intent) {
     if (_menuController.isOpen) {
       if (intent._scopeIntent != null && _menuScopeNode.context != null) {
@@ -592,7 +763,16 @@ class _BaseMenuState extends State<BaseMenu> {
       if (intent._scopeIntent != null) {
         SchedulerBinding.instance.addPostFrameCallback((_) {
           if (_menuController.isOpen) {
-            Actions.invoke(_menuScopeNode.context!, intent._scopeIntent);
+            switch (intent._scopeIntent) {
+              case _MenuFocusFirstIntent():
+                _menuScopeNode.nextFocus();
+              case _MenuFocusLastIntent():
+                _menuScopeNode.previousFocus();
+              case _MenuSetFirstFocusIntent():
+                _menuScopeNode.requestFocus();
+              default:
+                return;
+            }
           }
         });
       }
@@ -654,16 +834,12 @@ class _BaseMenuState extends State<BaseMenu> {
       child: _MenuOverlay(
         submenuAxis: widget.orientation,
         position: position,
-        alignmentOffset: widget.alignmentOffset,
-        alignment: widget.alignment,
-        menuAlignment: widget.menuAlignment,
         consumeOutsideTaps: widget.consumeOutsideTaps,
-        padding: widget.padding,
         semanticProperties: widget.semanticProperties,
-        overlayPadding: widget.overlayPadding,
         menuController: _menuController,
         focusScopeNode: _menuScopeNode,
-        child: widget.panel,
+        positionBuilder: widget.positionBuilder,
+        child: widget.menu,
       ),
     );
   }
@@ -685,8 +861,8 @@ class _BaseMenuState extends State<BaseMenu> {
           onFocusChange: widget.onFocusChange,
           child: RawMenuAnchor(
             useRootOverlay: widget.useRootOverlay,
-            onOpen: _handleOpen,
-            onClose: _handleClose,
+            onOpen: widget.onOpen,
+            onClose: widget.onClose,
             onOpenRequested: widget.onOpenRequest,
             onCloseRequested: widget.onCloseRequest,
             consumeOutsideTaps: widget.consumeOutsideTaps,
@@ -704,32 +880,24 @@ class _BaseMenuState extends State<BaseMenu> {
 
 class _MenuOverlay extends StatelessWidget {
   const _MenuOverlay({
-    required this.alignmentOffset,
-    required this.alignment,
-    required this.menuAlignment,
     required this.position,
-    required this.padding,
-    required this.overlayPadding,
     required this.menuController,
     required this.focusScopeNode,
     required this.child,
     required this.semanticProperties,
     required this.consumeOutsideTaps,
     required this.submenuAxis,
+    required this.positionBuilder,
   });
 
-  final Offset alignmentOffset;
-  final AlignmentGeometry? alignment;
-  final AlignmentGeometry? menuAlignment;
   final RawMenuOverlayInfo position;
   final Widget child;
-  final EdgeInsetsGeometry padding;
-  final EdgeInsetsGeometry overlayPadding;
   final bool consumeOutsideTaps;
   final MenuController menuController;
   final FocusScopeNode focusScopeNode;
   final Axis submenuAxis;
   final SemanticsProperties semanticProperties;
+  final BaseMenuPositionBuilder positionBuilder;
 
   Widget _buildConditionalTraversal(BuildContext context, Widget? child) {
     return Focus(
@@ -769,47 +937,11 @@ class _MenuOverlay extends StatelessWidget {
     return ConstrainedBox(
       constraints: BoxConstraints.loose(position.overlaySize),
       child: Builder(
-        builder: (BuildContext context) {
-          final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
-          final TextDirection textDirection = Directionality.of(context);
-          // Resolve fallback alignment here so that alignmentOffset defaults to
-          // being directionally-agnostic.
-          final anchorAlignment =
-              (alignment ??
-                      switch (_MenuScope._maybeOf(context)?.orientation) {
-                        Axis.vertical => AlignmentDirectional.topEnd,
-                        _ => AlignmentDirectional.bottomStart,
-                      })
-                  .resolve(textDirection);
-
-          return CustomSingleChildLayout(
-            delegate: _MenuLayout(
-              overlayPadding: overlayPadding.resolve(textDirection),
-              padding: padding,
-              avoidBounds: displayFeatures != null ? avoidBounds(displayFeatures) : const {},
-              textDirection: textDirection,
-              anchorRect: position.anchorRect,
-              alignmentOffset: alignmentOffset,
-              menuPosition: position.position,
-              menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
-              alignment: anchorAlignment,
-            ),
-            child: panel,
-          );
+        builder: (context) {
+          return positionBuilder.call(context, position, panel);
         },
       ),
     );
-  }
-
-  static Set<ui.Rect> avoidBounds(List<ui.DisplayFeature> displayFeatures) {
-    final bounds = <ui.Rect>{};
-    for (final feature in displayFeatures) {
-      if (feature.bounds.shortestSide > 0 ||
-          feature.state == ui.DisplayFeatureState.postureHalfOpened) {
-        bounds.add(feature.bounds);
-      }
-    }
-    return bounds;
   }
 }
 
@@ -853,19 +985,23 @@ class BaseMenuBar extends StatefulWidget {
       scopesRoute: true,
       role: SemanticsRole.menuBar,
     ),
-    this.onOpen,
-    this.onClose,
   });
   final MenuController? controller;
   final Widget child;
   final Axis axis;
   final FocusScopeNode? focusScopeNode;
   final SemanticsProperties semanticProperties;
-  final VoidCallback? onOpen;
-  final VoidCallback? onClose;
 
   @override
   State<BaseMenuBar> createState() => _BaseMenuBarState();
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(ObjectFlagProperty<MenuController>.has('controller', controller));
+    properties.add(EnumProperty<Axis>('axis', axis));
+    properties.add(ObjectFlagProperty<FocusScopeNode>.has('focusScopeNode', focusScopeNode));
+  }
 }
 
 class _BaseMenuBarState extends State<BaseMenuBar> {
@@ -883,9 +1019,6 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
 
   FocusScopeNode? _internalFocusScopeNode;
   FocusScopeNode get _menuScopeNode => widget.focusScopeNode ?? _internalFocusScopeNode!;
-
-  bool isMicrotaskScheduled = false;
-  bool _isOpen = false;
 
   @override
   void initState() {
@@ -935,32 +1068,9 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
     super.dispose();
   }
 
-  bool _handleNotification(_MenuStateChangeNotification notification) {
-    if (isMicrotaskScheduled) {
-      return true;
-    }
-
-    isMicrotaskScheduled = true;
-    scheduleMicrotask(() {
-      isMicrotaskScheduled = false;
-      if (_isOpen == _menuController.isOpen) {
-        return;
-      }
-
-      _isOpen = _menuController.isOpen;
-      if (_isOpen) {
-        widget.onOpen?.call();
-      } else {
-        widget.onClose?.call();
-      }
-    });
-
-    return true;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final group = Actions(
+    return Actions(
       actions: _actions,
       child: RawMenuAnchorGroup(
         controller: _menuController,
@@ -974,15 +1084,6 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
           ),
         ),
       ),
-    );
-
-    if (widget.onOpen == null && widget.onClose == null) {
-      return group;
-    }
-
-    return NotificationListener<_MenuStateChangeNotification>(
-      onNotification: _handleNotification,
-      child: group,
     );
   }
 }

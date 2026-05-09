@@ -134,7 +134,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     });
   }
 
-  void setFlag(SelectionKey key, Object value) {
+  void setFlag<T extends Object>(SelectionKey key, T value) {
     setState(() {
       documentFlags = {...documentFlags, key: value};
     });
@@ -585,6 +585,17 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     SuggestEditsIntent: ReflectAction('Suggest Edits'),
     DefineIntent: ReflectAction('Define'),
     SelectAllMatchingTextIntent: ReflectAction('Select All Matching Text'),
+
+    SetDocumentTopMarginIntent: _SetEntryAction<double, SetDocumentTopMarginIntent>(this),
+    SetDocumentBottomMarginIntent: _SetEntryAction<double, SetDocumentBottomMarginIntent>(this),
+    SetDocumentLeftMarginIntent: _SetEntryAction<double, SetDocumentLeftMarginIntent>(this),
+    SetDocumentRightMarginIntent: _SetEntryAction<double, SetDocumentRightMarginIntent>(this),
+
+    SetParagraphLeftIndentIntent: _SetEntryAction<double, SetParagraphLeftIndentIntent>(this),
+    SetParagraphRightIndentIntent: _SetEntryAction<double, SetParagraphRightIndentIntent>(this),
+    SetParagraphFirstLineIndentIntent: _SetEntryAction<double, SetParagraphFirstLineIndentIntent>(
+      this,
+    ),
   };
 
   @override
@@ -733,6 +744,17 @@ class _ToggleEntryAction extends Action<FloogleSelectableBooleanIntent> {
   @override
   Object? invoke(FloogleSelectableBooleanIntent intent) {
     state.toggleFlag(intent.key);
+    return null;
+  }
+}
+
+class _SetEntryAction<T extends Object, I extends FloogleSelectableIntent<T>> extends Action<I> {
+  _SetEntryAction(this.state);
+  final _AppStateManagerState state;
+
+  @override
+  Object? invoke(I intent) {
+    state.setFlag<T>(intent.key, intent.value);
     return null;
   }
 }

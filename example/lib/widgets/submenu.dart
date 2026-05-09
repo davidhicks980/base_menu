@@ -81,7 +81,7 @@ class _SubmenuState extends State<Submenu> {
       alignment: widget.alignment,
       menuAlignment: widget.menuAlignment,
       onFocusChange: _handleFocusChange,
-      panel: widget.panel,
+      menu: widget.panel,
       child: _SubmenuButton(
         hoverDelay: widget.hoverDelay,
         autofocus: widget.autofocus,

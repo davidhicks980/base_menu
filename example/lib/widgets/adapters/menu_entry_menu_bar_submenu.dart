@@ -54,7 +54,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
       onFocusChange: _handleFocusChange,
       overlayPadding: const EdgeInsets.only(top: 55, bottom: 8),
       orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
-      panel:
+      menu:
           widget.panel ??
           MenuEntryPanel(
             menuEntry: widget.entry,

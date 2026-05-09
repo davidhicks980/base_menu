@@ -46,7 +46,7 @@ class _SelectState extends State<Select> {
       },
       overlayPadding: const EdgeInsets.only(top: 98, bottom: 8),
       padding: MenuPanel.defaultPadding,
-      panel: widget.panel,
+      menu: widget.panel,
       child: _SelectTextButton(
         focusNode: focusNode,
         padding: widget.buttonPadding,

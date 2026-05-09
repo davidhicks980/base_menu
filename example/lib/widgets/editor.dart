@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -16,12 +18,19 @@ class EditorView extends StatefulWidget {
 
 class _EditorViewState extends State<EditorView> {
   final MenuController contextMenuController = MenuController();
+  final horizontalScrollController = ScrollController();
   static const shortcuts = {
     SingleActivator(LogicalKeyboardKey.arrowLeft): DoNothingAndStopPropagationIntent(),
     SingleActivator(LogicalKeyboardKey.arrowRight): DoNothingAndStopPropagationIntent(),
     SingleActivator(LogicalKeyboardKey.arrowUp): DoNothingAndStopPropagationIntent(),
     SingleActivator(LogicalKeyboardKey.arrowDown): DoNothingAndStopPropagationIntent(),
   };
+
+  @override
+  void dispose() {
+    horizontalScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,48 +43,63 @@ class _EditorViewState extends State<EditorView> {
     );
     return EditorContextMenuWrapper(
       menuController: contextMenuController,
-      child: Column(
-        children: [
-          const HorizontalDocumentRuler(),
-          Expanded(
-            child: CustomPaint(
-              painter: _TopLeftBorderPainter(),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 1),
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 16, bottom: 64),
-                    child: Row(
-                      children: [
-                        const VerticalDocumentRuler(),
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 64),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        scrollDirection: Axis.horizontal,
+        child: Stack(
+          children: [
+            const Positioned(
+              top: 24,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: CustomPaint(painter: _TopLeftBorderPainter()),
+            ),
+            SizedBox(
+              width: math.max(MediaQuery.sizeOf(context).width, 96 * 8.5 + 128),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const HorizontalDocumentRuler(),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 1),
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 16, bottom: 64),
+                          child: Row(
+                            children: [
+                              const VerticalDocumentRuler(),
+                              Expanded(
                                 child: Align(
-                                  child: UnconstrainedBox(
-                                    clipBehavior: Clip.hardEdge,
-                                    constrainedAxis: Axis.vertical,
-                                    alignment: Alignment.topLeft,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(right: 64),
-                                      child: SizedBox(
-                                        width: 96 * 8.5,
-                                        height: 96 * 11,
-                                        child: DecoratedBox(
-                                          decoration: const BoxDecoration(
-                                            border: Border.fromBorderSide(
-                                              BorderSide(color: FloogleColors.separatorColor),
+                                  alignment: Alignment.topCenter,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(left: 64),
+                                    child: Align(
+                                      child: UnconstrainedBox(
+                                        clipBehavior: Clip.hardEdge,
+                                        constrainedAxis: Axis.vertical,
+                                        alignment: Alignment.topLeft,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(right: 64),
+                                          child: SizedBox(
+                                            width: 96 * 8.5,
+                                            height: 96 * 11,
+                                            child: DecoratedBox(
+                                              decoration: const BoxDecoration(
+                                                border: Border.fromBorderSide(
+                                                  BorderSide(color: FloogleColors.separatorColor),
+                                                ),
+                                                color: FloogleColors.white,
+                                              ),
+                                              // This is where the margins of
+                                              // the text editor can be edited.
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(96),
+                                                child: child,
+                                              ),
                                             ),
-                                            color: FloogleColors.white,
-                                          ),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(64),
-                                            child: child,
                                           ),
                                         ),
                                       ),
@@ -83,17 +107,17 @@ class _EditorViewState extends State<EditorView> {
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -111,6 +135,9 @@ class _EditorWidget extends StatelessWidget {
       forceLine: true,
       enableInteractiveSelection: true,
       autofocus: true,
+      onTapOutside: (event) {
+        MenuController.maybeOf(context)?.close();
+      },
       onSecondaryTapDown: (details) {
         MenuController.maybeOf(context)?.open(position: details.globalPosition);
       },
@@ -118,9 +145,7 @@ class _EditorWidget extends StatelessWidget {
         MenuController.maybeOf(context)?.open(position: details.globalPosition);
       },
       onTap: () {
-        if (MenuController.maybeIsOpenOf(context) ?? false) {
-          MenuController.maybeOf(context)?.close();
-        }
+        MenuController.maybeOf(context)?.close();
       },
       focusNode: AppStateManager.editorFocusNodeOf(context),
       controller: AppStateManager.controllerOf(context),
@@ -132,6 +157,7 @@ class _EditorWidget extends StatelessWidget {
 }
 
 class _TopLeftBorderPainter extends CustomPainter {
+  const _TopLeftBorderPainter();
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()

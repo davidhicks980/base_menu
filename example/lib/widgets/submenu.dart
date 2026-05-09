@@ -36,9 +36,11 @@ class Submenu extends StatefulWidget {
 
 class _SubmenuState extends State<Submenu> {
   final MenuController controller = MenuController();
+  // Notifier to track whether the submenu or its button has focus, used to
+  // apply hover background color.
+  final ValueNotifier<bool> focusNotifier = ValueNotifier(false);
   Timer? _openTimer;
   Timer? _closeTimer;
-  final ValueNotifier<bool> focusNotifier = ValueNotifier(false);
 
   @override
   void dispose() {
@@ -51,15 +53,11 @@ class _SubmenuState extends State<Submenu> {
   void _handleFocusChange(bool value) {
     focusNotifier.value = value;
     if (!value) {
-      if (_closeTimer == null) {
-        setState(() {
-          _closeTimer = Timer(widget.hoverDelay, () {
-            if (mounted && controller.isOpen) {
-              controller.close();
-            }
-          });
-        });
-      }
+      _closeTimer ??= Timer(widget.hoverDelay, () {
+        if (mounted && controller.isOpen) {
+          controller.close();
+        }
+      });
     } else {
       _closeTimer?.cancel();
       _closeTimer = null;

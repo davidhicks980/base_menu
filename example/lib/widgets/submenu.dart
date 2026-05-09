@@ -39,12 +39,10 @@ class _SubmenuState extends State<Submenu> {
   // Notifier to track whether the submenu or its button has focus, used to
   // apply hover background color.
   final ValueNotifier<bool> focusNotifier = ValueNotifier(false);
-  Timer? _openTimer;
   Timer? _closeTimer;
 
   @override
   void dispose() {
-    _openTimer?.cancel();
     _closeTimer?.cancel();
     focusNotifier.dispose();
     super.dispose();

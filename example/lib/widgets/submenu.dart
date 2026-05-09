@@ -44,6 +44,7 @@ class _SubmenuState extends State<Submenu> {
   @override
   void dispose() {
     _closeTimer?.cancel();
+    _closeTimer = null;
     focusNotifier.dispose();
     super.dispose();
   }
@@ -129,6 +130,7 @@ class __SubmenuButtonState extends State<_SubmenuButton> {
   @override
   void dispose() {
     _openTimer?.cancel();
+    _openTimer = null;
     super.dispose();
   }
 

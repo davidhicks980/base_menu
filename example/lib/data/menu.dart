@@ -53,13 +53,25 @@ abstract class _SubmenuLabel {
   );
 
   static const textAlignment = MenuEntry('Text alignment', icon: Symbols.format_align_left);
+
+  static const MenuEntry aimAssist = MenuEntry('Enhanced Menus', icon: Symbols.target);
 }
 
 abstract class Menu {
   static const addOns = SubmenuEntry(_SubmenuLabel.addOns, [Entry.getAddOns, Entry.manageAddOns]);
-  static const extensions = SubmenuEntry(_SubmenuLabel.extensions, [addOns]);
+
+  static const aimAssist = SubmenuEntry(_SubmenuLabel.aimAssist, [
+    Entry.menuAimAssist,
+    Entry.menuAimAssistDebugPaint,
+  ]);
+  static const extensions = SubmenuEntry(_SubmenuLabel.extensions, [
+    addOns,
+    SeparatorMenuEntry(),
+    Menu.aimAssist,
+  ]);
   static const help = SubmenuEntry(_SubmenuLabel.help, [
     Entry.searchMenus,
+
     SeparatorMenuEntry(),
     Entry.help,
     Entry.training,

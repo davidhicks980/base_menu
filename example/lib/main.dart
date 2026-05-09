@@ -3,9 +3,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:menu_utilities/menu_utilities.dart';
 
 import 'app_state_manager.dart';
 import 'firebase_options.dart';
+import 'model/enum.dart';
 import 'toolbar.dart';
 import 'utilities/colors.dart';
 import 'widgets/action_reflector.dart';
@@ -90,7 +92,7 @@ class _MainState extends State<Main> {
     if (_isHeaderExpanded) {
       _isHeaderVisible = true;
     }
-    return IconTheme(
+    final child = IconTheme(
       data: const IconThemeData(
         size: 18,
         color: FloogleColors.grey,
@@ -164,6 +166,17 @@ class _MainState extends State<Main> {
           ],
         ),
       ),
+    );
+
+    return Builder(
+      builder: (context) {
+        final documentState = AppStateManager.documentStateOf(context);
+        final isMenuAimAssistEnabled = documentState[SelectionKey.menuAimAssist] == true;
+        final isMenuAimAssistDebugPaintEnabled =
+            documentState[SelectionKey.menuAimAssistDebugPaint] == true;
+        MenuAimListener.debugShowAim = isMenuAimAssistDebugPaintEnabled;
+        return MenuAimScope(enable: isMenuAimAssistEnabled, child: child);
+      },
     );
   }
 }

@@ -116,6 +116,8 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     .showRuler: true,
     .showPrintLayout: true,
     .zoomLevel: '100%',
+    .menuAimAssist: false,
+    .menuAimAssistDebugPaint: false,
   };
   late final shortcuts = _buildShortcuts();
   bool _isHeaderShown = true;
@@ -596,6 +598,9 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     SetParagraphFirstLineIndentIntent: _SetEntryAction<double, SetParagraphFirstLineIndentIntent>(
       this,
     ),
+
+    ToggleMenuAimAssistIntent: _ToggleEntryAction(this),
+    ToggleMenuAimDebugPaintIntent: _ToggleEntryAction(this),
   };
 
   @override

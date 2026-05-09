@@ -8,6 +8,8 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../menu_utilities.dart';
+
 // Examples can assume:
 // late BuildContext context;
 // late StateSetter setState;
@@ -260,7 +262,8 @@ class BaseMenuPanel extends StatelessWidget {
   }
 }
 
-abstract class BaseMenuInterface {
+// This is only used so that documentation can be shared.
+abstract class _BaseMenuInterface {
   /// An optional [MenuController] that allows opening and closing of the menu
   /// from other widgets.
   ///
@@ -407,7 +410,7 @@ void _defaultOnCloseRequested(VoidCallback hideOverlay) {
   hideOverlay();
 }
 
-class BaseMenu extends StatelessWidget implements BaseMenuInterface {
+class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
   const BaseMenu({
     super.key,
     this.onOpen,
@@ -531,33 +534,49 @@ class BaseMenu extends StatelessWidget implements BaseMenuInterface {
   /// screen when the menu is open.
   final EdgeInsetsGeometry overlayPadding;
 
-  Widget _buildPosition(BuildContext context, RawMenuOverlayInfo position, Widget panel) {
+  Widget _buildPosition(BuildContext context, RawMenuOverlayInfo position, Widget child) {
     final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
     final TextDirection textDirection = Directionality.of(context);
+    final scope = _MenuScope._maybeOf(context);
+
     // Resolve fallback alignment here so that alignmentOffset defaults to
     // being directionally-agnostic.
     final anchorAlignment =
         (alignment ??
-                switch (_MenuScope._maybeOf(context)?.orientation) {
+                switch (scope?.orientation) {
                   Axis.vertical => AlignmentDirectional.topEnd,
                   _ => AlignmentDirectional.bottomStart,
                 })
             .resolve(textDirection);
+    print(scope?.orientation);
 
-    return CustomSingleChildLayout(
-      delegate: _MenuLayout(
-        overlayPadding: overlayPadding.resolve(textDirection),
-        padding: padding,
-        avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
-        textDirection: textDirection,
-        anchorRect: position.anchorRect,
-        alignmentOffset: alignmentOffset,
-        menuPosition: position.position,
-        menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
-        alignment: anchorAlignment,
-      ),
-      child: panel,
+    final delegate = _MenuLayout(
+      overlayPadding: overlayPadding.resolve(textDirection),
+      padding: padding,
+      avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
+      textDirection: textDirection,
+      anchorRect: position.anchorRect,
+      alignmentOffset: alignmentOffset,
+      menuPosition: position.position,
+      menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+      alignment: anchorAlignment,
     );
+
+    if (scope?.isSubmenu == true &&
+        context.dependOnInheritedWidgetOfExactType<MenuAimScope>()?.enable == true) {
+      final geometry = MenuAimGeometry()..anchorRect = position.anchorRect;
+      return Stack(
+        children: [
+          CustomSingleChildLayout(
+            delegate: _MenuAimLayoutDecorator(delegate: delegate, geometry: geometry),
+            child: child,
+          ),
+          MenuAimListener(geometry: geometry),
+        ],
+      );
+    }
+
+    return CustomSingleChildLayout(delegate: delegate, child: child);
   }
 
   static Set<ui.Rect> _avoidBounds(List<ui.DisplayFeature> displayFeatures) {
@@ -586,6 +605,7 @@ class BaseMenu extends StatelessWidget implements BaseMenuInterface {
       onFocusChange: onFocusChange,
       semanticProperties: semanticProperties,
       positionBuilder: _buildPosition,
+      orientation: orientation,
       child: child,
     );
   }
@@ -607,7 +627,7 @@ class BaseMenu extends StatelessWidget implements BaseMenuInterface {
   }
 }
 
-class BasePositionedMenu extends StatefulWidget implements BaseMenuInterface {
+class BasePositionedMenu extends StatefulWidget implements _BaseMenuInterface {
   const BasePositionedMenu({
     super.key,
     this.onOpen,
@@ -615,7 +635,6 @@ class BasePositionedMenu extends StatefulWidget implements BaseMenuInterface {
     this.onOpenRequest = _defaultOnOpenRequested,
     this.onCloseRequest = _defaultOnCloseRequested,
     this.useRootOverlay = false,
-
     this.controller,
     this.consumeOutsideTaps = false,
     this.onFocusChange,
@@ -624,7 +643,6 @@ class BasePositionedMenu extends StatefulWidget implements BaseMenuInterface {
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
-
     required this.menu,
     required this.positionBuilder,
     this.builder,
@@ -937,7 +955,7 @@ class _MenuOverlay extends StatelessWidget {
     return ConstrainedBox(
       constraints: BoxConstraints.loose(position.overlaySize),
       child: Builder(
-        builder: (context) {
+        builder: (BuildContext context) {
           return positionBuilder.call(context, position, panel);
         },
       ),
@@ -1486,5 +1504,35 @@ class _MenuLayout extends SingleChildLayoutDelegate {
         overlayPadding != oldDelegate.overlayPadding ||
         textDirection != oldDelegate.textDirection ||
         !setEquals(avoidBounds, oldDelegate.avoidBounds);
+  }
+}
+
+class _MenuAimLayoutDecorator<T extends SingleChildLayoutDelegate>
+    extends SingleChildLayoutDelegate {
+  const _MenuAimLayoutDecorator({required this.delegate, required this.geometry});
+
+  final T delegate;
+  final MenuAimGeometry geometry;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    return delegate.getConstraintsForChild(constraints);
+  }
+
+  @override
+  ui.Offset getPositionForChild(Size size, Size childSize) {
+    final position = delegate.getPositionForChild(size, childSize);
+    geometry.targetRect = position & childSize;
+    return position;
+  }
+
+  @override
+  Size getSize(BoxConstraints constraints) {
+    return delegate.getSize(constraints);
+  }
+
+  @override
+  bool shouldRelayout(covariant _MenuAimLayoutDecorator<T> oldDelegate) {
+    return geometry != oldDelegate.geometry || delegate.shouldRelayout(oldDelegate.delegate);
   }
 }

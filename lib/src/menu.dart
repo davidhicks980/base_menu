@@ -548,7 +548,6 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
                   _ => AlignmentDirectional.bottomStart,
                 })
             .resolve(textDirection);
-    print(scope?.orientation);
 
     final delegate = _MenuLayout(
       overlayPadding: overlayPadding.resolve(textDirection),
@@ -781,16 +780,7 @@ class _BaseMenuState extends State<BasePositionedMenu> {
       if (intent._scopeIntent != null) {
         SchedulerBinding.instance.addPostFrameCallback((_) {
           if (_menuController.isOpen) {
-            switch (intent._scopeIntent) {
-              case _MenuFocusFirstIntent():
-                _menuScopeNode.nextFocus();
-              case _MenuFocusLastIntent():
-                _menuScopeNode.previousFocus();
-              case _MenuSetFirstFocusIntent():
-                _menuScopeNode.requestFocus();
-              default:
-                return;
-            }
+            Actions.invoke(_menuScopeNode.context!, intent._scopeIntent);
           }
         });
       }

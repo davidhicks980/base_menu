@@ -35,11 +35,6 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
-    debugProfileLayoutsEnabled = true;
-    debugProfileBuildsEnabled = true;
-    debugProfileBuildsEnabledUserWidgets = true;
-    debugProfilePaintsEnabled = true;
-
     return WidgetsApp(
       localizationsDelegates: const [
         DefaultWidgetsLocalizations.delegate,

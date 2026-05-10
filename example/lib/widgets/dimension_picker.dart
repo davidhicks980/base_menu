@@ -37,7 +37,6 @@ class _DimensionPickerState extends State<DimensionPicker> {
     });
     Actions.invoke(context, InsertTableIntent(selectedRow + 1, selectedColumn + 1));
     Actions.invoke(context, const DismissIntent());
-    print('Selected ${selectedRow + 1} x ${selectedColumn + 1}');
   }
 
   @override

@@ -169,7 +169,7 @@ class _MainState extends State<Main> {
         final isMenuAimAssistEnabled = documentState[SelectionKey.menuAimAssist] == true;
         final isMenuAimAssistDebugPaintEnabled =
             documentState[SelectionKey.menuAimAssistDebugPaint] == true;
-        MenuAimListener.debugShowAim = isMenuAimAssistDebugPaintEnabled;
+        MenuAimListener.visualizeAim = isMenuAimAssistDebugPaintEnabled;
         return MenuAimScope(enable: isMenuAimAssistEnabled, child: child);
       },
     );

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -139,9 +140,15 @@ class _EditorWidget extends StatelessWidget {
         MenuController.maybeOf(context)?.close();
       },
       onSecondaryTapDown: (details) {
+        if (kIsWeb && BrowserContextMenu.enabled) {
+          return;
+        }
         MenuController.maybeOf(context)?.open(position: details.globalPosition);
       },
       onSingleLongTapStart: (details) {
+        if (kIsWeb && BrowserContextMenu.enabled) {
+          return;
+        }
         MenuController.maybeOf(context)?.open(position: details.globalPosition);
       },
       onTap: () {

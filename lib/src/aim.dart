@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 class MenuAimGeometry {
@@ -24,7 +25,6 @@ class MenuAimScope extends InheritedWidget {
 class MenuAimListener extends StatelessWidget {
   const MenuAimListener({super.key, required this.geometry});
   final MenuAimGeometry geometry;
-
   static bool visualizeAim = false;
 
   @override
@@ -49,7 +49,7 @@ class _MenuAimListener extends LeafRenderObjectWidget {
   }
 }
 
-class _RenderMenuAimListener extends RenderProxyBox {
+class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
   _RenderMenuAimListener(this.delegate);
   static const exitDuration = Duration(milliseconds: 300);
   static const int sampleCount = 15;
@@ -152,9 +152,11 @@ class _RenderMenuAimListener extends RenderProxyBox {
         // hover hit testing may not trigger again after aim is disabled. To
         // mitigate, a synthetic hover event is dispatched after a short delay
         // to ensure the correct menu item is highlighted.
-        GestureBinding.instance.handlePointerEvent(
-          PointerHoverEvent(position: localToGlobal(position), kind: PointerDeviceKind.mouse),
-        );
+        if (attached) {
+          GestureBinding.instance.handlePointerEvent(
+            PointerHoverEvent(position: localToGlobal(position), kind: PointerDeviceKind.mouse),
+          );
+        }
       });
       return true;
     }

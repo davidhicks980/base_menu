@@ -482,7 +482,7 @@ class SearchEntry extends StatelessWidget {
           child: BaseMenuItem(
             onTap: onPressed,
             onPointerEnter: onEntered,
-            requestFocusOnHover: false,
+            enableHoverTraversal: false,
             child: MenuActionLabel(
               decoration: selected
                   ? const WidgetStatePropertyAll(

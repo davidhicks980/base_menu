@@ -75,7 +75,7 @@ class IconButton extends StatelessWidget {
         focusNode: focusNode,
         role: null,
         requestCloseOnActivate: false,
-        requestFocusOnHover: requestFocusOnHover,
+        enableHoverTraversal: requestFocusOnHover,
         child: IconLabel(decoration: decoration, constraints: constraints, child: child),
       ),
     );

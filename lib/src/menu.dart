@@ -426,6 +426,7 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
     this.onFocusChange,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
+      label: 'menu',
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
@@ -436,6 +437,7 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
     this.alignment,
     this.alignmentOffset = Offset.zero,
     this.menuAlignment,
+    this.overlayWrapper,
   });
 
   @override
@@ -534,6 +536,8 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
   /// screen when the menu is open.
   final EdgeInsetsGeometry overlayPadding;
 
+  final Widget Function(BuildContext context, Widget child)? overlayWrapper;
+
   Widget _buildPosition(BuildContext context, RawMenuOverlayInfo position, Widget child) {
     final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
     final TextDirection textDirection = Directionality.of(context);
@@ -561,10 +565,12 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
       alignment: anchorAlignment,
     );
 
+    Widget overlay;
+
     if (scope?.isSubmenu == true &&
         context.dependOnInheritedWidgetOfExactType<MenuAimScope>()?.enable == true) {
       final geometry = MenuAimGeometry()..anchorRect = position.anchorRect;
-      return Stack(
+      overlay = Stack(
         children: [
           CustomSingleChildLayout(
             delegate: _MenuAimLayoutDecorator(delegate: delegate, geometry: geometry),
@@ -573,9 +579,11 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
           MenuAimListener(geometry: geometry),
         ],
       );
+    } else {
+      overlay = CustomSingleChildLayout(delegate: delegate, child: child);
     }
 
-    return CustomSingleChildLayout(delegate: delegate, child: child);
+    return overlayWrapper?.call(context, overlay) ?? overlay;
   }
 
   static Set<ui.Rect> _avoidBounds(List<ui.DisplayFeature> displayFeatures) {
@@ -639,6 +647,7 @@ class BasePositionedMenu extends StatefulWidget implements _BaseMenuInterface {
     this.onFocusChange,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
+      label: 'Menu',
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
@@ -710,6 +719,7 @@ class BasePositionedMenu extends StatefulWidget implements _BaseMenuInterface {
 class _BaseMenuState extends State<BasePositionedMenu> {
   late final _menuScopeNode = FocusScopeNode(
     skipTraversal: true,
+    debugLabel: 'MenuScope(${widget.semanticProperties.label})',
     directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
   );
 
@@ -883,6 +893,11 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     );
 
     return child;
+  }
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return widget.semanticProperties.label!;
   }
 }
 

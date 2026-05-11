@@ -29,14 +29,37 @@ class MenuPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final panel = BaseMenuPanel(
-      padding: padding,
-      constraints: constraints,
-      axis: axis,
-      menuChildren: children,
-      spacing: spacing,
+    return CustomMenuPanel(
+      clipBehavior: clipBehavior,
+      borderRadius: borderRadius,
+      color: color,
+      child: BaseMenuPanel(
+        padding: padding,
+        constraints: constraints,
+        axis: axis,
+        menuChildren: children,
+        spacing: spacing,
+      ),
     );
+  }
+}
 
+class CustomMenuPanel extends StatelessWidget {
+  const CustomMenuPanel({
+    super.key,
+    required this.child,
+    this.clipBehavior = Clip.none,
+    this.borderRadius = const BorderRadius.all(Radius.circular(4)),
+    this.color = FloogleColors.white,
+  });
+
+  final BorderRadiusGeometry borderRadius;
+  final Clip clipBehavior;
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     final decoration = BoxDecoration(
       color: color,
       borderRadius: borderRadius,
@@ -51,9 +74,9 @@ class MenuPanel extends StatelessWidget {
     );
 
     if (clipBehavior == Clip.none) {
-      return DecoratedBox(decoration: decoration, child: panel);
+      return DecoratedBox(decoration: decoration, child: child);
     }
 
-    return Container(decoration: decoration, clipBehavior: clipBehavior, child: panel);
+    return Container(decoration: decoration, clipBehavior: clipBehavior, child: child);
   }
 }

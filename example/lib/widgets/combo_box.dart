@@ -134,7 +134,7 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
     // This should be a SemanticsRole.option, but this is currently not
     // supported by Flutter's semantics system.
     final body = BaseMenuItem(
-      requestFocusOnHover: false,
+      enableHoverTraversal: false,
       onPointerEnter: _handlePointerEnter,
       onPointerLeave: _handlePointerLeave,
       onTap: _handleSelect,

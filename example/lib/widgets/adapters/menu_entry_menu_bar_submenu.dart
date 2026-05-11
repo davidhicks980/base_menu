@@ -74,7 +74,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
             child: Semantics.fromProperties(
               properties: SemanticsProperties(expanded: isOpen),
               child: BaseMenuItem(
-                requestFocusOnHover: isRootOpen,
+                enableHoverTraversal: isRootOpen,
                 focusNode: anchorFocusNode,
                 onFocusChange: (value) {
                   final hasAnchorFocus = anchorFocusNode.hasFocus;

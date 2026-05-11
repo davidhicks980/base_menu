@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -38,45 +40,85 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
     ),
   };
 
-  bool _menuWasEnabled = false;
+  bool _wasBrowserContextMenuEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    _disableContextMenu();
+    _wasBrowserContextMenuEnabled = kIsWeb && BrowserContextMenu.enabled;
   }
 
   @override
   void dispose() {
+    if (_wasBrowserContextMenuEnabled) {
+      _enableContextMenu();
+    }
     _controller.dispose();
     _buttonFocusNode.dispose();
-    _reenableContextMenu();
     super.dispose();
   }
 
-  Future<void> _disableContextMenu() async {
-    if (!kIsWeb) {
-      // Does nothing on non-web platforms.
+  Future<void> _handleSecondaryTapDown(TapDownDetails details) async {
+    if (kIsWeb && BrowserContextMenu.enabled) {
+      print('Browser context menu is enabled, not showing custom context menu');
       return;
     }
-    _menuWasEnabled = BrowserContextMenu.enabled;
-    if (_menuWasEnabled) {
-      await BrowserContextMenu.disableContextMenu();
-    }
-  }
 
-  void _reenableContextMenu() {
-    if (!kIsWeb) {
-      // Does nothing on non-web platforms.
-      return;
-    }
-    if (_menuWasEnabled && !BrowserContextMenu.enabled) {
-      BrowserContextMenu.enableContextMenu();
-    }
-  }
-
-  void _handleSecondaryTapDown(TapDownDetails details) {
     widget.menuController.open(position: details.localPosition);
+  }
+
+  Future<void>? _contextMenuStatus;
+  Future<void> _disableContextMenu() async {
+    assert(_wasBrowserContextMenuEnabled);
+
+    if (_contextMenuStatus != null) {
+      // If a context menu status change is already in progress, wait for it to complete before starting a new one.
+      await _contextMenuStatus;
+    }
+
+    if (!BrowserContextMenu.enabled) {
+      return;
+    }
+
+    _contextMenuStatus = BrowserContextMenu.disableContextMenu();
+    print('Context menu disabled');
+  }
+
+  Future<void> _enableContextMenu() async {
+    assert(_wasBrowserContextMenuEnabled);
+
+    if (_contextMenuStatus != null) {
+      // If a context menu status change is already in progress, wait for it to complete before starting a new one.
+      await _contextMenuStatus;
+    }
+
+    if (BrowserContextMenu.enabled) {
+      return;
+    }
+
+    _contextMenuStatus = BrowserContextMenu.enableContextMenu();
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    assert(kIsWeb);
+    switch (event) {
+      case KeyDownEvent(logicalKey: LogicalKeyboardKey.shiftLeft || LogicalKeyboardKey.shiftRight):
+        _enableContextMenu();
+      case KeyUpEvent(logicalKey: LogicalKeyboardKey.shiftLeft || LogicalKeyboardKey.shiftRight):
+        _disableContextMenu();
+    }
+
+    return false;
+  }
+
+  void _onHoverEnter(PointerEnterEvent event) {
+    _disableContextMenu();
+    WidgetsBinding.instance.keyboard.addHandler(_handleKeyEvent);
+  }
+
+  void _onHoverExit(PointerExitEvent event) {
+    _enableContextMenu();
+    WidgetsBinding.instance.keyboard.removeHandler(_handleKeyEvent);
   }
 
   void _handleTapDown(TapDownDetails details) {
@@ -107,7 +149,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseMenu(
+    final child = BaseMenu(
       padding: const EdgeInsets.symmetric(vertical: 6),
       menu: panel,
       controller: widget.menuController,
@@ -117,5 +159,11 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
         child: widget.child,
       ),
     );
+
+    if (!_wasBrowserContextMenuEnabled) {
+      return child;
+    }
+
+    return MouseRegion(onEnter: _onHoverEnter, onExit: _onHoverExit, child: child);
   }
 }

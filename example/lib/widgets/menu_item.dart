@@ -44,7 +44,7 @@ class MenuItem extends StatelessWidget {
               onTap?.call();
             }
           : onTap,
-      requestFocusOnHover: requestFocusOnHover,
+      enableHoverTraversal: requestFocusOnHover,
       mouseCursor: mouseCursor,
       autofocus: autofocus,
       child: hasSubmenu

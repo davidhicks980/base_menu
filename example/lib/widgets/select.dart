@@ -126,7 +126,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
                   focusNode: widget.focusNode,
                   mouseCursor: WidgetStateMouseCursor.clickable,
                   requestCloseOnActivate: false,
-                  requestFocusOnHover: false,
+                  enableHoverTraversal: false,
                   onTap: _handlePressed,
                   child: Builder(
                     builder: (context) {

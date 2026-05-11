@@ -26,7 +26,7 @@ class MenuEntrySubmenu extends StatelessWidget {
     return Submenu(
       alignment: alignment,
       menuAlignment: menuAlignment,
-      hoverDelay: hoverDelay,
+      hoverOpenDelay: hoverDelay,
       panel: MenuEntryPanel(
         menuEntry: entry,
         constraints: entry == Menu.table ? null : constraints,

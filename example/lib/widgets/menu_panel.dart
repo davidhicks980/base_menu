@@ -1,5 +1,6 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:menu_utilities/menu_utilities.dart';
+import 'package:menu_utilities/menu_utilities.dart' hide MenuPanelHitSurface;
 
 import '../utilities/colors.dart';
 
@@ -14,6 +15,7 @@ class MenuPanel extends StatelessWidget {
     this.spacing = 0,
     this.borderRadius = const BorderRadius.all(Radius.circular(4)),
     this.color = FloogleColors.white,
+    this.onSurfaceEnter,
   });
 
   static const defaultPadding = EdgeInsets.symmetric(vertical: 7, horizontal: 1);
@@ -26,10 +28,11 @@ class MenuPanel extends StatelessWidget {
   final Axis axis;
   final double spacing;
   final Color color;
+  final PointerEnterEventListener? onSurfaceEnter;
 
   @override
   Widget build(BuildContext context) {
-    return CustomMenuPanel(
+    return _MenuPanelDecoration(
       clipBehavior: clipBehavior,
       borderRadius: borderRadius,
       color: color,
@@ -39,14 +42,14 @@ class MenuPanel extends StatelessWidget {
         axis: axis,
         menuChildren: children,
         spacing: spacing,
+        onSurfaceEnter: onSurfaceEnter,
       ),
     );
   }
 }
 
-class CustomMenuPanel extends StatelessWidget {
-  const CustomMenuPanel({
-    super.key,
+class _MenuPanelDecoration extends StatelessWidget {
+  const _MenuPanelDecoration({
     required this.child,
     this.clipBehavior = Clip.none,
     this.borderRadius = const BorderRadius.all(Radius.circular(4)),

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
@@ -7,8 +8,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import '../utilities/colors.dart';
 import 'menu_action_label.dart';
 import 'menu_panel.dart';
+
+class _DescendantPanelPointerNotification extends Notification {
+  const _DescendantPanelPointerNotification(this.isHovered);
+  final bool isHovered;
+}
 
 class Submenu extends StatefulWidget {
   const Submenu({
@@ -18,6 +25,7 @@ class Submenu extends StatefulWidget {
     this.menuAlignment,
     this.hoverOpenDelay = Duration.zero,
     this.leading,
+    this.focusNode,
     required this.child,
     required this.panel,
     this.autofocus = false,
@@ -29,6 +37,7 @@ class Submenu extends StatefulWidget {
   final Widget? leading;
   final Widget child;
   final Widget panel;
+  final FocusNode? focusNode;
   final Duration hoverOpenDelay;
   final bool autofocus;
 
@@ -40,21 +49,47 @@ class _SubmenuState extends State<Submenu> {
   final MenuController controller = MenuController();
   // Notifier to track whether the submenu or its button has focus, used to
   // apply hover background color.
-  final ValueNotifier<Set<WidgetState>> _highlightNotifier = ValueNotifier({});
-  late final FocusNode _focusNode = FocusNode();
+  final ValueNotifier<bool> _highlightNotifier = ValueNotifier(false);
+  FocusNode? _internalFocusNode;
+  FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
   bool _isAnchorHovered = false;
   bool _isPanelHovered = false;
   bool? _isParentPanelHovered = false;
   bool _isScopeFocused = false;
   Timer? _closeTimer;
   Timer? _openTimer;
+  bool _enableHighlight = false;
+
+  void _handleFocusChange() {
+    if (_focusNode.hasFocus && !controller.isOpen) {
+      _enableHighlight = false;
+    }
+    _updateHighlight();
+  }
 
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
-      _updateHighlight();
-    });
+    if (widget.focusNode == null) {
+      _internalFocusNode = FocusNode();
+    }
+
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(Submenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      if (widget.focusNode == null) {
+        oldWidget.focusNode?.removeListener(_handleFocusChange);
+        _internalFocusNode = FocusNode();
+      } else {
+        _internalFocusNode!.dispose();
+        _internalFocusNode = null;
+      }
+      _focusNode.addListener(_handleFocusChange);
+    }
   }
 
   @override
@@ -67,7 +102,7 @@ class _SubmenuState extends State<Submenu> {
     if (_isParentPanelHovered != scopeHovered) {
       _isParentPanelHovered = scopeHovered;
       if (scopeHovered == false && !_isPanelHovered && !_isScopeFocused) {
-        _highlightNotifier.value = {};
+        _highlightNotifier.value = false;
         if (controller.isOpen) {
           _scheduleHoverClose();
         }
@@ -77,12 +112,12 @@ class _SubmenuState extends State<Submenu> {
 
   @override
   void dispose() {
+    _internalFocusNode?.dispose();
     _openTimer?.cancel();
     _openTimer = null;
     _closeTimer?.cancel();
     _closeTimer = null;
     _highlightNotifier.dispose();
-    _focusNode.dispose();
     super.dispose();
   }
 
@@ -92,9 +127,9 @@ class _SubmenuState extends State<Submenu> {
     _closeTimer?.cancel();
     _closeTimer = Timer(widget.hoverOpenDelay, () {
       _closeTimer = null;
-      assert(!_isAnchorHovered, '${widget.child}${label != null ? '($label)' : ''} hover close');
+      assert(!_isAnchorHovered);
+      assert(!_isPanelHovered);
       assert(_openTimer?.isActive != true);
-      assert(!_isPanelHovered, '${widget.child}${label != null ? '($label)' : ''} hover close');
       controller.close();
     });
   }
@@ -108,24 +143,22 @@ class _SubmenuState extends State<Submenu> {
     _openTimer = Timer(widget.hoverOpenDelay, () {
       if (!controller.isOpen) {
         controller.open();
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          if (mounted && controller.isOpen && _isAnchorHovered) {
-            // Prevents root scope from receiving focus when the menu is opened
-            // on web.
-            _focusNode.requestFocus();
-          }
-        });
+        if (kIsWeb) {
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            if (mounted && controller.isOpen && _isAnchorHovered) {
+              // Prevents root scope from receiving focus when the menu is opened
+              // on web.
+              _focusNode.requestFocus();
+            }
+          });
+        }
       }
     });
   }
 
   void _updateHighlight() {
-    if (!_enableHighlight) {
-      return;
-    }
-    _highlightNotifier.value = _isPanelHovered || _focusNode.hasFocus || _isScopeFocused
-        ? {WidgetState.focused}
-        : {};
+    _highlightNotifier.value =
+        _enableHighlight && (_isPanelHovered || _focusNode.hasFocus || _isScopeFocused);
   }
 
   void _handlePointerEnterAnchor(PointerEnterEvent event) {
@@ -148,27 +181,32 @@ class _SubmenuState extends State<Submenu> {
     _updateHighlight();
   }
 
-  void _handlePointerEnterPanel(PointerEnterEvent event) {
+  void _handlePointerEnterPanel(PointerEvent event) {
     _isPanelHovered = true;
     _closeTimer?.cancel();
     _updateHighlight();
+    const _DescendantPanelPointerNotification(true).dispatch(context);
+    _focusNode.requestFocus();
   }
 
   void _handlePointerLeavePanel(PointerExitEvent event) {
     _isPanelHovered = false;
     _focusNode.requestFocus();
     _updateHighlight();
+    const _DescendantPanelPointerNotification(false).dispatch(context);
   }
 
   void _handlePressed() {
     if (!controller.isOpen) {
       controller.open();
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (mounted && controller.isOpen) {
-          _focusNode.requestFocus();
-          _updateHighlight();
-        }
-      });
+      if (kIsWeb) {
+        SchedulerBinding.instance.addPostFrameCallback((_) {
+          if (mounted && controller.isOpen) {
+            _focusNode.requestFocus();
+            _updateHighlight();
+          }
+        });
+      }
     }
 
     widget.onPressed?.call();
@@ -179,25 +217,44 @@ class _SubmenuState extends State<Submenu> {
     _updateHighlight();
   }
 
-  bool _enableHighlight = false;
   void _handleClose() {
     // Don't call update highlight here because it can cause the panel to
     // momentarily lose the hover color.
     _isPanelHovered = false;
+
+    // Wait for the panel to close before updating the highlight to prevent the
+    // hover color from flickering.
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _enableHighlight = false;
-        _highlightNotifier.value = {};
         _updateHighlight();
       }
     });
   }
 
+  void _handleOpen() {
+    _enableHighlight = true;
+    _updateHighlight();
+  }
+
+  bool _handleDescendantPanelPointerNotification(_DescendantPanelPointerNotification notification) {
+    if (notification.isHovered) {
+      _closeTimer?.cancel();
+    } else {
+      if (!_isAnchorHovered && !_isPanelHovered && !_focusNode.hasFocus) {
+        _scheduleHoverClose('panel leave');
+      }
+    }
+
+    return false;
+  }
+
   Widget _buildHighlight(BuildContext context, Widget? child) {
-    return BaseMenuItemStateProvider(
-      merge: true,
-      states: _enableHighlight ? _highlightNotifier.value : {},
-      child: child!,
+    return ColoredBox(
+      color: _highlightNotifier.value
+          ? FloogleColors.menuItemFocusColor
+          : FloogleColors.transparent,
+      child: child,
     );
   }
 
@@ -218,13 +275,13 @@ class _SubmenuState extends State<Submenu> {
       alignment: widget.alignment,
       menuAlignment: widget.menuAlignment,
       onClose: _handleClose,
-      onOpen: () {
-        _enableHighlight = true;
-        _updateHighlight();
-      },
+      onOpen: _handleOpen,
       onFocusChange: _handleScopeFocusChange,
       semanticProperties: SemanticsProperties(label: '${widget.child}', role: SemanticsRole.menu),
-      menu: widget.panel,
+      menu: NotificationListener<_DescendantPanelPointerNotification>(
+        onNotification: _handleDescendantPanelPointerNotification,
+        child: widget.panel,
+      ),
       child: _SubmenuButton(
         focusNode: _focusNode,
         hoverDelay: widget.hoverOpenDelay,

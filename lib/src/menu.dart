@@ -126,6 +126,23 @@ class _MenuScope extends InheritedWidget {
 typedef BaseMenuPositionBuilder =
     Widget Function(BuildContext context, RawMenuOverlayInfo position, Widget child);
 
+class _MenuPanelHitSurface extends StatelessWidget {
+  const _MenuPanelHitSurface({required this.child, required this.onSurfaceEnter});
+  final Widget child;
+  final PointerEnterEventListener onSurfaceEnter;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.passthrough,
+      children: [
+        Positioned.fill(child: MouseRegion(onEnter: onSurfaceEnter)),
+        child,
+      ],
+    );
+  }
+}
+
 /// A simple menu surface that displays a vertical list of menu items.
 ///
 /// The [BaseMenuPanel] is painted with a dark theme when
@@ -159,6 +176,7 @@ class BaseMenuPanel extends StatelessWidget {
     this.padding = EdgeInsets.zero,
     this.spacing = 0,
     this.clipBehavior = Clip.none,
+    this.onSurfaceEnter,
     required this.axis,
     required this.menuChildren,
   });
@@ -197,19 +215,25 @@ class BaseMenuPanel extends StatelessWidget {
   final double spacing;
   final Axis axis;
   final ui.Clip clipBehavior;
+  final PointerEnterEventListener? onSurfaceEnter;
 
   @override
   Widget build(BuildContext context) {
+    Widget body = Flex(
+      direction: axis,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: spacing,
+      children: menuChildren,
+    );
+    if (onSurfaceEnter != null) {
+      body = _MenuPanelHitSurface(onSurfaceEnter: onSurfaceEnter!, child: body);
+    }
     Widget child = SingleChildScrollView(
       scrollDirection: axis,
       clipBehavior: clipBehavior,
-      child: Flex(
-        direction: axis,
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: spacing,
-        children: menuChildren,
-      ),
+      hitTestBehavior: HitTestBehavior.translucent,
+      child: body,
     );
 
     if (padding != EdgeInsets.zero) {
@@ -232,6 +256,10 @@ class BaseMenuPanel extends StatelessWidget {
         case Axis.horizontal:
           child = IntrinsicHeight(child: child);
       }
+    }
+
+    if (onSurfaceEnter != null) {
+      child = _MenuPanelHitSurface(onSurfaceEnter: onSurfaceEnter!, child: child);
     }
 
     if (constrainCrossAxis) {

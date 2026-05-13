@@ -57,19 +57,20 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
   }
 
   @override
-  bool? isNestedPanelHovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final isRootOpen = MenuController.maybeIsOpenOf(context) ?? false;
     return BaseMenu(
-      // onFocusChange: _handleFocusChange,
+      onFocusChange: _handleFocusChange,
       overlayWrapper: _buildOverlayWrapper,
       overlayPadding: const EdgeInsets.only(top: 55, bottom: 8),
       orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
       menu:
           widget.panel ??
+          // This is the default panel
           MenuEntryPanel(
+            onSurfaceEnter: (_) {
+              anchorFocusNode.requestFocus();
+            },
             menuEntry: widget.entry,
             borderRadius: const BorderRadiusDirectional.only(
               bottomStart: Radius.circular(4),

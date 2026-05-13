@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../app_state_manager.dart';
@@ -20,6 +21,7 @@ class MenuEntryPanel extends StatelessWidget {
     this.borderRadius = const BorderRadius.all(Radius.circular(4)),
     this.axis = Axis.vertical,
     required this.menuEntry,
+    this.onSurfaceEnter,
   });
 
   final BoxConstraints? constraints;
@@ -27,6 +29,7 @@ class MenuEntryPanel extends StatelessWidget {
   final Clip clipBehavior;
   final SubmenuEntry menuEntry;
   final Axis axis;
+  final void Function(PointerEnterEvent)? onSurfaceEnter;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +41,7 @@ class MenuEntryPanel extends StatelessWidget {
       constraints: constraints,
       clipBehavior: clipBehavior,
       borderRadius: borderRadius,
+      onSurfaceEnter: onSurfaceEnter,
       children: [
         for (final child in menuEntry.children)
           switch (child) {

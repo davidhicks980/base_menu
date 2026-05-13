@@ -4,30 +4,6 @@ import 'package:flutter/widgets.dart';
 
 import 'control.dart';
 
-class BaseMenuItemStateProvider extends StatelessWidget {
-  const BaseMenuItemStateProvider({
-    super.key,
-    required this.states,
-    required this.child,
-    this.merge = false,
-  });
-  final bool merge;
-  final Set<WidgetState>? states;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return BaseControlStateProvider<BaseMenuItem>(
-      states: states == null
-          ? BaseMenuItem.statesOf(context)
-          : merge
-          ? {...BaseMenuItem.statesOf(context), ...states!}
-          : states!,
-      child: child,
-    );
-  }
-}
-
 class BaseMenuItem extends StatefulWidget {
   const BaseMenuItem({
     super.key,

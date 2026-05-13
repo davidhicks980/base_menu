@@ -396,7 +396,16 @@ abstract class Menu {
   static const e_2_1_submenu = SubmenuEntry(Entry.e_2_1, [Entry.e_2_1_1, Entry.e_2_1_2]);
 
   // 2 submenu
-  static const e_2_submenu = SubmenuEntry(Entry.e_2, [e_2_1_submenu]);
+  static const e_2_submenu = SubmenuEntry(Entry.e_2, [
+    e_1_submenu,
+    Entry.shareWithPeople,
+    SeparatorMenuEntry(),
+    e_3_submenu,
+    e_4_submenu,
+    e_5_submenu,
+    SeparatorMenuEntry(),
+    Entry.getLink,
+  ]);
 
   // 3.1 submenu
   static const e_3_1_submenu = SubmenuEntry(Entry.e_3_1, [Entry.e_3_1_1, Entry.e_3_1_2]);
@@ -419,10 +428,14 @@ abstract class Menu {
   // Update testEntriesMenu to use the new submenus
   static const testEntriesMenu = SubmenuEntry(MenuEntry('Test Entries'), [
     e_1_submenu,
+    Entry.shareWithPeople,
+    SeparatorMenuEntry(),
     e_2_submenu,
     e_3_submenu,
     e_4_submenu,
     e_5_submenu,
+    SeparatorMenuEntry(),
+    Entry.getLink,
   ]);
 
   static const share = SubmenuEntry(_SubmenuLabel.share, [Entry.shareWithPeople, Entry.getLink]);

@@ -146,7 +146,7 @@ class Cell extends StatelessWidget {
 
   final bool selected;
   final VoidCallback onTap;
-  final PointerHoverEventListener onPointerEnter;
+  final PointerEnterEventListener onPointerEnter;
 
   @override
   Widget build(BuildContext context) {

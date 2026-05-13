@@ -1162,4 +1162,43 @@ abstract class Entry {
     size: Size(85.0, 50.0),
     columns: 2,
   );
+
+  static const e_1 = MenuEntry('1', icon: Symbols.ac_unit);
+  static const e_1_1 = MenuEntry('1.1', icon: Symbols.access_alarm);
+  static const e_1_1_1 = MenuEntry('1.1.1', icon: Symbols.accessibility_new);
+  static const e_1_2 = MenuEntry('1.2', icon: Symbols.access_time);
+  static const e_1_2_1 = MenuEntry('1.2.1', icon: Symbols.account_balance);
+  static const e_1_2_2 = MenuEntry('1.2.2', icon: Symbols.ad_units);
+  static const e_1_3 = MenuEntry('1.3', icon: Symbols.accessibility);
+  static const e_1_3_1 = MenuEntry('1.3.1', icon: Symbols.account_balance_wallet);
+  static const e_1_3_2 = MenuEntry('1.3.2', icon: Symbols.account_balance);
+  static const e_1_3_3 = MenuEntry('1.3.3', icon: Symbols.account_box);
+  static const e_1_4 = MenuEntry('1.4', icon: Symbols.account_circle);
+  static const e_1_4_1 = MenuEntry('1.4.1', icon: Symbols.account_tree);
+  static const e_1_4_2 = MenuEntry('1.4.2', icon: Symbols.adb);
+  static const e_2 = MenuEntry('2', icon: Symbols.access_alarm);
+  static const e_2_1 = MenuEntry('2.1', icon: Symbols.accessibility_new);
+  static const e_3 = MenuEntry('3', icon: Symbols.access_time);
+  static const e_3_1 = MenuEntry('3.1', icon: Symbols.account_balance_wallet);
+  static const e_4 = MenuEntry('4', icon: Symbols.accessibility);
+  static const e_4_1 = MenuEntry('4.1', icon: Symbols.account_box);
+  static const e_5 = MenuEntry('5', icon: Symbols.account_balance);
+  static const e_5_1 = MenuEntry('5.1', icon: Symbols.account_circle);
+  static const e_1_1_1_1 = MenuEntry('1.1.1.1', icon: Symbols.account_circle);
+  static const e_1_1_1_2 = MenuEntry('1.1.1.2', icon: Symbols.account_tree);
+  static const e_1_1_2 = MenuEntry('1.1.2', icon: Symbols.account_box);
+  static const e_1_1_2_1 = MenuEntry('1.1.2.1', icon: Symbols.adb);
+  static const e_1_1_2_2 = MenuEntry('1.1.2.2', icon: Symbols.add_box);
+  static const e_1_2_1_1 = MenuEntry('1.2.1.1', icon: Symbols.add_comment);
+  static const e_1_2_1_2 = MenuEntry('1.2.1.2', icon: Symbols.add_to_drive);
+  static const e_1_3_3_1 = MenuEntry('1.3.3.1', icon: Symbols.add_alert);
+  static const e_1_3_3_2 = MenuEntry('1.3.3.2', icon: Symbols.add_a_photo);
+  static const e_2_1_1 = MenuEntry('2.1.1', icon: Symbols.add_alarm);
+  static const e_2_1_2 = MenuEntry('2.1.2', icon: Symbols.add_business);
+  static const e_3_1_1 = MenuEntry('3.1.1', icon: Symbols.add_card);
+  static const e_3_1_2 = MenuEntry('3.1.2', icon: Symbols.add_chart);
+  static const e_4_1_1 = MenuEntry('4.1.1', icon: Symbols.add_circle);
+  static const e_4_1_2 = MenuEntry('4.1.2', icon: Symbols.add_circle_outline);
+  static const e_5_1_1 = MenuEntry('5.1.1', icon: Symbols.add_home);
+  static const e_5_1_2 = MenuEntry('5.1.2', icon: Symbols.add_link);
 }

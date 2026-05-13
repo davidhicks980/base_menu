@@ -118,7 +118,7 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
     state!.removeHighlight(widget.value);
   }
 
-  void _handlePointerEnter(PointerHoverEvent event) {
+  void _handlePointerEnter(PointerEnterEvent event) {
     state!.highlight(widget.value);
   }
 
@@ -134,7 +134,7 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
     // This should be a SemanticsRole.option, but this is currently not
     // supported by Flutter's semantics system.
     final body = BaseMenuItem(
-      enableHoverTraversal: false,
+      requestFocusOnHover: false,
       onPointerEnter: _handlePointerEnter,
       onPointerLeave: _handlePointerLeave,
       onTap: _handleSelect,

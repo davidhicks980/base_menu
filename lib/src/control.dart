@@ -46,7 +46,7 @@ class BaseControl<T> extends StatefulWidget {
   });
 
   final PointerHoverEventListener? onPointerHover;
-  final PointerHoverEventListener? onPointerEnter;
+  final PointerEnterEventListener? onPointerEnter;
   final PointerExitEventListener? onPointerLeave;
   final VoidCallback? onTap;
   final ValueChanged<bool>? onFocusChange;
@@ -132,7 +132,7 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
           onHover: widget.onPointerHover,
           onEnter: hasMouseCursor
               ? widget.onPointerEnter
-              : (PointerHoverEvent event) {
+              : (PointerEnterEvent event) {
                   widget.onPointerEnter?.call(event);
                   setState(() {
                     isHovered = true;

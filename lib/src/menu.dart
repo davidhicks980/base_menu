@@ -31,8 +31,8 @@ const Map<ShortcutActivator, Intent> _kMenuVerticalTraversalShortcuts = <Shortcu
   SingleActivator(LogicalKeyboardKey.arrowRight): HorizontalMenuNextFocusIntent(),
   SingleActivator(LogicalKeyboardKey.tab): NextFocusIntent(),
   SingleActivator(LogicalKeyboardKey.tab, shift: true): PreviousFocusIntent(),
-  SingleActivator(LogicalKeyboardKey.home): _MenuFocusFirstIntent(),
-  SingleActivator(LogicalKeyboardKey.end): _MenuFocusLastIntent(),
+  SingleActivator(LogicalKeyboardKey.home): MenuFocusFirstIntent(),
+  SingleActivator(LogicalKeyboardKey.end): MenuFocusLastIntent(),
 };
 
 const Map<ShortcutActivator, Intent> _kMenuHorizontalTraversalShortcuts =
@@ -45,8 +45,8 @@ const Map<ShortcutActivator, Intent> _kMenuHorizontalTraversalShortcuts =
       SingleActivator(LogicalKeyboardKey.arrowDown): VerticalMenuNextFocusIntent(),
       SingleActivator(LogicalKeyboardKey.tab): NextFocusIntent(),
       SingleActivator(LogicalKeyboardKey.tab, shift: true): PreviousFocusIntent(),
-      SingleActivator(LogicalKeyboardKey.home): _MenuFocusFirstIntent(),
-      SingleActivator(LogicalKeyboardKey.end): _MenuFocusLastIntent(),
+      SingleActivator(LogicalKeyboardKey.home): MenuFocusFirstIntent(),
+      SingleActivator(LogicalKeyboardKey.end): MenuFocusLastIntent(),
     };
 
 const Map<ShortcutActivator, Intent> _kStopDirectionalPropagationShortcuts =
@@ -77,12 +77,12 @@ final class VerticalMenuPreviousFocusIntent extends _BaseMenuFocusTraversalInten
   const VerticalMenuPreviousFocusIntent();
 }
 
-class _MenuFocusFirstIntent extends Intent {
-  const _MenuFocusFirstIntent();
+class MenuFocusFirstIntent extends Intent {
+  const MenuFocusFirstIntent();
 }
 
-class _MenuFocusLastIntent extends Intent {
-  const _MenuFocusLastIntent();
+class MenuFocusLastIntent extends Intent {
+  const MenuFocusLastIntent();
 }
 
 class _MenuSetFirstFocusIntent extends Intent {
@@ -91,8 +91,8 @@ class _MenuSetFirstFocusIntent extends Intent {
 
 class MenuEnterIntent extends Intent {
   const MenuEnterIntent() : _scopeIntent = null;
-  const MenuEnterIntent.focusFirst() : _scopeIntent = const _MenuFocusFirstIntent();
-  const MenuEnterIntent.focusLast() : _scopeIntent = const _MenuFocusLastIntent();
+  const MenuEnterIntent.focusFirst() : _scopeIntent = const MenuFocusFirstIntent();
+  const MenuEnterIntent.focusLast() : _scopeIntent = const MenuFocusLastIntent();
   const MenuEnterIntent.setFirstFocus() : _scopeIntent = const _MenuSetFirstFocusIntent();
 
   /// An optional intent to fire on the menu's focus scope after it is opened
@@ -727,7 +727,6 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     MenuEnterIntent: CallbackAction<MenuEnterIntent>(onInvoke: _handleEnterMenu),
   };
 
-  Map<ShortcutActivator, Intent>? _anchorShortcuts;
   Map<Type, Action<Intent>>? _overlayActions;
   TextDirection _textDirection = TextDirection.ltr;
   bool _parentIsSubmenu = false;
@@ -744,6 +743,11 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     if (widget.controller == null) {
       _internalMenuController = MenuController();
     }
+    _menuScopeNode.addListener(() {
+      if (widget.onFocusChange != null) {
+        widget.onFocusChange!(_menuScopeNode.hasFocus);
+      }
+    });
   }
 
   @override
@@ -754,7 +758,6 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     if (scope?.orientation != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
       _parentOrientation = scope?.orientation;
       _parentIsSubmenu = scope?.isSubmenu ?? false;
-      _anchorShortcuts = null;
       _overlayActions = null;
     }
   }
@@ -781,12 +784,10 @@ class _BaseMenuState extends State<BasePositionedMenu> {
   void _handleEnterMenu(MenuEnterIntent intent) {
     if (_menuController.isOpen) {
       if (intent._scopeIntent != null && _menuScopeNode.context != null) {
-        _menuScopeNode.requestFocus();
         Actions.invoke(_menuScopeNode.context!, intent._scopeIntent);
       }
     } else {
       _menuController.open();
-      _menuScopeNode.requestFocus();
       if (intent._scopeIntent != null) {
         SchedulerBinding.instance.addPostFrameCallback((_) {
           if (_menuController.isOpen) {
@@ -812,13 +813,18 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     return Actions(
       actions: _anchorActions,
       child: Shortcuts(
-        shortcuts: _anchorShortcuts ??= switch (_parentOrientation) {
+        shortcuts: switch (_parentOrientation) {
           Axis.vertical => {
             ..._kMenuVerticalTraversalShortcuts,
             switch (_textDirection) {
               TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
               TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
             }: const MenuEnterIntent.focusFirst(),
+            if (controller.isOpen && widget.orientation == Axis.vertical) ...{
+              const SingleActivator(LogicalKeyboardKey.arrowUp): const MenuEnterIntent.focusLast(),
+              const SingleActivator(LogicalKeyboardKey.arrowDown):
+                  const MenuEnterIntent.focusFirst(),
+            },
           },
           Axis.horizontal || null => {
             ..._kMenuHorizontalTraversalShortcuts,
@@ -838,7 +844,7 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     );
   }
 
-  Widget _buildOverlay(BuildContext context, RawMenuOverlayInfo position) {
+  Widget _buildOverlay(BuildContext _, RawMenuOverlayInfo position) {
     if (_overlayActions == null) {
       final Type intentType = switch (widget.orientation) {
         Axis.vertical => HorizontalMenuPreviousFocusIntent,
@@ -870,24 +876,16 @@ class _BaseMenuState extends State<BasePositionedMenu> {
       child: Shortcuts(
         includeSemantics: false,
         shortcuts: _kStopDirectionalPropagationShortcuts,
-        child: Focus(
-          includeSemantics: false,
-          canRequestFocus: false,
-          skipTraversal: true,
-          descendantsAreTraversable: true,
-          descendantsAreFocusable: true,
-          onFocusChange: widget.onFocusChange,
-          child: RawMenuAnchor(
-            useRootOverlay: widget.useRootOverlay,
-            onOpen: widget.onOpen,
-            onClose: widget.onClose,
-            onOpenRequested: widget.onOpenRequest,
-            onCloseRequested: widget.onCloseRequest,
-            consumeOutsideTaps: widget.consumeOutsideTaps,
-            controller: _menuController,
-            overlayBuilder: _buildOverlay,
-            builder: _buildAnchor,
-          ),
+        child: RawMenuAnchor(
+          useRootOverlay: widget.useRootOverlay,
+          onOpen: widget.onOpen,
+          onClose: widget.onClose,
+          onOpenRequested: widget.onOpenRequest,
+          onCloseRequested: widget.onCloseRequest,
+          consumeOutsideTaps: widget.consumeOutsideTaps,
+          controller: _menuController,
+          overlayBuilder: _buildOverlay,
+          builder: _buildAnchor,
         ),
       ),
     );
@@ -1148,8 +1146,8 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
             : _kMenuHorizontalTraversalShortcuts,
         child: Actions(
           actions: actions ??= {
-            _MenuFocusFirstIntent: _MenuFocusFirstAction(widget.focusScopeNode),
-            _MenuFocusLastIntent: _MenuFocusLastAction(widget.focusScopeNode),
+            MenuFocusFirstIntent: _MenuFocusFirstAction(widget.focusScopeNode),
+            MenuFocusLastIntent: _MenuFocusLastAction(widget.focusScopeNode),
             _MenuSetFirstFocusIntent: _SetFirstFocusAction(widget.focusScopeNode),
             ...switch (widget.axis) {
               Axis.vertical => {
@@ -1175,12 +1173,12 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
   }
 }
 
-class _MenuFocusFirstAction extends Action<_MenuFocusFirstIntent> {
+class _MenuFocusFirstAction extends Action<MenuFocusFirstIntent> {
   _MenuFocusFirstAction(this.focusScopeNode);
   final FocusScopeNode focusScopeNode;
 
   @override
-  void invoke(_MenuFocusFirstIntent intent) {
+  void invoke(MenuFocusFirstIntent intent) {
     final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
     final FocusNode? firstNode = policy.findFirstFocus(focusScopeNode, ignoreCurrentFocus: true);
     if (firstNode != null) {
@@ -1189,12 +1187,12 @@ class _MenuFocusFirstAction extends Action<_MenuFocusFirstIntent> {
   }
 }
 
-class _MenuFocusLastAction extends Action<_MenuFocusLastIntent> {
+class _MenuFocusLastAction extends Action<MenuFocusLastIntent> {
   _MenuFocusLastAction(this.focusScopeNode);
   final FocusScopeNode focusScopeNode;
 
   @override
-  void invoke(_MenuFocusLastIntent intent) {
+  void invoke(MenuFocusLastIntent intent) {
     final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
     final FocusNode lastNode = policy.findLastFocus(focusScopeNode, ignoreCurrentFocus: true);
     policy.requestFocusCallback(lastNode);

@@ -15,8 +15,8 @@ class BaseHoverable<T> extends StatefulWidget {
     required this.child,
   });
 
+  final PointerEnterEventListener? onEnter;
   final PointerHoverEventListener? onHover;
-  final PointerHoverEventListener? onEnter;
   final PointerExitEventListener? onExit;
   final MouseCursor mouseCursor;
   final HitTestBehavior behavior;
@@ -30,8 +30,14 @@ class BaseHoverable<T> extends StatefulWidget {
   }
 
   @optionalTypeArgs
+  static bool? maybeIsHoveredOf<T>(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()?.hovered;
+  }
+
+  @optionalTypeArgs
   static bool isHoverHighlightShownOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()!.showHoverHighlight;
+    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()?.showHoverHighlight ??
+        false;
   }
 
   @override
@@ -68,7 +74,7 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
     });
   }
 
-  void _handleEnter(PointerHoverEvent event) {
+  void _handleEnter(PointerEnterEvent event) {
     setState(() {
       isHovered = true;
     });
@@ -77,9 +83,10 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
 
   void _handleHover(PointerHoverEvent event) {
     if (!isHovered) {
-      _handleEnter(event);
+      setState(() {
+        isHovered = true;
+      });
     }
-
     widget.onHover?.call(event);
   }
 
@@ -90,17 +97,6 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
       });
       widget.onExit?.call(event);
     }
-  }
-
-  PointerHoverEventListener? get _hoverCallback {
-    if (!widget.enabled) {
-      return null;
-    } else if (widget.onHover != null) {
-      return _handleHover;
-    } else if (!isHovered) {
-      return _handleEnter;
-    }
-    return null;
   }
 
   bool get _showHoverHighlight {
@@ -115,7 +111,8 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
   Widget build(BuildContext context) {
     return MouseRegion(
       opaque: widget.opaque,
-      onHover: _hoverCallback,
+      onEnter: widget.enabled ? _handleEnter : null,
+      onHover: widget.enabled || !isHovered ? _handleHover : null,
       onExit: widget.enabled ? _handleLeave : null,
       hitTestBehavior: widget.behavior,
       cursor: widget.mouseCursor,

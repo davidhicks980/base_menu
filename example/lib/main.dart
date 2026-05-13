@@ -8,6 +8,7 @@ import 'package:menu_utilities/menu_utilities.dart';
 import 'app_state_manager.dart';
 import 'firebase_options.dart';
 import 'model/enum.dart';
+import 'testapp.dart';
 import 'toolbar.dart';
 import 'utilities/colors.dart';
 import 'widgets/action_reflector.dart';
@@ -23,7 +24,7 @@ void main() async {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   }
   SemanticsBinding.instance.ensureSemantics();
-  runApp(const App());
+  runApp(const TestApp());
 }
 
 class App extends StatefulWidget {

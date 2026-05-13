@@ -288,7 +288,7 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
       alignment: AlignmentDirectional.topStart,
       menuAlignment: AlignmentDirectional.topStart,
       onClose: _handleClose,
-      onFocusChange: _handleFocusChange,
+      // onFocusChange: _handleFocusChange,
       menu: BaseMenuPanel(
         constraints: const BoxConstraints(minWidth: 348),
         axis: Axis.vertical,
@@ -469,7 +469,7 @@ class SearchEntry extends StatelessWidget {
   final MenuEntryWithIntent entry;
   final String query;
   final VoidCallback onPressed;
-  final PointerHoverEventListener? onEntered;
+  final PointerEnterEventListener? onEntered;
   final bool selected;
 
   @override
@@ -482,7 +482,7 @@ class SearchEntry extends StatelessWidget {
           child: BaseMenuItem(
             onTap: onPressed,
             onPointerEnter: onEntered,
-            enableHoverTraversal: false,
+            requestFocusOnHover: false,
             child: MenuActionLabel(
               decoration: selected
                   ? const WidgetStatePropertyAll(

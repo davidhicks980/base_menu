@@ -18,6 +18,7 @@ class SubmenuActionLabel extends StatelessWidget {
     this.leading,
     this.trailing,
     this.shortcut,
+    this.decoration,
   });
 
   final Axis axis;
@@ -26,7 +27,7 @@ class SubmenuActionLabel extends StatelessWidget {
   final AlignmentGeometry leadingMidpointAlignment;
   final Widget? trailing;
   final MenuSerializableShortcut? shortcut;
-
+  final Decoration? decoration;
   final Widget child;
 
   @override
@@ -37,6 +38,7 @@ class SubmenuActionLabel extends StatelessWidget {
       leadingMidpointAlignment: leadingMidpointAlignment,
       trailing: const _Arrow(),
       shortcut: shortcut,
+      decoration: decoration != null ? WidgetStateProperty.all(decoration!) : null,
       child: child,
     );
   }
@@ -200,18 +202,20 @@ class _RenderAlignMidpoint extends RenderPositionedBox {
 class _Arrow extends StatelessWidget {
   const _Arrow();
 
+  static const _halfOpacityArrow = CustomPaint(
+    size: Size(8, 8),
+    painter: _ArrowPainter(color: FloogleColors.darkGray, opacity: 0.5),
+  );
+
+  static const _fullOpacityArrow = CustomPaint(
+    size: Size(8, 8),
+    painter: _ArrowPainter(color: FloogleColors.darkGray),
+  );
+
   @override
   Widget build(BuildContext context) {
     final highlightArrow = BaseMenuItem.isHoveredOf(context) || BaseMenuItem.isFocusedOf(context);
-    return highlightArrow
-        ? const CustomPaint(
-            size: Size(8, 8),
-            painter: _ArrowPainter(color: FloogleColors.darkGray),
-          )
-        : const CustomPaint(
-            size: Size(8, 8),
-            painter: _ArrowPainter(color: FloogleColors.darkGray, opacity: 0.5),
-          );
+    return highlightArrow ? _fullOpacityArrow : _halfOpacityArrow;
   }
 }
 
@@ -236,5 +240,6 @@ class _ArrowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ArrowPainter oldDelegate) => color != oldDelegate.color;
+  bool shouldRepaint(_ArrowPainter oldDelegate) =>
+      color != oldDelegate.color || opacity != oldDelegate.opacity;
 }

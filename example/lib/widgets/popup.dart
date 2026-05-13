@@ -31,11 +31,6 @@ class Popup extends StatelessWidget {
       orientation: orientation,
       padding: MenuPanel.defaultPadding,
       menu: panel,
-      onFocusChange: (value) {
-        if (!value) {
-          controller.close();
-        }
-      },
       alignmentOffset: const Offset(0, 8),
       controller: controller,
       child: Builder(

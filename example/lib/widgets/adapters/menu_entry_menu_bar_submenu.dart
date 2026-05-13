@@ -20,7 +20,7 @@ class MenuBarMenu extends StatefulWidget {
 }
 
 class _MenuBarMenuState extends State<MenuBarMenu> {
-  final anchorFocusNode = FocusNode();
+  late final anchorFocusNode = FocusNode(debugLabel: widget.entry.child.label);
   bool _hasAnchorFocus = false;
   bool _isAnchorHovered = false;
   bool _blockDecoration = false;
@@ -47,11 +47,24 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
     }
   }
 
+  Widget _buildOverlayWrapper(BuildContext context, Widget child) {
+    return BaseHoverable<BaseMenu>(
+      onExit: (event) {
+        anchorFocusNode.requestFocus();
+      },
+      child: child,
+    );
+  }
+
+  @override
+  bool? isNestedPanelHovered = false;
+
   @override
   Widget build(BuildContext context) {
     final isRootOpen = MenuController.maybeIsOpenOf(context) ?? false;
     return BaseMenu(
-      onFocusChange: _handleFocusChange,
+      // onFocusChange: _handleFocusChange,
+      overlayWrapper: _buildOverlayWrapper,
       overlayPadding: const EdgeInsets.only(top: 55, bottom: 8),
       orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
       menu:
@@ -74,7 +87,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
             child: Semantics.fromProperties(
               properties: SemanticsProperties(expanded: isOpen),
               child: BaseMenuItem(
-                enableHoverTraversal: isRootOpen,
+                requestFocusOnHover: isRootOpen,
                 focusNode: anchorFocusNode,
                 onFocusChange: (value) {
                   final hasAnchorFocus = anchorFocusNode.hasFocus;

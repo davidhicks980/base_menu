@@ -39,11 +39,11 @@ class _SelectState extends State<Select> {
     final controller = widget.menuController ?? MenuController();
     return BaseMenu(
       controller: controller,
-      onFocusChange: (bool value) {
-        if (!value) {
-          controller.close();
-        }
-      },
+      // onFocusChange: (bool value) {
+      //   if (!value) {
+      //     controller.close();
+      //   }
+      // },
       overlayPadding: const EdgeInsets.only(top: 98, bottom: 8),
       padding: MenuPanel.defaultPadding,
       menu: widget.panel,
@@ -126,7 +126,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
                   focusNode: widget.focusNode,
                   mouseCursor: WidgetStateMouseCursor.clickable,
                   requestCloseOnActivate: false,
-                  enableHoverTraversal: false,
+                  requestFocusOnHover: false,
                   onTap: _handlePressed,
                   child: Builder(
                     builder: (context) {

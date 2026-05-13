@@ -443,11 +443,11 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
       orientation: Axis.horizontal,
       onOpenRequest: _handleMenuOpenRequest,
       onCloseRequest: _handleMenuCloseRequest,
-      onFocusChange: (value) {
-        if (!value) {
-          widget.controller.close();
-        }
-      },
+      // onFocusChange: (value) {
+      //   if (!value) {
+      //     widget.controller.close();
+      //   }
+      // },
       menu: panel,
       builder: (context, controller, child) {
         return IconButton(

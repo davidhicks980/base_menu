@@ -14,7 +14,7 @@ class BaseMenuItem extends StatefulWidget {
     this.onFocusChange,
     this.focusNode,
     this.autofocus = false,
-    this.enableHoverTraversal = true,
+    this.requestFocusOnHover = true,
     this.requestCloseOnActivate = true,
     this.behavior = HitTestBehavior.deferToChild,
     this.mouseCursor,
@@ -23,13 +23,13 @@ class BaseMenuItem extends StatefulWidget {
   });
 
   final VoidCallback? onTap;
+  final PointerEnterEventListener? onPointerEnter;
   final PointerHoverEventListener? onPointerHover;
-  final PointerHoverEventListener? onPointerEnter;
   final PointerExitEventListener? onPointerLeave;
   final ValueChanged<bool>? onFocusChange;
   final FocusNode? focusNode;
   final bool autofocus;
-  final bool enableHoverTraversal;
+  final bool requestFocusOnHover;
   final bool requestCloseOnActivate;
   final HitTestBehavior behavior;
   final WidgetStateProperty<MouseCursor>? mouseCursor;
@@ -101,8 +101,8 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
     widget.onTap?.call();
   }
 
-  void _handleHoverEnter(PointerHoverEvent event) {
-    if (widget.enableHoverTraversal) {
+  void _handleHoverEnter(PointerEnterEvent event) {
+    if (widget.requestFocusOnHover) {
       _focusNode.requestFocus();
     }
 
@@ -110,9 +110,6 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
   }
 
   void _handleHoverLeave(PointerExitEvent event) {
-    if (widget.enableHoverTraversal) {
-      _focusNode.unfocus();
-    }
     widget.onPointerLeave?.call(event);
   }
 

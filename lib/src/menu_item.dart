@@ -4,6 +4,30 @@ import 'package:flutter/widgets.dart';
 
 import 'control.dart';
 
+class BaseMenuItemStateProvider extends StatelessWidget {
+  const BaseMenuItemStateProvider({
+    super.key,
+    required this.states,
+    required this.child,
+    this.merge = false,
+  });
+  final bool merge;
+  final Set<WidgetState>? states;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return BaseControlStateProvider<BaseMenuItem>(
+      states: states == null
+          ? BaseMenuItem.statesOf(context)
+          : merge
+          ? {...BaseMenuItem.statesOf(context), ...states!}
+          : states!,
+      child: child,
+    );
+  }
+}
+
 class BaseMenuItem extends StatefulWidget {
   const BaseMenuItem({
     super.key,
@@ -34,6 +58,9 @@ class BaseMenuItem extends StatefulWidget {
   final HitTestBehavior behavior;
   final WidgetStateProperty<MouseCursor>? mouseCursor;
   final SemanticsRole? role;
+  // Custom states to report to descendants instead of using the actual state of
+  // the control. Useful for controls that want to report a different state than
+  // their internal state.
   final Widget child;
 
   static Set<WidgetState> statesOf(BuildContext context) {

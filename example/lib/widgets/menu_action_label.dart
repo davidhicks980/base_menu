@@ -86,7 +86,7 @@ class MenuActionLabel extends StatelessWidget {
     decoration: TextDecoration.none,
   );
 
-  static const WidgetStateProperty<BoxDecoration> _decoration = WidgetStateProperty.fromMap({
+  static const WidgetStateProperty<BoxDecoration> defaultDecoration = WidgetStateProperty.fromMap({
     WidgetState.pressed: BoxDecoration(color: FloogleColors.menuItemPressedColor),
     WidgetState.focused: BoxDecoration(color: FloogleColors.menuItemFocusColor),
     WidgetState.any: BoxDecoration(),
@@ -132,7 +132,7 @@ class MenuActionLabel extends StatelessWidget {
     return Builder(
       builder: (BuildContext context) {
         return DecoratedBox(
-          decoration: (decoration ?? _decoration).resolve(BaseMenuItem.statesOf(context)),
+          decoration: (decoration ?? defaultDecoration).resolve(BaseMenuItem.statesOf(context)),
           child: label,
         );
       },

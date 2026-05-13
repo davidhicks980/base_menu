@@ -28,6 +28,17 @@ class _ControlScope<T> extends InheritedModel<WidgetState> {
   }
 }
 
+class BaseControlStateProvider<T> extends StatelessWidget {
+  const BaseControlStateProvider({super.key, required this.states, required this.child});
+  final Set<WidgetState>? states;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ControlScope<T>(states: states ?? BaseControl.statesOf<T>(context), child: child);
+  }
+}
+
 @optionalTypeArgs
 class BaseControl<T> extends StatefulWidget {
   const BaseControl({
@@ -64,17 +75,26 @@ class BaseControl<T> extends StatefulWidget {
 
   @optionalTypeArgs
   static bool isHoveredOf<T>(BuildContext context) {
-    return BaseHoverable.isHoveredOf<BaseControl<T>>(context);
+    return InheritedModel.inheritFrom<_ControlScope<T>>(
+      context,
+      aspect: WidgetState.hovered,
+    )!.states.contains(WidgetState.hovered);
   }
 
   @optionalTypeArgs
   static bool isPressedOf<T>(BuildContext context) {
-    return BaseTappable.isPressedOf<BaseControl<T>>(context);
+    return InheritedModel.inheritFrom<_ControlScope<T>>(
+      context,
+      aspect: WidgetState.pressed,
+    )!.states.contains(WidgetState.pressed);
   }
 
   @optionalTypeArgs
   static bool isFocusedOf<T>(BuildContext context) {
-    return BaseFocusable.isFocusedOf<BaseControl<T>>(context);
+    return InheritedModel.inheritFrom<_ControlScope<T>>(
+      context,
+      aspect: WidgetState.focused,
+    )!.states.contains(WidgetState.focused);
   }
 
   @optionalTypeArgs
@@ -89,7 +109,7 @@ class BaseControl<T> extends StatefulWidget {
 
   @optionalTypeArgs
   static bool isDisabledOf<T>(BuildContext context) {
-    return InheritedModel.inheritFrom<_ControlScope<BaseControl<T>>>(
+    return InheritedModel.inheritFrom<_ControlScope<T>>(
       context,
       aspect: WidgetState.disabled,
     )!.states.contains(WidgetState.disabled);

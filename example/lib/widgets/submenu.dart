@@ -7,13 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import '../utilities/colors.dart';
 import 'menu_action_label.dart';
 import 'menu_panel.dart';
-
-class _BlockAncestorCloseNotification extends Notification {
-  const _BlockAncestorCloseNotification();
-}
 
 class Submenu extends StatefulWidget {
   const Submenu({
@@ -45,13 +40,14 @@ class _SubmenuState extends State<Submenu> {
   final MenuController controller = MenuController();
   // Notifier to track whether the submenu or its button has focus, used to
   // apply hover background color.
-  final ValueNotifier<bool> _highlightNotifier = ValueNotifier(false);
+  final ValueNotifier<Set<WidgetState>> _highlightNotifier = ValueNotifier({});
   late final FocusNode _focusNode = FocusNode();
   bool _isAnchorHovered = false;
   bool _isPanelHovered = false;
+  bool? _isParentPanelHovered = false;
+  bool _isScopeFocused = false;
   Timer? _closeTimer;
   Timer? _openTimer;
-  bool? _scopeHovered = false;
 
   @override
   void initState() {
@@ -67,10 +63,11 @@ class _SubmenuState extends State<Submenu> {
     final scopeHovered =
         BaseHoverable.maybeIsHoveredOf<Submenu>(context) ??
         BaseHoverable.maybeIsHoveredOf<BaseMenu>(context);
-    if (_scopeHovered != scopeHovered) {
-      _scopeHovered = scopeHovered;
+
+    if (_isParentPanelHovered != scopeHovered) {
+      _isParentPanelHovered = scopeHovered;
       if (scopeHovered == false && !_isPanelHovered && !_isScopeFocused) {
-        _highlightNotifier.value = false;
+        _highlightNotifier.value = {};
         if (controller.isOpen) {
           _scheduleHoverClose();
         }
@@ -123,7 +120,12 @@ class _SubmenuState extends State<Submenu> {
   }
 
   void _updateHighlight() {
-    _highlightNotifier.value = _isPanelHovered || _focusNode.hasFocus || _isScopeFocused;
+    if (!_enableHighlight) {
+      return;
+    }
+    _highlightNotifier.value = _isPanelHovered || _focusNode.hasFocus || _isScopeFocused
+        ? {WidgetState.focused}
+        : {};
   }
 
   void _handlePointerEnterAnchor(PointerEnterEvent event) {
@@ -172,12 +174,30 @@ class _SubmenuState extends State<Submenu> {
     widget.onPressed?.call();
   }
 
+  void _handleScopeFocusChange(bool focused) {
+    _isScopeFocused = focused;
+    _updateHighlight();
+  }
+
+  bool _enableHighlight = false;
+  void _handleClose() {
+    // Don't call update highlight here because it can cause the panel to
+    // momentarily lose the hover color.
+    _isPanelHovered = false;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _enableHighlight = false;
+        _highlightNotifier.value = {};
+        _updateHighlight();
+      }
+    });
+  }
+
   Widget _buildHighlight(BuildContext context, Widget? child) {
-    return ColoredBox(
-      color: _highlightNotifier.value && MenuController.maybeIsOpenOf(context) == true
-          ? FloogleColors.menuItemFocusColor
-          : FloogleColors.transparent,
-      child: child,
+    return BaseMenuItemStateProvider(
+      merge: true,
+      states: _enableHighlight ? _highlightNotifier.value : {},
+      child: child!,
     );
   }
 
@@ -189,19 +209,6 @@ class _SubmenuState extends State<Submenu> {
     );
   }
 
-  bool _isScopeFocused = false;
-
-  void _handleScopeFocusChange(bool focused) {
-    _isScopeFocused = focused;
-    _updateHighlight();
-  }
-
-  void _handleClose() {
-    // Don't call update highlight here because it can cause the panel to
-    // momentarily lose the hover color.
-    _isPanelHovered = false;
-  }
-
   @override
   Widget build(BuildContext context) {
     return BaseMenu(
@@ -211,6 +218,10 @@ class _SubmenuState extends State<Submenu> {
       alignment: widget.alignment,
       menuAlignment: widget.menuAlignment,
       onClose: _handleClose,
+      onOpen: () {
+        _enableHighlight = true;
+        _updateHighlight();
+      },
       onFocusChange: _handleScopeFocusChange,
       semanticProperties: SemanticsProperties(label: '${widget.child}', role: SemanticsRole.menu),
       menu: widget.panel,
@@ -225,17 +236,10 @@ class _SubmenuState extends State<Submenu> {
         child: ListenableBuilder(
           listenable: _highlightNotifier,
           builder: _buildHighlight,
-          child: Builder(
-            builder: (context) {
-              return SubmenuActionLabel(
-                decoration: MenuController.maybeIsOpenOf(context) == true
-                    ? const BoxDecoration()
-                    : null,
-                leading: widget.leading,
-                axis: Axis.vertical,
-                child: widget.child,
-              );
-            },
+          child: SubmenuActionLabel(
+            leading: widget.leading,
+            axis: Axis.vertical,
+            child: widget.child,
           ),
         ),
       ),

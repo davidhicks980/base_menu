@@ -47,6 +47,7 @@ class MenuItem extends StatelessWidget {
       requestFocusOnHover: requestFocusOnHover,
       mouseCursor: mouseCursor,
       autofocus: autofocus,
+      debugLabel: child.toString(),
       child: hasSubmenu
           ? SubmenuActionLabel(
               leading: leading,

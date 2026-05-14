@@ -89,7 +89,7 @@ class MenuActionLabel extends StatelessWidget {
   static const WidgetStateProperty<BoxDecoration> defaultDecoration = WidgetStateProperty.fromMap({
     WidgetState.pressed: BoxDecoration(color: FloogleColors.menuItemPressedColor),
     WidgetState.focused: BoxDecoration(color: FloogleColors.menuItemFocusColor),
-    WidgetState.any: BoxDecoration(color: FloogleColors.white),
+    WidgetState.any: BoxDecoration(),
   });
 
   @override

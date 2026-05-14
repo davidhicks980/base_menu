@@ -69,7 +69,9 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
           // This is the default panel
           MenuEntryPanel(
             onSurfaceEnter: (_) {
-              anchorFocusNode.requestFocus();
+              if (!anchorFocusNode.hasFocus) {
+                anchorFocusNode.requestFocus();
+              }
             },
             menuEntry: widget.entry,
             borderRadius: const BorderRadiusDirectional.only(

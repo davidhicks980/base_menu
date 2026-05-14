@@ -400,9 +400,9 @@ abstract class Menu {
     e_1_submenu,
     Entry.shareWithPeople,
     SeparatorMenuEntry(),
-    e_3_submenu,
-    e_4_submenu,
-    e_5_submenu,
+    e_3_1_submenu,
+    e_4_1_submenu,
+    e_5_1_submenu,
     SeparatorMenuEntry(),
     Entry.getLink,
   ]);

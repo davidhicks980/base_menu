@@ -80,6 +80,7 @@ class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
   @override
   Widget build(BuildContext context) {
     return Focus(
+      debugLabel: 'Focusable ${widget.child}',
       autofocus: widget.autofocus,
       focusNode: widget.focusNode,
       canRequestFocus: _canRequestFocus,

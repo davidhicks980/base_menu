@@ -136,7 +136,9 @@ class _MenuPanelHitSurface extends StatelessWidget {
     return Stack(
       fit: StackFit.passthrough,
       children: [
-        Positioned.fill(child: MouseRegion(onEnter: onSurfaceEnter)),
+        Positioned.fill(
+          child: MouseRegion(hitTestBehavior: HitTestBehavior.translucent, onEnter: onSurfaceEnter),
+        ),
         child,
       ],
     );
@@ -841,6 +843,7 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     return Actions(
       actions: _anchorActions,
       child: Shortcuts(
+        debugLabel: 'Menu Anchor Shortcuts ${widget.child}',
         shortcuts: switch (_parentOrientation) {
           Axis.vertical => {
             ..._kMenuVerticalTraversalShortcuts,
@@ -896,18 +899,38 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     );
   }
 
+  void _handleClose() {
+    widget.onClose?.call();
+
+    if (!kIsWeb) {
+      return;
+    }
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      final previousPrimaryFocus = FocusManager.instance.primaryFocus;
+      if (previousPrimaryFocus == null) {
+        return;
+      }
+      FocusManager.instance.applyFocusChangesIfNeeded();
+      if (FocusManager.instance.rootScope.hasPrimaryFocus) {
+        previousPrimaryFocus.requestFocus();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final Widget child = Actions(
       actions: {DirectionalFocusIntent: DoNothingAction()},
       child: Shortcuts(
+        debugLabel: 'Menu Shortcuts ${widget.child}',
         includeSemantics: false,
         shortcuts: _kStopDirectionalPropagationShortcuts,
         child: RawMenuAnchor(
           useRootOverlay: widget.useRootOverlay,
           onOpen: widget.onOpen,
-          onClose: widget.onClose,
+          onClose: _handleClose,
           onOpenRequested: widget.onOpenRequest,
           onCloseRequested: widget.onCloseRequest,
           consumeOutsideTaps: widget.consumeOutsideTaps,
@@ -950,6 +973,7 @@ class _MenuOverlay extends StatelessWidget {
 
   Widget _buildConditionalTraversal(BuildContext context, Widget? child) {
     return Focus(
+      debugLabel: 'WRAPPER FOCUS $child',
       includeSemantics: false,
       canRequestFocus: false,
       skipTraversal: !focusScopeNode.hasFocus,
@@ -1008,6 +1032,7 @@ class _InlineMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shortcuts(
+      debugLabel: '_Inline MENU $child',
       includeSemantics: false,
       shortcuts: _kStopDirectionalPropagationShortcuts,
       child: Semantics.fromProperties(
@@ -1169,6 +1194,7 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
     return FocusTraversalGroup(
       policy: policy,
       child: Shortcuts(
+        debugLabel: 'Menu Focus Traversal Shortcuts ${widget.child}',
         shortcuts: widget.axis == Axis.vertical
             ? _kMenuVerticalTraversalShortcuts
             : _kMenuHorizontalTraversalShortcuts,

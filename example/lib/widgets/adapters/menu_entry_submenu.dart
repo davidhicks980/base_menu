@@ -36,6 +36,7 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
 
   @override
   Widget build(BuildContext context) {
+    _focusNode.debugLabel = 'MenuEntrySubmenu(${widget.entry.child.label}) FocusNode';
     return Submenu(
       alignment: widget.alignment,
       menuAlignment: widget.menuAlignment,

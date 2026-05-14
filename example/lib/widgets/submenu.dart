@@ -12,11 +12,6 @@ import '../utilities/colors.dart';
 import 'menu_action_label.dart';
 import 'menu_panel.dart';
 
-class _DescendantPanelPointerNotification extends Notification {
-  const _DescendantPanelPointerNotification(this.isHovered);
-  final bool isHovered;
-}
-
 class Submenu extends StatefulWidget {
   const Submenu({
     super.key,
@@ -61,7 +56,7 @@ class _SubmenuState extends State<Submenu> {
   bool _enableHighlight = false;
 
   void _handleFocusChange() {
-    if (_focusNode.hasFocus && !controller.isOpen) {
+    if (_focusNode.hasFocus && !controller.isOpen && !_isAnchorHovered) {
       _enableHighlight = false;
     }
     _updateHighlight();
@@ -121,7 +116,7 @@ class _SubmenuState extends State<Submenu> {
     super.dispose();
   }
 
-  void _scheduleHoverClose([String? label]) {
+  void _scheduleHoverClose() {
     assert(!_isAnchorHovered);
     assert(!_isPanelHovered);
     _closeTimer?.cancel();
@@ -131,6 +126,7 @@ class _SubmenuState extends State<Submenu> {
       assert(!_isPanelHovered);
       assert(_openTimer?.isActive != true);
       controller.close();
+      _enableHighlight = false;
     });
   }
 
@@ -140,6 +136,8 @@ class _SubmenuState extends State<Submenu> {
     }
 
     _openTimer?.cancel();
+    _enableHighlight = true;
+    _updateHighlight();
     _openTimer = Timer(widget.hoverOpenDelay, () {
       if (!controller.isOpen) {
         controller.open();
@@ -158,8 +156,40 @@ class _SubmenuState extends State<Submenu> {
 
   void _updateHighlight() {
     _highlightNotifier.value =
-        _enableHighlight && (_isPanelHovered || _focusNode.hasFocus || _isScopeFocused);
+        _enableHighlight &&
+        (_isAnchorHovered || _isPanelHovered || _focusNode.hasFocus || _isScopeFocused);
   }
+
+  // bool _descendantAnchorHasHighlight = false;
+  // void _updateHighlight() {
+  //   _highlightNotifier.value =
+  //       _enableHighlight &&
+  //       (_isAnchorHovered ||
+  //           _isPanelHovered ||
+  //           _focusNode.hasFocus ||
+  //           _isScopeFocused ||
+  //           _descendantAnchorHasHighlight);
+
+  //   if (_highlightNotifier.value) {
+  //     const DescendantHighlightedNotification().dispatch(context);
+  //   } else {
+  //     const DescendantLostHighlightNotification().dispatch(context);
+  //   }
+  // }
+
+  // bool _handleDescendantPanelPointerNotification(_DescendantPanelPointerNotification notification) {
+  //   switch (notification) {
+  //     case DescendantHighlightedNotification():
+  //       _descendantAnchorHasHighlight = true;
+  //       print((widget.child, 'highlight on descendant'));
+  //     case DescendantLostHighlightNotification():
+  //       _descendantAnchorHasHighlight = false;
+  //       print((widget.child, 'lost highlight on descendant'));
+  //   }
+
+  //   // _updateHighlight();
+  //   return false;
+  // }
 
   void _handlePointerEnterAnchor(PointerEnterEvent event) {
     _isAnchorHovered = true;
@@ -170,51 +200,49 @@ class _SubmenuState extends State<Submenu> {
 
   void _handlePointerLeaveAnchor(PointerExitEvent event) {
     _isAnchorHovered = false;
+    _enableHighlight = false;
     _openTimer?.cancel();
+    _updateHighlight();
+
     if (controller.isOpen) {
       if (_isPanelHovered || _isScopeFocused) {
         return;
       }
       _scheduleHoverClose();
     }
-
-    _updateHighlight();
   }
 
   void _handlePointerEnterPanel(PointerEvent event) {
     _isPanelHovered = true;
+    _enableHighlight = true;
     _closeTimer?.cancel();
     _updateHighlight();
-    const _DescendantPanelPointerNotification(true).dispatch(context);
-    _focusNode.requestFocus();
   }
 
   void _handlePointerLeavePanel(PointerExitEvent event) {
     _isPanelHovered = false;
     _focusNode.requestFocus();
     _updateHighlight();
-    const _DescendantPanelPointerNotification(false).dispatch(context);
   }
 
   void _handlePressed() {
     if (!controller.isOpen) {
       controller.open();
-      if (kIsWeb) {
-        SchedulerBinding.instance.addPostFrameCallback((_) {
-          if (mounted && controller.isOpen) {
-            _focusNode.requestFocus();
-            _updateHighlight();
-          }
-        });
-      }
     }
 
     widget.onPressed?.call();
   }
 
   void _handleScopeFocusChange(bool focused) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _updateHighlight();
+      }
+    });
+    if (focused) {
+      _enableHighlight = true;
+    }
     _isScopeFocused = focused;
-    _updateHighlight();
   }
 
   void _handleClose() {
@@ -237,17 +265,17 @@ class _SubmenuState extends State<Submenu> {
     _updateHighlight();
   }
 
-  bool _handleDescendantPanelPointerNotification(_DescendantPanelPointerNotification notification) {
-    if (notification.isHovered) {
-      _closeTimer?.cancel();
-    } else {
-      if (!_isAnchorHovered && !_isPanelHovered && !_focusNode.hasFocus) {
-        _scheduleHoverClose('panel leave');
-      }
-    }
+  // bool _handleDescendantPanelPointerNotification(_DescendantPanelPointerNotification notification) {
+  //   if (notification.isHovered) {
+  //     _closeTimer?.cancel();
+  //   } else {
+  //     if (!_isAnchorHovered && !_isPanelHovered && !_focusNode.hasFocus) {
+  //       _scheduleHoverClose('panel leave');
+  //     }
+  //   }
 
-    return false;
-  }
+  //   return false;
+  // }
 
   Widget _buildHighlight(BuildContext context, Widget? child) {
     return ColoredBox(
@@ -278,10 +306,7 @@ class _SubmenuState extends State<Submenu> {
       onOpen: _handleOpen,
       onFocusChange: _handleScopeFocusChange,
       semanticProperties: SemanticsProperties(label: '${widget.child}', role: SemanticsRole.menu),
-      menu: NotificationListener<_DescendantPanelPointerNotification>(
-        onNotification: _handleDescendantPanelPointerNotification,
-        child: widget.panel,
-      ),
+      menu: widget.panel,
       child: _SubmenuButton(
         focusNode: _focusNode,
         hoverDelay: widget.hoverOpenDelay,
@@ -353,6 +378,7 @@ class __SubmenuButtonState extends State<_SubmenuButton> {
         onPointerEnter: widget.onPointerEnter,
         onPointerLeave: widget.onPointerLeave,
         onTap: widget.onPressed,
+        debugLabel: widget.debugLabel,
         child: widget.child,
       ),
     );

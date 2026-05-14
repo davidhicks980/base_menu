@@ -60,7 +60,6 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
 
   Future<void> _handleSecondaryTapDown(TapDownDetails details) async {
     if (kIsWeb && BrowserContextMenu.enabled) {
-      print('Browser context menu is enabled, not showing custom context menu');
       return;
     }
 
@@ -81,7 +80,6 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
     }
 
     _contextMenuStatus = BrowserContextMenu.disableContextMenu();
-    print('Context menu disabled');
   }
 
   Future<void> _enableContextMenu() async {
@@ -112,8 +110,8 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
   }
 
   void _onHoverEnter(PointerEnterEvent event) {
-    _disableContextMenu();
     WidgetsBinding.instance.keyboard.addHandler(_handleKeyEvent);
+    _disableContextMenu();
   }
 
   void _onHoverExit(PointerExitEvent event) {
@@ -153,17 +151,18 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       menu: panel,
       controller: widget.menuController,
-      child: RawGestureDetector(
-        gestures: gestures,
-        excludeFromSemantics: true,
-        child: widget.child,
-      ),
+      child: RawGestureDetector(gestures: gestures, child: widget.child),
     );
 
     if (!_wasBrowserContextMenuEnabled) {
       return child;
     }
 
-    return MouseRegion(onEnter: _onHoverEnter, onExit: _onHoverExit, child: child);
+    return MouseRegion(
+      onEnter: _onHoverEnter,
+      onExit: _onHoverExit,
+      hitTestBehavior: HitTestBehavior.translucent,
+      child: child,
+    );
   }
 }

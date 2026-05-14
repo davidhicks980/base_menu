@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../data/menu.dart';
 import '../../model/model.dart';
+import '../menu_action_label.dart';
 import '../submenu.dart';
 import 'menu_entry_panel.dart';
 
@@ -36,12 +37,10 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
 
   @override
   Widget build(BuildContext context) {
-    _focusNode.debugLabel = 'MenuEntrySubmenu(${widget.entry.child.label}) FocusNode';
     return Submenu(
       alignment: widget.alignment,
       menuAlignment: widget.menuAlignment,
       hoverOpenDelay: widget.hoverDelay,
-      focusNode: _focusNode,
       panel: MenuEntryPanel(
         menuEntry: widget.entry,
         constraints: widget.entry == Menu.table ? null : widget.constraints,
@@ -51,8 +50,11 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
           }
         },
       ),
-      leading: widget.entry.child.icon != null ? Icon(widget.entry.child.icon) : null,
-      child: Text(widget.entry.child.label),
+      child: SubmenuActionLabel(
+        axis: Axis.vertical,
+        leading: widget.entry.child.icon != null ? Icon(widget.entry.child.icon) : null,
+        child: Text(widget.entry.child.label),
+      ),
     );
   }
 }

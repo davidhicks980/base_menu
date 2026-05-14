@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
+import 'menu_interface.dart';
 
 // Examples can assume:
 // late BuildContext context;
@@ -85,15 +86,9 @@ class MenuFocusLastIntent extends Intent {
   const MenuFocusLastIntent();
 }
 
-class _MenuSetFirstFocusIntent extends Intent {
-  const _MenuSetFirstFocusIntent();
-}
-
 class MenuEnterIntent extends Intent {
-  const MenuEnterIntent() : _scopeIntent = null;
   const MenuEnterIntent.focusFirst() : _scopeIntent = const MenuFocusFirstIntent();
   const MenuEnterIntent.focusLast() : _scopeIntent = const MenuFocusLastIntent();
-  const MenuEnterIntent.setFirstFocus() : _scopeIntent = const _MenuSetFirstFocusIntent();
 
   /// An optional intent to fire on the menu's focus scope after it is opened
   /// and focused.
@@ -126,10 +121,19 @@ class _MenuScope extends InheritedWidget {
 typedef BaseMenuPositionBuilder =
     Widget Function(BuildContext context, RawMenuOverlayInfo position, Widget child);
 
-class _MenuPanelHitSurface extends StatelessWidget {
-  const _MenuPanelHitSurface({required this.child, required this.onSurfaceEnter});
+class MenuPanelMouseRegion extends StatelessWidget {
+  const MenuPanelMouseRegion({
+    super.key,
+    required this.child,
+    this.onSurfaceEnter,
+    this.onSurfaceHover,
+    this.onSurfaceLeave,
+  });
+
   final Widget child;
-  final PointerEnterEventListener onSurfaceEnter;
+  final PointerEnterEventListener? onSurfaceEnter;
+  final PointerHoverEventListener? onSurfaceHover;
+  final PointerExitEventListener? onSurfaceLeave;
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +141,12 @@ class _MenuPanelHitSurface extends StatelessWidget {
       fit: StackFit.passthrough,
       children: [
         Positioned.fill(
-          child: MouseRegion(hitTestBehavior: HitTestBehavior.translucent, onEnter: onSurfaceEnter),
+          child: MouseRegion(
+            hitTestBehavior: HitTestBehavior.translucent,
+            onEnter: onSurfaceEnter,
+            onHover: onSurfaceHover,
+            onExit: onSurfaceLeave,
+          ),
         ),
         child,
       ],
@@ -228,13 +237,14 @@ class BaseMenuPanel extends StatelessWidget {
       spacing: spacing,
       children: menuChildren,
     );
+
     if (onSurfaceEnter != null) {
-      body = _MenuPanelHitSurface(onSurfaceEnter: onSurfaceEnter!, child: body);
+      body = MenuPanelMouseRegion(onSurfaceEnter: onSurfaceEnter, child: body);
     }
+
     Widget child = SingleChildScrollView(
       scrollDirection: axis,
       clipBehavior: clipBehavior,
-      hitTestBehavior: HitTestBehavior.translucent,
       child: body,
     );
 
@@ -251,6 +261,10 @@ class BaseMenuPanel extends StatelessWidget {
       };
     }
 
+    if (onSurfaceEnter != null) {
+      child = MenuPanelMouseRegion(onSurfaceEnter: onSurfaceEnter, child: child);
+    }
+
     if (applyIntrinsics) {
       switch (axis) {
         case Axis.vertical:
@@ -258,10 +272,6 @@ class BaseMenuPanel extends StatelessWidget {
         case Axis.horizontal:
           child = IntrinsicHeight(child: child);
       }
-    }
-
-    if (onSurfaceEnter != null) {
-      child = _MenuPanelHitSurface(onSurfaceEnter: onSurfaceEnter!, child: child);
     }
 
     if (constrainCrossAxis) {
@@ -292,100 +302,7 @@ class BaseMenuPanel extends StatelessWidget {
   }
 }
 
-// This is only used so that documentation can be shared.
-abstract class _BaseMenuInterface {
-  /// An optional [MenuController] that allows opening and closing of the menu
-  /// from other widgets.
-  ///
-  /// If not supplied, a new [MenuController] will be created and managed by the
-  /// [BaseMenu].
-  MenuController? get controller;
-
-  /// Whether or not a tap event that closes the menu will be permitted to
-  /// continue on to the gesture arena.
-  ///
-  /// If false, then tapping outside of a menu when the menu is open will both
-  /// close the menu, and allow the tap to participate in the gesture arena.
-  ///
-  /// If true, then it will only close the menu, and the tap event will be
-  /// consumed.
-  ///
-  /// Defaults to false.
-  bool get consumeOutsideTaps;
-
-  /// A callback that is invoked when the menu is opened.
-  VoidCallback? get onOpen;
-
-  /// Called when a request is made to open the menu.
-  ///
-  /// This callback is triggered every time [MenuController.open] is called,
-  /// even when the menu overlay is already showing. As a result, this callback
-  /// is a good place to begin menu opening animations, or observe when a menu
-  /// is repositioned.
-  ///
-  /// After an open request is intercepted, the `showOverlay` callback should be
-  /// called when the menu overlay is ready to be shown. This can occur
-  /// immediately (the default behavior), or after a delay. Calling
-  /// `showOverlay` sets [MenuController.isOpen] to true, builds (or rebuilds)
-  /// the overlay widget, and shows the menu overlay at the front of the overlay
-  /// stack.
-  ///
-  /// If `showOverlay` is not called, the menu will stay hidden. Calling
-  /// `showOverlay` after disposal is a no-op, meaning it will not trigger
-  /// [onOpen] or show the menu overlay.
-  ///
-  /// If a [RawMenuAnchor] is used in a themed menu that plays an opening
-  /// animation, the themed menu should show the overlay before starting the
-  /// opening animation, since the animation plays on the overlay itself.
-  ///
-  /// The `position` argument is the `position` that [MenuController.open] was
-  /// called with.
-  ///
-  /// A typical [onOpenRequested] consists of the following steps:
-  ///
-  ///  1. Optional delay.
-  ///  2. Call `showOverlay` (whose call chain eventually invokes [onOpen]).
-  ///  3. Optionally start the opening animation.
-  ///
-  /// Defaults to a callback that immediately shows the menu.
-  RawMenuAnchorOpenRequestedCallback get onOpenRequest;
-
-  /// A callback that is invoked when the menu is closed.
-  VoidCallback? get onClose;
-
-  /// Called when a request is made to close the menu.
-  ///
-  /// This callback is triggered every time [MenuController.close] is called,
-  /// regardless of whether the overlay is already hidden. As a result, this
-  /// callback can be used to add a delay or a closing animation before the menu
-  /// is hidden.
-  ///
-  /// If the menu is not closed, this callback will also be called when the root
-  /// menu anchor is scrolled and when the screen is resized.
-  ///
-  /// After a close request is intercepted and closing behaviors have completed,
-  /// the `hideOverlay` callback should be called. This callback sets
-  /// [MenuController.isOpen] to false and hides the menu overlay widget. If the
-  /// [RawMenuAnchor] is used in a themed menu that plays a closing animation,
-  /// `hideOverlay` should be called after the closing animation has ended,
-  /// since the animation plays on the overlay itself. This means that
-  /// [MenuController.isOpen] will stay true while closing animations are
-  /// running.
-  ///
-  /// Calling `hideOverlay` after disposal is a no-op, meaning it will not
-  /// trigger [onClose] or hide the menu overlay.
-  ///
-  /// Typically, [onCloseRequested] consists of the following steps:
-  ///
-  ///  1. Optionally start the closing animation and wait for it to complete.
-  ///  2. Call `hideOverlay` (whose call chain eventually invokes [onClose]).
-  ///
-  /// Throughout the closing sequence, menus should typically not be focusable
-  /// or interactive.
-  ///
-  /// Defaults to a callback that immediately hides the menu.
-  RawMenuAnchorCloseRequestedCallback get onCloseRequest;
-
+abstract interface class BaseMenuPositionInterface {
   /// The widget that this [BaseMenu] surrounds.
   ///
   /// Typically, this is a button used to open the menu by calling
@@ -393,60 +310,75 @@ abstract class _BaseMenuInterface {
   ///
   /// If not supplied, then the [BaseMenu] will be the size that its parent
   /// allocates for it.
-  RawMenuAnchorChildBuilder? get builder;
+  abstract final RawMenuAnchorChildBuilder? builder;
 
-  /// The optional child to be passed to the [builder].
+  /// The point on the menu surface that attaches to the anchor.
   ///
-  /// Supply this child if there is a portion of the widget tree built in
-  /// [builder] that doesn't depend on the `controller` or `context` supplied to
-  /// the [builder]. It will be more efficient, since Flutter doesn't then need
-  /// to rebuild this child when those change.
-  Widget? get child;
-
-  /// {@template flutter.widgets.RawMenuAnchor.useRootOverlay}
-  /// Whether the menu panel should be rendered in the root [Overlay].
+  /// Unlike [alignment] and [alignmentOffset], the [menuAlignment] will be
+  /// applied when the menu is opened with a `position` argument.
   ///
-  /// When true, the menu is mounted in the root overlay. Rendering the menu in
-  /// the root overlay prevents the menu from being obscured by other widgets.
+  /// Defaults to [AlignmentDirectional.bottomStart] if this is a root menu, and
+  /// [AlignmentDirectional.topEnd] if this is a submenu.
+  abstract final AlignmentGeometry? menuAlignment;
+
+  /// The point on the anchor surface that attaches to the menu.
   ///
-  /// When false, the menu is rendered in the nearest ancestor [Overlay].
+  /// The [alignment] is ignored if a `position` argument is provided to
+  /// [MenuController.open].
   ///
-  /// Submenus will always use the same overlay as their top-level ancestor, so
-  /// setting a [useRootOverlay] value on a submenu will have no effect.
-  /// {@endtemplate}
+  /// If the menu overflows the edge of the screen, the menu will be flipped
+  /// across the anchor's midpoint on the axis of overflow, effectively negating
+  /// the alignment on that axis. For example, if the menu on the right side of
+  /// the anchor overflows the right edge of the screen, the menu will be
+  /// flipped to the left side of the anchor.
   ///
-  /// Defaults to false.
-  bool get useRootOverlay;
+  /// Defaults to [AlignmentDirectional.bottomStart] if this is a root menu, and
+  /// [AlignmentDirectional.topEnd] if this is a submenu.
+  abstract final AlignmentGeometry? alignment;
 
-  // The menu panel that is displayed when the menu is opened.
-  //
-  // The panel should lay out its menu children in a vertical list.
-  Widget get menu;
+  /// The offset applied to the menu relative to the anchor attachment point.
+  ///
+  /// By default, increasing the [Offset.dx] and [Offset.dy] value of
+  /// [alignmentOffset] will shift the menu position rightward and downward,
+  /// respectively.
+  ///
+  /// However, when the [alignment] is an [AlignmentDirectional], increasing the
+  /// [Offset.dx] value of [alignmentOffset] will shift the menu in the reading
+  /// direction of the ambient [Directionality] -- rightward in
+  /// [TextDirection.ltr] and leftward in [TextDirection.rtl].
+  ///
+  /// The [alignment] and [alignmentOffset] are ignored if a `position` argument
+  /// is provided to [MenuController.open].
+  ///
+  /// Defaults to [Offset.zero].
+  abstract final Offset alignmentOffset;
 
-  /// Called when focus leaves the menu anchor and overlay.
-  ValueChanged<bool>? get onFocusChange;
+  /// The [EdgeInsetsGeometry] applied to the menu surface but ignored during
+  /// menu positioning.
+  ///
+  /// Menus commonly apply padding to the top and bottom of the menu surface,
+  /// which can cause a submenu's items to be vertically misaligned with their
+  /// parent menu items. To ensure a submenu's items align with their parent's
+  /// items, the [padding] applied to the menu surface is ignored when
+  /// calculating the position of the menu.
+  ///
+  /// Defaults to [EdgeInsets.zero].
+  abstract final EdgeInsetsGeometry padding;
 
-  /// Properties used to annotate the menu overlay.
-  SemanticsProperties get semanticProperties;
+  /// A minimum distance to apply between the menu overlay and the edges of the
+  /// screen when the menu is open.
+  abstract final EdgeInsetsGeometry overlayPadding;
 
-  Axis get orientation;
+  abstract final Widget Function(BuildContext context, Widget child)? overlayWrapper;
 }
 
-void _defaultOnOpenRequested(Offset? position, VoidCallback showOverlay) {
-  showOverlay();
-}
-
-void _defaultOnCloseRequested(VoidCallback hideOverlay) {
-  hideOverlay();
-}
-
-class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
+class BaseMenu extends StatelessWidget implements BaseMenuInterface, BaseMenuPositionInterface {
   const BaseMenu({
     super.key,
     this.onOpen,
-    this.onOpenRequest = _defaultOnOpenRequested,
+    this.onOpenRequest = BaseMenuInterface.defaultOnOpenRequested,
     this.onClose,
-    this.onCloseRequest = _defaultOnCloseRequested,
+    this.onCloseRequest = BaseMenuInterface.defaultOnCloseRequested,
     this.useRootOverlay = false,
     this.builder,
     this.child,
@@ -456,7 +388,7 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
     this.onFocusChange,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
-      label: 'menu',
+      label: 'Menu',
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
@@ -489,9 +421,6 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
   final RawMenuAnchorCloseRequestedCallback onCloseRequest;
 
   @override
-  final RawMenuAnchorChildBuilder? builder;
-
-  @override
   final Widget? child;
 
   @override
@@ -509,63 +438,25 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
   @override
   final Axis orientation;
 
-  /// The point on the menu surface that attaches to the anchor.
-  ///
-  /// Unlike [alignment] and [alignmentOffset], the [menuAlignment] will be
-  /// applied when the menu is opened with a `position` argument.
-  ///
-  /// Defaults to [AlignmentDirectional.bottomStart] if this is a root menu, and
-  /// [AlignmentDirectional.topEnd] if this is a submenu.
+  @override
+  final RawMenuAnchorChildBuilder? builder;
+
+  @override
   final AlignmentGeometry? menuAlignment;
 
-  /// The point on the anchor surface that attaches to the menu.
-  ///
-  /// The [alignment] is ignored if a `position` argument is provided to
-  /// [MenuController.open].
-  ///
-  /// If the menu overflows the edge of the screen, the menu will be flipped
-  /// across the anchor's midpoint on the axis of overflow, effectively negating
-  /// the alignment on that axis. For example, if the menu on the right side of
-  /// the anchor overflows the right edge of the screen, the menu will be
-  /// flipped to the left side of the anchor.
-  ///
-  /// Defaults to [AlignmentDirectional.bottomStart] if this is a root menu, and
-  /// [AlignmentDirectional.topEnd] if this is a submenu.
+  @override
   final AlignmentGeometry? alignment;
 
-  /// The offset applied to the menu relative to the anchor attachment point.
-  ///
-  /// By default, increasing the [Offset.dx] and [Offset.dy] value of
-  /// [alignmentOffset] will shift the menu position rightward and downward,
-  /// respectively.
-  ///
-  /// However, when the [alignment] is an [AlignmentDirectional], increasing the
-  /// [Offset.dx] value of [alignmentOffset] will shift the menu in the reading
-  /// direction of the ambient [Directionality] -- rightward in
-  /// [TextDirection.ltr] and leftward in [TextDirection.rtl].
-  ///
-  /// The [alignment] and [alignmentOffset] are ignored if a `position` argument
-  /// is provided to [MenuController.open].
-  ///
-  /// Defaults to [Offset.zero].
+  @override
   final Offset alignmentOffset;
 
-  /// The [EdgeInsetsGeometry] applied to the menu surface but ignored during
-  /// menu positioning.
-  ///
-  /// Menus commonly apply padding to the top and bottom of the menu surface,
-  /// which can cause a submenu's items to be vertically misaligned with their
-  /// parent menu items. To ensure a submenu's items align with their parent's
-  /// items, the [padding] applied to the menu surface is ignored when
-  /// calculating the position of the menu.
-  ///
-  /// Defaults to [EdgeInsets.zero].
+  @override
   final EdgeInsetsGeometry padding;
 
-  /// A minimum distance to apply between the menu overlay and the edges of the
-  /// screen when the menu is open.
+  @override
   final EdgeInsetsGeometry overlayPadding;
 
+  @override
   final Widget Function(BuildContext context, Widget child)? overlayWrapper;
 
   Widget _buildPosition(BuildContext context, RawMenuOverlayInfo position, Widget child) {
@@ -635,7 +526,6 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
       onOpenRequest: onOpenRequest,
       onCloseRequest: onCloseRequest,
       useRootOverlay: useRootOverlay,
-      builder: builder,
       menu: menu,
       controller: controller,
       consumeOutsideTaps: consumeOutsideTaps,
@@ -643,7 +533,13 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
       semanticProperties: semanticProperties,
       positionBuilder: _buildPosition,
       orientation: orientation,
-      child: child,
+      child: Builder(
+        builder: (context) {
+          return builder?.call(context, controller ?? MenuController.maybeOf(context)!, child) ??
+              child ??
+              const SizedBox();
+        },
+      ),
     );
   }
 
@@ -664,7 +560,7 @@ class BaseMenu extends StatelessWidget implements _BaseMenuInterface {
   }
 }
 
-class BasePositionedMenu extends StatefulWidget implements _BaseMenuInterface {
+class BasePositionedMenu extends StatefulWidget implements BaseMenuInterface {
   const BasePositionedMenu({
     super.key,
     this.onOpen,
@@ -683,7 +579,6 @@ class BasePositionedMenu extends StatefulWidget implements _BaseMenuInterface {
     this.orientation = Axis.vertical,
     required this.menu,
     required this.positionBuilder,
-    this.builder,
     this.child,
   });
 
@@ -704,9 +599,6 @@ class BasePositionedMenu extends StatefulWidget implements _BaseMenuInterface {
 
   @override
   final RawMenuAnchorCloseRequestedCallback onCloseRequest;
-
-  @override
-  final RawMenuAnchorChildBuilder? builder;
 
   @override
   final Widget? child;
@@ -749,7 +641,6 @@ class BasePositionedMenu extends StatefulWidget implements _BaseMenuInterface {
 class _BaseMenuState extends State<BasePositionedMenu> {
   late final _menuScopeNode = FocusScopeNode(
     skipTraversal: true,
-    debugLabel: 'MenuScope(${widget.semanticProperties.label})',
     directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
   );
 
@@ -843,7 +734,6 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     return Actions(
       actions: _anchorActions,
       child: Shortcuts(
-        debugLabel: 'Menu Anchor Shortcuts ${widget.child}',
         shortcuts: switch (_parentOrientation) {
           Axis.vertical => {
             ..._kMenuVerticalTraversalShortcuts,
@@ -864,13 +754,7 @@ class _BaseMenuState extends State<BasePositionedMenu> {
               const SingleActivator(LogicalKeyboardKey.arrowUp): const MenuEnterIntent.focusLast(),
           },
         },
-        child: Builder(
-          builder: (context) {
-            return widget.builder?.call(context, controller, widget.child) ??
-                widget.child ??
-                const SizedBox();
-          },
-        ),
+        child: widget.child ?? const SizedBox(),
       ),
     );
   }
@@ -937,7 +821,6 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     final Widget child = Actions(
       actions: {DirectionalFocusIntent: DoNothingAction()},
       child: Shortcuts(
-        debugLabel: 'Menu Shortcuts ${widget.child}',
         includeSemantics: false,
         shortcuts: _kStopDirectionalPropagationShortcuts,
         child: RawMenuAnchor(
@@ -986,7 +869,6 @@ class _MenuOverlay extends StatelessWidget {
 
   Widget _buildConditionalTraversal(BuildContext context, Widget? child) {
     return Focus(
-      debugLabel: 'WRAPPER FOCUS $child',
       includeSemantics: false,
       canRequestFocus: false,
       skipTraversal: !focusScopeNode.hasFocus,
@@ -999,15 +881,16 @@ class _MenuOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MenuController menuController = MenuController.maybeOf(context)!;
-    final Widget panel = TapRegion(
-      groupId: position.tapRegionGroupId,
-      consumeOutsideTaps: consumeOutsideTaps,
-      onTapOutside: (PointerDownEvent event) {
-        menuController.close();
-      },
-      child: ListenableBuilder(
-        listenable: focusScopeNode,
-        builder: _buildConditionalTraversal,
+    final Widget panel = ListenableBuilder(
+      listenable: focusScopeNode,
+      builder: _buildConditionalTraversal,
+      child: TapRegion(
+        groupId: position.tapRegionGroupId,
+        consumeOutsideTaps: consumeOutsideTaps,
+        onTapOutside: (PointerDownEvent event) {
+          menuController.close();
+          print('Tap outside menu detected at position: ${event.position}');
+        },
         child: _MenuScope(
           orientation: submenuAxis,
           isSubmenu: true,
@@ -1045,7 +928,6 @@ class _InlineMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shortcuts(
-      debugLabel: '_Inline MENU $child',
       includeSemantics: false,
       shortcuts: _kStopDirectionalPropagationShortcuts,
       child: Semantics.fromProperties(
@@ -1215,7 +1097,6 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
           actions: actions ??= {
             MenuFocusFirstIntent: _MenuFocusFirstAction(widget.focusScopeNode),
             MenuFocusLastIntent: _MenuFocusLastAction(widget.focusScopeNode),
-            _MenuSetFirstFocusIntent: _SetFirstFocusAction(widget.focusScopeNode),
             ...switch (widget.axis) {
               Axis.vertical => {
                 VerticalMenuNextFocusIntent: _TraverseNextAction(widget.focusScopeNode),
@@ -1263,16 +1144,6 @@ class _MenuFocusLastAction extends Action<MenuFocusLastIntent> {
     final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
     final FocusNode lastNode = policy.findLastFocus(focusScopeNode, ignoreCurrentFocus: true);
     policy.requestFocusCallback(lastNode);
-  }
-}
-
-class _SetFirstFocusAction extends Action<_MenuSetFirstFocusIntent> {
-  _SetFirstFocusAction(this.focusScopeNode);
-  final FocusScopeNode focusScopeNode;
-
-  @override
-  void invoke(_MenuSetFirstFocusIntent intent) {
-    FocusScope.of(focusScopeNode.context!).setFirstFocus(focusScopeNode);
   }
 }
 

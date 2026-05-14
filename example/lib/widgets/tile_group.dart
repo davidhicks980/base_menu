@@ -178,7 +178,7 @@ class _Tile extends StatelessWidget {
       checked: checked,
       child: BaseMenuItem(
         role: null,
-        onTap: onPressed,
+        onPressed: onPressed,
         onFocusChange: onFocusChange,
         autofocus: autofocus,
         child: Builder(

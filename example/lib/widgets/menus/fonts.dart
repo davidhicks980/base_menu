@@ -7,6 +7,7 @@ import '../../extensions/string.dart';
 import '../../model/enum.dart';
 import '../../model/intents.dart';
 import '../../utilities/colors.dart';
+import '../menu_action_label.dart';
 import '../menu_divider.dart';
 import '../menu_item.dart';
 import '../menu_panel.dart';
@@ -203,12 +204,16 @@ class _SubmenuOption extends StatelessWidget {
                 ),
             ],
           ),
-          leading: checked ? const Icon(Symbols.check, size: 16) : null,
-          child: Text(
-            value.label,
-            style: TextStyle(
-              fontFamily: value.label,
-              fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+
+          child: SubmenuActionLabel(
+            axis: Axis.vertical,
+            leading: checked ? const Icon(Symbols.check, size: 16) : null,
+            child: Text(
+              value.label,
+              style: TextStyle(
+                fontFamily: value.label,
+                fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+              ),
             ),
           ),
         ),

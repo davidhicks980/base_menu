@@ -17,7 +17,7 @@ class FloogleDocsLogoButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseControl(
       mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
-      onTap: () {},
+      onPressed: () {},
       child: Builder(
         builder: (context) {
           return CustomPaint(

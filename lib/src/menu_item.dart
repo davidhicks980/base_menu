@@ -7,7 +7,7 @@ import '../menu_utilities.dart';
 class BaseMenuItem extends StatefulWidget {
   const BaseMenuItem({
     super.key,
-    this.onTap,
+    this.onPressed,
     this.onPointerHover,
     this.onPointerEnter,
     this.onPointerLeave,
@@ -16,13 +16,19 @@ class BaseMenuItem extends StatefulWidget {
     this.autofocus = false,
     this.requestFocusOnHover = true,
     this.requestCloseOnActivate = true,
+    this.enabled = true,
     this.behavior = HitTestBehavior.deferToChild,
     this.mouseCursor,
     this.role = SemanticsRole.menuItem,
+    this.excludeGestureSemantics = false,
+    this.semanticsGestureDelegate,
     required this.child,
-  });
+  }) : assert(
+         !excludeGestureSemantics || semanticsGestureDelegate != null,
+         'If excludeGestureSemantics is true, semanticsGestureDelegate must be provided.',
+       );
 
-  final VoidCallback? onTap;
+  final VoidCallback? onPressed;
   final PointerEnterEventListener? onPointerEnter;
   final PointerHoverEventListener? onPointerHover;
   final PointerExitEventListener? onPointerLeave;
@@ -31,9 +37,12 @@ class BaseMenuItem extends StatefulWidget {
   final bool autofocus;
   final bool requestFocusOnHover;
   final bool requestCloseOnActivate;
+  final bool enabled;
   final HitTestBehavior behavior;
   final WidgetStateProperty<MouseCursor>? mouseCursor;
   final SemanticsRole? role;
+  final bool excludeGestureSemantics;
+  final SemanticsGestureDelegate? semanticsGestureDelegate;
   // Custom states to report to descendants instead of using the actual state of
   // the control. Useful for controls that want to report a different state than
   // their internal state.
@@ -101,7 +110,7 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
       }
     }
 
-    widget.onTap?.call();
+    widget.onPressed?.call();
   }
 
   void _handleHoverEnter(PointerEnterEvent event) {
@@ -112,20 +121,16 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
     widget.onPointerEnter?.call(event);
   }
 
-  void _handleHoverLeave(PointerExitEvent event) {
-    widget.onPointerLeave?.call(event);
-  }
-
   @override
   Widget build(BuildContext context) {
     return MergeSemantics(
       child: Semantics.fromProperties(
         properties: SemanticsProperties(role: widget.role),
         child: BaseControl<BaseMenuItem>(
-          onTap: _handlePressed,
-          onPointerEnter: _handleHoverEnter,
+          onPressed: widget.requestCloseOnActivate ? _handlePressed : widget.onPressed,
+          onPointerEnter: widget.requestFocusOnHover ? _handleHoverEnter : widget.onPointerEnter,
           onPointerHover: widget.onPointerHover,
-          onPointerLeave: _handleHoverLeave,
+          onPointerLeave: widget.onPointerLeave,
           focusNode: _focusNode,
           onFocusChange: widget.onFocusChange,
           autofocus: widget.autofocus,

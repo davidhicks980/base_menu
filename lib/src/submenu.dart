@@ -2,33 +2,160 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
-import 'menu_panel.dart';
+import '../menu_utilities.dart';
+import 'menu_interface.dart';
 
-class Submenu extends StatefulWidget {
+class Submenu extends StatefulWidget implements BaseMenuInterface, BaseMenuPositionInterface {
   const Submenu({
     super.key,
-    this.onPressed,
+    this.hoverOpenDelay = Duration.zero,
+    required this.child,
+    this.onOpen,
+    this.onOpenRequest = BaseMenuInterface.defaultOnOpenRequested,
+    this.onClose,
+    this.onCloseRequest = BaseMenuInterface.defaultOnCloseRequested,
+    this.useRootOverlay = false,
+    required this.menu,
+    this.controller,
+    this.consumeOutsideTaps = false,
+    this.onFocusChange,
+    this.semanticProperties = const SemanticsProperties(
+      scopesRoute: true,
+      label: 'Submenu',
+      role: SemanticsRole.menu,
+    ),
+    this.orientation = Axis.vertical,
+
+    // Positioning parameters
+    this.builder,
     this.alignment,
     this.menuAlignment,
-    this.hoverOpenDelay = Duration.zero,
+    this.padding = EdgeInsets.zero,
+    this.overlayPadding = const EdgeInsets.all(8),
+    this.alignmentOffset = Offset.zero,
+    this.overlayWrapper,
+
+    // BaseMenuItem parameters
     this.focusNode,
-    required this.child,
-    required this.panel,
+    this.onPressed,
     this.autofocus = false,
+    this.onPointerHover,
+    this.onPointerEnter,
+    this.onPointerLeave,
+    this.requestFocusOnHover = true,
+    this.requestCloseOnActivate = true,
+    this.enabled = true,
+    this.behavior = HitTestBehavior.deferToChild,
+    this.mouseCursor,
+    this.role = SemanticsRole.menuItem,
+    this.excludeGestureSemantics = false,
+    this.semanticsGestureDelegate,
   });
 
-  final VoidCallback? onPressed;
-  final AlignmentGeometry? alignment;
-  final AlignmentGeometry? menuAlignment;
-  final Widget child;
-  final Widget panel;
-  final FocusNode? focusNode;
   final Duration hoverOpenDelay;
+
+  @override
+  final VoidCallback? onPressed;
+
+  @override
+  final Widget child;
+
+  @override
+  final FocusNode? focusNode;
+
+  @override
   final bool autofocus;
+
+  @override
+  final MenuController? controller;
+
+  @override
+  final bool consumeOutsideTaps;
+
+  @override
+  final VoidCallback? onOpen;
+
+  @override
+  final RawMenuAnchorOpenRequestedCallback onOpenRequest;
+
+  @override
+  final VoidCallback? onClose;
+
+  @override
+  final RawMenuAnchorCloseRequestedCallback onCloseRequest;
+
+  @override
+  final bool useRootOverlay;
+
+  @override
+  final Widget menu;
+
+  @override
+  final ValueChanged<bool>? onFocusChange;
+
+  @override
+  final SemanticsProperties semanticProperties;
+
+  @override
+  final Axis orientation;
+
+  @override
+  final RawMenuAnchorChildBuilder? builder;
+
+  @override
+  final AlignmentGeometry? menuAlignment;
+
+  @override
+  final AlignmentGeometry? alignment;
+
+  @override
+  final Offset alignmentOffset;
+
+  @override
+  final EdgeInsetsGeometry padding;
+
+  @override
+  final EdgeInsetsGeometry overlayPadding;
+
+  @override
+  final Widget Function(BuildContext context, Widget child)? overlayWrapper;
+
+  @override
+  final PointerEnterEventListener? onPointerEnter;
+
+  @override
+  final PointerHoverEventListener? onPointerHover;
+
+  @override
+  final PointerExitEventListener? onPointerLeave;
+
+  @override
+  final bool requestFocusOnHover;
+
+  @override
+  final bool requestCloseOnActivate;
+
+  @override
+  final bool enabled;
+
+  @override
+  final HitTestBehavior behavior;
+
+  @override
+  final WidgetStateProperty<MouseCursor>? mouseCursor;
+
+  @override
+  final SemanticsRole? role;
+
+  @override
+  final bool excludeGestureSemantics;
+
+  @override
+  final SemanticsGestureDelegate? semanticsGestureDelegate;
 
   @override
   State<Submenu> createState() => _SubmenuState();
@@ -136,6 +263,7 @@ class _SubmenuState extends State<Submenu> {
       _scheduleHoverOpen();
     }
     _closeTimer?.cancel();
+    widget.onPointerEnter?.call(event);
   }
 
   void _handlePointerLeaveAnchor(PointerExitEvent event) {
@@ -144,6 +272,7 @@ class _SubmenuState extends State<Submenu> {
       _scheduleHoverClose();
     }
     _updateHighlight();
+    widget.onPointerLeave?.call(event);
   }
 
   void _handlePointerEnterPanel(PointerEvent event) {
@@ -169,6 +298,7 @@ class _SubmenuState extends State<Submenu> {
     }
 
     _updateHighlight();
+    widget.onFocusChange?.call(focused);
   }
 
   void _handleClose() {
@@ -200,14 +330,24 @@ class _SubmenuState extends State<Submenu> {
   @override
   Widget build(BuildContext context) {
     return BaseMenu(
-      overlayWrapper: _buildOverlayWrapper,
-      padding: MenuPanel.defaultPadding,
-      controller: _menuController,
-      alignment: widget.alignment,
+      onOpen: widget.onOpen,
+      onOpenRequest: widget.onOpenRequest,
       onClose: _handleClose,
-      menuAlignment: widget.menuAlignment,
+      onCloseRequest: widget.onCloseRequest,
+      controller: _menuController,
+      consumeOutsideTaps: widget.consumeOutsideTaps,
+      useRootOverlay: widget.useRootOverlay,
+      menu: widget.menu,
       onFocusChange: _handleScopeFocusChange,
-      menu: widget.panel,
+      semanticProperties: widget.semanticProperties,
+      orientation: widget.orientation,
+      builder: widget.builder,
+      alignment: widget.alignment,
+      menuAlignment: widget.menuAlignment,
+      alignmentOffset: widget.alignmentOffset,
+      padding: widget.padding,
+      overlayPadding: widget.overlayPadding,
+      overlayWrapper: _buildOverlayWrapper,
       child: Actions(
         actions: _actions,
         child: BaseMenuItem(
@@ -216,11 +356,23 @@ class _SubmenuState extends State<Submenu> {
           requestCloseOnActivate: false,
           onPointerEnter: _handlePointerEnterAnchor,
           onPointerLeave: _handlePointerLeaveAnchor,
+          onPointerHover: widget.onPointerHover,
+          requestFocusOnHover: widget.requestFocusOnHover,
+          enabled: widget.enabled,
+          behavior: widget.behavior,
+          mouseCursor: widget.mouseCursor,
+          role: widget.role,
+          excludeGestureSemantics: widget.excludeGestureSemantics,
+          semanticsGestureDelegate: widget.semanticsGestureDelegate,
           onPressed: widget.onPressed,
-          child: ListenableBuilder(
-            listenable: _highlightNotifier,
-            builder: _buildHighlight,
-            child: widget.child,
+          child: MouseRegion(
+            onEnter: _handlePointerEnterAnchor,
+            onExit: _handlePointerLeaveAnchor,
+            child: ListenableBuilder(
+              listenable: _highlightNotifier,
+              builder: _buildHighlight,
+              child: widget.child,
+            ),
           ),
         ),
       ),

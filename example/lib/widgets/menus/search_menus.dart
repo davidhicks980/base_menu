@@ -76,7 +76,7 @@ class SearchMenu extends StatelessWidget {
                 )
               : BaseControl(
                   mouseCursor: WidgetStateMouseCursor.textable,
-                  onTap: () {
+                  onPressed: () {
                     MenuController.maybeOf(context)?.open();
                   },
                   child: const Padding(
@@ -288,7 +288,7 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
       alignment: AlignmentDirectional.topStart,
       menuAlignment: AlignmentDirectional.topStart,
       onClose: _handleClose,
-      // onFocusChange: _handleFocusChange,
+      onFocusChange: _handleFocusChange,
       menu: BaseMenuPanel(
         constraints: const BoxConstraints(minWidth: 348),
         axis: Axis.vertical,
@@ -480,7 +480,7 @@ class SearchEntry extends StatelessWidget {
         child: Semantics(
           selected: selected,
           child: BaseMenuItem(
-            onTap: onPressed,
+            onPressed: onPressed,
             onPointerEnter: onEntered,
             requestFocusOnHover: false,
             child: MenuActionLabel(

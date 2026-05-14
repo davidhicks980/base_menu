@@ -1,10 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'focusable.dart';
 import 'hoverable.dart';
-import 'tappable.dart';
 
 class _EnabledScope<T> extends InheritedWidget {
   const _EnabledScope({required this.enabled, required super.child});
@@ -21,7 +21,7 @@ class BaseControl<T> extends StatefulWidget {
     this.onPointerHover,
     this.onPointerEnter,
     this.onPointerLeave,
-    this.onTap,
+    this.onPressed,
     this.onFocusChange,
     this.focusNode,
     this.autofocus = false,
@@ -34,7 +34,7 @@ class BaseControl<T> extends StatefulWidget {
   final PointerHoverEventListener? onPointerHover;
   final PointerEnterEventListener? onPointerEnter;
   final PointerExitEventListener? onPointerLeave;
-  final VoidCallback? onTap;
+  final VoidCallback? onPressed;
   final ValueChanged<bool>? onFocusChange;
   final FocusNode? focusNode;
   final bool autofocus;
@@ -60,7 +60,7 @@ class BaseControl<T> extends StatefulWidget {
 
   @optionalTypeArgs
   static bool isPressedOf<T>(BuildContext context) {
-    return BaseTappable.isPressedOf<T>(context);
+    return _Pressable.isPressedOf<T>(context);
   }
 
   @optionalTypeArgs
@@ -105,46 +105,41 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
   };
 
   bool isHovered = false;
-
   void _handleActivate(Intent intent) {
-    widget.onTap?.call();
+    widget.onPressed?.call();
   }
 
-  Widget _buildHoverable(BuildContext context) {
-    return StatefulBuilder(
-      builder: (BuildContext context, setState) {
-        final hasMouseCursor = widget.mouseCursor != null;
-        return BaseHoverable<T>(
-          behavior: widget.behavior,
-          enabled: widget.enabled,
-          onHover: widget.onPointerHover,
-          onEnter: hasMouseCursor
-              ? widget.onPointerEnter
-              : (PointerEnterEvent event) {
-                  widget.onPointerEnter?.call(event);
-                  setState(() {
-                    isHovered = true;
-                  });
-                },
-          onExit: !isHovered
-              ? widget.onPointerLeave
-              : (PointerExitEvent event) {
-                  setState(() {
-                    isHovered = false;
-                  });
-                  widget.onPointerLeave?.call(event);
-                },
-          mouseCursor: hasMouseCursor
-              ? widget.mouseCursor!.resolve({
-                  if (isHovered) WidgetState.hovered,
-                  if (BaseTappable.isPressedOf<T>(context)) WidgetState.pressed,
-                  if (BaseFocusable.isFocusedOf<T>(context)) WidgetState.focused,
-                  if (!widget.enabled) WidgetState.disabled,
-                })
-              : MouseCursor.defer,
-          child: widget.child,
-        );
-      },
+  Widget _buildHoverable(BuildContext context, void Function(void Function()) setState) {
+    final hasMouseCursor = widget.mouseCursor != null;
+    return BaseHoverable<T>(
+      behavior: widget.behavior,
+      enabled: widget.enabled,
+      onHover: widget.onPointerHover,
+      onEnter: hasMouseCursor
+          ? widget.onPointerEnter
+          : (PointerEnterEvent event) {
+              widget.onPointerEnter?.call(event);
+              setState(() {
+                isHovered = true;
+              });
+            },
+      onExit: !isHovered
+          ? widget.onPointerLeave
+          : (PointerExitEvent event) {
+              setState(() {
+                isHovered = false;
+              });
+              widget.onPointerLeave?.call(event);
+            },
+      mouseCursor: hasMouseCursor
+          ? widget.mouseCursor!.resolve({
+              if (isHovered) WidgetState.hovered,
+              if (_Pressable.isPressedOf<T>(context)) WidgetState.pressed,
+              if (BaseFocusable.isFocusedOf<T>(context)) WidgetState.focused,
+              if (!widget.enabled) WidgetState.disabled,
+            })
+          : MouseCursor.defer,
+      child: widget.child,
     );
   }
 
@@ -163,15 +158,108 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
               focusNode: widget.focusNode,
               autofocus: widget.autofocus,
               enabled: widget.enabled,
-              child: BaseTappable<T>(
+              child: _Pressable<T>(
                 enabled: widget.enabled,
-                onTap: widget.onTap,
-                child: Builder(builder: _buildHoverable),
+                onPressed: widget.onPressed,
+                child: StatefulBuilder(builder: _buildHoverable),
               ),
             ),
           ),
         ),
       ),
     );
+  }
+}
+
+@optionalTypeArgs
+class _Pressable<T> extends StatefulWidget {
+  const _Pressable({
+    super.key,
+    this.enabled = true,
+    this.onPressed,
+    this.behavior = HitTestBehavior.deferToChild,
+    this.semanticsGestureDelegate,
+    this.excludeFromSemantics = false,
+    required this.child,
+  });
+
+  final bool enabled;
+  final VoidCallback? onPressed;
+  final HitTestBehavior behavior;
+  final SemanticsGestureDelegate? semanticsGestureDelegate;
+  final bool excludeFromSemantics;
+  final Widget child;
+
+  static bool isPressedOf<T>(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<_PressableScope<T>>()?.pressed ?? false;
+  }
+
+  @override
+  State<_Pressable<T>> createState() => _PressableState<T>();
+}
+
+class _PressableState<T> extends State<_Pressable<T>> {
+  Map<Type, GestureRecognizerFactory>? _gestures;
+  DeviceGestureSettings? _gestureSettings;
+  bool isPressed = false;
+
+  void _handleTapDown(TapDownDetails details) {
+    setState(() {
+      isPressed = true;
+    });
+  }
+
+  void _handleTapUp(TapUpDetails? details) {
+    setState(() {
+      isPressed = false;
+    });
+    widget.onPressed?.call();
+  }
+
+  void _handleTapCancel() {
+    setState(() {
+      isPressed = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final DeviceGestureSettings? newGestureSettings = MediaQuery.maybeGestureSettingsOf(context);
+    if (_gestureSettings != newGestureSettings) {
+      _gestureSettings = newGestureSettings;
+      _gestures = null;
+    }
+
+    _gestures ??= <Type, GestureRecognizerFactory>{
+      TapGestureRecognizer: GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+        () => TapGestureRecognizer(debugOwner: this),
+        (TapGestureRecognizer instance) {
+          instance
+            ..onTapDown = _handleTapDown
+            ..onTapUp = _handleTapUp
+            ..onTapCancel = _handleTapCancel
+            ..gestureSettings = _gestureSettings;
+        },
+      ),
+    };
+
+    return RawGestureDetector(
+      excludeFromSemantics: widget.excludeFromSemantics,
+      semantics: widget.semanticsGestureDelegate,
+      behavior: widget.behavior,
+      gestures: widget.enabled ? _gestures! : const <Type, GestureRecognizerFactory>{},
+      child: _PressableScope<T>(pressed: isPressed, child: widget.child),
+    );
+  }
+}
+
+class _PressableScope<T> extends InheritedWidget {
+  const _PressableScope({required this.pressed, required super.child});
+
+  final bool pressed;
+
+  @override
+  bool updateShouldNotify(_PressableScope<T> oldWidget) {
+    return pressed != oldWidget.pressed;
   }
 }

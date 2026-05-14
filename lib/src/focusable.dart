@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 /// Use BaseFocusableStateInjector to inject visual focus state into the widget
@@ -25,7 +27,6 @@ class BaseFocusable<T> extends StatefulWidget {
     this.enabled = true,
     this.onFocusChange,
     this.focusNode,
-    this.forceVisualFocus,
     required this.child,
   });
 
@@ -33,7 +34,6 @@ class BaseFocusable<T> extends StatefulWidget {
   final bool autofocus;
   final bool enabled;
   final ValueChanged<bool>? onFocusChange;
-  final bool? forceVisualFocus;
   final Widget child;
 
   static _FocusableScope<T>? _of<T>(BuildContext context) {
@@ -99,8 +99,10 @@ class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
   };
 
   bool get _showFocusHighlight {
+    // Web often defaults to 'touch' mode on first interaction
+    final bool showOnWeb = kIsWeb && _isFocused;
     return _isFocused &&
-        FocusManager.instance.highlightMode == FocusHighlightMode.traditional &&
+        (FocusManager.instance.highlightMode == FocusHighlightMode.traditional || showOnWeb) &&
         _canRequestFocus;
   }
 
@@ -113,8 +115,8 @@ class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
       canRequestFocus: _canRequestFocus,
       onFocusChange: _handleFocusChange,
       child: _FocusableScope<T>(
-        focused: widget.forceVisualFocus ?? _isFocused,
-        showFocusHighlight: widget.forceVisualFocus ?? _showFocusHighlight,
+        focused: _isFocused,
+        showFocusHighlight: _showFocusHighlight,
         child: widget.child,
       ),
     );

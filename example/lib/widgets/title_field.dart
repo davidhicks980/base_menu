@@ -50,7 +50,7 @@ class TitleField extends StatefulWidget {
 class _TitleFieldState extends State<TitleField> {
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _textEditingController = TextEditingController(
-    text: 'Untitled Document',
+    text: 'Untitled document',
   );
   final WidgetStatesController _widgetStatesController = WidgetStatesController();
 

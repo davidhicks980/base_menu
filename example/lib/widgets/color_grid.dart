@@ -220,7 +220,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
         selected: widget.isSelected,
         child: BaseControl(
           focusNode: _focusNode,
-          onTap: widget.onTap,
+          onPressed: widget.onTap,
           onPointerEnter: (event) {
             // Announce the color name on hover for accessibility
             final label = colorLabel(widget.color);
@@ -422,7 +422,7 @@ class _ColorPickerPanelState extends State<ColorPickerPanel> {
                 ),
                 const SizedBox(height: 2),
                 BaseMenuItem(
-                  onTap: () {},
+                  onPressed: () {},
                   child: ClipRRect(
                     borderRadius: const BorderRadius.all(Radius.circular(8)),
                     child: ConstrainedBox(
@@ -496,7 +496,7 @@ class CustomAction extends StatelessWidget {
       label: label,
       button: true,
       child: BaseControl(
-        onTap: () {},
+        onPressed: () {},
         child: Builder(
           builder: (context) {
             return DecoratedBox(

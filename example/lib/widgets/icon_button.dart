@@ -69,7 +69,7 @@ class IconButton extends StatelessWidget {
       label: tooltip,
       child: BaseMenuItem(
         autofocus: autofocus,
-        onTap: onPressed,
+        onPressed: onPressed,
         onFocusChange: onFocusChange,
         mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
         focusNode: focusNode,

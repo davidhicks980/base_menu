@@ -66,7 +66,6 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
       orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
       menu:
           widget.panel ??
-          // This is the default panel
           MenuEntryPanel(
             onSurfaceEnter: (_) {
               if (!anchorFocusNode.hasFocus) {
@@ -91,6 +90,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
               properties: SemanticsProperties(expanded: isOpen),
               child: BaseMenuItem(
                 requestFocusOnHover: isRootOpen,
+                requestCloseOnActivate: false,
                 focusNode: anchorFocusNode,
                 onFocusChange: (value) {
                   final hasAnchorFocus = anchorFocusNode.hasFocus;
@@ -113,7 +113,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
                 onPointerLeave: (_) {
                   _isAnchorHovered = false;
                 },
-                onTap: () {
+                onPressed: () {
                   final controller = MenuController.maybeOf(context);
                   if (isOpen) {
                     controller?.close();

@@ -8,6 +8,7 @@ import '../../data/menu.dart';
 import '../../model/enum.dart';
 import '../../model/intents.dart';
 import '../../utilities/colors.dart';
+import '../menu_action_label.dart';
 import '../menu_divider.dart';
 import '../menu_item.dart';
 import '../menu_item_radio_semantics.dart';
@@ -60,8 +61,11 @@ class ParagraphStylesMenu extends StatelessWidget {
                   MenuItem(child: Text('Reset styles')),
                 ],
               ),
-              leading: Icon(Symbols.tune),
-              child: Text('Options'),
+              child: SubmenuActionLabel(
+                axis: Axis.vertical,
+                leading: Icon(Symbols.tune, size: 16),
+                child: Text('Options'),
+              ),
             ),
           ],
         ),
@@ -133,7 +137,6 @@ class _Option extends StatelessWidget {
             MenuController.maybeOf(context)?.close();
             Actions.invoke(context, ApplyParagraphStyleIntent(style));
           },
-          leading: isSelected ? const Icon(Symbols.check, size: 16) : null,
           panel: MenuPanel(
             padding: const EdgeInsets.symmetric(vertical: 6),
             children: [
@@ -155,7 +158,11 @@ class _Option extends StatelessWidget {
               ),
             ],
           ),
-          child: Text(label, style: paragraphStyles[style]?.textStyle),
+          child: SubmenuActionLabel(
+            leading: isSelected ? const Icon(Symbols.check, size: 16) : null,
+            axis: Axis.vertical,
+            child: Text(label, style: paragraphStyles[style]?.textStyle),
+          ),
         ),
       ),
     );

@@ -1,6 +1,21 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+class BaseHoverableStateInjector<T> extends StatelessWidget {
+  const BaseHoverableStateInjector({super.key, this.showHoverHighlight, required this.child});
+  final bool? showHoverHighlight;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return _HoverableScope<T>(
+      hovered: BaseHoverable.isHoveredOf<T>(context),
+      showHoverHighlight: showHoverHighlight ?? BaseHoverable.isHoverHighlightShownOf<T>(context),
+      child: child,
+    );
+  }
+}
+
 @optionalTypeArgs
 class BaseHoverable<T> extends StatefulWidget {
   const BaseHoverable({
@@ -24,20 +39,20 @@ class BaseHoverable<T> extends StatefulWidget {
   final bool opaque;
   final Widget child;
 
-  @optionalTypeArgs
-  static bool isHoveredOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()!.hovered;
+  static _HoverableScope<T>? _of<T>(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>();
+    assert(scope != null, 'No BaseHoverable of type $T found in context');
+    return scope;
   }
 
   @optionalTypeArgs
-  static bool? maybeIsHoveredOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()?.hovered;
+  static bool isHoveredOf<T>(BuildContext context) {
+    return _of<T>(context)?.hovered ?? false;
   }
 
   @optionalTypeArgs
   static bool isHoverHighlightShownOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()?.showHoverHighlight ??
-        false;
+    return _of<T>(context)?.showHoverHighlight ?? false;
   }
 
   @override

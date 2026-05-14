@@ -918,6 +918,19 @@ class _BaseMenuState extends State<BasePositionedMenu> {
     });
   }
 
+  void _handleOpen() {
+    widget.onClose?.call();
+
+    if (!kIsWeb) {
+      return;
+    }
+
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      // Prevents the root focus scope from taking focus on web.
+      FocusManager.instance.primaryFocus?.requestFocus();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
@@ -929,7 +942,7 @@ class _BaseMenuState extends State<BasePositionedMenu> {
         shortcuts: _kStopDirectionalPropagationShortcuts,
         child: RawMenuAnchor(
           useRootOverlay: widget.useRootOverlay,
-          onOpen: widget.onOpen,
+          onOpen: _handleOpen,
           onClose: _handleClose,
           onOpenRequested: widget.onOpenRequest,
           onCloseRequested: widget.onCloseRequest,

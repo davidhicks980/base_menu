@@ -2,7 +2,7 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import 'control.dart';
+import '../menu_utilities.dart';
 
 class BaseMenuItem extends StatefulWidget {
   const BaseMenuItem({
@@ -19,7 +19,6 @@ class BaseMenuItem extends StatefulWidget {
     this.behavior = HitTestBehavior.deferToChild,
     this.mouseCursor,
     this.role = SemanticsRole.menuItem,
-    this.debugLabel,
     required this.child,
   });
 
@@ -35,7 +34,6 @@ class BaseMenuItem extends StatefulWidget {
   final HitTestBehavior behavior;
   final WidgetStateProperty<MouseCursor>? mouseCursor;
   final SemanticsRole? role;
-  final String? debugLabel;
   // Custom states to report to descendants instead of using the actual state of
   // the control. Useful for controls that want to report a different state than
   // their internal state.
@@ -46,7 +44,7 @@ class BaseMenuItem extends StatefulWidget {
   }
 
   static bool isHoveredOf(BuildContext context) {
-    return BaseControl.isHoveredOf<BaseMenuItem>(context);
+    return BaseHoverable.isHoveredOf<BaseMenuItem>(context);
   }
 
   static bool isPressedOf(BuildContext context) {
@@ -63,12 +61,6 @@ class BaseMenuItem extends StatefulWidget {
 
   @override
   State<BaseMenuItem> createState() => _BaseMenuItemState();
-
-  @override
-  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return super.toString(minLevel: minLevel) +
-        (debugLabel != null ? ' (debugLabel: $debugLabel)' : '');
-  }
 }
 
 class _BaseMenuItemState extends State<BaseMenuItem> {

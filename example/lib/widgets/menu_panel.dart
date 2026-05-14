@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:menu_utilities/menu_utilities.dart' hide MenuPanelHitSurface;
-
+import 'package:menu_utilities/menu_utilities.dart';
 import '../utilities/colors.dart';
 
 class MenuPanel extends StatelessWidget {

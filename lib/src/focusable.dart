@@ -1,5 +1,22 @@
 import 'package:flutter/widgets.dart';
 
+/// Use BaseFocusableStateInjector to inject visual focus state into the widget
+/// tree
+class BaseFocusableStateInjector<T> extends StatelessWidget {
+  const BaseFocusableStateInjector({super.key, this.showFocusHighlight, required this.child});
+  final bool? showFocusHighlight;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return _FocusableScope<T>(
+      focused: BaseFocusable.isFocusedOf<T>(context),
+      showFocusHighlight: showFocusHighlight ?? BaseFocusable.isFocusHighlightShownOf<T>(context),
+      child: child,
+    );
+  }
+}
+
 @optionalTypeArgs
 class BaseFocusable<T> extends StatefulWidget {
   const BaseFocusable({
@@ -8,6 +25,7 @@ class BaseFocusable<T> extends StatefulWidget {
     this.enabled = true,
     this.onFocusChange,
     this.focusNode,
+    this.forceVisualFocus,
     required this.child,
   });
 
@@ -15,14 +33,23 @@ class BaseFocusable<T> extends StatefulWidget {
   final bool autofocus;
   final bool enabled;
   final ValueChanged<bool>? onFocusChange;
+  final bool? forceVisualFocus;
   final Widget child;
 
-  static bool isFocusedOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>()!.focused;
+  static _FocusableScope<T>? _of<T>(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>();
+    assert(scope != null, 'No BaseFocusable of type $T found in context');
+    return scope;
   }
 
+  @optionalTypeArgs
+  static bool isFocusedOf<T>(BuildContext context) {
+    return _of<T>(context)?.focused ?? false;
+  }
+
+  @optionalTypeArgs
   static bool isFocusHighlightShownOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>()!.showFocusHighlight;
+    return _of<T>(context)?.showFocusHighlight ?? false;
   }
 
   @override
@@ -86,8 +113,8 @@ class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
       canRequestFocus: _canRequestFocus,
       onFocusChange: _handleFocusChange,
       child: _FocusableScope<T>(
-        focused: _isFocused,
-        showFocusHighlight: _showFocusHighlight,
+        focused: widget.forceVisualFocus ?? _isFocused,
+        showFocusHighlight: widget.forceVisualFocus ?? _showFocusHighlight,
         child: widget.child,
       ),
     );

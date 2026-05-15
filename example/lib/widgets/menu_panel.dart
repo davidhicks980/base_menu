@@ -17,6 +17,7 @@ class MenuPanel extends StatelessWidget {
     this.borderRadius = const BorderRadius.all(Radius.circular(4)),
     this.color = FloogleColors.white,
     this.onSurfaceEnter,
+    this.onSurfaceExit,
   });
 
   static const defaultPadding = EdgeInsets.symmetric(vertical: 7, horizontal: 1);
@@ -31,6 +32,7 @@ class MenuPanel extends StatelessWidget {
   final double spacing;
   final Color color;
   final PointerEnterEventListener? onSurfaceEnter;
+  final PointerExitEventListener? onSurfaceExit;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +47,8 @@ class MenuPanel extends StatelessWidget {
         direction: orientation,
         menuChildren: children,
         spacing: spacing,
-        onSurfaceEnter: onSurfaceEnter,
+        onEnter: onSurfaceEnter,
+        onExit: onSurfaceExit,
       ),
     );
   }

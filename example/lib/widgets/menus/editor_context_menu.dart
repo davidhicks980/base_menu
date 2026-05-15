@@ -20,15 +20,11 @@ class EditorContextMenuWrapper extends StatefulWidget {
 }
 
 class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
-  static const panel = MenuEntryPanel(
-    menuEntry: Menu.context,
-    constraints: BoxConstraints(minWidth: 320),
-  );
   final TextEditingController _controller = TextEditingController(
     text: 'Click here to start editing...',
   );
+  final _focusNode = FocusNode();
 
-  final FocusNode _buttonFocusNode = FocusNode(debugLabel: 'Menu Button');
   late final gestures = {
     TapGestureRecognizer: GestureRecognizerFactoryWithHandlers(
       () => TapGestureRecognizer(debugOwner: this),
@@ -54,7 +50,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
       _enableContextMenu();
     }
     _controller.dispose();
-    _buttonFocusNode.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -151,9 +147,23 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
       positioningDelegate: const DefaultBaseMenuPositioningDelegate(
         padding: EdgeInsets.symmetric(vertical: 6),
       ),
-      menu: panel,
+      menu: MouseRegion(
+        onExit: (event) {
+          _focusNode.requestFocus();
+        },
+        child: MenuEntryPanel(
+          menuEntry: Menu.context,
+          constraints: const BoxConstraints(minWidth: 320),
+          onSurfaceEnter: (event) {
+            _focusNode.requestFocus();
+          },
+        ),
+      ),
       controller: widget.menuController,
-      child: RawGestureDetector(gestures: gestures, child: widget.child),
+      child: BaseFocusable(
+        focusNode: _focusNode,
+        child: RawGestureDetector(gestures: gestures, child: widget.child),
+      ),
     );
 
     if (!_wasBrowserContextMenuEnabled) {

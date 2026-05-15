@@ -134,13 +134,13 @@ class BaseMenuPanelMouseRegion extends StatelessWidget {
     required this.child,
     this.onEnter,
     this.onSurfaceHover,
-    this.onSurfaceLeave,
+    this.onExit,
   });
 
   final Widget child;
   final PointerEnterEventListener? onEnter;
   final PointerHoverEventListener? onSurfaceHover;
-  final PointerExitEventListener? onSurfaceLeave;
+  final PointerExitEventListener? onExit;
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +152,7 @@ class BaseMenuPanelMouseRegion extends StatelessWidget {
             hitTestBehavior: HitTestBehavior.translucent,
             onEnter: onEnter,
             onHover: onSurfaceHover,
-            onExit: onSurfaceLeave,
+            onExit: onExit,
           ),
         ),
         child,
@@ -173,7 +173,8 @@ class BaseMenuPanel extends StatelessWidget {
     this.scrollPadding = EdgeInsets.zero,
     this.spacing = 0,
     this.clipBehavior = Clip.none,
-    this.onSurfaceEnter,
+    this.onEnter,
+    this.onExit,
     required this.direction,
     required this.menuChildren,
   });
@@ -229,7 +230,10 @@ class BaseMenuPanel extends StatelessWidget {
   /// This callback is intended to be used to focus the menu anchor button when
   /// the pointer enters the menu surface, which is a common behavior in desktop
   /// menus.
-  final PointerEnterEventListener? onSurfaceEnter;
+  final PointerEnterEventListener? onEnter;
+
+  /// Called when a pointer leaves the menu surface after entering.
+  final PointerExitEventListener? onExit;
 
   @override
   Widget build(BuildContext context) {
@@ -241,8 +245,8 @@ class BaseMenuPanel extends StatelessWidget {
       children: menuChildren,
     );
 
-    if (onSurfaceEnter != null) {
-      body = BaseMenuPanelMouseRegion(onEnter: onSurfaceEnter, child: body);
+    if (onEnter != null || onExit != null) {
+      body = BaseMenuPanelMouseRegion(onEnter: onEnter, onExit: onExit, child: body);
     }
 
     Widget child = SingleChildScrollView(
@@ -265,8 +269,8 @@ class BaseMenuPanel extends StatelessWidget {
       };
     }
 
-    if (onSurfaceEnter != null) {
-      child = BaseMenuPanelMouseRegion(onEnter: onSurfaceEnter, child: child);
+    if (onEnter != null || onExit != null) {
+      child = BaseMenuPanelMouseRegion(onEnter: onEnter, onExit: onExit, child: child);
     }
 
     if (applyIntrinsics) {
@@ -701,7 +705,7 @@ class _BaseMenuState extends State<BaseMenu> {
   }
 
   void _handleOpen() {
-    widget.onClose?.call();
+    widget.onOpen?.call();
 
     if (!kIsWeb) {
       return;

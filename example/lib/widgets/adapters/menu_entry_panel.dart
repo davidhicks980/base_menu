@@ -22,6 +22,7 @@ class MenuEntryPanel extends StatelessWidget {
     this.axis = Axis.vertical,
     required this.menuEntry,
     this.onSurfaceEnter,
+    this.onSurfaceExit,
   });
 
   final BoxConstraints? constraints;
@@ -30,6 +31,7 @@ class MenuEntryPanel extends StatelessWidget {
   final SubmenuEntry menuEntry;
   final Axis axis;
   final void Function(PointerEnterEvent)? onSurfaceEnter;
+  final void Function(PointerExitEvent)? onSurfaceExit;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +44,7 @@ class MenuEntryPanel extends StatelessWidget {
       clipBehavior: clipBehavior,
       borderRadius: borderRadius,
       onSurfaceEnter: onSurfaceEnter,
+      onSurfaceExit: onSurfaceExit,
       children: [
         for (final child in menuEntry.children)
           switch (child) {

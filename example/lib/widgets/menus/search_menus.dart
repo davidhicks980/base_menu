@@ -70,6 +70,7 @@ class SearchMenu extends StatelessWidget {
                   child: IconButton(
                     onPressed: () {
                       MenuController.maybeOf(context)?.open();
+                      print('Opening search menu');
                     },
                     child: const Icon(Symbols.search, size: 18, color: placeholderColor),
                   ),
@@ -283,12 +284,15 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
   @override
   Widget build(BuildContext context) {
     return BaseMenu(
-      controller: AppStateManager.searchMenuControllerOf(context),
+      controller: menuController,
       positioningDelegate: const DefaultBaseMenuPositioningDelegate(
         overlayPadding: .zero,
         alignment: .topStart,
         menuAlignment: .topStart,
       ),
+      onOpen: () {
+        print('Search menu opened');
+      },
       onClose: _handleClose,
       onFocusChange: _handleFocusChange,
       menu: BaseMenuPanel(

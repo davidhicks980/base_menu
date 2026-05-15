@@ -1,14 +1,16 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
+
 import '../utilities/colors.dart';
 
 class MenuPanel extends StatelessWidget {
   const MenuPanel({
     super.key,
     this.padding = defaultPadding,
+    this.scrollPadding = EdgeInsets.zero,
     this.constraints,
-    this.axis = Axis.vertical,
+    this.orientation = Axis.vertical,
     required this.children,
     this.clipBehavior = Clip.none,
     this.spacing = 0,
@@ -20,11 +22,12 @@ class MenuPanel extends StatelessWidget {
   static const defaultPadding = EdgeInsets.symmetric(vertical: 7, horizontal: 1);
 
   final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry scrollPadding;
   final BoxConstraints? constraints;
   final List<Widget> children;
   final BorderRadiusGeometry borderRadius;
   final Clip clipBehavior;
-  final Axis axis;
+  final Axis orientation;
   final double spacing;
   final Color color;
   final PointerEnterEventListener? onSurfaceEnter;
@@ -37,8 +40,9 @@ class MenuPanel extends StatelessWidget {
       color: color,
       child: BaseMenuPanel(
         padding: padding,
+        scrollPadding: scrollPadding,
         constraints: constraints,
-        axis: axis,
+        direction: orientation,
         menuChildren: children,
         spacing: spacing,
         onSurfaceEnter: onSurfaceEnter,

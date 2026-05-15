@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../app_state_manager.dart';
 import '../../data/menu.dart';
@@ -14,7 +15,6 @@ import '../menu_item.dart';
 import '../menu_item_radio_semantics.dart';
 import '../menu_panel.dart';
 import '../select.dart';
-import '../submenu.dart';
 import '../web_label.dart';
 
 class ParagraphStylesMenu extends StatelessWidget {
@@ -51,8 +51,11 @@ class ParagraphStylesMenu extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 7.5),
-            const Submenu(
-              panel: MenuPanel(
+            BaseSubmenu(
+              positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+                padding: EdgeInsets.symmetric(vertical: 6),
+              ),
+              menu: const MenuPanel(
                 padding: EdgeInsets.symmetric(vertical: 6),
                 constraints: BoxConstraints(minWidth: 260),
                 children: [
@@ -61,7 +64,8 @@ class ParagraphStylesMenu extends StatelessWidget {
                   MenuItem(child: Text('Reset styles')),
                 ],
               ),
-              child: SubmenuActionLabel(
+              onPressed: () {},
+              child: const SubmenuActionLabel(
                 axis: Axis.vertical,
                 leading: Icon(Symbols.tune, size: 16),
                 child: Text('Options'),
@@ -116,7 +120,7 @@ class ParagraphStylesMenu extends StatelessWidget {
   }
 }
 
-class _Option extends StatelessWidget {
+class _Option extends StatefulWidget {
   const _Option({required this.label, required this.style, this.shortcut});
 
   final String label;
@@ -124,44 +128,63 @@ class _Option extends StatelessWidget {
   final DocumentParagraphStyle style;
 
   @override
+  State<_Option> createState() => _OptionState();
+}
+
+class _OptionState extends State<_Option> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final paragraphStyles = AppStateManager.paragraphStylesOf(context);
     final selectedParagraphStyle = AppStateManager.selectedParagraphStyleOf(context);
-    final isSelected = selectedParagraphStyle == style;
+    final isSelected = selectedParagraphStyle == widget.style;
     return MenuItemRadioSemantics(
       checked: isSelected,
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 64),
-        child: Submenu(
+        child: BaseSubmenu(
+          autofocus: isSelected,
           onPressed: () {
             MenuController.maybeOf(context)?.close();
-            Actions.invoke(context, ApplyParagraphStyleIntent(style));
+            Actions.invoke(context, ApplyParagraphStyleIntent(widget.style));
           },
-          panel: MenuPanel(
+          menu: MenuPanel(
+            onSurfaceEnter: (event) {
+              if (!_focusNode.hasFocus) {
+                _focusNode.requestFocus();
+              }
+            },
             padding: const EdgeInsets.symmetric(vertical: 6),
             children: [
               MenuItem(
                 onTap: () {
                   MenuController.maybeOf(context)?.close();
-                  Actions.invoke(context, ApplyParagraphStyleIntent(style));
+                  Actions.invoke(context, ApplyParagraphStyleIntent(widget.style));
                 },
-                shortcut: shortcut,
-                child: Text('Apply "$label"'),
+                shortcut: widget.shortcut,
+                child: Text('Apply "${widget.label}"'),
               ),
               const MenuDivider(padding: EdgeInsets.fromLTRB(30, 7.5, 0, 7.5)),
               MenuItem(
                 onTap: () {
                   MenuController.maybeOf(context)?.close();
-                  Actions.invoke(context, UpdateParagraphStyleToMatchIntent(style));
+                  Actions.invoke(context, UpdateParagraphStyleToMatchIntent(widget.style));
                 },
-                child: Text('Update "$label" to match'),
+                child: Text('Update "${widget.label}" to match'),
               ),
             ],
           ),
           child: SubmenuActionLabel(
             leading: isSelected ? const Icon(Symbols.check, size: 16) : null,
             axis: Axis.vertical,
-            child: Text(label, style: paragraphStyles[style]?.textStyle),
+            child: Text(widget.label, style: paragraphStyles[widget.style]?.textStyle),
           ),
         ),
       ),

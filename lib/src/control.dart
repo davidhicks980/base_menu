@@ -14,33 +14,122 @@ class _EnabledScope<T> extends InheritedWidget {
   bool updateShouldNotify(_EnabledScope<T> oldWidget) => enabled != oldWidget.enabled;
 }
 
+abstract interface class BaseControlInterface {
+  /// Called when the button is tapped or otherwise activated.
+  ///
+  /// If this callback is null, then the button will be disabled.
+  ///
+  /// See also:
+  ///
+  ///  * [enabled], which is true if the button is enabled.
+  VoidCallback? get onPressed;
+
+  /// Called when a pointer enters the menu item.
+  PointerEnterEventListener? get onPointerEnter;
+
+  /// Called when a pointer hovers over the menu item.
+  PointerHoverEventListener? get onPointerHover;
+
+  /// Called when a pointer exits the menu item.
+  PointerExitEventListener? get onPointerLeave;
+
+  /// Handler called when the [FocusNode] of this menu item gains or loses focus.
+  ///
+  /// Called with true if this widget's node gains focus, and false if it loses
+  /// focus.
+  ValueChanged<bool>? get onFocusChange;
+
+  /// {@macro flutter.widgets.Focus.focusNode}
+  FocusNode? get focusNode;
+
+  /// {@macro flutter.widgets.Focus.autofocus}
+  bool get autofocus;
+
+  /// How to behave during hit testing when deciding how the hit test propagates
+  /// to children and whether to consider targets behind this one.
+  ///
+  /// Defaults to [HitTestBehavior.deferToChild].
+  ///
+  /// See [HitTestBehavior] for the allowed values and their meanings.
+  HitTestBehavior get behavior;
+
+  /// The mouse cursor to show when hovering over this menu item.
+  WidgetStateProperty<MouseCursor>? get mouseCursor;
+
+  /// Whether to exclude this menu item's tap gestures from the semantics tree.
+  bool get gestureSemanticsEnabled;
+
+  /// The delegate that controls how this menu item adds gestures to the
+  /// semantics tree.
+  SemanticsGestureDelegate? get gestureSemantics;
+
+  /// Whether this control can be interacted with.
+  bool get enabled;
+
+  /// The visual content of this menu item.
+  ///
+  /// [BaseMenuItem] doesn't specify how the menu item is visually styled, so
+  /// the menu item content is fully customizable.
+  ///
+  /// {@macro flutter.widgets.ProxyWidget.child}
+  Widget get child;
+}
+
 @optionalTypeArgs
-class BaseControl<T> extends StatefulWidget {
+class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   const BaseControl({
     super.key,
+    this.onPressed,
     this.onPointerHover,
     this.onPointerEnter,
     this.onPointerLeave,
-    this.onPressed,
     this.onFocusChange,
     this.focusNode,
     this.autofocus = false,
     this.behavior = HitTestBehavior.deferToChild,
     this.mouseCursor,
-    this.enabled = true,
+    this.gestureSemanticsEnabled = true,
+    this.gestureSemantics,
     required this.child,
   });
 
-  final PointerHoverEventListener? onPointerHover;
-  final PointerEnterEventListener? onPointerEnter;
-  final PointerExitEventListener? onPointerLeave;
+  @override
   final VoidCallback? onPressed;
+
+  @override
+  final PointerEnterEventListener? onPointerEnter;
+
+  @override
+  final PointerHoverEventListener? onPointerHover;
+
+  @override
+  final PointerExitEventListener? onPointerLeave;
+
+  @override
   final ValueChanged<bool>? onFocusChange;
+
+  @override
   final FocusNode? focusNode;
+
+  @override
   final bool autofocus;
+
+  @override
   final HitTestBehavior behavior;
+
+  @override
   final WidgetStateProperty<MouseCursor>? mouseCursor;
-  final bool enabled;
+
+  @override
+  final bool gestureSemanticsEnabled;
+
+  @override
+  final SemanticsGestureDelegate? gestureSemantics;
+
+  @override
+  bool get enabled => onPressed != null;
+
+  @override
   final Widget child;
 
   @optionalTypeArgs
@@ -161,6 +250,8 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
               child: _Pressable<T>(
                 enabled: widget.enabled,
                 onPressed: widget.onPressed,
+                enableGestureSemantics: widget.gestureSemanticsEnabled,
+                semanticsGestureDelegate: widget.gestureSemantics,
                 child: StatefulBuilder(builder: _buildHoverable),
               ),
             ),
@@ -177,17 +268,15 @@ class _Pressable<T> extends StatefulWidget {
     super.key,
     this.enabled = true,
     this.onPressed,
-    this.behavior = HitTestBehavior.deferToChild,
     this.semanticsGestureDelegate,
-    this.excludeFromSemantics = false,
+    this.enableGestureSemantics = true,
     required this.child,
   });
 
   final bool enabled;
   final VoidCallback? onPressed;
-  final HitTestBehavior behavior;
   final SemanticsGestureDelegate? semanticsGestureDelegate;
-  final bool excludeFromSemantics;
+  final bool enableGestureSemantics;
   final Widget child;
 
   static bool isPressedOf<T>(BuildContext context) {
@@ -244,9 +333,8 @@ class _PressableState<T> extends State<_Pressable<T>> {
     };
 
     return RawGestureDetector(
-      excludeFromSemantics: widget.excludeFromSemantics,
+      excludeFromSemantics: !widget.enableGestureSemantics,
       semantics: widget.semanticsGestureDelegate,
-      behavior: widget.behavior,
       gestures: widget.enabled ? _gestures! : const <Type, GestureRecognizerFactory>{},
       child: _PressableScope<T>(pressed: isPressed, child: widget.child),
     );

@@ -283,15 +283,17 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
   @override
   Widget build(BuildContext context) {
     return BaseMenu(
-      overlayPadding: EdgeInsets.zero,
       controller: AppStateManager.searchMenuControllerOf(context),
-      alignment: AlignmentDirectional.topStart,
-      menuAlignment: AlignmentDirectional.topStart,
+      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+        overlayPadding: .zero,
+        alignment: .topStart,
+        menuAlignment: .topStart,
+      ),
       onClose: _handleClose,
       onFocusChange: _handleFocusChange,
       menu: BaseMenuPanel(
         constraints: const BoxConstraints(minWidth: 348),
-        axis: Axis.vertical,
+        direction: Axis.vertical,
         menuChildren: [
           DecoratedBox(
             decoration: const BoxDecoration(

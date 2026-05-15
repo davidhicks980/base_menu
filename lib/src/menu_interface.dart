@@ -1,8 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
+
 import '../menu_utilities.dart';
-import 'menu.dart';
 
 abstract class BaseMenuInterface {
   /// An optional [MenuController] that allows opening and closing of the menu
@@ -15,16 +14,18 @@ abstract class BaseMenuInterface {
   /// Whether or not a tap event that closes the menu will be permitted to
   /// continue on to the gesture arena.
   ///
-  /// If false, then tapping outside of a menu when the menu is open will both
+  /// When false, tapping outside of a menu when the menu is open will both
   /// close the menu, and allow the tap to participate in the gesture arena.
   ///
-  /// If true, then it will only close the menu, and the tap event will be
-  /// consumed.
+  /// When true, tapping outside of a menu will only close the menu, and the tap
+  /// event will be consumed.
   ///
   /// Defaults to false.
   bool get consumeOutsideTaps;
 
-  /// A callback that is invoked when the menu is opened.
+  /// Called when the menu is opened.
+  ///
+  /// If no close requests are made, the menu will be mounted in the next frame.
   VoidCallback? get onOpen;
 
   /// Called when a request is made to open the menu.
@@ -61,7 +62,9 @@ abstract class BaseMenuInterface {
   /// Defaults to a callback that immediately shows the menu.
   RawMenuAnchorOpenRequestedCallback get onOpenRequest;
 
-  /// A callback that is invoked when the menu is closed.
+  /// Called when the menu overlay will close.
+  ///
+  /// The menu will be unmounted in the next frame unless the menu is reopened.
   VoidCallback? get onClose;
 
   /// Called when a request is made to close the menu.
@@ -105,6 +108,15 @@ abstract class BaseMenuInterface {
   /// to rebuild this child when those change.
   Widget? get child;
 
+  /// The widget that this [BaseMenu] surrounds.
+  ///
+  /// Typically, this is a button used to open the menu by calling
+  /// [MenuController.open] on the `controller` passed to the builder.
+  ///
+  /// If not supplied, then the [BaseMenu] will be the size that its parent
+  /// allocates for it.
+  RawMenuAnchorChildBuilder? get builder;
+
   /// {@template flutter.widgets.RawMenuAnchor.useRootOverlay}
   /// Whether the menu panel should be rendered in the root [Overlay].
   ///
@@ -125,18 +137,41 @@ abstract class BaseMenuInterface {
   // The panel should lay out its menu children in a vertical list.
   Widget get menu;
 
-  /// Called when focus leaves the menu anchor and overlay.
+  /// Called when focus enters or leaves the menu overlay and its descendants.
   ValueChanged<bool>? get onFocusChange;
 
   /// Properties used to annotate the menu overlay.
   SemanticsProperties get semanticProperties;
 
+  /// The orientation in which the menu's children should be traversed.
+  ///
+  /// If [orientation] is [Axis.vertical], then the menu's children are
+  /// traversed from top to bottom. If [orientation] is [Axis.horizontal], then
+  /// the menu's children are traversed from left to right when the ambient
+  /// [Directionality] is [TextDirection.ltr] and from right to left when the
+  /// ambient [Directionality] is [TextDirection.rtl].
   Axis get orientation;
 
+  /// A delegate that controls how the menu is positioned.
+  BaseMenuPositioningDelegate get positioningDelegate;
+
+  /// An optional builder that wraps the menu overlay.
+  ///
+  /// This builder is passed the entire menu overlay, not just the visual menu
+  /// panel. As a result, it can be used to add widgets that should be outside
+  /// of the menu panel, such as a barrier that dismisses the menu when tapped.
+  BaseMenuOverlayChildBuilder? get overlayChildBuilder;
+
+  /// The fallback [onOpenRequest] if one is not supplied to the menu.
+  ///
+  /// By default, the menu will open immediately without any delay or animation.
   static void defaultOnOpenRequested(Offset? position, VoidCallback showOverlay) {
     showOverlay();
   }
 
+  /// The fallback `onCloseRequest` if one is not supplied to the menu.
+  ///
+  /// By default, the menu will close immediately without any delay or animation.
   static void defaultOnCloseRequested(VoidCallback hideOverlay) {
     hideOverlay();
   }

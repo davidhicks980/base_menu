@@ -10,8 +10,8 @@ class Select extends StatefulWidget {
     super.key,
     required this.child,
     required this.panel,
-    this.buttonPadding = const EdgeInsets.symmetric(horizontal: 11, vertical: 2),
-    this.buttonRadius = const BorderRadiusGeometry.all(Radius.circular(4)),
+    this.buttonPadding = const EdgeInsets.only(left: 11, right: 6, top: 2, bottom: 2),
+    this.buttonRadius = const BorderRadius.all(Radius.circular(4)),
     this.menuController,
   });
 
@@ -44,8 +44,10 @@ class _SelectState extends State<Select> {
           controller.close();
         }
       },
-      overlayPadding: const EdgeInsets.only(top: 98, bottom: 8),
-      padding: MenuPanel.defaultPadding,
+      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+        overlayPadding: EdgeInsets.only(top: 98, bottom: 8),
+        padding: MenuPanel.defaultPadding,
+      ),
       menu: widget.panel,
       child: _SelectTextButton(
         focusNode: focusNode,
@@ -81,7 +83,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
     if (widget.controller.isOpen) {
       widget.controller.close();
     } else {
-      Actions.invoke(context, const MenuEnterIntent.focusFirst());
+      widget.controller.open();
     }
   }
 

@@ -148,7 +148,9 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
   @override
   Widget build(BuildContext context) {
     final child = BaseMenu(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+        padding: EdgeInsets.symmetric(vertical: 6),
+      ),
       menu: panel,
       controller: widget.menuController,
       child: RawGestureDetector(gestures: gestures, child: widget.child),

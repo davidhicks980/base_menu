@@ -18,6 +18,11 @@ class MenuAimScope extends InheritedWidget {
 
   final bool enable;
 
+  static bool isEnabledOf(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<MenuAimScope>();
+    return scope?.enable ?? false;
+  }
+
   @override
   bool updateShouldNotify(MenuAimScope oldWidget) => enable != oldWidget.enable;
 }

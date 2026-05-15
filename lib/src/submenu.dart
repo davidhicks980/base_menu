@@ -9,10 +9,11 @@ import 'package:flutter/widgets.dart';
 import '../menu_utilities.dart';
 import 'menu_interface.dart';
 
-class Submenu extends StatefulWidget implements BaseMenuInterface, BaseMenuPositionInterface {
-  const Submenu({
+class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuItem {
+  const BaseSubmenu({
     super.key,
     this.hoverOpenDelay = Duration.zero,
+    this.hoverCloseDelay = Duration.zero,
     required this.child,
     this.onOpen,
     this.onOpenRequest = BaseMenuInterface.defaultOnOpenRequested,
@@ -29,34 +30,27 @@ class Submenu extends StatefulWidget implements BaseMenuInterface, BaseMenuPosit
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
-
-    // Positioning parameters
     this.builder,
-    this.alignment,
-    this.menuAlignment,
-    this.padding = EdgeInsets.zero,
-    this.overlayPadding = const EdgeInsets.all(8),
-    this.alignmentOffset = Offset.zero,
-    this.overlayWrapper,
-
-    // BaseMenuItem parameters
+    this.positioningDelegate = const DefaultBaseMenuPositioningDelegate(),
+    this.overlayChildBuilder,
     this.focusNode,
-    this.onPressed,
     this.autofocus = false,
-    this.onPointerHover,
+    this.onPressed,
     this.onPointerEnter,
+    this.onPointerHover,
     this.onPointerLeave,
-    this.requestFocusOnHover = true,
-    this.requestCloseOnActivate = true,
-    this.enabled = true,
     this.behavior = HitTestBehavior.deferToChild,
     this.mouseCursor,
     this.role = SemanticsRole.menuItem,
-    this.excludeGestureSemantics = false,
-    this.semanticsGestureDelegate,
+    this.gestureSemanticsEnabled = true,
+    this.gestureSemantics,
   });
 
+  /// The delay after which the submenu should open after being hovered.
   final Duration hoverOpenDelay;
+
+  /// The delay after which the submenu should close when no longer hovered.
+  final Duration hoverCloseDelay;
 
   @override
   final VoidCallback? onPressed;
@@ -107,22 +101,7 @@ class Submenu extends StatefulWidget implements BaseMenuInterface, BaseMenuPosit
   final RawMenuAnchorChildBuilder? builder;
 
   @override
-  final AlignmentGeometry? menuAlignment;
-
-  @override
-  final AlignmentGeometry? alignment;
-
-  @override
-  final Offset alignmentOffset;
-
-  @override
-  final EdgeInsetsGeometry padding;
-
-  @override
-  final EdgeInsetsGeometry overlayPadding;
-
-  @override
-  final Widget Function(BuildContext context, Widget child)? overlayWrapper;
+  final BaseMenuPositioningDelegate positioningDelegate;
 
   @override
   final PointerEnterEventListener? onPointerEnter;
@@ -134,15 +113,6 @@ class Submenu extends StatefulWidget implements BaseMenuInterface, BaseMenuPosit
   final PointerExitEventListener? onPointerLeave;
 
   @override
-  final bool requestFocusOnHover;
-
-  @override
-  final bool requestCloseOnActivate;
-
-  @override
-  final bool enabled;
-
-  @override
   final HitTestBehavior behavior;
 
   @override
@@ -152,22 +122,38 @@ class Submenu extends StatefulWidget implements BaseMenuInterface, BaseMenuPosit
   final SemanticsRole? role;
 
   @override
-  final bool excludeGestureSemantics;
+  final bool gestureSemanticsEnabled;
 
   @override
-  final SemanticsGestureDelegate? semanticsGestureDelegate;
+  final SemanticsGestureDelegate? gestureSemantics;
 
   @override
-  State<Submenu> createState() => _SubmenuState();
+  final BaseMenuOverlayChildBuilder? overlayChildBuilder;
+
+  @override
+  bool get enabled => onPressed != null;
+
+  @override
+  bool get requestFocusOnHover => true;
+
+  @override
+  bool get requestCloseOnActivate => false;
+
+  @override
+  State<BaseSubmenu> createState() => _BaseSubmenuState();
 }
 
-class _SubmenuState extends State<Submenu> {
+class _BaseSubmenuState extends State<BaseSubmenu> {
   late final _actions = {
     ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (intent) => Actions.maybeInvoke(context, const MenuEnterIntent.focusFirst()),
+      onInvoke: (intent) {
+        return Actions.maybeInvoke(_focusNode.context!, const BaseMenuEnterIntent.focusFirst());
+      },
     ),
     ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (intent) => Actions.maybeInvoke(context, const MenuEnterIntent.focusFirst()),
+      onInvoke: (intent) {
+        return Actions.maybeInvoke(_focusNode.context!, const BaseMenuEnterIntent.focusFirst());
+      },
     ),
   };
 
@@ -193,7 +179,7 @@ class _SubmenuState extends State<Submenu> {
   }
 
   @override
-  void didUpdateWidget(Submenu oldWidget) {
+  void didUpdateWidget(BaseSubmenu oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.focusNode != widget.focusNode) {
       oldWidget.focusNode?.removeListener(_handleFocusChange);
@@ -241,7 +227,7 @@ class _SubmenuState extends State<Submenu> {
   void _scheduleHoverClose() {
     assert(_menuController.isOpen);
     _closeTimer?.cancel();
-    _closeTimer = Timer(widget.hoverOpenDelay, () {
+    _closeTimer = Timer(widget.hoverCloseDelay, () {
       _closeTimer = null;
       assert(_openTimer?.isActive != true);
       _menuController.close();
@@ -319,12 +305,14 @@ class _SubmenuState extends State<Submenu> {
     );
   }
 
-  Widget _buildOverlayWrapper(BuildContext context, Widget child) {
-    return BaseHoverable<Submenu>(
+  Widget _buildOverlayChild(BuildContext context, Widget child) {
+    final overlay = BaseHoverable<BaseSubmenu>(
       onEnter: _handlePointerEnterPanel,
       onExit: _handlePointerExitPanel,
       child: child,
     );
+
+    return widget.overlayChildBuilder?.call(context, overlay) ?? overlay;
   }
 
   @override
@@ -342,37 +330,28 @@ class _SubmenuState extends State<Submenu> {
       semanticProperties: widget.semanticProperties,
       orientation: widget.orientation,
       builder: widget.builder,
-      alignment: widget.alignment,
-      menuAlignment: widget.menuAlignment,
-      alignmentOffset: widget.alignmentOffset,
-      padding: widget.padding,
-      overlayPadding: widget.overlayPadding,
-      overlayWrapper: _buildOverlayWrapper,
+      positioningDelegate: widget.positioningDelegate,
+      overlayChildBuilder: _buildOverlayChild,
       child: Actions(
         actions: _actions,
         child: BaseMenuItem(
           focusNode: _focusNode,
           autofocus: widget.autofocus,
-          requestCloseOnActivate: false,
+          onPressed: widget.onPressed,
           onPointerEnter: _handlePointerEnterAnchor,
-          onPointerLeave: _handlePointerLeaveAnchor,
           onPointerHover: widget.onPointerHover,
+          onPointerLeave: _handlePointerLeaveAnchor,
+          requestCloseOnActivate: false,
           requestFocusOnHover: widget.requestFocusOnHover,
-          enabled: widget.enabled,
           behavior: widget.behavior,
           mouseCursor: widget.mouseCursor,
           role: widget.role,
-          excludeGestureSemantics: widget.excludeGestureSemantics,
-          semanticsGestureDelegate: widget.semanticsGestureDelegate,
-          onPressed: widget.onPressed,
-          child: MouseRegion(
-            onEnter: _handlePointerEnterAnchor,
-            onExit: _handlePointerLeaveAnchor,
-            child: ListenableBuilder(
-              listenable: _highlightNotifier,
-              builder: _buildHighlight,
-              child: widget.child,
-            ),
+          gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
+          gestureSemantics: widget.gestureSemantics,
+          child: ListenableBuilder(
+            listenable: _highlightNotifier,
+            builder: _buildHighlight,
+            child: widget.child,
           ),
         ),
       ),

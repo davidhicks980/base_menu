@@ -103,22 +103,6 @@ const children = [
   _Group(_group8),
 ];
 
-class ToolbarScope extends InheritedWidget {
-  const ToolbarScope({super.key, required this.child}) : super(child: child);
-
-  @override
-  final Widget child;
-
-  static ToolbarScope? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<ToolbarScope>();
-  }
-
-  @override
-  bool updateShouldNotify(ToolbarScope oldWidget) {
-    return true;
-  }
-}
-
 class Toolbar extends StatefulWidget {
   const Toolbar({super.key});
 
@@ -138,16 +122,16 @@ class _ToolbarState extends State<Toolbar> {
 
   Map<Type, Action<Intent>>? _actions;
   late final enterForwardAction = {
-    HorizontalMenuNextFocusIntent: CallbackAction<HorizontalMenuNextFocusIntent>(
+    BaseMenuHorizontalFocusNextIntent: CallbackAction<BaseMenuHorizontalFocusNextIntent>(
       onInvoke: (intent) =>
-          Actions.invoke(overflowButtonFocusNode.context!, const MenuEnterIntent.focusFirst()),
+          Actions.invoke(overflowButtonFocusNode.context!, const BaseMenuEnterIntent.focusFirst()),
     ),
   };
 
   late final enterReverseAction = {
-    HorizontalMenuPreviousFocusIntent: CallbackAction<HorizontalMenuPreviousFocusIntent>(
+    BaseMenuHorizontalFocusPreviousIntent: CallbackAction<BaseMenuHorizontalFocusPreviousIntent>(
       onInvoke: (intent) =>
-          Actions.invoke(overflowButtonFocusNode.context!, const MenuEnterIntent.focusLast()),
+          Actions.invoke(overflowButtonFocusNode.context!, const BaseMenuEnterIntent.focusLast()),
     ),
   };
 
@@ -416,8 +400,8 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
               child: Flexible(
                 child: Actions(
                   actions: {
-                    VerticalMenuPreviousFocusIntent: DoNothingAction(),
-                    VerticalMenuNextFocusIntent: DoNothingAction(),
+                    BaseMenuVerticalFocusPreviousIntent: DoNothingAction(),
+                    BaseMenuVerticalFocusNextIntent: DoNothingAction(),
                     NextFocusIntent: NextFocusAction(),
                     PreviousFocusIntent: PreviousFocusAction(),
                   },
@@ -437,9 +421,11 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
 
     return BaseMenu(
       controller: widget.controller,
-      overlayPadding: const EdgeInsets.symmetric(horizontal: 4),
-      menuAlignment: AlignmentDirectional.topEnd,
-      alignment: AlignmentDirectional.bottomEnd,
+      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+        overlayPadding: .symmetric(horizontal: 4),
+        alignment: .bottomEnd,
+        menuAlignment: .topEnd,
+      ),
       orientation: Axis.horizontal,
       onOpenRequest: _handleMenuOpenRequest,
       onCloseRequest: _handleMenuCloseRequest,
@@ -463,6 +449,9 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
           onPressed: () {
             if (_animationStatus.isForwardOrCompleted) {
               controller.close();
+            } else {
+              controller.open();
+              widget.buttonFocusNode.requestFocus();
             }
           },
           child: IconTheme(

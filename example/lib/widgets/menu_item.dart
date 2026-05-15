@@ -7,7 +7,7 @@ import 'menu_action_label.dart';
 class MenuItem extends StatelessWidget {
   const MenuItem({
     super.key,
-    this.onTap,
+    this.onTap = emptyCallback,
     required this.child,
     this.leading,
     this.leadingWidth = 34,
@@ -33,6 +33,8 @@ class MenuItem extends StatelessWidget {
   final bool? isExpanded;
   final bool requestFocusOnHover;
   final bool autofocus;
+
+  static void emptyCallback() {}
 
   @override
   Widget build(BuildContext context) {

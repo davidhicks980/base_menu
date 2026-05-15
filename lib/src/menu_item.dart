@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
 
-class BaseMenuItem extends StatefulWidget {
+class BaseMenuItem extends StatefulWidget implements BaseControlInterface {
   const BaseMenuItem({
     super.key,
     this.onPressed,
@@ -16,37 +16,68 @@ class BaseMenuItem extends StatefulWidget {
     this.autofocus = false,
     this.requestFocusOnHover = true,
     this.requestCloseOnActivate = true,
-    this.enabled = true,
-    this.behavior = HitTestBehavior.deferToChild,
+    this.behavior = .deferToChild,
     this.mouseCursor,
-    this.role = SemanticsRole.menuItem,
-    this.excludeGestureSemantics = false,
-    this.semanticsGestureDelegate,
+    this.role = .menuItem,
+    this.gestureSemanticsEnabled = true,
+    this.gestureSemantics,
     required this.child,
   }) : assert(
-         !excludeGestureSemantics || semanticsGestureDelegate != null,
-         'If excludeGestureSemantics is true, semanticsGestureDelegate must be provided.',
+         gestureSemanticsEnabled || gestureSemantics == null,
+         'If excludeGestureSemantics is true, semanticsGestureDelegate must not be provided.',
        );
 
+  @override
   final VoidCallback? onPressed;
+
+  @override
   final PointerEnterEventListener? onPointerEnter;
+
+  @override
   final PointerHoverEventListener? onPointerHover;
+
+  @override
   final PointerExitEventListener? onPointerLeave;
+
+  @override
   final ValueChanged<bool>? onFocusChange;
+
+  @override
   final FocusNode? focusNode;
+
+  @override
   final bool autofocus;
+
+  /// Whether hovering over this menu item should request focus.
+  ///
+  /// Defaults to true.
   final bool requestFocusOnHover;
+
+  /// Whether activating this menu item should request to close the menu.
+  ///
+  /// Defaults to true.
   final bool requestCloseOnActivate;
-  final bool enabled;
+
+  @override
   final HitTestBehavior behavior;
+
+  @override
   final WidgetStateProperty<MouseCursor>? mouseCursor;
+
+  @override
+  final bool gestureSemanticsEnabled;
+
+  @override
+  final SemanticsGestureDelegate? gestureSemantics;
+
+  /// The semantic role to assign to this menu item.
   final SemanticsRole? role;
-  final bool excludeGestureSemantics;
-  final SemanticsGestureDelegate? semanticsGestureDelegate;
-  // Custom states to report to descendants instead of using the actual state of
-  // the control. Useful for controls that want to report a different state than
-  // their internal state.
+
+  @override
   final Widget child;
+
+  @override
+  bool get enabled => onPressed != null;
 
   static Set<WidgetState> statesOf(BuildContext context) {
     return BaseControl.statesOf<BaseMenuItem>(context);
@@ -127,8 +158,12 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
       child: Semantics.fromProperties(
         properties: SemanticsProperties(role: widget.role),
         child: BaseControl<BaseMenuItem>(
-          onPressed: widget.requestCloseOnActivate ? _handlePressed : widget.onPressed,
-          onPointerEnter: widget.requestFocusOnHover ? _handleHoverEnter : widget.onPointerEnter,
+          onPressed: widget.requestCloseOnActivate && widget.enabled
+              ? _handlePressed
+              : widget.onPressed,
+          onPointerEnter: widget.requestFocusOnHover && widget.enabled
+              ? _handleHoverEnter
+              : widget.onPointerEnter,
           onPointerHover: widget.onPointerHover,
           onPointerLeave: widget.onPointerLeave,
           focusNode: _focusNode,
@@ -136,6 +171,8 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
           autofocus: widget.autofocus,
           mouseCursor: widget.mouseCursor,
           behavior: widget.behavior,
+          gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
+          gestureSemantics: widget.gestureSemantics,
           child: widget.child,
         ),
       ),

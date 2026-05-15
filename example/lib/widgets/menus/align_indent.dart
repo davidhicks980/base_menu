@@ -22,7 +22,7 @@ class AlignIndentMenu extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
         borderRadius: BorderRadius.circular(6),
         color: FloogleColors.alignSurfaceColor,
-        axis: Axis.horizontal,
+        orientation: Axis.horizontal,
         children: [
           for (final entry in Menu.align.children)
             DecoratedBox(

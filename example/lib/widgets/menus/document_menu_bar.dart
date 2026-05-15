@@ -78,7 +78,7 @@ class _DocumentMenuBarState extends State<DocumentMenuBar> {
                 MenuBarMenu(
                   overflow: true,
                   panel: MenuPanel(
-                    axis: Axis.horizontal,
+                    orientation: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
                     children: [
                       ...Menu.main.children.skip(_cutoff).map((entry) => MenuBarMenu(entry: entry)),

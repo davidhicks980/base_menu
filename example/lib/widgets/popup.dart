@@ -29,9 +29,11 @@ class Popup extends StatelessWidget {
     final controller = MenuController();
     return BaseMenu(
       orientation: orientation,
-      padding: MenuPanel.defaultPadding,
       menu: panel,
-      alignmentOffset: const Offset(0, 8),
+      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+        alignmentOffset: Offset(0, 8),
+        padding: MenuPanel.defaultPadding,
+      ),
       controller: controller,
       child: Builder(
         builder: (context) {
@@ -44,7 +46,7 @@ class Popup extends StatelessWidget {
                 controller.close();
               } else {
                 if (focusFirstOnOpen) {
-                  Actions.invoke(context, const MenuEnterIntent.focusFirst());
+                  Actions.invoke(context, const BaseMenuEnterIntent.focusFirst());
                 } else {
                   controller.open();
                 }

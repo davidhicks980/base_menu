@@ -26,7 +26,6 @@ class _SegmentedPopupButtonState extends State<SegmentedPopupButton> {
 
   static const pressedColor = Color.from(alpha: 0.098, red: 0, green: 0, blue: 0);
   static const hoveredFocusedColor = Color.from(alpha: 0.059, red: 0, green: 0, blue: 0);
-
   static const WidgetStateProperty<BoxDecoration> _leftDecoration = WidgetStateProperty.fromMap({
     WidgetState.pressed: BoxDecoration(
       color: pressedColor,
@@ -76,6 +75,7 @@ class _SegmentedPopupButtonState extends State<SegmentedPopupButton> {
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
+            onPressed: () {},
             focusNode: leftFocusNode,
             tooltip: widget.entry.child.label,
             decoration: _leftDecoration,

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../app_state_manager.dart';
 import '../../extensions/string.dart';
@@ -13,7 +14,6 @@ import '../menu_item.dart';
 import '../menu_panel.dart';
 import '../select.dart';
 import '../selectable_menu_item.dart';
-import '../submenu.dart';
 import '../web_label.dart';
 
 class FontMenu extends StatefulWidget {
@@ -33,12 +33,14 @@ class _FontMenuState extends State<FontMenu> {
     final selectedFamily = AppStateManager.selectedTextStyleOf(
       context,
     )?.textStyle?.fontFamily?.withSpaceAfterCapitals.split('_').first;
+
     final family = selectedFamily != null
         ? FontFamily.values.firstWhere(
             (f) => f.label == selectedFamily,
             orElse: () => FontFamily.roboto,
           )
         : FontFamily.roboto;
+
     return ConstrainedBox(
       constraints: const .tightFor(width: 97),
       child: _FontSelector(
@@ -161,31 +163,55 @@ class _Option extends StatelessWidget {
   }
 }
 
-class _SubmenuOption extends StatelessWidget {
+class _SubmenuOption extends StatefulWidget {
   const _SubmenuOption({required this.value, required this.autofocusSelected});
 
   final FontFamily value;
   final bool autofocusSelected;
 
   @override
+  State<_SubmenuOption> createState() => _SubmenuOptionState();
+}
+
+class _SubmenuOptionState extends State<_SubmenuOption> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final group = _FontSelector.of(context, value);
+    final group = _FontSelector.of(context, widget.value);
     final checked = group.isFamilySelected;
     return MergeSemantics(
       child: Semantics(
         checked: checked,
-        child: Submenu(
-          autofocus: autofocusSelected && checked,
+        child: BaseSubmenu(
+          focusNode: _focusNode,
+          positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+            padding: EdgeInsets.symmetric(vertical: 6),
+            alignmentOffset: Offset(-12, 0),
+          ),
+          autofocus: widget.autofocusSelected && checked,
           onPressed: () {
-            group.select(value, FontWeight.normal);
+            group.select(widget.value, FontWeight.normal);
+            MenuController.maybeOf(context)?.close();
           },
-          panel: MenuPanel(
+          menu: MenuPanel(
+            onSurfaceEnter: (event) {
+              if (!_focusNode.hasFocus) {
+                _focusNode.requestFocus();
+              }
+            },
             padding: const EdgeInsets.symmetric(vertical: 6),
             children: [
-              for (final variant in value.variants)
+              for (final variant in widget.value.variants)
                 Builder(
                   builder: (context) {
-                    final group = _FontSelector.of(context, value);
+                    final group = _FontSelector.of(context, widget.value);
                     final isWeightSelected =
                         (AppStateManager.selectedTextStyleOf(context)?.textStyle?.fontWeight ??
                             FontWeight.normal) ==
@@ -193,11 +219,11 @@ class _SubmenuOption extends StatelessWidget {
                     return SelectableMenuItem(
                       selected: checked && isWeightSelected,
                       onPressed: () {
-                        group.select(value, variant);
+                        group.select(widget.value, variant);
                       },
                       child: Text(
                         fontWeightToLabelMap[variant]!,
-                        style: TextStyle(fontFamily: value.label, fontWeight: variant),
+                        style: TextStyle(fontFamily: widget.value.label, fontWeight: variant),
                       ),
                     );
                   },
@@ -209,9 +235,9 @@ class _SubmenuOption extends StatelessWidget {
             axis: Axis.vertical,
             leading: checked ? const Icon(Symbols.check, size: 16) : null,
             child: Text(
-              value.label,
+              widget.value.label,
               style: TextStyle(
-                fontFamily: value.label,
+                fontFamily: widget.value.label,
                 fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
               ),
             ),

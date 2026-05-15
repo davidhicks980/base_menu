@@ -387,11 +387,14 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     return Actions(
       actions: actions,
       child: BaseMenu(
-        menuAlignment: Alignment(alignment.x, -1),
-        alignment: Alignment(alignment.x, 1),
         controller: widget.menuController,
-        padding: MenuPanel.defaultPadding,
-        alignmentOffset: const Offset(0, 7),
+        positioningDelegate: DefaultBaseMenuPositioningDelegate(
+          // The vertical padding is to account for the border and padding of the anchor.
+          padding: MenuPanel.defaultPadding,
+          alignmentOffset: const Offset(0, 7),
+          menuAlignment: Alignment(alignment.x, -1),
+          alignment: Alignment(alignment.x, 1),
+        ),
         menu: _ComboBoxHighlight(
           value: widget.selected,
           highlight: _highlightValue,

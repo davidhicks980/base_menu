@@ -43,6 +43,7 @@ class MenuEntryToolbarButton extends StatelessWidget {
         ),
       );
     }
+
     return IconButton(
       tooltip: item.label,
       onPressed: () {

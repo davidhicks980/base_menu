@@ -1,24 +1,21 @@
 import 'package:flutter/widgets.dart';
+import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../menu_action_label.dart';
-import '../submenu.dart';
+import '../menu_panel.dart';
 import 'menu_entry_panel.dart';
 
 class MenuEntrySubmenu extends StatefulWidget {
   const MenuEntrySubmenu({
     super.key,
     required this.entry,
-    this.alignment,
-    this.menuAlignment,
     this.hoverDelay = Duration.zero,
     this.constraints = const BoxConstraints(minWidth: 260),
   });
 
   final SubmenuEntry entry;
-  final AlignmentGeometry? alignment;
-  final AlignmentGeometry? menuAlignment;
   final Duration hoverDelay;
   final BoxConstraints constraints;
 
@@ -28,6 +25,7 @@ class MenuEntrySubmenu extends StatefulWidget {
 
 class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
   final FocusNode _focusNode = FocusNode();
+  final MenuController _menuController = MenuController();
 
   @override
   void dispose() {
@@ -35,13 +33,24 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
     super.dispose();
   }
 
+  void _handlePressed() {
+    if (_menuController.isOpen) {
+      _menuController.close();
+    } else {
+      _menuController.open();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Submenu(
-      alignment: widget.alignment,
-      menuAlignment: widget.menuAlignment,
+    return BaseSubmenu(
+      focusNode: _focusNode,
+      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+        padding: MenuPanel.defaultPadding,
+      ),
       hoverOpenDelay: widget.hoverDelay,
-      panel: MenuEntryPanel(
+      hoverCloseDelay: widget.hoverDelay,
+      menu: MenuEntryPanel(
         menuEntry: widget.entry,
         constraints: widget.entry == Menu.table ? null : widget.constraints,
         onSurfaceEnter: (event) {
@@ -50,6 +59,7 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
           }
         },
       ),
+      onPressed: _handlePressed,
       child: SubmenuActionLabel(
         axis: Axis.vertical,
         leading: widget.entry.child.icon != null ? Icon(widget.entry.child.icon) : null,

@@ -61,8 +61,10 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
     final isRootOpen = MenuController.maybeIsOpenOf(context) ?? false;
     return BaseMenu(
       onFocusChange: _handleFocusChange,
-      overlayWrapper: _buildOverlayWrapper,
-      overlayPadding: const EdgeInsets.only(top: 55, bottom: 8),
+      overlayChildBuilder: _buildOverlayWrapper,
+      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+        overlayPadding: EdgeInsets.only(top: 55, bottom: 8),
+      ),
       orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
       menu:
           widget.panel ??

@@ -37,7 +37,7 @@ class MenuEntryPanel extends StatelessWidget {
       return const ViewModePanel();
     }
     return MenuPanel(
-      axis: axis,
+      orientation: axis,
       constraints: constraints,
       clipBehavior: clipBehavior,
       borderRadius: borderRadius,

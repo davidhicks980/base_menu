@@ -86,7 +86,7 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
             maxHeight: 24,
           ),
           initialOffset: _fontSizes.indexOf(_selectedFontSize) * 30.0,
-          selected: _selectedFontSize.toStringAsFixed(0),
+          value: _selectedFontSize.toStringAsFixed(0),
           children: fontSizeWidgets,
         ),
       ),

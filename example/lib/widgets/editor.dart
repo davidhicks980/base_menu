@@ -174,7 +174,7 @@ class _EditorWidget extends StatelessWidget {
         MenuController.maybeOf(context)?.close();
       },
       focusNode: AppStateManager.editorFocusNodeOf(context),
-      controller: AppStateManager.controllerOf(context),
+      textController: AppStateManager.controllerOf(context),
       textAlign: AppStateManager.selectedTextStyleOf(context)?.textAlign ?? TextAlign.start,
       maxLines: null, // Allows multiline
       expands: true,

@@ -22,7 +22,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
   late List<Widget> zoomWidgets;
   final _focusNode = FocusNode();
 
-  String _selectedValue = '';
+  String _selectedValue = '100%';
   String? _highlightValue;
   int? get highlightIndex => _highlightValue != null ? zoomLevels.indexOf(_highlightValue!) : null;
 
@@ -37,13 +37,13 @@ class _ZoomMenuState extends State<ZoomMenu> {
       return null;
     }
 
-    int levelValue(String level) {
+    int parseLevel(String level) {
       return int.parse(level.substring(0, level.length - 1));
     }
 
-    int closest = levelValue(levels.current);
+    int closest = parseLevel(levels.current);
     while (levels.moveNext()) {
-      final int current = levelValue(levels.current);
+      final int current = parseLevel(levels.current);
       if ((current - zoom).abs() < (closest - zoom).abs()) {
         closest = current;
       } else {
@@ -71,7 +71,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
     final zoom = AppStateManager.documentStateOf(context)[SelectionKey.zoomLevel]! as String;
     if (_selectedValue != zoom) {
       _selectedValue = zoom;
-      _highlightValue = zoom;
+      _highlightValue = _selectedValue;
     }
   }
 
@@ -114,7 +114,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
         onSelect: _handleSelect,
         onSubmit: _handleSubmit,
         menuController: _menuController,
-        selected: _selectedValue,
+        value: _selectedValue,
         trailing: const DropdownArrow(),
         initialOffset: zoomLevels.indexOf(_selectedValue) * 30.0,
         children: zoomWidgets,

@@ -45,7 +45,7 @@ class _EditorSelectionGestureDetectorBuilder extends TextSelectionGestureDetecto
 class Editable extends StatefulWidget {
   const Editable({
     super.key,
-    this.controller,
+    this.textController,
     this.focusNode,
     this.undoController,
     this.style,
@@ -91,9 +91,10 @@ class Editable extends StatefulWidget {
     this.paintCursorAboveText = true,
     this.selectionColor = FloogleColors.editorSelectionColor,
     this.blurredSelectionColor = FloogleColors.editorBlurredSelectionColor,
+    this.selectAllOnFocus = false,
   });
 
-  final TextEditingController? controller;
+  final TextEditingController? textController;
   final FocusNode? focusNode;
   final UndoHistoryController? undoController;
   final TextStyle? style;
@@ -139,6 +140,7 @@ class Editable extends StatefulWidget {
   final bool rendererIgnoresPointer;
   final Color selectionColor;
   final Color blurredSelectionColor;
+  final bool selectAllOnFocus;
 
   bool get selectionEnabled => enableInteractiveSelection ?? true;
 
@@ -157,7 +159,7 @@ class _EditableState extends State<Editable>
 
   RestorableTextEditingController? _internalTextEditingController;
   TextEditingController get _effectiveController =>
-      widget.controller ?? _internalTextEditingController!.value;
+      widget.textController ?? _internalTextEditingController!.value;
 
   FocusNode? _internalFocusNode;
   FocusNode get _effectiveFocusNode => widget.focusNode ?? _internalFocusNode!;
@@ -207,7 +209,7 @@ class _EditableState extends State<Editable>
     super.initState();
     _setupAccessibilityActions();
     _selectionGestureDetectorBuilder = _EditorSelectionGestureDetectorBuilder(state: this);
-    if (widget.controller == null) {
+    if (widget.textController == null) {
       _createLocalTextEditingController();
     }
     if (widget.focusNode == null) {
@@ -218,13 +220,13 @@ class _EditableState extends State<Editable>
   @override
   void didUpdateWidget(covariant Editable oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.controller != oldWidget.controller) {
-      if (oldWidget.controller == null) {
+    if (widget.textController != oldWidget.textController) {
+      if (oldWidget.textController == null) {
         _internalTextEditingController!.dispose();
         _internalTextEditingController = null;
       }
-      if (widget.controller == null) {
-        _createLocalTextEditingController(oldWidget.controller?.value);
+      if (widget.textController == null) {
+        _createLocalTextEditingController(oldWidget.textController?.value);
       }
     }
 
@@ -412,6 +414,7 @@ class _EditableState extends State<Editable>
               cursorWidth: widget.cursorWidth,
               cursorHeight: widget.cursorHeight,
               cursorOffset: widget.cursorOffset,
+              selectAllOnFocus: widget.selectAllOnFocus,
               paintCursorAboveText: widget.paintCursorAboveText,
               selectionColor: _effectiveFocusNode.hasFocus
                   ? widget.selectionColor

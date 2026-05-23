@@ -195,7 +195,7 @@ class ComboBox extends StatefulWidget {
     this.onSubmit,
     this.trailing,
     this.inputConstraints = const BoxConstraints(minHeight: 28, maxHeight: 28),
-    required this.selected,
+    required this.value,
     this.focusNode,
     this.textStyle = const TextStyle(
       fontFamily: 'GoogleSans',
@@ -213,7 +213,7 @@ class ComboBox extends StatefulWidget {
   final List<Widget> children;
   final ValueChanged<String>? onSelect;
   final ValueChanged<String>? onSubmit;
-  final String selected;
+  final String value;
   final Widget? trailing;
   final BoxConstraints inputConstraints;
   final FocusNode? focusNode;
@@ -281,8 +281,8 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.selected);
-    _highlightValue = widget.selected;
+    _textController = TextEditingController(text: widget.value);
+    _highlightValue = widget.value;
     _scrollController = ScrollController(initialScrollOffset: widget.initialOffset);
     if (widget.focusNode == null) {
       _internalFocusNode = FocusNode();
@@ -292,8 +292,8 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   @override
   void didUpdateWidget(ComboBox oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _textController.text = widget.selected;
-    _highlightValue = widget.selected;
+    _textController.text = widget.value;
+    _highlightValue = widget.value;
     if (oldWidget.focusNode != widget.focusNode) {
       if (widget.focusNode == null) {
         _internalFocusNode = FocusNode();
@@ -396,7 +396,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
           alignment: Alignment(alignment.x, 1),
         ),
         menu: _ComboBoxHighlight(
-          value: widget.selected,
+          value: widget.value,
           highlight: _highlightValue,
           alignment: alignment,
           state: this,
@@ -421,7 +421,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
             menuController: controller,
             trailing: widget.trailing,
             onSubmit: widget.onSubmit,
-            selected: widget.selected,
+            selected: widget.value,
             textStyle: widget.textStyle,
             semanticsLabel: widget.semanticsLabel,
           );
@@ -487,9 +487,10 @@ class _Anchor extends StatelessWidget {
     final defaultTextStyle = DefaultTextStyle.of(context).style;
     Widget field = isOpen
         ? Editable(
+            selectAllOnFocus: true,
             autofocus: true,
             focusNode: focusNode,
-            controller: textController,
+            textController: textController,
             textAlign: TextAlign.center,
             textInputAction: TextInputAction.done,
             onSubmitted: onSubmit,
@@ -515,7 +516,10 @@ class _Anchor extends StatelessWidget {
       field = Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [field, trailing!],
+        children: [
+          field,
+          MouseRegion(cursor: SystemMouseCursors.click, child: trailing),
+        ],
       );
     }
 
@@ -552,14 +556,7 @@ class _Anchor extends StatelessWidget {
         },
       );
     } else {
-      listenable = GestureDetector(
-        excludeFromSemantics: true,
-        onTap: () {
-          menuController.close();
-        },
-        behavior: HitTestBehavior.opaque,
-        child: field,
-      );
+      listenable = field;
     }
 
     return ListenableBuilder(
@@ -578,9 +575,6 @@ class _Anchor extends StatelessWidget {
             focusable: true,
             focused: focusNode.hasFocus,
             expanded: isOpen,
-            button: !isOpen,
-            textField: isOpen,
-            readOnly: !isOpen,
             hint: defaultTargetPlatform == TargetPlatform.iOS
                 ? isOpen
                       ? 'Collapse'
@@ -590,6 +584,7 @@ class _Anchor extends StatelessWidget {
             onCollapse: isOpen ? () => menuController.close() : null,
             textDirection: Directionality.of(context),
             label: semanticsLabel,
+            value: selected,
             onTap: () {
               if (isOpen) {
                 menuController.close();

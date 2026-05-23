@@ -110,7 +110,7 @@ class _TitleFieldState extends State<TitleField> {
                       Opacity(
                         opacity: _focusNode.hasFocus ? 1.0 : 0.0,
                         child: Editable(
-                          controller: _textEditingController,
+                          textController: _textEditingController,
                           focusNode: _focusNode,
                           style: _textStyle,
                         ),

@@ -132,14 +132,16 @@ class BaseMenuPanelMouseRegion extends StatelessWidget {
   const BaseMenuPanelMouseRegion({
     super.key,
     required this.child,
+    this.cursor = MouseCursor.defer,
     this.onEnter,
-    this.onSurfaceHover,
+    this.onHover,
     this.onExit,
   });
 
   final Widget child;
+  final MouseCursor cursor;
   final PointerEnterEventListener? onEnter;
-  final PointerHoverEventListener? onSurfaceHover;
+  final PointerHoverEventListener? onHover;
   final PointerExitEventListener? onExit;
 
   @override
@@ -149,9 +151,10 @@ class BaseMenuPanelMouseRegion extends StatelessWidget {
       children: [
         Positioned.fill(
           child: MouseRegion(
+            cursor: cursor,
             hitTestBehavior: HitTestBehavior.translucent,
             onEnter: onEnter,
-            onHover: onSurfaceHover,
+            onHover: onHover,
             onExit: onExit,
           ),
         ),

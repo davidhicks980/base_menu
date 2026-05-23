@@ -441,15 +441,15 @@ abstract class Menu {
   static const share = SubmenuEntry(_SubmenuLabel.share, [Entry.shareWithPeople, Entry.getLink]);
 
   static const main = SubmenuEntry<SubmenuEntry>(_SubmenuLabel.main, <SubmenuEntry>[
-    file,
-    edit,
-    view,
-    insert,
-    format,
-    tools,
-    extensions,
-    help,
-    // testEntriesMenu,
+    // file,
+    // edit,
+    // view,
+    // insert,
+    // format,
+    // tools,
+    // extensions,
+    // help,
+    testEntriesMenu,
   ]);
 
   static const context = SubmenuEntry(_SubmenuLabel.context, [

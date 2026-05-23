@@ -61,7 +61,7 @@ class SearchMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SearchMenuField(
+    return _SearchMenuPopup(
       child: Builder(
         builder: (context) {
           return MediaQuery.widthOf(context) < breakpoint
@@ -70,7 +70,6 @@ class SearchMenu extends StatelessWidget {
                   child: IconButton(
                     onPressed: () {
                       MenuController.maybeOf(context)?.open();
-                      print('Opening search menu');
                     },
                     child: const Icon(Symbols.search, size: 18, color: placeholderColor),
                   ),
@@ -111,15 +110,15 @@ class SearchMenu extends StatelessWidget {
   }
 }
 
-class SearchMenuField extends StatefulWidget {
-  const SearchMenuField({super.key, required this.child});
+class _SearchMenuPopup extends StatefulWidget {
+  const _SearchMenuPopup({required this.child});
   final Widget child;
 
   @override
-  State<SearchMenuField> createState() => _SearchMenuFieldState();
+  State<_SearchMenuPopup> createState() => _SearchMenuPopupState();
 }
 
-class _SearchMenuFieldState extends State<SearchMenuField> {
+class _SearchMenuPopupState extends State<_SearchMenuPopup> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   List<MenuEntryWithIntent> _searchResults = [];
@@ -290,9 +289,6 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
         alignment: .topStart,
         menuAlignment: .topStart,
       ),
-      onOpen: () {
-        print('Search menu opened');
-      },
       onClose: _handleClose,
       onFocusChange: _handleFocusChange,
       menu: BaseMenuPanel(
@@ -334,7 +330,7 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
                             cursorHeight: 14,
                             cursorWidth: 1,
                             forceLine: true,
-                            controller: _textController,
+                            textController: _textController,
                             focusNode: _focusNode,
                             textInputAction: TextInputAction.go,
                             style: defaultStyle.copyWith(color: textColor),

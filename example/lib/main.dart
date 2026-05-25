@@ -16,14 +16,16 @@ import 'widgets/floogle_docs_logo.dart';
 import 'widgets/menus/document_menu_bar.dart';
 import 'widgets/title_field.dart';
 import 'widgets/title_icon.dart';
-import 'widgets/zoomer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    assert(() {
+      SemanticsBinding.instance.ensureSemantics();
+      return true;
+    }());
   }
-  SemanticsBinding.instance.ensureSemantics();
   runApp(const App());
 }
 
@@ -36,27 +38,21 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
-    return Zoomer(
-      constrained: true,
-      minScale: 1,
-      maxScale: 3,
-      child: WidgetsApp(
-        localizationsDelegates: const [
-          DefaultWidgetsLocalizations.delegate,
-          DefaultMaterialLocalizations.delegate,
-        ],
-        textStyle: const TextStyle(
-          fontFamily: 'RobotoFlex',
-          fontFamilyFallback: ['InterVariable'],
-
-          color: FloogleColors.grey,
-          fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
-        ),
-        onGenerateRoute: (settings) {
-          return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
-        },
-        color: FloogleColors.surfaceColor,
+    return WidgetsApp(
+      localizationsDelegates: const [
+        DefaultWidgetsLocalizations.delegate,
+        DefaultMaterialLocalizations.delegate,
+      ],
+      textStyle: const TextStyle(
+        fontFamily: 'RobotoFlex',
+        fontFamilyFallback: ['InterVariable'],
+        color: FloogleColors.grey,
+        fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
       ),
+      onGenerateRoute: (settings) {
+        return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
+      },
+      color: FloogleColors.surfaceColor,
     );
   }
 
@@ -80,14 +76,6 @@ class _MainState extends State<Main> {
   final WidgetOrderTraversalPolicy _headerTraversal = WidgetOrderTraversalPolicy();
   bool _isHeaderExpanded = true;
   bool _isHeaderVisible = true;
-
-  @override
-  void initState() {
-    super.initState();
-    FocusManager.instance.addListener(() {
-      // print('MAIN: ${FocusManager.instance.primaryFocus}');
-    });
-  }
 
   void _handleHeaderAnimationEnd() {
     if (!_isHeaderExpanded) {

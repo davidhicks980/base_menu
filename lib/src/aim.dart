@@ -18,34 +18,39 @@ class MenuAimScope extends InheritedWidget {
 
   final bool enable;
 
+  static bool isEnabledOf(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<MenuAimScope>();
+    return scope?.enable ?? false;
+  }
+
   @override
   bool updateShouldNotify(MenuAimScope oldWidget) => enable != oldWidget.enable;
 }
 
-class MenuAimListener extends StatelessWidget {
-  const MenuAimListener({super.key, required this.geometry});
+class MenuAimInterceptor extends StatelessWidget {
+  const MenuAimInterceptor({super.key, required this.geometry});
   final MenuAimGeometry geometry;
   static bool visualizeAim = false;
 
   @override
   Widget build(BuildContext context) {
-    return _MenuAimListener(delegate: geometry);
+    return _MenuAimListener(geometry: geometry);
   }
 }
 
 /// A widget that uses [_RenderMenuAimListener].
 class _MenuAimListener extends LeafRenderObjectWidget {
-  const _MenuAimListener({required this.delegate});
-  final MenuAimGeometry delegate;
+  const _MenuAimListener({required this.geometry});
+  final MenuAimGeometry geometry;
 
   @override
   _RenderMenuAimListener createRenderObject(BuildContext context) {
-    return _RenderMenuAimListener(delegate);
+    return _RenderMenuAimListener(geometry);
   }
 
   @override
   void updateRenderObject(BuildContext context, _RenderMenuAimListener renderObject) {
-    renderObject.delegate = delegate;
+    renderObject.delegate = geometry;
   }
 }
 
@@ -124,7 +129,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
     }
     points.add(position);
 
-    if (MenuAimListener.visualizeAim) {
+    if (MenuAimInterceptor.visualizeAim) {
       markNeedsPaint();
     }
 
@@ -168,7 +173,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
   @override
   void paint(PaintingContext context, ui.Offset offset) {
     super.paint(context, offset);
-    if (!enabled || !MenuAimListener.visualizeAim) {
+    if (!enabled || !MenuAimInterceptor.visualizeAim) {
       return;
     }
 

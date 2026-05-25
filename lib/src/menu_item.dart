@@ -2,46 +2,86 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import 'control.dart';
+import '../menu_utilities.dart';
+import 'menu_interface.dart';
 
-class BaseMenuItem extends StatefulWidget {
+class BaseMenuItem extends StatefulWidget implements BaseMenuItemInterface {
   const BaseMenuItem({
     super.key,
-    this.onTap,
+    this.onPressed,
     this.onPointerHover,
     this.onPointerEnter,
     this.onPointerLeave,
     this.onFocusChange,
     this.focusNode,
     this.autofocus = false,
-    this.enableHoverTraversal = true,
+    this.requestFocusOnHover = true,
     this.requestCloseOnActivate = true,
-    this.behavior = HitTestBehavior.deferToChild,
+    this.behavior = .deferToChild,
     this.mouseCursor,
-    this.role = SemanticsRole.menuItem,
+    this.role = .menuItem,
+    this.gestureSemanticsEnabled = true,
+    this.gestureSemantics,
     required this.child,
-  });
+  }) : assert(
+         gestureSemanticsEnabled || gestureSemantics == null,
+         'If excludeGestureSemantics is true, semanticsGestureDelegate must not be provided.',
+       );
 
-  final VoidCallback? onTap;
+  @override
+  final VoidCallback? onPressed;
+
+  @override
+  final PointerEnterEventListener? onPointerEnter;
+
+  @override
   final PointerHoverEventListener? onPointerHover;
-  final PointerHoverEventListener? onPointerEnter;
+
+  @override
   final PointerExitEventListener? onPointerLeave;
+
+  @override
   final ValueChanged<bool>? onFocusChange;
+
+  @override
   final FocusNode? focusNode;
+
+  @override
   final bool autofocus;
-  final bool enableHoverTraversal;
+
+  @override
+  final bool requestFocusOnHover;
+
+  @override
   final bool requestCloseOnActivate;
+
+  @override
   final HitTestBehavior behavior;
+
+  @override
   final WidgetStateProperty<MouseCursor>? mouseCursor;
+
+  @override
+  final bool gestureSemanticsEnabled;
+
+  @override
+  final SemanticsGestureDelegate? gestureSemantics;
+
+  @override
   final SemanticsRole? role;
+
+  @override
   final Widget child;
+
+  @override
+  bool get enabled => onPressed != null;
 
   static Set<WidgetState> statesOf(BuildContext context) {
     return BaseControl.statesOf<BaseMenuItem>(context);
   }
 
   static bool isHoveredOf(BuildContext context) {
-    return BaseControl.isHoveredOf<BaseMenuItem>(context);
+    return BaseHoverable.isHoveredOf<BaseMenuItem>(context);
   }
 
   static bool isPressedOf(BuildContext context) {
@@ -98,22 +138,15 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
       }
     }
 
-    widget.onTap?.call();
+    widget.onPressed?.call();
   }
 
-  void _handleHoverEnter(PointerHoverEvent event) {
-    if (widget.enableHoverTraversal) {
+  void _handleHoverEnter(PointerEnterEvent event) {
+    if (widget.requestFocusOnHover) {
       _focusNode.requestFocus();
     }
 
     widget.onPointerEnter?.call(event);
-  }
-
-  void _handleHoverLeave(PointerExitEvent event) {
-    if (widget.enableHoverTraversal) {
-      _focusNode.unfocus();
-    }
-    widget.onPointerLeave?.call(event);
   }
 
   @override
@@ -122,15 +155,21 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
       child: Semantics.fromProperties(
         properties: SemanticsProperties(role: widget.role),
         child: BaseControl<BaseMenuItem>(
-          onTap: _handlePressed,
-          onPointerEnter: _handleHoverEnter,
+          onPressed: widget.requestCloseOnActivate && widget.enabled
+              ? _handlePressed
+              : widget.onPressed,
+          onPointerEnter: widget.requestFocusOnHover && widget.enabled
+              ? _handleHoverEnter
+              : widget.onPointerEnter,
           onPointerHover: widget.onPointerHover,
-          onPointerLeave: _handleHoverLeave,
+          onPointerLeave: widget.onPointerLeave,
           focusNode: _focusNode,
           onFocusChange: widget.onFocusChange,
           autofocus: widget.autofocus,
           mouseCursor: widget.mouseCursor,
           behavior: widget.behavior,
+          gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
+          gestureSemantics: widget.gestureSemantics,
           child: widget.child,
         ),
       ),

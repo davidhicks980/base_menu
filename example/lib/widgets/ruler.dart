@@ -60,6 +60,17 @@ class _HorizontalDocumentRulerState extends State<HorizontalDocumentRuler> {
   double _initialLeftIndent = 0.0;
   double _initialFirstLineIndent = 0.0;
   double _initialRightIndent = 0.0;
+
+  double? _draggingX;
+
+  void _setDraggingX(double? x) {
+    if (_draggingX != x) {
+      setState(() {
+        _draggingX = x;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double totalWidth = MediaQuery.widthOf(context);
@@ -92,173 +103,245 @@ class _HorizontalDocumentRulerState extends State<HorizontalDocumentRuler> {
     final double minimumLeftMargin = math.max(0, maxLeftMargin);
 
     return SizedBox(
-      height: 24,
-      width: double.infinity,
+      height: double.infinity,
       child: Stack(
         children: [
-          Positioned.fill(
-            child: CustomPaint(
-              painter: _RulerPainter(
-                pageWidth: widget.pageWidth,
-                leftMargin: leftMargin,
-                rightMargin: rightMargin,
-              ),
+          SizedBox(
+            height: 24,
+            width: double.infinity,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _RulerPainter(
+                      pageWidth: widget.pageWidth,
+                      leftMargin: leftMargin,
+                      rightMargin: rightMargin,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  left: pageStart,
+                  width: math.max(leftMargin, pixelsPerTick * 2),
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.resizeRight,
+                    child: GestureDetector(
+                      behavior: .opaque,
+                      dragStartBehavior: DragStartBehavior.down,
+                      onHorizontalDragStart: (details) {
+                        totalLDelta = 0.0;
+                        _initialLeftMargin = leftMargin;
+                        _setDraggingX(pageStart + math.max(leftMargin, pixelsPerTick * 2));
+                      },
+                      onHorizontalDragUpdate: (details) {
+                        totalLDelta += details.delta.dx;
+                        final quantized = _quantize(
+                          totalLDelta + _initialLeftMargin,
+                          to: pixelsPerTick,
+                        );
+                        if (quantized != leftMargin) {
+                          final value = ui.clampDouble(quantized, 0.0, minimumLeftMargin);
+                          Actions.maybeInvoke(context, SetDocumentLeftMarginIntent(value));
+                          _setDraggingX(pageStart + value);
+                        }
+                      },
+                      onHorizontalDragEnd: (details) {
+                        _setDraggingX(null);
+                      },
+                      child: const ColoredBox(color: Color(0x00000000)),
+                    ),
+                  ),
+                ),
+
+                // Right Margin Drag Handle
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  left: pageStart + widget.pageWidth - math.max(rightMargin, pixelsPerTick * 2),
+                  width: math.max(rightMargin, pixelsPerTick * 2),
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.resizeLeft,
+                    child: GestureDetector(
+                      dragStartBehavior: DragStartBehavior.down,
+                      behavior: .opaque,
+                      onHorizontalDragStart: (details) {
+                        totalRDelta = 0.0;
+                        _initialRightMargin = rightMargin;
+                        _setDraggingX(
+                          pageStart + widget.pageWidth - math.max(rightMargin, pixelsPerTick * 2),
+                        );
+                      },
+                      onHorizontalDragUpdate: (DragUpdateDetails details) {
+                        totalRDelta -= details.delta.dx;
+                        final quantized = _quantize(
+                          totalRDelta + _initialRightMargin,
+                          to: pixelsPerTick,
+                        );
+                        if (quantized != rightMargin) {
+                          final value = ui.clampDouble(quantized, 0.0, minimumRightMargin);
+                          Actions.maybeInvoke(context, SetDocumentRightMarginIntent(value));
+                          _setDraggingX(pageStart + widget.pageWidth - value);
+                        }
+                      },
+                      onHorizontalDragEnd: (details) {
+                        _setDraggingX(null);
+                      },
+                      child: const ColoredBox(color: Color(0x00000000)),
+                    ),
+                  ),
+                ),
+
+                // Left Indent Drag Handle (triangle)
+                Positioned(
+                  bottom: 0,
+                  left: pageStart + leftMargin + leftIndent - 14,
+                  width: 28,
+                  height: 10.5,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.basic,
+                    child: GestureDetector(
+                      behavior: .opaque,
+                      dragStartBehavior: .down,
+                      onHorizontalDragStart: (DragStartDetails details) {
+                        leftIndentDelta = 0.0;
+                        _initialLeftIndent = leftIndent;
+                        _setDraggingX(pageStart + leftMargin + leftIndent);
+                      },
+                      onHorizontalDragUpdate: (details) {
+                        leftIndentDelta += details.delta.dx;
+                        final quantized = _quantize(
+                          leftIndentDelta + _initialLeftIndent,
+                          to: pixelsPerTick,
+                        );
+
+                        if (quantized != leftIndent) {
+                          final double maxLeftIndent =
+                              widget.pageWidth -
+                              leftMargin -
+                              rightMargin -
+                              rightIndent -
+                              minIndentGap;
+
+                          final value = ui.clampDouble(quantized, 0.0, math.max(0, maxLeftIndent));
+
+                          Actions.maybeInvoke(context, SetParagraphLeftIndentIntent(value));
+                          _setDraggingX(pageStart + leftMargin + value);
+                        }
+                      },
+                      onHorizontalDragEnd: (details) {
+                        _setDraggingX(null);
+                      },
+
+                      child: CustomPaint(painter: _ParagraphIndentHandlePainter()),
+                    ),
+                  ),
+                ),
+
+                // First Line Indent Handle (rectangle)
+                Positioned(
+                  bottom: 10.5,
+                  left: pageStart + leftMargin + firstLineIndent - 14,
+                  width: 28,
+                  height: 16,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.basic,
+                    child: GestureDetector(
+                      behavior: .opaque,
+
+                      dragStartBehavior: DragStartBehavior.down,
+                      onHorizontalDragStart: (DragStartDetails details) {
+                        firstLineIndentDelta = 0.0;
+                        _initialFirstLineIndent = firstLineIndent;
+                        _setDraggingX(pageStart + leftMargin + _initialFirstLineIndent);
+                      },
+                      onHorizontalDragUpdate: (details) {
+                        firstLineIndentDelta += details.delta.dx;
+                        final quantized = _quantize(
+                          firstLineIndentDelta + _initialFirstLineIndent,
+                          to: pixelsPerTick,
+                        );
+                        if (quantized != firstLineIndent) {
+                          final double maxFirstLineIndent =
+                              widget.pageWidth -
+                              leftMargin -
+                              rightMargin -
+                              rightIndent -
+                              minIndentGap;
+
+                          final value = ui.clampDouble(
+                            quantized,
+                            0.0,
+                            math.max(0, maxFirstLineIndent),
+                          );
+
+                          Actions.maybeInvoke(context, SetParagraphFirstLineIndentIntent(value));
+                          _setDraggingX(pageStart + leftMargin + value);
+                        }
+                      },
+                      onHorizontalDragEnd: (details) {
+                        _setDraggingX(null);
+                      },
+                      child: const CustomPaint(painter: _FirstLineIndentHandlePainter()),
+                    ),
+                  ),
+                ),
+
+                // Right Indent Handle (triangle)
+                Positioned(
+                  bottom: 0,
+                  left: pageStart + widget.pageWidth - rightMargin - rightIndent - 14,
+                  width: 28,
+                  height: 10.5,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.basic,
+                    child: GestureDetector(
+                      behavior: .opaque,
+
+                      dragStartBehavior: DragStartBehavior.down,
+                      onHorizontalDragStart: (DragStartDetails details) {
+                        rightIndentDelta = 0.0;
+                        _initialRightIndent = rightIndent;
+                        _setDraggingX(pageStart + widget.pageWidth - rightMargin - rightIndent);
+                      },
+                      onHorizontalDragUpdate: (details) {
+                        rightIndentDelta -= details.delta.dx;
+                        final quantized = _quantize(
+                          rightIndentDelta + _initialRightIndent,
+                          to: pixelsPerTick,
+                        );
+                        if (quantized != rightIndent) {
+                          final double maxRightIndent =
+                              widget.pageWidth -
+                              leftMargin -
+                              rightMargin -
+                              leftIndent -
+                              minIndentGap;
+
+                          final value = ui.clampDouble(quantized, 0.0, math.max(0, maxRightIndent));
+                          Actions.maybeInvoke(context, SetParagraphRightIndentIntent(value));
+                          _setDraggingX(pageStart + widget.pageWidth - rightMargin - value);
+                        }
+                      },
+                      onHorizontalDragEnd: (details) {
+                        _setDraggingX(null);
+                      },
+                      child: CustomPaint(painter: _ParagraphIndentHandlePainter()),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          Positioned(
-            top: 0,
-            bottom: 0,
-            left: pageStart,
-            width: math.max(leftMargin, pixelsPerTick * 2),
-            child: MouseRegion(
-              cursor: SystemMouseCursors.resizeRight,
-              child: GestureDetector(
-                dragStartBehavior: DragStartBehavior.down,
-                onHorizontalDragStart: (details) {
-                  totalLDelta = 0.0;
-                  _initialLeftMargin = leftMargin;
-                },
-                onHorizontalDragUpdate: (details) {
-                  totalLDelta += details.delta.dx;
-                  final quantized = _quantize(totalLDelta + _initialLeftMargin, to: pixelsPerTick);
-                  if (quantized != leftMargin) {
-                    final value = ui.clampDouble(quantized, 0.0, minimumLeftMargin);
-                    Actions.maybeInvoke(context, SetDocumentLeftMarginIntent(value));
-                  }
-                },
-                child: const ColoredBox(color: Color(0x00000000)),
-              ),
+          if (_draggingX != null)
+            Positioned(
+              top: 24,
+              left: _draggingX! - 0.5,
+              width: 1,
+              height: MediaQuery.heightOf(context),
+              child: const ColoredBox(color: Color(0xFF4285f4), isAntiAlias: false),
             ),
-          ),
-
-          // Right Margin Drag Handle
-          Positioned(
-            top: 0,
-            bottom: 0,
-            left: pageStart + widget.pageWidth - math.max(rightMargin, pixelsPerTick * 2),
-            width: math.max(rightMargin, pixelsPerTick * 2),
-            child: MouseRegion(
-              cursor: SystemMouseCursors.resizeLeft,
-              child: GestureDetector(
-                dragStartBehavior: DragStartBehavior.down,
-                onHorizontalDragStart: (details) {
-                  totalRDelta = 0.0;
-                  _initialRightMargin = rightMargin;
-                },
-                onHorizontalDragUpdate: (DragUpdateDetails details) {
-                  totalRDelta -= details.delta.dx;
-                  final quantized = _quantize(totalRDelta + _initialRightMargin, to: pixelsPerTick);
-                  if (quantized != rightMargin) {
-                    final value = ui.clampDouble(quantized, 0.0, minimumRightMargin);
-                    Actions.maybeInvoke(context, SetDocumentRightMarginIntent(value));
-                  }
-                },
-                child: const ColoredBox(color: Color(0x00000000)),
-              ),
-            ),
-          ),
-
-          // Left Indent Drag Handle (triangle)
-          Positioned(
-            bottom: 0,
-            left: pageStart + leftMargin + leftIndent - 14,
-            width: 28,
-            height: 10.5,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.basic,
-              child: GestureDetector(
-                dragStartBehavior: .down,
-                onHorizontalDragStart: (DragStartDetails details) {
-                  leftIndentDelta = 0.0;
-                  _initialLeftIndent = leftIndent;
-                },
-                onHorizontalDragUpdate: (details) {
-                  leftIndentDelta += details.delta.dx;
-                  final quantized = _quantize(
-                    leftIndentDelta + _initialLeftIndent,
-                    to: pixelsPerTick,
-                  );
-
-                  if (quantized != leftIndent) {
-                    final double maxLeftIndent =
-                        widget.pageWidth - leftMargin - rightMargin - rightIndent - minIndentGap;
-
-                    final value = ui.clampDouble(quantized, 0.0, math.max(0, maxLeftIndent));
-
-                    Actions.maybeInvoke(context, SetParagraphLeftIndentIntent(value));
-                  }
-                },
-
-                child: CustomPaint(painter: _ParagraphIndentHandlePainter()),
-              ),
-            ),
-          ),
-
-          // First Line Indent Handle (rectangle)
-          Positioned(
-            bottom: 10.5,
-            left: pageStart + leftMargin + firstLineIndent - 14,
-            width: 28,
-            height: 16,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.basic,
-              child: GestureDetector(
-                dragStartBehavior: DragStartBehavior.down,
-                onHorizontalDragStart: (DragStartDetails details) {
-                  firstLineIndentDelta = 0.0;
-                  _initialFirstLineIndent = firstLineIndent;
-                },
-                onHorizontalDragUpdate: (details) {
-                  firstLineIndentDelta += details.delta.dx;
-                  final quantized = _quantize(
-                    firstLineIndentDelta + _initialFirstLineIndent,
-                    to: pixelsPerTick,
-                  );
-                  if (quantized != firstLineIndent) {
-                    final double maxFirstLineIndent =
-                        widget.pageWidth - leftMargin - rightMargin - rightIndent - minIndentGap;
-
-                    final value = ui.clampDouble(quantized, 0.0, math.max(0, maxFirstLineIndent));
-                    Actions.maybeInvoke(context, SetParagraphFirstLineIndentIntent(value));
-                  }
-                },
-                child: const CustomPaint(painter: _FirstLineIndentHandlePainter()),
-              ),
-            ),
-          ),
-
-          // Right Indent Handle (triangle)
-          Positioned(
-            bottom: 0,
-            left: pageStart + widget.pageWidth - rightMargin - rightIndent - 14,
-            width: 28,
-            height: 10.5,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.basic,
-              child: GestureDetector(
-                dragStartBehavior: DragStartBehavior.down,
-                onHorizontalDragStart: (DragStartDetails details) {
-                  rightIndentDelta = 0.0;
-                  _initialRightIndent = rightIndent;
-                },
-                onHorizontalDragUpdate: (details) {
-                  rightIndentDelta -= details.delta.dx;
-                  final quantized = _quantize(
-                    rightIndentDelta + _initialRightIndent,
-                    to: pixelsPerTick,
-                  );
-                  if (quantized != rightIndent) {
-                    final double maxRightIndent =
-                        widget.pageWidth - leftMargin - rightMargin - leftIndent - minIndentGap;
-
-                    final value = ui.clampDouble(quantized, 0.0, math.max(0, maxRightIndent));
-                    Actions.maybeInvoke(context, SetParagraphRightIndentIntent(value));
-                  }
-                },
-                child: CustomPaint(painter: _ParagraphIndentHandlePainter()),
-              ),
-            ),
-          ),
         ],
       ),
     );

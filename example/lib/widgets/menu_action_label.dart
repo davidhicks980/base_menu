@@ -18,6 +18,7 @@ class SubmenuActionLabel extends StatelessWidget {
     this.leading,
     this.trailing,
     this.shortcut,
+    this.decoration,
   });
 
   final Axis axis;
@@ -26,7 +27,7 @@ class SubmenuActionLabel extends StatelessWidget {
   final AlignmentGeometry leadingMidpointAlignment;
   final Widget? trailing;
   final MenuSerializableShortcut? shortcut;
-
+  final Decoration? decoration;
   final Widget child;
 
   @override
@@ -37,6 +38,7 @@ class SubmenuActionLabel extends StatelessWidget {
       leadingMidpointAlignment: leadingMidpointAlignment,
       trailing: const _Arrow(),
       shortcut: shortcut,
+      decoration: decoration != null ? WidgetStateProperty.all(decoration!) : null,
       child: child,
     );
   }
@@ -76,6 +78,7 @@ class MenuActionLabel extends StatelessWidget {
 
   static const _acceleratorTextStyle = TextStyle(
     fontFamily: 'RobotoFlex',
+    fontFamilyFallback: ['InterVariable'],
     fontSize: 14,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.2,
@@ -84,7 +87,7 @@ class MenuActionLabel extends StatelessWidget {
     decoration: TextDecoration.none,
   );
 
-  static const WidgetStateProperty<BoxDecoration> _decoration = WidgetStateProperty.fromMap({
+  static const WidgetStateProperty<BoxDecoration> defaultDecoration = WidgetStateProperty.fromMap({
     WidgetState.pressed: BoxDecoration(color: FloogleColors.menuItemPressedColor),
     WidgetState.focused: BoxDecoration(color: FloogleColors.menuItemFocusColor),
     WidgetState.any: BoxDecoration(),
@@ -121,7 +124,7 @@ class MenuActionLabel extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           if (shortcut != null)
-            _ShortcutLabel(accelTextStyle: _acceleratorTextStyle, shortcut: shortcut),
+            _ShortcutLabel(acceleratorTextStyle: _acceleratorTextStyle, shortcut: shortcut),
           if (trailing != null) trailing!,
           const SizedBox(width: 15),
         ],
@@ -130,7 +133,7 @@ class MenuActionLabel extends StatelessWidget {
     return Builder(
       builder: (BuildContext context) {
         return DecoratedBox(
-          decoration: (decoration ?? _decoration).resolve(BaseMenuItem.statesOf(context)),
+          decoration: (decoration ?? defaultDecoration).resolve(BaseMenuItem.statesOf(context)),
           child: label,
         );
       },
@@ -139,9 +142,9 @@ class MenuActionLabel extends StatelessWidget {
 }
 
 class _ShortcutLabel extends StatelessWidget {
-  const _ShortcutLabel({required this.accelTextStyle, required this.shortcut});
+  const _ShortcutLabel({required this.acceleratorTextStyle, required this.shortcut});
 
-  final TextStyle accelTextStyle;
+  final TextStyle acceleratorTextStyle;
   final MenuSerializableShortcut? shortcut;
 
   @override
@@ -155,7 +158,7 @@ class _ShortcutLabel extends StatelessWidget {
     } else {
       label = label.replaceAll(RegExp(r'\s'), '+');
     }
-    return DefaultTextStyle(style: accelTextStyle, child: Text(label));
+    return Text(label, style: acceleratorTextStyle);
   }
 }
 
@@ -200,18 +203,20 @@ class _RenderAlignMidpoint extends RenderPositionedBox {
 class _Arrow extends StatelessWidget {
   const _Arrow();
 
+  static const _halfOpacityArrow = CustomPaint(
+    size: Size(8, 8),
+    painter: _ArrowPainter(color: FloogleColors.darkGray, opacity: 0.5),
+  );
+
+  static const _fullOpacityArrow = CustomPaint(
+    size: Size(8, 8),
+    painter: _ArrowPainter(color: FloogleColors.darkGray),
+  );
+
   @override
   Widget build(BuildContext context) {
     final highlightArrow = BaseMenuItem.isHoveredOf(context) || BaseMenuItem.isFocusedOf(context);
-    return highlightArrow
-        ? const CustomPaint(
-            size: Size(8, 8),
-            painter: _ArrowPainter(color: FloogleColors.darkGray),
-          )
-        : const CustomPaint(
-            size: Size(8, 8),
-            painter: _ArrowPainter(color: FloogleColors.darkGray, opacity: 0.5),
-          );
+    return highlightArrow ? _fullOpacityArrow : _halfOpacityArrow;
   }
 }
 
@@ -236,5 +241,6 @@ class _ArrowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ArrowPainter oldDelegate) => color != oldDelegate.color;
+  bool shouldRepaint(_ArrowPainter oldDelegate) =>
+      color != oldDelegate.color || opacity != oldDelegate.opacity;
 }

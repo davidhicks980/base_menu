@@ -5,41 +5,6 @@ import 'package:flutter/widgets.dart';
 import '../utilities/colors.dart';
 import 'editable.dart';
 
-const _textStyle = kIsWeb
-    ? TextStyle(
-        fontSize: 18.5,
-        fontFamily: 'GoogleSansFlex',
-        fontFamilyFallback: ['GoogleSans'],
-        height: 1.2,
-        letterSpacing: -0.4,
-        overflow: TextOverflow.ellipsis,
-        fontVariations: [
-          FontVariation.weight(470),
-          FontVariation.opticalSize(17),
-          FontVariation.width(95),
-        ],
-        color: FloogleColors.darkGray,
-      )
-    : TextStyle(
-        fontSize: 18,
-        fontFamily: 'GoogleSans',
-        height: 1.2,
-        overflow: TextOverflow.ellipsis,
-        color: FloogleColors.darkGray,
-      );
-
-const _inputDecoration = WidgetStateProperty<BoxDecoration>.fromMap({
-  WidgetState.focused: BoxDecoration(
-    borderRadius: BorderRadius.all(Radius.circular(4.0)),
-    border: Border.fromBorderSide(BorderSide(color: FloogleColors.titleInputFocusBorder, width: 2)),
-  ),
-  WidgetState.hovered: BoxDecoration(
-    borderRadius: BorderRadius.all(Radius.circular(4.0)),
-    border: Border.fromBorderSide(BorderSide(color: FloogleColors.greyOutline)),
-  ),
-  WidgetState.any: BoxDecoration(),
-});
-
 class TitleField extends StatefulWidget {
   const TitleField({super.key});
 
@@ -50,7 +15,7 @@ class TitleField extends StatefulWidget {
 class _TitleFieldState extends State<TitleField> {
   final FocusNode _focusNode = FocusNode();
   final TextEditingController _textEditingController = TextEditingController(
-    text: 'Untitled Document',
+    text: 'Untitled document',
   );
   final WidgetStatesController _widgetStatesController = WidgetStatesController();
 
@@ -75,6 +40,43 @@ class _TitleFieldState extends State<TitleField> {
   void _handleHover(PointerEvent event) {
     _widgetStatesController.update(WidgetState.hovered, event is PointerEnterEvent);
   }
+
+  static const _inputDecoration = WidgetStateProperty<BoxDecoration>.fromMap({
+    WidgetState.focused: BoxDecoration(
+      borderRadius: BorderRadius.all(Radius.circular(4.0)),
+      border: Border.fromBorderSide(
+        BorderSide(color: FloogleColors.titleInputFocusBorder, width: 2),
+      ),
+    ),
+    WidgetState.hovered: BoxDecoration(
+      borderRadius: BorderRadius.all(Radius.circular(4.0)),
+      border: Border.fromBorderSide(BorderSide(color: FloogleColors.greyOutline)),
+    ),
+    WidgetState.any: BoxDecoration(),
+  });
+
+  static const _textStyle = kIsWeb
+      ? TextStyle(
+          fontSize: 18.5,
+          fontFamily: 'GoogleSansFlex',
+          fontFamilyFallback: ['GoogleSans'],
+          height: 1.2,
+          letterSpacing: -0.4,
+          overflow: TextOverflow.ellipsis,
+          fontVariations: [
+            FontVariation.weight(470),
+            FontVariation.opticalSize(17),
+            FontVariation.width(95),
+          ],
+          color: FloogleColors.darkGray,
+        )
+      : TextStyle(
+          fontSize: 18,
+          fontFamily: 'GoogleSans',
+          height: 1.2,
+          overflow: TextOverflow.ellipsis,
+          color: FloogleColors.darkGray,
+        );
 
   @override
   Widget build(BuildContext context) {
@@ -105,12 +107,12 @@ class _TitleFieldState extends State<TitleField> {
                           _textEditingController.text,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: _textStyle,
+                          style: _textStyle.copyWith(color: FloogleColors.grey),
                         ),
                       Opacity(
                         opacity: _focusNode.hasFocus ? 1.0 : 0.0,
                         child: Editable(
-                          controller: _textEditingController,
+                          textController: _textEditingController,
                           focusNode: _focusNode,
                           style: _textStyle,
                         ),

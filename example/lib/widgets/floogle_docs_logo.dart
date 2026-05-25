@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import '../tooltip.dart';
 import '../utilities/colors.dart';
 
 class FloogleDocsLogoButton extends StatelessWidget {
@@ -8,23 +9,28 @@ class FloogleDocsLogoButton extends StatelessWidget {
 
   static const WidgetStateColor color = WidgetStateColor.fromMap({
     WidgetState.pressed: FloogleColors.logoPressedColor,
-    WidgetState.focused: FloogleColors.logoFocusHoverColor,
-    WidgetState.hovered: FloogleColors.logoFocusHoverColor,
+    WidgetState.focused: FloogleColors.onDarkGray,
+    WidgetState.hovered: FloogleColors.onDarkGray,
     WidgetState.any: FloogleColors.transparent,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BaseControl(
-      mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
-      onTap: () {},
-      child: Builder(
-        builder: (context) {
-          return CustomPaint(
-            painter: _CircleBackgroundPainter(color: color.resolve(BaseControl.statesOf(context))),
-            child: const _FloogleDocsLogo(),
-          );
-        },
+    return MenuTooltip(
+      message: const TextSpan(text: 'Docs home'),
+      child: BaseControl(
+        mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
+        onPressed: () {},
+        child: Builder(
+          builder: (context) {
+            return CustomPaint(
+              painter: _CircleBackgroundPainter(
+                color: color.resolve(BaseControl.statesOf(context)),
+              ),
+              child: const _FloogleDocsLogo(),
+            );
+          },
+        ),
       ),
     );
   }

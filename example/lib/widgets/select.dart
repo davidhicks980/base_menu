@@ -1,6 +1,8 @@
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import '../app_state_manager.dart';
 import '../utilities/colors.dart';
 import 'dropdown_arrow.dart';
 import 'menu_panel.dart';
@@ -10,14 +12,16 @@ class Select extends StatefulWidget {
     super.key,
     required this.child,
     required this.panel,
-    this.buttonPadding = const EdgeInsets.symmetric(horizontal: 11, vertical: 2),
-    this.buttonRadius = const BorderRadiusGeometry.all(Radius.circular(4)),
-    this.menuController,
+    required this.focusNode,
+    this.buttonPadding = const EdgeInsets.only(left: 11, right: 6, top: 2, bottom: 2),
+    this.buttonRadius = const BorderRadius.all(Radius.circular(4)),
+    required this.menuController,
   });
 
   final Widget child;
   final Widget panel;
-  final MenuController? menuController;
+  final FocusNode focusNode;
+  final MenuController menuController;
   final EdgeInsetsGeometry buttonPadding;
   final BorderRadiusGeometry buttonRadius;
 
@@ -26,44 +30,72 @@ class Select extends StatefulWidget {
 }
 
 class _SelectState extends State<Select> {
-  final FocusNode focusNode = FocusNode(debugLabel: 'Select');
+  bool _scopeHasFocus = false;
+  bool _buttonHasFocus = false;
+  bool _isFrameScheduled = false;
 
-  @override
-  void dispose() {
-    focusNode.dispose();
-    super.dispose();
+  void _resolveFocus() {
+    if (_isFrameScheduled) {
+      return;
+    }
+    _isFrameScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!_scopeHasFocus && !_buttonHasFocus && mounted) {
+        widget.menuController.close();
+      }
+      _isFrameScheduled = false;
+    });
+  }
+
+  void _handleAnchorFocusChange(bool value) {
+    _buttonHasFocus = value;
+    if (!value) {
+      _resolveFocus();
+    }
+  }
+
+  void _handleScopeFocusChange(bool value) {
+    _scopeHasFocus = value;
+    if (!value) {
+      _resolveFocus();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final controller = widget.menuController ?? MenuController();
     return BaseMenu(
-      controller: controller,
-      onFocusChange: (bool value) {
-        if (!value) {
-          controller.close();
-        }
-      },
-      overlayPadding: const EdgeInsets.only(top: 98, bottom: 8),
-      padding: MenuPanel.defaultPadding,
+      controller: widget.menuController,
+      onFocusChange: _handleScopeFocusChange,
+      onOpen: RawTooltip.dismissAllToolTips,
+      positioningDelegate: AppStateManager.isHeaderShownOf(context)
+          ? const DefaultBaseMenuPositioningDelegate(
+              overlayPadding: EdgeInsets.only(top: 98, bottom: 8),
+              padding: MenuPanel.defaultPadding,
+            )
+          : const DefaultBaseMenuPositioningDelegate(
+              overlayPadding: EdgeInsets.only(top: 37, bottom: 8),
+              padding: MenuPanel.defaultPadding,
+            ),
       menu: widget.panel,
       child: _SelectTextButton(
-        focusNode: focusNode,
+        onFocusChange: _handleAnchorFocusChange,
+        focusNode: widget.focusNode,
         padding: widget.buttonPadding,
         radius: widget.buttonRadius,
-        controller: controller,
+        controller: widget.menuController,
         child: widget.child,
       ),
     );
   }
 }
 
-class _SelectTextButton extends StatefulWidget {
+class _SelectTextButton extends StatelessWidget {
   const _SelectTextButton({
     required this.controller,
     required this.padding,
     required this.radius,
     required this.focusNode,
+    required this.onFocusChange,
     required this.child,
   });
   final EdgeInsetsGeometry padding;
@@ -71,24 +103,20 @@ class _SelectTextButton extends StatefulWidget {
   final FocusNode focusNode;
   final BorderRadiusGeometry radius;
   final Widget child;
+  final ValueChanged<bool> onFocusChange;
 
-  @override
-  State<_SelectTextButton> createState() => _SelectTextButtonState();
-}
-
-class _SelectTextButtonState extends State<_SelectTextButton> {
   void _handlePressed() {
-    if (widget.controller.isOpen) {
-      widget.controller.close();
+    if (controller.isOpen) {
+      controller.close();
     } else {
-      Actions.invoke(context, const MenuEnterIntent.focusFirst());
+      controller.open();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final label = Padding(
-      padding: widget.padding,
+      padding: padding,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -104,7 +132,7 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
               decoration: TextDecoration.none,
             ),
             overflow: TextOverflow.ellipsis,
-            child: Flexible(child: widget.child),
+            child: Flexible(child: child),
           ),
           const DropdownArrow(),
         ],
@@ -123,23 +151,24 @@ class _SelectTextButtonState extends State<_SelectTextButton> {
                 expanded: isOpen,
                 child: BaseMenuItem(
                   role: null,
-                  focusNode: widget.focusNode,
+                  focusNode: focusNode,
                   mouseCursor: WidgetStateMouseCursor.clickable,
                   requestCloseOnActivate: false,
-                  enableHoverTraversal: false,
-                  onTap: _handlePressed,
+                  requestFocusOnHover: false,
+                  onPressed: _handlePressed,
+                  onFocusChange: onFocusChange,
                   child: Builder(
                     builder: (context) {
                       return DecoratedBox(
                         decoration: isOpen
                             ? BoxDecoration(
                                 color: FloogleColors.toolbarItemPressed,
-                                borderRadius: widget.radius,
+                                borderRadius: radius,
                               )
                             : BaseMenuItem.isFocusedOf(context) || BaseMenuItem.isHoveredOf(context)
                             ? BoxDecoration(
                                 color: FloogleColors.toolbarItemHoverFocus,
-                                borderRadius: widget.radius,
+                                borderRadius: radius,
                               )
                             : const BoxDecoration(),
                         child: label,

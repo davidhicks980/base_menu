@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app_state_manager.dart';
+import '../model/enum.dart';
 import '../utilities/colors.dart';
 import 'editable.dart';
-import 'menus/editor_context_menu.dart';
+import 'menus/context_menu.dart';
 import 'ruler.dart';
 
 class EditorView extends StatefulWidget {
@@ -45,9 +46,12 @@ class _EditorViewState extends State<EditorView> {
     return EditorContextMenuWrapper(
       menuController: contextMenuController,
       child: SingleChildScrollView(
+        hitTestBehavior: HitTestBehavior.translucent,
         physics: const BouncingScrollPhysics(),
         scrollDirection: Axis.horizontal,
+        clipBehavior: .none,
         child: Stack(
+          clipBehavior: .none,
           children: [
             const Positioned(
               top: 24,
@@ -58,48 +62,61 @@ class _EditorViewState extends State<EditorView> {
             ),
             SizedBox(
               width: math.max(MediaQuery.sizeOf(context).width, 96 * 8.5 + 128),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              child: Stack(
+                clipBehavior: .none,
                 children: [
-                  const HorizontalDocumentRuler(),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 1),
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 16, bottom: 64),
-                          child: Row(
-                            children: [
-                              const VerticalDocumentRuler(),
-                              Expanded(
-                                child: Align(
-                                  alignment: Alignment.topCenter,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(left: 64),
-                                    child: Align(
-                                      child: UnconstrainedBox(
-                                        clipBehavior: Clip.hardEdge,
-                                        constrainedAxis: Axis.vertical,
-                                        alignment: Alignment.topLeft,
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(right: 64),
-                                          child: SizedBox(
-                                            width: 96 * 8.5,
-                                            height: 96 * 11,
-                                            child: DecoratedBox(
-                                              decoration: const BoxDecoration(
-                                                border: Border.fromBorderSide(
-                                                  BorderSide(color: FloogleColors.separatorColor),
-                                                ),
-                                                color: FloogleColors.white,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 25),
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      hitTestBehavior: HitTestBehavior.translucent,
+                      clipBehavior: .none,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 16, bottom: 64),
+                        child: Row(
+                          children: [
+                            const VerticalDocumentRuler(),
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.topCenter,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 64),
+                                  child: Align(
+                                    child: UnconstrainedBox(
+                                      clipBehavior: Clip.hardEdge,
+                                      constrainedAxis: Axis.vertical,
+                                      alignment: Alignment.topLeft,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(right: 64),
+                                        child: SizedBox(
+                                          width: 96 * 8.5,
+                                          height: 96 * 11,
+                                          child: DecoratedBox(
+                                            decoration: const BoxDecoration(
+                                              border: Border.fromBorderSide(
+                                                BorderSide(color: FloogleColors.separatorColor),
                                               ),
-                                              // This is where the margins of
-                                              // the text editor can be edited.
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(96),
-                                                child: child,
-                                              ),
+                                              color: FloogleColors.white,
+                                            ),
+                                            // This is where the margins of
+                                            // the text editor can be edited.
+                                            child: Builder(
+                                              builder: (context) {
+                                                final editorState = AppStateManager.documentStateOf(
+                                                  context,
+                                                );
+                                                return Padding(
+                                                  padding: EdgeInsets.fromLTRB(
+                                                    editorState[SelectionKey.leftMargin]! as double,
+                                                    editorState[SelectionKey.topMargin]! as double,
+                                                    editorState[SelectionKey.rightMargin]!
+                                                        as double,
+                                                    editorState[SelectionKey.bottomMargin]!
+                                                        as double,
+                                                  ),
+                                                  child: child,
+                                                );
+                                              },
                                             ),
                                           ),
                                         ),
@@ -108,12 +125,13 @@ class _EditorViewState extends State<EditorView> {
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
+                  const HorizontalDocumentRuler(),
                 ],
               ),
             ),
@@ -139,12 +157,6 @@ class _EditorWidget extends StatelessWidget {
       onTapOutside: (event) {
         MenuController.maybeOf(context)?.close();
       },
-      onSecondaryTapDown: (details) {
-        if (kIsWeb && BrowserContextMenu.enabled) {
-          return;
-        }
-        MenuController.maybeOf(context)?.open(position: details.globalPosition);
-      },
       onSingleLongTapStart: (details) {
         if (kIsWeb && BrowserContextMenu.enabled) {
           return;
@@ -155,7 +167,7 @@ class _EditorWidget extends StatelessWidget {
         MenuController.maybeOf(context)?.close();
       },
       focusNode: AppStateManager.editorFocusNodeOf(context),
-      controller: AppStateManager.controllerOf(context),
+      textController: AppStateManager.controllerOf(context),
       textAlign: AppStateManager.selectedTextStyleOf(context)?.textAlign ?? TextAlign.start,
       maxLines: null, // Allows multiline
       expands: true,

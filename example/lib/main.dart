@@ -16,6 +16,7 @@ import 'widgets/floogle_docs_logo.dart';
 import 'widgets/menus/document_menu_bar.dart';
 import 'widgets/title_field.dart';
 import 'widgets/title_icon.dart';
+import 'widgets/zoomer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,20 +36,27 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
-    return WidgetsApp(
-      localizationsDelegates: const [
-        DefaultWidgetsLocalizations.delegate,
-        DefaultMaterialLocalizations.delegate,
-      ],
-      textStyle: const TextStyle(
-        fontFamily: 'RobotoFlex',
-        color: FloogleColors.grey,
-        fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+    return Zoomer(
+      constrained: true,
+      minScale: 1,
+      maxScale: 3,
+      child: WidgetsApp(
+        localizationsDelegates: const [
+          DefaultWidgetsLocalizations.delegate,
+          DefaultMaterialLocalizations.delegate,
+        ],
+        textStyle: const TextStyle(
+          fontFamily: 'RobotoFlex',
+          fontFamilyFallback: ['InterVariable'],
+
+          color: FloogleColors.grey,
+          fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+        ),
+        onGenerateRoute: (settings) {
+          return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
+        },
+        color: FloogleColors.surfaceColor,
       ),
-      onGenerateRoute: (settings) {
-        return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
-      },
-      color: FloogleColors.surfaceColor,
     );
   }
 
@@ -73,6 +81,14 @@ class _MainState extends State<Main> {
   bool _isHeaderExpanded = true;
   bool _isHeaderVisible = true;
 
+  @override
+  void initState() {
+    super.initState();
+    FocusManager.instance.addListener(() {
+      // print('MAIN: ${FocusManager.instance.primaryFocus}');
+    });
+  }
+
   void _handleHeaderAnimationEnd() {
     if (!_isHeaderExpanded) {
       setState(() {
@@ -94,71 +110,73 @@ class _MainState extends State<Main> {
         // Fonts look slightly anemic on web, so compensate with a heavier weight.
         weight: kIsWeb ? 550 : 400,
       ),
-      child: ColoredBox(
-        color: FloogleColors.surfaceColor,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            FocusTraversalGroup(
-              policy: _headerTraversal,
-              child: AnimatedOpacity(
-                opacity: _isHeaderExpanded ? 1 : 0,
-                duration: const Duration(milliseconds: 100),
-                onEnd: _handleHeaderAnimationEnd,
-                child: Visibility(
-                  visible: _isHeaderVisible,
-                  maintainState: true,
-                  child: SizedBox(
-                    height: 62,
-                    child: Stack(
-                      children: [
-                        AnimatedPositioned(
-                          top: _isHeaderExpanded ? 16 : 16 - 40,
-                          left: 17,
-                          duration: const Duration(milliseconds: 100),
-                          child: const FloogleDocsLogoButton(),
-                        ),
-                        AnimatedPositioned(
-                          top: _isHeaderExpanded ? 7 : 7 - 40,
-                          left: 55,
-                          duration: const Duration(milliseconds: 100),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            spacing: 3,
-                            children: [
-                              Flexible(child: TitleField()),
-                              TitleIconButton(
-                                tooltip: TextSpan(text: 'Star'),
-                                child: Icon(Symbols.star_border, weight: kIsWeb ? 500 : 350),
-                              ),
-                              TitleIconButton(
-                                tooltip: TextSpan(text: 'Add shortcut to drive'),
-                                child: Icon(Symbols.add_to_drive),
-                              ),
-                              TitleIconButton(
-                                tooltip: TextSpan(text: 'See document status'),
-                                child: _CloudIcon(),
-                              ),
-                            ],
+      child: TapRegionSurface(
+        child: ColoredBox(
+          color: FloogleColors.surfaceColor,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              FocusTraversalGroup(
+                policy: _headerTraversal,
+                child: AnimatedOpacity(
+                  opacity: _isHeaderExpanded ? 1 : 0,
+                  duration: const Duration(milliseconds: 100),
+                  onEnd: _handleHeaderAnimationEnd,
+                  child: Visibility(
+                    visible: _isHeaderVisible,
+                    maintainState: true,
+                    child: SizedBox(
+                      height: 62,
+                      child: Stack(
+                        children: [
+                          AnimatedPositioned(
+                            top: _isHeaderExpanded ? 16 : 16 - 40,
+                            left: 17,
+                            duration: const Duration(milliseconds: 100),
+                            child: const FloogleDocsLogoButton(),
                           ),
-                        ),
+                          AnimatedPositioned(
+                            top: _isHeaderExpanded ? 7 : 7 - 40,
+                            left: 55,
+                            duration: const Duration(milliseconds: 100),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              spacing: 3,
+                              children: [
+                                Flexible(child: TitleField()),
+                                TitleIconButton(
+                                  tooltip: TextSpan(text: 'Star'),
+                                  child: Icon(Symbols.star_border, weight: kIsWeb ? 500 : 350),
+                                ),
+                                TitleIconButton(
+                                  tooltip: TextSpan(text: 'Add shortcut to drive'),
+                                  child: Icon(Symbols.add_to_drive),
+                                ),
+                                TitleIconButton(
+                                  tooltip: TextSpan(text: 'Document status: Saved to Drive'),
+                                  child: _CloudIcon(),
+                                ),
+                              ],
+                            ),
+                          ),
 
-                        const Positioned(top: 34, left: 54, right: 0, child: DocumentMenuBar()),
-                      ],
+                          const Positioned(top: 34, left: 54, right: 0, child: DocumentMenuBar()),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
 
-            const Padding(
-              padding: EdgeInsets.only(left: 16, right: 16, bottom: 2, top: 2),
-              child: Toolbar(),
-            ),
+              const Padding(
+                padding: EdgeInsets.only(left: 16, right: 16, bottom: 2, top: 2),
+                child: Toolbar(),
+              ),
 
-            const Expanded(child: EditorView()),
-          ],
+              const Expanded(child: EditorView()),
+            ],
+          ),
         ),
       ),
     );
@@ -169,7 +187,7 @@ class _MainState extends State<Main> {
         final isMenuAimAssistEnabled = documentState[SelectionKey.menuAimAssist] == true;
         final isMenuAimAssistDebugPaintEnabled =
             documentState[SelectionKey.menuAimAssistDebugPaint] == true;
-        MenuAimListener.visualizeAim = isMenuAimAssistDebugPaintEnabled;
+        MenuAimInterceptor.visualizeAim = isMenuAimAssistDebugPaintEnabled;
         return MenuAimScope(enable: isMenuAimAssistEnabled, child: child);
       },
     );

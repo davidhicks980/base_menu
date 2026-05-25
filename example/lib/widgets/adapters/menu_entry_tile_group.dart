@@ -24,11 +24,14 @@ class MenuEntryTileGroup<T> extends StatelessWidget {
       columns: group.columns,
       children: [
         for (final item in group.children)
-          SizedBox.fromSize(
-            size: group.size,
-            child: Padding(
-              padding: group.padding,
-              child: CustomPaint(painter: _TileLinePainter(description: item.tileLines)),
+          Semantics(
+            value: item.label,
+            child: SizedBox.fromSize(
+              size: group.size,
+              child: Padding(
+                padding: group.padding,
+                child: CustomPaint(painter: _TileLinePainter(description: item.tileLines)),
+              ),
             ),
           ),
       ],

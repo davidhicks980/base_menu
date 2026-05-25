@@ -118,7 +118,7 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
     state!.removeHighlight(widget.value);
   }
 
-  void _handlePointerEnter(PointerHoverEvent event) {
+  void _handlePointerEnter(PointerEnterEvent event) {
     state!.highlight(widget.value);
   }
 
@@ -134,10 +134,10 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
     // This should be a SemanticsRole.option, but this is currently not
     // supported by Flutter's semantics system.
     final body = BaseMenuItem(
-      enableHoverTraversal: false,
+      requestFocusOnHover: false,
       onPointerEnter: _handlePointerEnter,
       onPointerLeave: _handlePointerLeave,
-      onTap: _handleSelect,
+      onPressed: _handleSelect,
       child: ConstrainedBox(
         constraints: widget.constraints,
         child: Builder(
@@ -195,7 +195,7 @@ class ComboBox extends StatefulWidget {
     this.onSubmit,
     this.trailing,
     this.inputConstraints = const BoxConstraints(minHeight: 28, maxHeight: 28),
-    required this.selected,
+    required this.value,
     this.focusNode,
     this.textStyle = const TextStyle(
       fontFamily: 'GoogleSans',
@@ -207,13 +207,15 @@ class ComboBox extends StatefulWidget {
     required this.menuController,
     this.alignment = AlignmentDirectional.centerStart,
     this.initialOffset = 0,
+    this.onOpen,
+    this.onClose,
     this.semanticsLabel = 'Combo Box',
   });
 
   final List<Widget> children;
   final ValueChanged<String>? onSelect;
   final ValueChanged<String>? onSubmit;
-  final String selected;
+  final String value;
   final Widget? trailing;
   final BoxConstraints inputConstraints;
   final FocusNode? focusNode;
@@ -221,6 +223,8 @@ class ComboBox extends StatefulWidget {
   final TextStyle textStyle;
   final AlignmentGeometry alignment;
   final double initialOffset;
+  final VoidCallback? onOpen;
+  final VoidCallback? onClose;
 
   final String semanticsLabel;
 
@@ -281,8 +285,8 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: widget.selected);
-    _highlightValue = widget.selected;
+    _textController = TextEditingController(text: widget.value);
+    _highlightValue = widget.value;
     _scrollController = ScrollController(initialScrollOffset: widget.initialOffset);
     if (widget.focusNode == null) {
       _internalFocusNode = FocusNode();
@@ -292,8 +296,11 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   @override
   void didUpdateWidget(ComboBox oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _textController.text = widget.selected;
-    _highlightValue = widget.selected;
+    if (oldWidget.value != widget.value) {
+      _textController.text = widget.value;
+      _textController.selection = TextSelection(baseOffset: 0, extentOffset: widget.value.length);
+      _highlightValue = widget.value;
+    }
     if (oldWidget.focusNode != widget.focusNode) {
       if (widget.focusNode == null) {
         _internalFocusNode = FocusNode();
@@ -387,13 +394,18 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     return Actions(
       actions: actions,
       child: BaseMenu(
-        menuAlignment: Alignment(alignment.x, -1),
-        alignment: Alignment(alignment.x, 1),
+        onOpen: widget.onOpen,
+        onClose: widget.onClose,
         controller: widget.menuController,
-        padding: MenuPanel.defaultPadding,
-        alignmentOffset: const Offset(0, 7),
+        positioningDelegate: DefaultBaseMenuPositioningDelegate(
+          // The vertical padding is to account for the border and padding of the anchor.
+          padding: MenuPanel.defaultPadding,
+          alignmentOffset: const Offset(0, 7),
+          menuAlignment: Alignment(alignment.x, -1),
+          alignment: Alignment(alignment.x, 1),
+        ),
         menu: _ComboBoxHighlight(
-          value: widget.selected,
+          value: widget.value,
           highlight: _highlightValue,
           alignment: alignment,
           state: this,
@@ -407,7 +419,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
               TargetPlatform.android,
               TargetPlatform.iOS,
             },
-            child: MenuPanel(children: widget.children),
+            child: MenuPanel(clipBehavior: Clip.hardEdge, children: widget.children),
           ),
         ),
         builder: (BuildContext context, MenuController controller, Widget? child) {
@@ -418,7 +430,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
             menuController: controller,
             trailing: widget.trailing,
             onSubmit: widget.onSubmit,
-            selected: widget.selected,
+            selected: widget.value,
             textStyle: widget.textStyle,
             semanticsLabel: widget.semanticsLabel,
           );
@@ -484,9 +496,9 @@ class _Anchor extends StatelessWidget {
     final defaultTextStyle = DefaultTextStyle.of(context).style;
     Widget field = isOpen
         ? Editable(
-            autofocus: true,
+            selectAllOnFocus: true,
             focusNode: focusNode,
-            controller: textController,
+            textController: textController,
             textAlign: TextAlign.center,
             textInputAction: TextInputAction.done,
             onSubmitted: onSubmit,
@@ -532,6 +544,8 @@ class _Anchor extends StatelessWidget {
     Widget listenable;
     if (!isOpen) {
       listenable = BaseControl(
+        focusNode: focusNode,
+        mouseCursor: WidgetStateMouseCursor.textable,
         child: Builder(
           builder: (context) {
             return DecoratedBox(
@@ -543,20 +557,17 @@ class _Anchor extends StatelessWidget {
             );
           },
         ),
-        onTap: () {
+        onPressed: () {
           menuController.open();
+          textController.selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: textController.text.length,
+          );
           focusNode.requestFocus();
         },
       );
     } else {
-      listenable = GestureDetector(
-        excludeFromSemantics: true,
-        onTap: () {
-          menuController.close();
-        },
-        behavior: HitTestBehavior.opaque,
-        child: field,
-      );
+      listenable = field;
     }
 
     return ListenableBuilder(
@@ -570,33 +581,36 @@ class _Anchor extends StatelessWidget {
         ),
       ),
       builder: (context, child) {
-        return Semantics.fromProperties(
-          properties: SemanticsProperties(
-            focusable: true,
-            focused: focusNode.hasFocus,
-            expanded: isOpen,
-            button: !isOpen,
-            textField: isOpen,
-            readOnly: !isOpen,
-            hint: defaultTargetPlatform == TargetPlatform.iOS
-                ? isOpen
-                      ? 'Collapse'
-                      : 'Expand'
-                : null,
-            onExpand: isOpen ? null : () => menuController.open(),
-            onCollapse: isOpen ? () => menuController.close() : null,
-            textDirection: Directionality.of(context),
-            label: semanticsLabel,
-            onTap: () {
-              if (isOpen) {
-                menuController.close();
-              } else {
-                menuController.open();
-                focusNode.requestFocus();
-              }
-            },
+        return MergeSemantics(
+          child: Semantics.fromProperties(
+            container: true,
+            explicitChildNodes: true,
+            properties: SemanticsProperties(
+              role: .none,
+              focusable: true,
+              focused: focusNode.hasFocus,
+              expanded: isOpen,
+              hint: defaultTargetPlatform == TargetPlatform.iOS
+                  ? isOpen
+                        ? 'Collapse'
+                        : 'Expand'
+                  : null,
+              onExpand: isOpen ? null : () => menuController.open(),
+              onCollapse: isOpen ? () => menuController.close() : null,
+              textDirection: Directionality.of(context),
+              label: semanticsLabel,
+              value: selected,
+              onTap: () {
+                if (isOpen) {
+                  menuController.close();
+                } else {
+                  menuController.open();
+                  focusNode.requestFocus();
+                }
+              },
+            ),
+            child: child,
           ),
-          child: child,
         );
       },
     );

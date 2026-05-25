@@ -4,6 +4,7 @@ import 'package:menu_utilities/menu_utilities.dart';
 import '../../app_state_manager.dart';
 import '../../model/enum.dart';
 import '../../model/intents.dart';
+import '../../tooltip.dart';
 import '../../utilities/colors.dart';
 import '../combo_box.dart';
 import '../dropdown_arrow.dart';
@@ -22,7 +23,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
   late List<Widget> zoomWidgets;
   final _focusNode = FocusNode();
 
-  String _selectedValue = '';
+  String _selectedValue = '100%';
   String? _highlightValue;
   int? get highlightIndex => _highlightValue != null ? zoomLevels.indexOf(_highlightValue!) : null;
 
@@ -37,13 +38,13 @@ class _ZoomMenuState extends State<ZoomMenu> {
       return null;
     }
 
-    int levelValue(String level) {
+    int parseLevel(String level) {
       return int.parse(level.substring(0, level.length - 1));
     }
 
-    int closest = levelValue(levels.current);
+    int closest = parseLevel(levels.current);
     while (levels.moveNext()) {
-      final int current = levelValue(levels.current);
+      final int current = parseLevel(levels.current);
       if ((current - zoom).abs() < (closest - zoom).abs()) {
         closest = current;
       } else {
@@ -71,7 +72,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
     final zoom = AppStateManager.documentStateOf(context)[SelectionKey.zoomLevel]! as String;
     if (_selectedValue != zoom) {
       _selectedValue = zoom;
-      _highlightValue = zoom;
+      _highlightValue = _selectedValue;
     }
   }
 
@@ -102,26 +103,30 @@ class _ZoomMenuState extends State<ZoomMenu> {
   Widget build(BuildContext context) {
     final child = DefaultTextStyle(
       style: const TextStyle(height: 1.5),
-      child: ComboBox(
-        semanticsLabel: 'Zoom',
-        inputConstraints: const BoxConstraints(
-          minHeight: 29.25,
-          maxHeight: 29.25,
-          minWidth: 68,
-          maxWidth: 68,
+      child: MenuTooltip(
+        enableSemantics: false,
+        message: const TextSpan(text: 'Zoom'),
+        child: ComboBox(
+          onOpen: RawTooltip.dismissAllToolTips,
+          semanticsLabel: 'Zoom',
+          inputConstraints: const BoxConstraints(
+            minHeight: 29.25,
+            maxHeight: 29.25,
+            minWidth: 68,
+            maxWidth: 68,
+          ),
+          focusNode: _focusNode,
+          onSelect: _handleSelect,
+          onSubmit: _handleSubmit,
+          menuController: _menuController,
+          value: _selectedValue,
+          trailing: const _DropdownArrowButton(),
+          initialOffset: zoomLevels.indexOf(_selectedValue) * 30.0,
+          children: zoomWidgets,
         ),
-        focusNode: _focusNode,
-        onSelect: _handleSelect,
-        onSubmit: _handleSubmit,
-        menuController: _menuController,
-        selected: _selectedValue,
-        trailing: const DropdownArrow(),
-        initialOffset: zoomLevels.indexOf(_selectedValue) * 30.0,
-        children: zoomWidgets,
       ),
     );
     return BaseHoverable(
-      mouseCursor: WidgetStateMouseCursor.textable,
       child: Builder(
         builder: (context) {
           return DecoratedBox(
@@ -134,6 +139,31 @@ class _ZoomMenuState extends State<ZoomMenu> {
             child: child,
           );
         },
+      ),
+    );
+  }
+}
+
+class _DropdownArrowButton extends StatelessWidget {
+  const _DropdownArrowButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeFocus(
+      child: BaseControl(
+        mouseCursor: WidgetStateMouseCursor.adaptiveClickable,
+        onPressed: () {
+          final menuController = MenuController.maybeOf(context);
+          if (menuController != null) {
+            if (menuController.isOpen) {
+              menuController.close();
+            } else {
+              menuController.open();
+            }
+            Focus.of(context).requestFocus();
+          }
+        },
+        child: const Center(child: DropdownArrow()),
       ),
     );
   }

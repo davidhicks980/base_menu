@@ -16,12 +16,14 @@ class MenuDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     // This should be a SemanticsRole.separator, but this is currently not
     // supported by Flutter's semantics system.
-    return Padding(
-      padding: padding,
-      child: ColoredBox(
-        color: color,
-        isAntiAlias: false,
-        child: const SizedBox(height: 1, width: double.infinity),
+    return IgnorePointer(
+      child: Padding(
+        padding: padding,
+        child: ColoredBox(
+          color: color,
+          isAntiAlias: false,
+          child: const SizedBox(height: 1, width: double.infinity),
+        ),
       ),
     );
   }
@@ -34,12 +36,14 @@ class VerticalMenuDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     // This should be a SemanticsRole.separator, but this is currently not
     // supported by Flutter's semantics system.
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 2, vertical: 5),
-      child: ColoredBox(
-        color: FloogleColors.separatorColor,
-        isAntiAlias: false,
-        child: SizedBox(width: 1, height: 20),
+    return const IgnorePointer(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 2, vertical: 5),
+        child: ColoredBox(
+          color: FloogleColors.separatorColor,
+          isAntiAlias: false,
+          child: SizedBox(width: 1, height: 20),
+        ),
       ),
     );
   }

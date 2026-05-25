@@ -146,7 +146,7 @@ class Cell extends StatelessWidget {
 
   final bool selected;
   final VoidCallback onTap;
-  final PointerHoverEventListener onPointerEnter;
+  final PointerEnterEventListener onPointerEnter;
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +166,7 @@ class Cell extends StatelessWidget {
 
         return BaseMenuItem(
           onPointerEnter: onPointerEnter,
-          onTap: onTap,
+          onPressed: onTap,
           child: Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 1.0),

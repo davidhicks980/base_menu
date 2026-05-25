@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
@@ -31,6 +29,7 @@ class TileGroup<T> extends StatefulWidget {
 }
 
 class _TileGroupState<T> extends State<TileGroup<T>> {
+  final WidgetOrderTraversalPolicy _traversalPolicy = WidgetOrderTraversalPolicy();
   final FocusScopeNode _focusScopeNode = FocusScopeNode(
     traversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
     directionalTraversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
@@ -42,7 +41,7 @@ class _TileGroupState<T> extends State<TileGroup<T>> {
     super.dispose();
   }
 
-  late bool value = false;
+  bool value = false;
   bool _exitStart = false;
   bool _exitEnd = false;
 
@@ -52,7 +51,7 @@ class _TileGroupState<T> extends State<TileGroup<T>> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
       child: FocusTraversalGroup(
-        policy: WidgetOrderTraversalPolicy(),
+        policy: _traversalPolicy,
         child: Shortcuts(
           shortcuts: {
             const SingleActivator(LogicalKeyboardKey.arrowDown): const DirectionalFocusIntent(
@@ -72,39 +71,35 @@ class _TileGroupState<T> extends State<TileGroup<T>> {
           },
           child: Actions(
             actions: <Type, Action<Intent>>{DirectionalFocusIntent: DirectionalFocusAction()},
-            child: Semantics(
-              role: SemanticsRole.radioGroup,
-              container: true,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                spacing: 8,
-                children: [
-                  for (var row = 0; row < rows; row++)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 8,
-                      children: [
-                        for (
-                          int column = 0, i = widget.columns * row;
-                          column < widget.columns;
-                          column += 1, i += 1
-                        )
-                          _Tile(
-                            key: ValueKey(widget.children[i]),
-                            checked: widget.children[i] == widget.value,
-                            autofocus: widget.children[i] == widget.value,
-                            onPressed: () => widget.onTilePressed(context, i),
-                            onFocusChange: (isFocused) {
-                              if (isFocused) {
-                                _handleFocusChange(column);
-                              }
-                            },
-                            child: widget.children[i],
-                          ),
-                      ],
-                    ),
-                ],
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 8,
+              children: [
+                for (var row = 0; row < rows; row++)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 8,
+                    children: [
+                      for (
+                        int column = 0, i = widget.columns * row;
+                        column < widget.columns;
+                        column += 1, i += 1
+                      )
+                        _Tile(
+                          key: ValueKey(widget.children[i]),
+                          checked: widget.children[i] == widget.value,
+                          autofocus: widget.children[i] == widget.value,
+                          onPressed: () => widget.onTilePressed(context, i),
+                          onFocusChange: (isFocused) {
+                            if (isFocused) {
+                              _handleFocusChange(column);
+                            }
+                          },
+                          child: widget.children[i],
+                        ),
+                    ],
+                  ),
+              ],
             ),
           ),
         ),
@@ -178,7 +173,7 @@ class _Tile extends StatelessWidget {
       checked: checked,
       child: BaseMenuItem(
         role: null,
-        onTap: onPressed,
+        onPressed: onPressed,
         onFocusChange: onFocusChange,
         autofocus: autofocus,
         child: Builder(

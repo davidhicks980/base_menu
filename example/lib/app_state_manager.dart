@@ -214,7 +214,12 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
     walkEntries(Menu.main.children);
     walkEntries(Menu.context.children);
-    walkEntries([Entry.paintFormat]);
+    walkEntries([
+      Entry.paintFormat,
+      Entry.increaseFontSize,
+      Entry.decreaseFontSize,
+      Entry.showHideMenus,
+    ]);
 
     return shortcuts;
   }
@@ -452,7 +457,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return null;
       },
     ),
-    FormatIncrementFontSizeIntent: CallbackAction<FormatIncrementFontSizeIntent>(
+    FormatIncreaseFontSizeIntent: CallbackAction<FormatIncreaseFontSizeIntent>(
       onInvoke: (intent) {
         final currentSize = controller.selectedTextStyle?.textStyle?.fontSize ?? 14;
         final newSize = math.min(94.0, currentSize + 1);
@@ -461,7 +466,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
         return null;
       },
     ),
-    FormatDecrementFontSizeIntent: CallbackAction<FormatDecrementFontSizeIntent>(
+    FormatDecreaseFontSizeIntent: CallbackAction<FormatDecreaseFontSizeIntent>(
       onInvoke: (intent) {
         final currentSize = controller.selectedTextStyle?.textStyle?.fontSize ?? 14;
         final newSize = math.max(1.0, currentSize - 1);
@@ -541,8 +546,8 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     KeepWithNextIntent: _ToggleEntryAction(this),
     PreventSingleLinesIntent: _ToggleEntryAction(this),
     SetColumnsIntent: ReflectAction<SetColumnsIntent>('Set Columns'),
-    SetBulletedListIntent: ReflectAction<SetBulletedListIntent>('Set Bulleted List'),
-    SetNumberedListIntent: ReflectAction<SetNumberedListIntent>('Set Numbered List'),
+    InsertBulletedListIntent: ReflectAction<InsertBulletedListIntent>('Set Bulleted List'),
+    InsertNumberedListIntent: ReflectAction<InsertNumberedListIntent>('Set Numbered List'),
     FormatNumberedListIntent: ReflectAction<FormatNumberedListIntent>('Format Numbered List'),
     FormatBulletedListIntent: ReflectAction<FormatBulletedListIntent>('Format Bulleted List'),
     FormatChecklistIntent: ReflectAction<FormatChecklistIntent>('Format Checklist'),
@@ -608,6 +613,13 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
     ToggleMenuAimAssistIntent: _ToggleEntryAction(this),
     ToggleMenuAimDebugPaintIntent: _ToggleEntryAction(this),
+
+    ToggleMenuVisibilityIntent: CallbackAction<ToggleMenuVisibilityIntent>(
+      onInvoke: (intent) {
+        toggleTitle();
+        return null;
+      },
+    ),
   };
 
   @override

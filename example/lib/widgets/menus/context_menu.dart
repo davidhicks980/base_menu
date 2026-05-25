@@ -20,27 +20,12 @@ class EditorContextMenuWrapper extends StatefulWidget {
 }
 
 class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
-  static const panel = MenuEntryPanel(
-    menuEntry: Menu.context,
-    constraints: BoxConstraints(minWidth: 320),
-  );
   final TextEditingController _controller = TextEditingController(
     text: 'Click here to start editing...',
   );
-
-  final FocusNode _buttonFocusNode = FocusNode(debugLabel: 'Menu Button');
-  late final gestures = {
-    TapGestureRecognizer: GestureRecognizerFactoryWithHandlers(
-      () => TapGestureRecognizer(debugOwner: this),
-      (instance) {
-        instance
-          ..onTapDown = _handleTapDown
-          ..onSecondaryTapDown = _handleSecondaryTapDown;
-      },
-    ),
-  };
-
+  final _focusNode = FocusNode();
   bool _wasBrowserContextMenuEnabled = false;
+  bool _deferClose = false;
 
   @override
   void initState() {
@@ -54,17 +39,8 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
       _enableContextMenu();
     }
     _controller.dispose();
-    _buttonFocusNode.dispose();
+    _focusNode.dispose();
     super.dispose();
-  }
-
-  Future<void> _handleSecondaryTapDown(TapDownDetails details) async {
-    if (kIsWeb && BrowserContextMenu.enabled) {
-      print('Browser context menu is enabled, not showing custom context menu');
-      return;
-    }
-
-    widget.menuController.open(position: details.localPosition);
   }
 
   Future<void>? _contextMenuStatus;
@@ -81,7 +57,6 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
     }
 
     _contextMenuStatus = BrowserContextMenu.disableContextMenu();
-    print('Context menu disabled');
   }
 
   Future<void> _enableContextMenu() async {
@@ -112,8 +87,8 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
   }
 
   void _onHoverEnter(PointerEnterEvent event) {
-    _disableContextMenu();
     WidgetsBinding.instance.keyboard.addHandler(_handleKeyEvent);
+    _disableContextMenu();
   }
 
   void _onHoverExit(PointerExitEvent event) {
@@ -121,42 +96,94 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
     WidgetsBinding.instance.keyboard.removeHandler(_handleKeyEvent);
   }
 
-  void _handleTapDown(TapDownDetails details) {
+  void _handlePointerDown(PointerDownEvent event) {
+    // 1. Right Click
+    if (event.buttons == kSecondaryMouseButton) {
+      if (kIsWeb && BrowserContextMenu.enabled) {
+        return;
+      }
+
+      _deferClose = true;
+      widget.menuController.open(position: event.localPosition);
+      scheduleMicrotask(() {
+        _deferClose = false;
+      });
+      return;
+    }
+
+    // 2. Left Click - Close the menu if open
     if (widget.menuController.isOpen) {
       widget.menuController.close();
       return;
     }
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.android:
-      case TargetPlatform.fuchsia:
-      case TargetPlatform.linux:
-      case TargetPlatform.windows:
-        // Don't open the menu on these platforms with a Ctrl-tap (or a
-        // tap).
-        break;
-      case TargetPlatform.iOS:
-      case TargetPlatform.macOS:
-        // Only open the menu on these platforms if the control button is down
-        // when the tap occurs.
-        if (HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft) ||
-            HardwareKeyboard.instance.logicalKeysPressed.contains(
-              LogicalKeyboardKey.controlRight,
-            )) {
-          widget.menuController.open(position: details.localPosition);
-        }
+
+    // 3. Left Click (Ctrl+Click context menu on macOS/iOS)
+    if (event.buttons == kPrimaryMouseButton) {
+      switch (defaultTargetPlatform) {
+        case TargetPlatform.android:
+        case TargetPlatform.fuchsia:
+        case TargetPlatform.linux:
+        case TargetPlatform.windows:
+          break;
+        case TargetPlatform.iOS:
+        case TargetPlatform.macOS:
+          if (HardwareKeyboard.instance.logicalKeysPressed.contains(
+                LogicalKeyboardKey.controlLeft,
+              ) ||
+              HardwareKeyboard.instance.logicalKeysPressed.contains(
+                LogicalKeyboardKey.controlRight,
+              )) {
+            widget.menuController.open(position: event.localPosition);
+          }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final child = BaseMenu(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      menu: panel,
+      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+        padding: EdgeInsets.symmetric(vertical: 6),
+      ),
+      onCloseRequest: (hideOverlay) {
+        if (!_deferClose) {
+          hideOverlay();
+        }
+      },
+      onOpen: () {
+        _focusNode.requestFocus();
+      },
+      menu: MouseRegion(
+        onEnter: _onHoverEnter,
+        onExit: (_) {
+          if (!_focusNode.hasFocus) {
+            _focusNode.requestFocus();
+          }
+        },
+        child: MenuEntryPanel(
+          menuEntry: Menu.context,
+          constraints: const BoxConstraints(minWidth: 320),
+          onSurfaceEnter: (_) {
+            if (!_focusNode.hasFocus) {
+              _focusNode.requestFocus();
+            }
+          },
+        ),
+      ),
       controller: widget.menuController,
-      child: RawGestureDetector(
-        gestures: gestures,
-        excludeFromSemantics: true,
-        child: widget.child,
+      child: BaseFocusable(
+        focusNode: _focusNode,
+        child: Semantics(
+          onLongPress: () {
+            // Semantic equivalent for right-click / context menu
+            widget.menuController.open();
+          },
+          child: Listener(
+            onPointerDown: _handlePointerDown,
+            behavior: .translucent,
+            child: widget.child,
+          ),
+        ),
       ),
     );
 
@@ -164,6 +191,11 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
       return child;
     }
 
-    return MouseRegion(onEnter: _onHoverEnter, onExit: _onHoverExit, child: child);
+    return MouseRegion(
+      onEnter: _onHoverEnter,
+      onExit: _onHoverExit,
+      hitTestBehavior: .translucent,
+      child: child,
+    );
   }
 }

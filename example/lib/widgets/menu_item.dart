@@ -7,14 +7,14 @@ import 'menu_action_label.dart';
 class MenuItem extends StatelessWidget {
   const MenuItem({
     super.key,
-    this.onTap,
+    this.onTap = emptyCallback,
     required this.child,
     this.leading,
     this.leadingWidth = 34,
     this.leadingMidpointAlignment = const AlignmentDirectional(0.23529412, 0),
     this.trailing,
     this.shortcut,
-    this.mouseCursor = WidgetStateMouseCursor.clickable,
+    this.mouseCursor = const WidgetStatePropertyAll(MouseCursor.defer),
     this.autofocus = false,
     this.requestFocusOnHover = true,
     this.isExpanded,
@@ -34,11 +34,13 @@ class MenuItem extends StatelessWidget {
   final bool requestFocusOnHover;
   final bool autofocus;
 
+  static void emptyCallback() {}
+
   @override
   Widget build(BuildContext context) {
     final hasSubmenu = isExpanded != null;
     final item = BaseMenuItem(
-      onTap: intent != null
+      onPressed: intent != null
           ? () {
               Actions.invoke(context, intent!);
               onTap?.call();

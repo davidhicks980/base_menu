@@ -107,7 +107,6 @@ class _ZoomerState extends State<Zoomer> {
 
     // Clamp the target translation safely handling cases where scale < 1
     final double clampedX = (minX < maxX) ? targetX.clamp(minX, maxX) : targetX.clamp(maxX, minX);
-
     final double clampedY = (minY < maxY) ? targetY.clamp(minY, maxY) : targetY.clamp(maxY, minY);
 
     _transformController.value = Matrix4.identity()

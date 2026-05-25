@@ -82,6 +82,9 @@ enum SelectionKey {
   firstLineIndent,
   leftIndent,
   rightIndent,
+  menuAimAssist,
+  menuAimAssistDebugPaint,
+  menuVisibility,
 }
 
 enum DocumentParagraphStyle {
@@ -112,7 +115,6 @@ final fontWeightToLabelMap = {
 
 enum FontFamily {
   amaticSc('Amatic SC'),
-
   caveat('Caveat', [FontWeight.w400, FontWeight.w500, FontWeight.w600, FontWeight.w700]),
   comfortaa('Comfortaa', [FontWeight.w300, FontWeight.w400, FontWeight.w700]),
   courierNew('Courier New'),

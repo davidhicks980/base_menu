@@ -37,7 +37,6 @@ class _DimensionPickerState extends State<DimensionPicker> {
     });
     Actions.invoke(context, InsertTableIntent(selectedRow + 1, selectedColumn + 1));
     Actions.invoke(context, const DismissIntent());
-    print('Selected ${selectedRow + 1} x ${selectedColumn + 1}');
   }
 
   @override
@@ -147,7 +146,7 @@ class Cell extends StatelessWidget {
 
   final bool selected;
   final VoidCallback onTap;
-  final PointerHoverEventListener onPointerEnter;
+  final PointerEnterEventListener onPointerEnter;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +166,7 @@ class Cell extends StatelessWidget {
 
         return BaseMenuItem(
           onPointerEnter: onPointerEnter,
-          onTap: onTap,
+          onPressed: onTap,
           child: Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 1.0),

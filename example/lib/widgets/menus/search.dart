@@ -9,8 +9,8 @@ import '../../data/entry.dart';
 import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../../utilities/colors.dart';
+import '../adapters/menu_entry_toolbar_button.dart';
 import '../editable.dart';
-import '../icon_button.dart';
 import '../menu_action_label.dart';
 
 const defaultStyle = TextStyle(
@@ -61,22 +61,17 @@ class SearchMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SearchMenuField(
+    return _SearchMenuPopup(
       child: Builder(
         builder: (context) {
           return MediaQuery.widthOf(context) < breakpoint
-              ? Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 4, end: 2),
-                  child: IconButton(
-                    onPressed: () {
-                      MenuController.maybeOf(context)?.open();
-                    },
-                    child: const Icon(Symbols.search, size: 18, color: placeholderColor),
-                  ),
+              ? const Padding(
+                  padding: EdgeInsetsDirectional.only(start: 4, end: 2),
+                  child: MenuEntryToolbarButton(item: Entry.searchMenus),
                 )
               : BaseControl(
                   mouseCursor: WidgetStateMouseCursor.textable,
-                  onTap: () {
+                  onPressed: () {
                     MenuController.maybeOf(context)?.open();
                   },
                   child: const Padding(
@@ -110,15 +105,15 @@ class SearchMenu extends StatelessWidget {
   }
 }
 
-class SearchMenuField extends StatefulWidget {
-  const SearchMenuField({super.key, required this.child});
+class _SearchMenuPopup extends StatefulWidget {
+  const _SearchMenuPopup({required this.child});
   final Widget child;
 
   @override
-  State<SearchMenuField> createState() => _SearchMenuFieldState();
+  State<_SearchMenuPopup> createState() => _SearchMenuPopupState();
 }
 
-class _SearchMenuFieldState extends State<SearchMenuField> {
+class _SearchMenuPopupState extends State<_SearchMenuPopup> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   List<MenuEntryWithIntent> _searchResults = [];
@@ -230,8 +225,9 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
     Actions.maybeInvoke(context, entry.intent);
   }
 
-  List<MenuEntryWithIntent> get entries =>
-      _searchResults.isNotEmpty ? _searchResults : _selectionHistory;
+  List<MenuEntryWithIntent> get entries {
+    return _searchResults.isNotEmpty ? _searchResults : _selectionHistory;
+  }
 
   String _query = '';
 
@@ -283,15 +279,17 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
   @override
   Widget build(BuildContext context) {
     return BaseMenu(
-      overlayPadding: EdgeInsets.zero,
-      controller: AppStateManager.searchMenuControllerOf(context),
-      alignment: AlignmentDirectional.topStart,
-      menuAlignment: AlignmentDirectional.topStart,
+      controller: menuController,
+      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+        overlayPadding: .zero,
+        alignment: .topStart,
+        menuAlignment: .topStart,
+      ),
       onClose: _handleClose,
       onFocusChange: _handleFocusChange,
       menu: BaseMenuPanel(
         constraints: const BoxConstraints(minWidth: 348),
-        axis: Axis.vertical,
+        direction: Axis.vertical,
         menuChildren: [
           DecoratedBox(
             decoration: const BoxDecoration(
@@ -313,7 +311,7 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
                     child: Align(child: Icon(Symbols.search, size: 18, color: placeholderColor)),
                   ),
                   Flexible(
-                    child: InlineLabelWrapper(
+                    child: _InlineLabelWrapper(
                       hint: Text(
                         'Menus (Option+/)',
                         style: defaultStyle.copyWith(color: placeholderColor),
@@ -328,7 +326,7 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
                             cursorHeight: 14,
                             cursorWidth: 1,
                             forceLine: true,
-                            controller: _textController,
+                            textController: _textController,
                             focusNode: _focusNode,
                             textInputAction: TextInputAction.go,
                             style: defaultStyle.copyWith(color: textColor),
@@ -361,7 +359,8 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
             child: Column(
               children: [
                 for (var i = 0; i < entries.length; i++)
-                  SearchEntry(
+                  _SearchEntry(
+                    key: ValueKey(entries[i]),
                     entry: entries[i],
                     query: _textController.text,
                     onPressed: () => _selectEntry(entries[i]),
@@ -382,8 +381,8 @@ class _SearchMenuFieldState extends State<SearchMenuField> {
   }
 }
 
-class BoldQueryLabel extends StatelessWidget {
-  const BoldQueryLabel({super.key, required this.label, required this.query});
+class _QueryLabel extends StatelessWidget {
+  const _QueryLabel({required this.label, required this.query});
   final String label;
   final String query;
 
@@ -424,13 +423,8 @@ class BoldQueryLabel extends StatelessWidget {
   }
 }
 
-class InlineLabelWrapper extends StatelessWidget {
-  const InlineLabelWrapper({
-    super.key,
-    required this.child,
-    required this.controller,
-    required this.hint,
-  });
+class _InlineLabelWrapper extends StatelessWidget {
+  const _InlineLabelWrapper({required this.child, required this.controller, required this.hint});
 
   final Widget child;
   final TextEditingController controller;
@@ -457,8 +451,8 @@ class InlineLabelWrapper extends StatelessWidget {
   }
 }
 
-class SearchEntry extends StatelessWidget {
-  const SearchEntry({
+class _SearchEntry extends StatelessWidget {
+  const _SearchEntry({
     super.key,
     required this.entry,
     required this.query,
@@ -469,7 +463,7 @@ class SearchEntry extends StatelessWidget {
   final MenuEntryWithIntent entry;
   final String query;
   final VoidCallback onPressed;
-  final PointerHoverEventListener? onEntered;
+  final PointerEnterEventListener? onEntered;
   final bool selected;
 
   @override
@@ -480,7 +474,7 @@ class SearchEntry extends StatelessWidget {
         child: Semantics(
           selected: selected,
           child: BaseMenuItem(
-            onTap: onPressed,
+            onPressed: onPressed,
             onPointerEnter: onEntered,
             requestFocusOnHover: false,
             child: MenuActionLabel(
@@ -508,7 +502,7 @@ class SearchEntry extends StatelessWidget {
                       ? [FontVariation.weight(450)]
                       : [FontVariation.weight(350)],
                 ),
-                child: BoldQueryLabel(label: entry.label, query: query),
+                child: _QueryLabel(label: entry.label, query: query),
               ),
             ),
           ),

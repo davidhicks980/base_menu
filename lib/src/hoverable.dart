@@ -1,5 +1,21 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+
+class BaseHoverableStateInjector<T> extends StatelessWidget {
+  const BaseHoverableStateInjector({super.key, this.showHoverHighlight, required this.child});
+  final bool? showHoverHighlight;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return _HoverableScope<T>(
+      hovered: BaseHoverable.isHoveredOf<T>(context),
+      showHoverHighlight: showHoverHighlight ?? BaseHoverable.isHoverHighlightShownOf<T>(context),
+      child: child,
+    );
+  }
+}
 
 @optionalTypeArgs
 class BaseHoverable<T> extends StatefulWidget {
@@ -9,29 +25,35 @@ class BaseHoverable<T> extends StatefulWidget {
     this.onEnter,
     this.onExit,
     this.behavior = HitTestBehavior.deferToChild,
-    this.mouseCursor = MouseCursor.defer,
+    this.cursor = MouseCursor.defer,
     this.opaque = true,
     this.enabled = true,
     required this.child,
   });
 
+  final PointerEnterEventListener? onEnter;
   final PointerHoverEventListener? onHover;
-  final PointerHoverEventListener? onEnter;
   final PointerExitEventListener? onExit;
-  final MouseCursor mouseCursor;
+  final MouseCursor cursor;
   final HitTestBehavior behavior;
   final bool enabled;
   final bool opaque;
   final Widget child;
 
+  static _HoverableScope<T>? _of<T>(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>();
+    assert(scope != null, 'No BaseHoverable of type $T found in context');
+    return scope;
+  }
+
   @optionalTypeArgs
   static bool isHoveredOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()!.hovered;
+    return _of<T>(context)?.hovered ?? false;
   }
 
   @optionalTypeArgs
   static bool isHoverHighlightShownOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>()!.showHoverHighlight;
+    return _of<T>(context)?.showHoverHighlight ?? false;
   }
 
   @override
@@ -68,7 +90,7 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
     });
   }
 
-  void _handleEnter(PointerHoverEvent event) {
+  void _handleEnter(PointerEnterEvent event) {
     setState(() {
       isHovered = true;
     });
@@ -77,9 +99,10 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
 
   void _handleHover(PointerHoverEvent event) {
     if (!isHovered) {
-      _handleEnter(event);
+      setState(() {
+        isHovered = true;
+      });
     }
-
     widget.onHover?.call(event);
   }
 
@@ -92,33 +115,23 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
     }
   }
 
-  PointerHoverEventListener? get _hoverCallback {
-    if (!widget.enabled) {
-      return null;
-    } else if (widget.onHover != null) {
-      return _handleHover;
-    } else if (!isHovered) {
-      return _handleEnter;
-    }
-    return null;
-  }
-
   bool get _showHoverHighlight {
     // Hover highlights are only shown in traditional highlight modes (e.g. mouse),
-    // and not in touch modes.
+    // and not in touch modes. However, on web we want to show hover highlights regardless of the highlight mode, since web apps are often used with a mouse even on touch devices.
     return isHovered &&
         widget.enabled &&
-        FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
+        (FocusManager.instance.highlightMode == FocusHighlightMode.traditional || kIsWeb);
   }
 
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
       opaque: widget.opaque,
-      onHover: _hoverCallback,
+      onEnter: widget.enabled ? _handleEnter : null,
+      onHover: widget.enabled || !isHovered ? _handleHover : null,
       onExit: widget.enabled ? _handleLeave : null,
       hitTestBehavior: widget.behavior,
-      cursor: widget.mouseCursor,
+      cursor: widget.cursor,
       child: _HoverableScope<T>(
         hovered: isHovered,
         showHoverHighlight: _showHoverHighlight,

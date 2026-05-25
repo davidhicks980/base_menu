@@ -1,24 +1,26 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
 import 'app_state_manager.dart';
 import 'data/entry.dart';
 import 'data/menu.dart';
+import 'model/intents.dart';
 import 'utilities/colors.dart';
+import 'utilities/localized_shortcut_labeler.dart';
 import 'widgets/adapters/menu_entry_popup.dart';
 import 'widgets/adapters/menu_entry_toolbar_button.dart';
 import 'widgets/icon_button.dart';
 import 'widgets/menu_divider.dart';
 import 'widgets/menus/align_indent.dart';
-import 'widgets/menus/bulleted_list_toolbar_menu.dart';
-import 'widgets/menus/checklist_toolbar_menu.dart';
+import 'widgets/menus/bullet_list.dart';
+import 'widgets/menus/check_list.dart';
 import 'widgets/menus/font_size.dart';
 import 'widgets/menus/fonts.dart';
-import 'widgets/menus/numbered_list.dart';
+import 'widgets/menus/number_list.dart';
 import 'widgets/menus/paragraph_styles.dart';
-import 'widgets/menus/search_menus.dart';
+import 'widgets/menus/search.dart';
 import 'widgets/menus/text_color.dart';
 import 'widgets/menus/text_highlight.dart';
 import 'widgets/menus/view_mode.dart';
@@ -72,13 +74,19 @@ const _group6 = [
     item: Entry.addComment,
     iconTheme: IconThemeData(opticalSize: 24, size: 20, weight: 320),
   ),
-  MenuEntryPopup(model: Menu.image),
+  MenuEntryPopup(
+    model: Menu.image,
+    tooltip: TextSpan(text: 'Insert image'),
+  ),
   VerticalMenuDivider(),
 ];
 
 const _group7 = [
   AlignIndentMenu(),
-  MenuEntryPopup(model: Menu.lineAndParagraphSpacing),
+  MenuEntryPopup(
+    model: Menu.lineAndParagraphSpacing,
+    tooltip: TextSpan(text: 'Line & paragraph spacing'),
+  ),
   ChecklistToolbarMenu(),
   BulletedListToolbarMenu(),
   NumberedListToolbarMenu(),
@@ -103,22 +111,6 @@ const children = [
   _Group(_group8),
 ];
 
-class ToolbarScope extends InheritedWidget {
-  const ToolbarScope({super.key, required this.child}) : super(child: child);
-
-  @override
-  final Widget child;
-
-  static ToolbarScope? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<ToolbarScope>();
-  }
-
-  @override
-  bool updateShouldNotify(ToolbarScope oldWidget) {
-    return true;
-  }
-}
-
 class Toolbar extends StatefulWidget {
   const Toolbar({super.key});
 
@@ -127,6 +119,19 @@ class Toolbar extends StatefulWidget {
 }
 
 class _ToolbarState extends State<Toolbar> {
+  late final enterForwardAction = {
+    BaseMenuHorizontalFocusNextIntent: CallbackAction<BaseMenuHorizontalFocusNextIntent>(
+      onInvoke: (intent) =>
+          Actions.invoke(overflowButtonFocusNode.context!, const BaseMenuEnterIntent.focusFirst()),
+    ),
+  };
+
+  late final enterReverseAction = {
+    BaseMenuHorizontalFocusPreviousIntent: CallbackAction<BaseMenuHorizontalFocusPreviousIntent>(
+      onInvoke: (intent) =>
+          Actions.invoke(overflowButtonFocusNode.context!, const BaseMenuEnterIntent.focusLast()),
+    ),
+  };
   final toolbarFocusScopeNode = FocusScopeNode(
     debugLabel: 'Toolbar Focus Scope',
     directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
@@ -135,21 +140,7 @@ class _ToolbarState extends State<Toolbar> {
   final MenuController overflowMenuController = MenuController();
   final FocusNode overflowButtonFocusNode = FocusNode();
   int _cutoff = children.length;
-
   Map<Type, Action<Intent>>? _actions;
-  late final enterForwardAction = {
-    HorizontalMenuNextFocusIntent: CallbackAction<HorizontalMenuNextFocusIntent>(
-      onInvoke: (intent) =>
-          Actions.invoke(overflowButtonFocusNode.context!, const MenuEnterIntent.focusFirst()),
-    ),
-  };
-
-  late final enterReverseAction = {
-    HorizontalMenuPreviousFocusIntent: CallbackAction<HorizontalMenuPreviousFocusIntent>(
-      onInvoke: (intent) =>
-          Actions.invoke(overflowButtonFocusNode.context!, const MenuEnterIntent.focusLast()),
-    ),
-  };
 
   @override
   void dispose() {
@@ -162,6 +153,7 @@ class _ToolbarState extends State<Toolbar> {
   void _onFocusChange(bool hasFocus) {
     if (toolbarFocusScopeNode.hasFocus) {
       FocusManager.instance.addListener(_focusListener);
+      overflowMenuController.close();
     } else {
       FocusManager.instance.removeListener(_focusListener);
       if (_actions != null) {
@@ -236,59 +228,67 @@ class _ToolbarState extends State<Toolbar> {
         children: [
           const SearchMenu(breakpoint: 1500),
           Flexible(
-            child: TapRegion(
-              onTapOutside: (event) {
-                if (!menuController.isOpen) {
-                  toolbarFocusScopeNode.unfocus();
-                }
-              },
-              child: ListenableBuilder(
-                listenable: toolbarFocusScopeNode,
-                builder: _buildConditionalTraversal,
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: BaseMenuBar(
-                        controller: menuController,
-                        focusScopeNode: toolbarFocusScopeNode,
-                        child: Actions(
-                          actions: cutoffChildren.isNotEmpty && _actions != null
-                              ? _actions!
-                              : const {},
-                          child: OverflowRow(onOverflow: _handleOverflow, children: children),
-                        ),
+            child: ListenableBuilder(
+              listenable: toolbarFocusScopeNode,
+              builder: _buildConditionalTraversal,
+              child: Row(
+                children: [
+                  Flexible(
+                    child: BaseMenuBar(
+                      controller: menuController,
+                      focusScopeNode: toolbarFocusScopeNode,
+                      child: Actions(
+                        actions: cutoffChildren.isNotEmpty && _actions != null
+                            ? _actions!
+                            : const {},
+                        child: OverflowRow(onOverflow: _handleOverflow, children: children),
                       ),
                     ),
-                    if (cutoffChildren.isNotEmpty)
-                      OverflowButton(
-                        onTraverseForward: _focusFirstToolbarItem,
-                        onTraverseBackward: _focusLastToolbarItem,
-                        buttonFocusNode: overflowButtonFocusNode,
-                        controller: overflowMenuController,
-                        children: cutoffChildren.expand((group) => group).toList(growable: false),
-                      ),
-                  ],
-                ),
+                  ),
+                  if (cutoffChildren.isNotEmpty)
+                    OverflowButton(
+                      onOpen: menuController.closeChildren,
+                      onTraverseForward: _focusFirstToolbarItem,
+                      onTraverseBackward: _focusLastToolbarItem,
+                      buttonFocusNode: overflowButtonFocusNode,
+                      controller: overflowMenuController,
+                      children: cutoffChildren.expand((group) => group).toList(growable: false),
+                    ),
+                ],
               ),
             ),
           ),
           const ViewModeMenu(breakpoint: 1500),
           const SizedBox(width: 8),
           const VerticalMenuDivider(),
-          IconButton(
-            onPressed: () {
-              AppStateManager.of(context).toggleTitle();
+          Builder(
+            builder: (context) {
+              final isHeaderShown = AppStateManager.isHeaderShownOf(context);
+              final serializedShortcut = LocalizedShortcutLabeler.instance
+                  .getFormattedShortcutLabel(
+                    Entry.showHideMenus.shortcut!,
+                    MaterialLocalizations.of(context),
+                  );
+              return MergeSemantics(
+                child: Semantics(
+                  container: true,
+                  child: ToolbarIconButton(
+                    tooltip: isHeaderShown
+                        ? 'Hide the menus ($serializedShortcut)'
+                        : 'Show the menus ($serializedShortcut)',
+                    onPressed: () {
+                      Actions.invoke(context, const ToggleMenuVisibilityIntent());
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 1),
+                      child: isHeaderShown
+                          ? const Icon(Symbols.expand_less, size: 18)
+                          : const Icon(Symbols.expand_more, size: 18),
+                    ),
+                  ),
+                ),
+              );
             },
-            child: Padding(
-              padding: const EdgeInsets.only(top: 1),
-              child: Builder(
-                builder: (context) {
-                  return AppStateManager.isHeaderShownOf(context)
-                      ? const Icon(Symbols.expand_less, size: 18)
-                      : const Icon(Symbols.expand_more, size: 18);
-                },
-              ),
-            ),
           ),
           const SizedBox(width: 2),
         ],
@@ -305,12 +305,14 @@ class OverflowButton extends StatefulWidget {
     required this.buttonFocusNode,
     required this.onTraverseForward,
     required this.onTraverseBackward,
+    required this.onOpen,
   });
   final List<Widget> children;
   final MenuController controller;
   final FocusNode buttonFocusNode;
   final VoidCallback onTraverseForward;
   final VoidCallback onTraverseBackward;
+  final VoidCallback onOpen;
 
   @override
   State<OverflowButton> createState() => _OverflowButtonState();
@@ -416,8 +418,8 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
               child: Flexible(
                 child: Actions(
                   actions: {
-                    VerticalMenuPreviousFocusIntent: DoNothingAction(),
-                    VerticalMenuNextFocusIntent: DoNothingAction(),
+                    BaseMenuVerticalFocusPreviousIntent: DoNothingAction(),
+                    BaseMenuVerticalFocusNextIntent: DoNothingAction(),
                     NextFocusIntent: NextFocusAction(),
                     PreviousFocusIntent: PreviousFocusAction(),
                   },
@@ -437,12 +439,16 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
 
     return BaseMenu(
       controller: widget.controller,
-      overlayPadding: const EdgeInsets.symmetric(horizontal: 4),
-      menuAlignment: AlignmentDirectional.topEnd,
-      alignment: AlignmentDirectional.bottomEnd,
+      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+        overlayPadding: .symmetric(horizontal: 5),
+        alignmentOffset: Offset(0, 4),
+        alignment: .bottomEnd,
+        menuAlignment: .topEnd,
+      ),
       orientation: Axis.horizontal,
       onOpenRequest: _handleMenuOpenRequest,
       onCloseRequest: _handleMenuCloseRequest,
+      onOpen: widget.onOpen,
       onFocusChange: (value) {
         if (!value) {
           widget.controller.close();
@@ -450,31 +456,38 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
       },
       menu: panel,
       builder: (context, controller, child) {
-        return IconButton(
-          decoration: _animationStatus.isForwardOrCompleted
-              ? WidgetStatePropertyAll(
-                  BoxDecoration(
-                    color: FloogleColors.selectedButtonBackground,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                )
-              : null,
-          focusNode: widget.buttonFocusNode,
-          onPressed: () {
-            if (_animationStatus.isForwardOrCompleted) {
-              controller.close();
-            } else {
-              Actions.invoke(context, const MenuEnterIntent.setFirstFocus());
-            }
-          },
-          child: IconTheme(
-            data: IconThemeData(
-              color: _animationStatus.isForwardOrCompleted
-                  ? FloogleColors.selectedButton
-                  : FloogleColors.grey,
-              size: 18,
+        return MergeSemantics(
+          child: Semantics(
+            container: true,
+            child: ToolbarIconButton(
+              tooltip: 'More',
+              decoration: _animationStatus.isForwardOrCompleted
+                  ? WidgetStatePropertyAll(
+                      BoxDecoration(
+                        color: FloogleColors.selectedButtonBackground,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    )
+                  : null,
+              focusNode: widget.buttonFocusNode,
+              onPressed: () {
+                if (_animationStatus.isForwardOrCompleted) {
+                  controller.close();
+                } else {
+                  controller.open();
+                  widget.buttonFocusNode.requestFocus();
+                }
+              },
+              child: IconTheme(
+                data: IconThemeData(
+                  color: _animationStatus.isForwardOrCompleted
+                      ? FloogleColors.selectedButton
+                      : FloogleColors.grey,
+                  size: 18,
+                ),
+                child: child!,
+              ),
             ),
-            child: child!,
           ),
         );
       },

@@ -1,4 +1,23 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+
+/// Use BaseFocusableStateInjector to inject visual focus state into the widget
+/// tree
+class BaseFocusableStateInjector<T> extends StatelessWidget {
+  const BaseFocusableStateInjector({super.key, this.showFocusHighlight, required this.child});
+  final bool? showFocusHighlight;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return _FocusableScope<T>(
+      focused: BaseFocusable.isFocusedOf<T>(context),
+      showFocusHighlight: showFocusHighlight ?? BaseFocusable.isFocusHighlightShownOf<T>(context),
+      child: child,
+    );
+  }
+}
 
 @optionalTypeArgs
 class BaseFocusable<T> extends StatefulWidget {
@@ -17,12 +36,20 @@ class BaseFocusable<T> extends StatefulWidget {
   final ValueChanged<bool>? onFocusChange;
   final Widget child;
 
-  static bool isFocusedOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>()!.focused;
+  static _FocusableScope<T>? _of<T>(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>();
+    assert(scope != null, 'No BaseFocusable of type $T found in context');
+    return scope;
   }
 
+  @optionalTypeArgs
+  static bool isFocusedOf<T>(BuildContext context) {
+    return _of<T>(context)?.focused ?? false;
+  }
+
+  @optionalTypeArgs
   static bool isFocusHighlightShownOf<T>(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>()!.showFocusHighlight;
+    return _of<T>(context)?.showFocusHighlight ?? false;
   }
 
   @override
@@ -72,14 +99,16 @@ class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
   };
 
   bool get _showFocusHighlight {
+    // Web often defaults to 'touch' mode on first interaction
     return _isFocused &&
-        FocusManager.instance.highlightMode == FocusHighlightMode.traditional &&
+        (FocusManager.instance.highlightMode == FocusHighlightMode.traditional || kIsWeb) &&
         _canRequestFocus;
   }
 
   @override
   Widget build(BuildContext context) {
     return Focus(
+      debugLabel: 'Focusable ${widget.child}',
       autofocus: widget.autofocus,
       focusNode: widget.focusNode,
       canRequestFocus: _canRequestFocus,

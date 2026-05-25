@@ -1,5 +1,8 @@
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../model/intents.dart';
 import '../model/model.dart';
 import 'entry.dart';
 
@@ -25,9 +28,24 @@ abstract class _SubmenuLabel {
   static const drawing = MenuEntry('Drawing', icon: Symbols.brush);
   static const table = MenuEntry('Table', icon: Symbols.table_chart);
   static const image = MenuEntry('Image', icon: Symbols.image);
-  static const bulletList = MenuEntry('Bulleted list menu', icon: Symbols.format_list_bulleted);
-  static const checkList = MenuEntry('Checklist menu', icon: Symbols.checklist);
-  static const numberList = MenuEntry('Numbered list menu', icon: Symbols.format_list_numbered);
+  static const bulletList = MenuEntryWithIntent(
+    'Bulleted list',
+    icon: Symbols.format_list_bulleted,
+    intent: InsertBulletedListIntent(),
+    shortcut: SingleActivator(LogicalKeyboardKey.digit8, meta: true, shift: true),
+  );
+  static const checkList = MenuEntryWithIntent(
+    'Checklist',
+    icon: Symbols.checklist,
+    intent: InsertChecklistIntent(),
+    shortcut: SingleActivator(LogicalKeyboardKey.digit9, meta: true, shift: true),
+  );
+  static const numberList = MenuEntryWithIntent(
+    'Numbered list',
+    icon: Symbols.format_list_numbered,
+    intent: InsertNumberedListIntent(),
+    shortcut: SingleActivator(LogicalKeyboardKey.digit7, meta: true, shift: true),
+  );
   static const viewMode = MenuEntry('Mode', icon: Symbols.remove_red_eye);
   static const paragraphStyles = MenuEntry('Paragraph styles', icon: Symbols.format_align_left);
   static const language = MenuEntry('Language', icon: Symbols.language);
@@ -53,13 +71,25 @@ abstract class _SubmenuLabel {
   );
 
   static const textAlignment = MenuEntry('Text alignment', icon: Symbols.format_align_left);
+
+  static const MenuEntry aimAssist = MenuEntry('Enhanced Menus', icon: Symbols.target);
 }
 
 abstract class Menu {
   static const addOns = SubmenuEntry(_SubmenuLabel.addOns, [Entry.getAddOns, Entry.manageAddOns]);
-  static const extensions = SubmenuEntry(_SubmenuLabel.extensions, [addOns]);
+
+  static const aimAssist = SubmenuEntry(_SubmenuLabel.aimAssist, [
+    Entry.menuAimAssist,
+    Entry.menuAimAssistDebugPaint,
+  ]);
+  static const extensions = SubmenuEntry(_SubmenuLabel.extensions, [
+    addOns,
+    SeparatorMenuEntry(),
+    Menu.aimAssist,
+  ]);
   static const help = SubmenuEntry(_SubmenuLabel.help, [
     Entry.searchMenus,
+
     SeparatorMenuEntry(),
     Entry.help,
     Entry.training,
@@ -306,6 +336,15 @@ abstract class Menu {
     Entry.paragraphStyleHeading3,
   ]);
 
+  static const test = SubmenuEntry(_SubmenuLabel.text, [
+    Entry.boldFormat,
+    Entry.italicFormat,
+    Entry.underlineFormat,
+    Entry.strikethroughFormat,
+    Entry.superscriptFormat,
+    Entry.subscriptFormat,
+  ]);
+
   static const language = SubmenuEntry(_SubmenuLabel.language, [Entry.setLanguage]);
 
   static const versionHistory = SubmenuEntry(_SubmenuLabel.versionHistory, [
@@ -331,6 +370,90 @@ abstract class Menu {
     Entry.newPresentation,
   ]);
 
+  // 1.1.1 submenu (leaf)
+
+  // 1.1.1 submenu (now with children)
+  static const e_1_1_1_submenu = SubmenuEntry(Entry.e_1_1_1, [Entry.e_1_1_1_1, Entry.e_1_1_1_2]);
+
+  // 1.1.2 submenu
+  static const e_1_1_2_submenu = SubmenuEntry(Entry.e_1_1_2, [Entry.e_1_1_2_1, Entry.e_1_1_2_2]);
+
+  // 1.1 submenu (now with two children)
+  static const e_1_1_submenu = SubmenuEntry(Entry.e_1_1, [e_1_1_1_submenu, e_1_1_2_submenu]);
+
+  // 1.2.1 submenu
+  static const e_1_2_1_submenu = SubmenuEntry(Entry.e_1_2_1, [Entry.e_1_2_1_1, Entry.e_1_2_1_2]);
+
+  // 1.2 submenu
+  static const e_1_2_submenu = SubmenuEntry(Entry.e_1_2, [e_1_2_1_submenu, Entry.e_1_2_2]);
+
+  // 1.3.3 submenu
+  static const e_1_3_3_submenu = SubmenuEntry(Entry.e_1_3_3, [Entry.e_1_3_3_1, Entry.e_1_3_3_2]);
+
+  // 1.3 submenu
+  static const e_1_3_submenu = SubmenuEntry(Entry.e_1_3, [
+    Entry.e_1_3_1,
+    Entry.e_1_3_2,
+    e_1_3_3_submenu,
+  ]);
+
+  // 1.4 submenu (unchanged)
+  static const e_1_4_submenu = SubmenuEntry(Entry.e_1_4, [Entry.e_1_4_1, Entry.e_1_4_2]);
+
+  // 1 submenu (top-level)
+  static const e_1_submenu = SubmenuEntry(Entry.e_1, [
+    e_1_1_submenu,
+    e_1_2_submenu,
+    e_1_3_submenu,
+    e_1_4_submenu,
+  ]);
+
+  // 2.1 submenu
+  static const e_2_1_submenu = SubmenuEntry(Entry.e_2_1, [Entry.e_2_1_1, Entry.e_2_1_2]);
+
+  // 2 submenu
+  static const e_2_submenu = SubmenuEntry(Entry.e_2, [
+    e_1_submenu,
+    Entry.shareWithPeople,
+    SeparatorMenuEntry(),
+    e_3_1_submenu,
+    e_4_1_submenu,
+    e_5_1_submenu,
+    SeparatorMenuEntry(),
+    Entry.getLink,
+  ]);
+
+  // 3.1 submenu
+  static const e_3_1_submenu = SubmenuEntry(Entry.e_3_1, [Entry.e_3_1_1, Entry.e_3_1_2]);
+
+  // 3 submenu
+  static const e_3_submenu = SubmenuEntry(Entry.e_3, [e_3_1_submenu]);
+
+  // 4.1 submenu
+  static const e_4_1_submenu = SubmenuEntry(Entry.e_4_1, [Entry.e_4_1_1, Entry.e_4_1_2]);
+
+  // 4 submenu
+  static const e_4_submenu = SubmenuEntry(Entry.e_4, [e_4_1_submenu]);
+
+  // 5.1 submenu
+  static const e_5_1_submenu = SubmenuEntry(Entry.e_5_1, [Entry.e_5_1_1, Entry.e_5_1_2]);
+
+  // 5 submenu
+  static const e_5_submenu = SubmenuEntry(Entry.e_5, [e_5_1_submenu]);
+
+  // Update testEntriesMenu to use the new submenus
+  static const testEntriesMenu = SubmenuEntry(MenuEntry('Test Entries'), [
+    e_1_submenu,
+    Entry.shareWithPeople,
+    SeparatorMenuEntry(),
+    e_2_submenu,
+    e_3_submenu,
+    e_4_submenu,
+    e_5_submenu,
+    SeparatorMenuEntry(),
+    Entry.getLink,
+  ]);
+
   static const share = SubmenuEntry(_SubmenuLabel.share, [Entry.shareWithPeople, Entry.getLink]);
 
   static const main = SubmenuEntry<SubmenuEntry>(_SubmenuLabel.main, <SubmenuEntry>[
@@ -342,6 +465,7 @@ abstract class Menu {
     tools,
     extensions,
     help,
+    // testEntriesMenu,
   ]);
 
   static const context = SubmenuEntry(_SubmenuLabel.context, [

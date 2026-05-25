@@ -33,5 +33,5 @@ abstract class FloogleColors {
   static const dimensionPickerTileBorder = Color.fromRGBO(230, 230, 230, 1);
   static const titleInputFocusBorder = Color.fromRGBO(11, 87, 208, 1);
   static const logoPressedColor = Color.fromRGBO(229, 229, 229, 1);
-  static const logoFocusHoverColor = Color.fromRGBO(242, 242, 242, 1);
+  static const onDarkGray = Color.fromRGBO(242, 242, 242, 1);
 }

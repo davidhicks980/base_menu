@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
@@ -8,12 +9,17 @@ class MenuPanel extends StatelessWidget {
     super.key,
     this.padding = defaultPadding,
     this.constraints,
-    this.axis = Axis.vertical,
+    this.orientation = Axis.vertical,
     required this.children,
     this.clipBehavior = Clip.none,
     this.spacing = 0,
     this.borderRadius = const BorderRadius.all(Radius.circular(4)),
     this.color = FloogleColors.white,
+    this.onSurfaceEnter,
+    this.onSurfaceExit,
+    this.onSurfaceHover,
+    this.cursor = MouseCursor.defer,
+    this.scrollable = true,
   });
 
   static const defaultPadding = EdgeInsets.symmetric(vertical: 7, horizontal: 1);
@@ -23,20 +29,52 @@ class MenuPanel extends StatelessWidget {
   final List<Widget> children;
   final BorderRadiusGeometry borderRadius;
   final Clip clipBehavior;
-  final Axis axis;
+  final Axis orientation;
   final double spacing;
   final Color color;
+  final PointerEnterEventListener? onSurfaceEnter;
+  final PointerHoverEventListener? onSurfaceHover;
+  final PointerExitEventListener? onSurfaceExit;
+  final MouseCursor cursor;
+  final bool scrollable;
 
   @override
   Widget build(BuildContext context) {
-    final panel = BaseMenuPanel(
-      padding: padding,
-      constraints: constraints,
-      axis: axis,
-      menuChildren: children,
-      spacing: spacing,
+    return _MenuPanelDecoration(
+      clipBehavior: clipBehavior,
+      borderRadius: borderRadius,
+      color: color,
+      child: BaseMenuPanel(
+        padding: padding,
+        constraints: constraints,
+        direction: orientation,
+        menuChildren: children,
+        spacing: spacing,
+        scrollable: scrollable,
+        onEnter: onSurfaceEnter,
+        onHover: onSurfaceHover,
+        onExit: onSurfaceExit,
+        cursor: cursor,
+      ),
     );
+  }
+}
 
+class _MenuPanelDecoration extends StatelessWidget {
+  const _MenuPanelDecoration({
+    required this.child,
+    this.clipBehavior = Clip.none,
+    this.borderRadius = const BorderRadius.all(Radius.circular(4)),
+    this.color = FloogleColors.white,
+  });
+
+  final BorderRadiusGeometry borderRadius;
+  final Clip clipBehavior;
+  final Color color;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     final decoration = BoxDecoration(
       color: color,
       borderRadius: borderRadius,
@@ -51,9 +89,9 @@ class MenuPanel extends StatelessWidget {
     );
 
     if (clipBehavior == Clip.none) {
-      return DecoratedBox(decoration: decoration, child: panel);
+      return DecoratedBox(decoration: decoration, child: child);
     }
 
-    return Container(decoration: decoration, clipBehavior: clipBehavior, child: panel);
+    return Container(decoration: decoration, clipBehavior: clipBehavior, child: child);
   }
 }

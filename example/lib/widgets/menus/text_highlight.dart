@@ -9,71 +9,95 @@ import '../menu_item.dart';
 import '../menu_panel.dart';
 import '../popup.dart';
 
-class TextHighlightButton extends StatelessWidget {
+class TextHighlightButton extends StatefulWidget {
   const TextHighlightButton({super.key});
+
+  @override
+  State<TextHighlightButton> createState() => _TextHighlightButtonState();
+}
+
+class _TextHighlightButtonState extends State<TextHighlightButton> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final selectedColor =
         AppStateManager.selectedTextStyleOf(context)?.textStyle?.backgroundColor ??
         FloogleColors.transparent;
-    final button = MergeSemantics(
-      child: Semantics(
-        label: 'Text highlight color: ${': ${colorLabel(selectedColor)}'}',
-        child: ExcludeSemantics(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: 1.5,
-              children: [
-                CustomPaint(
-                  painter: _InkHighlighterTopFillPainter(),
-                  child: const Icon(
-                    Symbols.ink_highlighter,
-                    size: 14,
-                    color: FloogleColors.darkGray,
-                  ),
-                ),
-                SizedBox(
-                  height: 4,
-                  width: 22,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: selectedColor,
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
-                ),
-              ],
+    final button = ExcludeSemantics(
+      child: SizedBox(
+        width: 20,
+        height: 20,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 1.5,
+          children: [
+            CustomPaint(
+              painter: _InkHighlighterTopFillPainter(),
+              child: const Icon(Symbols.ink_highlighter, size: 14, color: FloogleColors.darkGray),
             ),
-          ),
+            SizedBox(
+              height: 4,
+              width: 22,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: selectedColor,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
-    return Popup(
-      panel: Builder(
-        builder: (context) {
-          return MenuPanel(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            children: [
-              ColorPickerPanel(
-                leading: const MenuItem(
-                  leading: Icon(Symbols.format_color_reset, fill: 1.0),
-                  child: Text('None'),
-                ),
-                selectedColor: selectedColor,
-                onColorSelected: (Color color) {
-                  Actions.invoke(context, FormatTextHighlightIntent(color));
-                  MenuController.maybeOf(context)?.close();
+    return MergeSemantics(
+      child: Semantics(
+        label: 'Highlight color: ${colorLabel(selectedColor)}',
+        child: Popup(
+          enableTooltipSemantics: false,
+          focusNode: _focusNode,
+          tooltip: const TextSpan(text: 'Highlight color'),
+          panel: Builder(
+            builder: (context) {
+              return MenuPanel(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                onSurfaceEnter: (event) {
+                  if (!_focusNode.hasFocus) {
+                    _focusNode.requestFocus();
+                  }
                 },
-              ),
-            ],
-          );
-        },
+                children: [
+                  ColorPickerPanel(
+                    leading: MenuItem(
+                      leading: const Icon(Symbols.format_color_reset, fill: 1.0),
+                      child: const Text('None'),
+                      onTap: () {
+                        Actions.invoke(
+                          context,
+                          const FormatTextHighlightIntent(FloogleColors.transparent),
+                        );
+                        MenuController.maybeOf(context)?.close();
+                      },
+                    ),
+                    selectedColor: selectedColor,
+                    onColorSelected: (Color color) {
+                      Actions.invoke(context, FormatTextHighlightIntent(color));
+                      MenuController.maybeOf(context)?.close();
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+          child: button,
+        ),
       ),
-      child: button,
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import '../../app_state_manager.dart';
@@ -9,7 +10,8 @@ import '../menu_panel.dart';
 import '../selectable_menu_item.dart';
 
 class ViewModePanel extends StatelessWidget {
-  const ViewModePanel({super.key});
+  const ViewModePanel({super.key, this.onSurfaceEnter});
+  final PointerEnterEventListener? onSurfaceEnter;
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +19,7 @@ class ViewModePanel extends StatelessWidget {
     return MenuPanel(
       constraints: const BoxConstraints(minWidth: 260),
       padding: const EdgeInsetsGeometry.symmetric(vertical: 6),
+      onSurfaceEnter: onSurfaceEnter,
       children: [
         for (final option in Menu.viewMode.children)
           MenuItemRadioSemantics(

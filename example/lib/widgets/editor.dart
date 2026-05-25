@@ -49,7 +49,6 @@ class _EditorViewState extends State<EditorView> {
         hitTestBehavior: HitTestBehavior.translucent,
         physics: const BouncingScrollPhysics(),
         scrollDirection: Axis.horizontal,
-        clipBehavior: .none,
         child: Stack(
           clipBehavior: .none,
           children: [
@@ -70,7 +69,6 @@ class _EditorViewState extends State<EditorView> {
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
                       hitTestBehavior: HitTestBehavior.translucent,
-                      clipBehavior: .none,
                       child: Padding(
                         padding: const EdgeInsets.only(top: 16, bottom: 64),
                         child: Row(

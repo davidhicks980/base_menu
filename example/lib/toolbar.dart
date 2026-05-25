@@ -153,6 +153,7 @@ class _ToolbarState extends State<Toolbar> {
   void _onFocusChange(bool hasFocus) {
     if (toolbarFocusScopeNode.hasFocus) {
       FocusManager.instance.addListener(_focusListener);
+      overflowMenuController.close();
     } else {
       FocusManager.instance.removeListener(_focusListener);
       if (_actions != null) {
@@ -227,39 +228,33 @@ class _ToolbarState extends State<Toolbar> {
         children: [
           const SearchMenu(breakpoint: 1500),
           Flexible(
-            child: TapRegion(
-              onTapOutside: (event) {
-                if (!menuController.isOpen) {
-                  toolbarFocusScopeNode.unfocus();
-                }
-              },
-              child: ListenableBuilder(
-                listenable: toolbarFocusScopeNode,
-                builder: _buildConditionalTraversal,
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: BaseMenuBar(
-                        controller: menuController,
-                        focusScopeNode: toolbarFocusScopeNode,
-                        child: Actions(
-                          actions: cutoffChildren.isNotEmpty && _actions != null
-                              ? _actions!
-                              : const {},
-                          child: OverflowRow(onOverflow: _handleOverflow, children: children),
-                        ),
+            child: ListenableBuilder(
+              listenable: toolbarFocusScopeNode,
+              builder: _buildConditionalTraversal,
+              child: Row(
+                children: [
+                  Flexible(
+                    child: BaseMenuBar(
+                      controller: menuController,
+                      focusScopeNode: toolbarFocusScopeNode,
+                      child: Actions(
+                        actions: cutoffChildren.isNotEmpty && _actions != null
+                            ? _actions!
+                            : const {},
+                        child: OverflowRow(onOverflow: _handleOverflow, children: children),
                       ),
                     ),
-                    if (cutoffChildren.isNotEmpty)
-                      OverflowButton(
-                        onTraverseForward: _focusFirstToolbarItem,
-                        onTraverseBackward: _focusLastToolbarItem,
-                        buttonFocusNode: overflowButtonFocusNode,
-                        controller: overflowMenuController,
-                        children: cutoffChildren.expand((group) => group).toList(growable: false),
-                      ),
-                  ],
-                ),
+                  ),
+                  if (cutoffChildren.isNotEmpty)
+                    OverflowButton(
+                      onOpen: menuController.closeChildren,
+                      onTraverseForward: _focusFirstToolbarItem,
+                      onTraverseBackward: _focusLastToolbarItem,
+                      buttonFocusNode: overflowButtonFocusNode,
+                      controller: overflowMenuController,
+                      children: cutoffChildren.expand((group) => group).toList(growable: false),
+                    ),
+                ],
               ),
             ),
           ),
@@ -310,12 +305,14 @@ class OverflowButton extends StatefulWidget {
     required this.buttonFocusNode,
     required this.onTraverseForward,
     required this.onTraverseBackward,
+    required this.onOpen,
   });
   final List<Widget> children;
   final MenuController controller;
   final FocusNode buttonFocusNode;
   final VoidCallback onTraverseForward;
   final VoidCallback onTraverseBackward;
+  final VoidCallback onOpen;
 
   @override
   State<OverflowButton> createState() => _OverflowButtonState();
@@ -451,7 +448,7 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
       orientation: Axis.horizontal,
       onOpenRequest: _handleMenuOpenRequest,
       onCloseRequest: _handleMenuCloseRequest,
-      onOpen: RawTooltip.dismissAllToolTips,
+      onOpen: widget.onOpen,
       onFocusChange: (value) {
         if (!value) {
           widget.controller.close();

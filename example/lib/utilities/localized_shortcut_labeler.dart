@@ -61,6 +61,18 @@ class LocalizedShortcutLabeler {
   bool get _usesSymbolicModifiers =>
       defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS;
 
+  String getFormattedShortcutLabel(
+    MenuSerializableShortcut shortcut,
+    MaterialLocalizations localizations,
+  ) {
+    final label = instance.getShortcutLabel(shortcut, localizations);
+    if (label.length <= 3) {
+      return label.replaceAll(RegExp(r'\s'), '');
+    } else {
+      return label.replaceAll(RegExp(r'\s'), '+');
+    }
+  }
+
   /// Returns the label to be shown to the user in the UI when a
   /// [MenuSerializableShortcut] is used as a keyboard shortcut.
   ///

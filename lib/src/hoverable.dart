@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -24,7 +25,7 @@ class BaseHoverable<T> extends StatefulWidget {
     this.onEnter,
     this.onExit,
     this.behavior = HitTestBehavior.deferToChild,
-    this.mouseCursor = MouseCursor.defer,
+    this.cursor = MouseCursor.defer,
     this.opaque = true,
     this.enabled = true,
     required this.child,
@@ -33,7 +34,7 @@ class BaseHoverable<T> extends StatefulWidget {
   final PointerEnterEventListener? onEnter;
   final PointerHoverEventListener? onHover;
   final PointerExitEventListener? onExit;
-  final MouseCursor mouseCursor;
+  final MouseCursor cursor;
   final HitTestBehavior behavior;
   final bool enabled;
   final bool opaque;
@@ -116,10 +117,10 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
 
   bool get _showHoverHighlight {
     // Hover highlights are only shown in traditional highlight modes (e.g. mouse),
-    // and not in touch modes.
+    // and not in touch modes. However, on web we want to show hover highlights regardless of the highlight mode, since web apps are often used with a mouse even on touch devices.
     return isHovered &&
         widget.enabled &&
-        FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
+        (FocusManager.instance.highlightMode == FocusHighlightMode.traditional || kIsWeb);
   }
 
   @override
@@ -130,7 +131,7 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
       onHover: widget.enabled || !isHovered ? _handleHover : null,
       onExit: widget.enabled ? _handleLeave : null,
       hitTestBehavior: widget.behavior,
-      cursor: widget.mouseCursor,
+      cursor: widget.cursor,
       child: _HoverableScope<T>(
         hovered: isHovered,
         showHoverHighlight: _showHoverHighlight,

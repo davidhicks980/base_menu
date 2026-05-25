@@ -16,6 +16,7 @@ import 'widgets/floogle_docs_logo.dart';
 import 'widgets/menus/document_menu_bar.dart';
 import 'widgets/title_field.dart';
 import 'widgets/title_icon.dart';
+import 'widgets/zoomer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,20 +36,27 @@ class App extends StatefulWidget {
 class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
-    return WidgetsApp(
-      localizationsDelegates: const [
-        DefaultWidgetsLocalizations.delegate,
-        DefaultMaterialLocalizations.delegate,
-      ],
-      textStyle: const TextStyle(
-        fontFamily: 'RobotoFlex',
-        color: FloogleColors.grey,
-        fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+    return Zoomer(
+      constrained: true,
+      minScale: 1,
+      maxScale: 3,
+      child: WidgetsApp(
+        localizationsDelegates: const [
+          DefaultWidgetsLocalizations.delegate,
+          DefaultMaterialLocalizations.delegate,
+        ],
+        textStyle: const TextStyle(
+          fontFamily: 'RobotoFlex',
+          fontFamilyFallback: ['InterVariable'],
+
+          color: FloogleColors.grey,
+          fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
+        ),
+        onGenerateRoute: (settings) {
+          return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
+        },
+        color: FloogleColors.surfaceColor,
       ),
-      onGenerateRoute: (settings) {
-        return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
-      },
-      color: FloogleColors.surfaceColor,
     );
   }
 
@@ -73,6 +81,14 @@ class _MainState extends State<Main> {
   bool _isHeaderExpanded = true;
   bool _isHeaderVisible = true;
 
+  @override
+  void initState() {
+    super.initState();
+    FocusManager.instance.addListener(() {
+      // print('MAIN: ${FocusManager.instance.primaryFocus}');
+    });
+  }
+
   void _handleHeaderAnimationEnd() {
     if (!_isHeaderExpanded) {
       setState(() {
@@ -83,7 +99,6 @@ class _MainState extends State<Main> {
 
   @override
   Widget build(BuildContext context) {
-    print(ModalRoute.isCurrentOf(context));
     _isHeaderExpanded = AppStateManager.isHeaderShownOf(context);
     if (_isHeaderExpanded) {
       _isHeaderVisible = true;
@@ -139,7 +154,7 @@ class _MainState extends State<Main> {
                                   child: Icon(Symbols.add_to_drive),
                                 ),
                                 TitleIconButton(
-                                  tooltip: TextSpan(text: 'See document status'),
+                                  tooltip: TextSpan(text: 'Document status: Saved to Drive'),
                                   child: _CloudIcon(),
                                 ),
                               ],
@@ -172,7 +187,7 @@ class _MainState extends State<Main> {
         final isMenuAimAssistEnabled = documentState[SelectionKey.menuAimAssist] == true;
         final isMenuAimAssistDebugPaintEnabled =
             documentState[SelectionKey.menuAimAssistDebugPaint] == true;
-        MenuAimListener.visualizeAim = isMenuAimAssistDebugPaintEnabled;
+        MenuAimInterceptor.visualizeAim = isMenuAimAssistDebugPaintEnabled;
         return MenuAimScope(enable: isMenuAimAssistEnabled, child: child);
       },
     );

@@ -22,7 +22,9 @@ class MenuEntryPanel extends StatelessWidget {
     this.axis = Axis.vertical,
     required this.menuEntry,
     this.onSurfaceEnter,
+    this.onSurfaceHover,
     this.onSurfaceExit,
+    this.mouseCursor = MouseCursor.defer,
   });
 
   final BoxConstraints? constraints;
@@ -31,13 +33,16 @@ class MenuEntryPanel extends StatelessWidget {
   final SubmenuEntry menuEntry;
   final Axis axis;
   final void Function(PointerEnterEvent)? onSurfaceEnter;
+  final void Function(PointerHoverEvent)? onSurfaceHover;
   final void Function(PointerExitEvent)? onSurfaceExit;
+  final MouseCursor mouseCursor;
 
   @override
   Widget build(BuildContext context) {
     if (menuEntry == Menu.viewMode) {
       return const ViewModePanel();
     }
+
     return MenuPanel(
       orientation: axis,
       constraints: constraints,
@@ -45,6 +50,8 @@ class MenuEntryPanel extends StatelessWidget {
       borderRadius: borderRadius,
       onSurfaceEnter: onSurfaceEnter,
       onSurfaceExit: onSurfaceExit,
+      onSurfaceHover: onSurfaceHover,
+      cursor: mouseCursor,
       children: [
         for (final child in menuEntry.children)
           switch (child) {

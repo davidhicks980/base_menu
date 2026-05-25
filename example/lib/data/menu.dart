@@ -1,5 +1,8 @@
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../model/intents.dart';
 import '../model/model.dart';
 import 'entry.dart';
 
@@ -25,9 +28,24 @@ abstract class _SubmenuLabel {
   static const drawing = MenuEntry('Drawing', icon: Symbols.brush);
   static const table = MenuEntry('Table', icon: Symbols.table_chart);
   static const image = MenuEntry('Image', icon: Symbols.image);
-  static const bulletList = MenuEntry('Bulleted list menu', icon: Symbols.format_list_bulleted);
-  static const checkList = MenuEntry('Checklist menu', icon: Symbols.checklist);
-  static const numberList = MenuEntry('Numbered list menu', icon: Symbols.format_list_numbered);
+  static const bulletList = MenuEntryWithIntent(
+    'Bulleted list',
+    icon: Symbols.format_list_bulleted,
+    intent: InsertBulletedListIntent(),
+    shortcut: SingleActivator(LogicalKeyboardKey.digit8, meta: true, shift: true),
+  );
+  static const checkList = MenuEntryWithIntent(
+    'Checklist',
+    icon: Symbols.checklist,
+    intent: InsertChecklistIntent(),
+    shortcut: SingleActivator(LogicalKeyboardKey.digit9, meta: true, shift: true),
+  );
+  static const numberList = MenuEntryWithIntent(
+    'Numbered list',
+    icon: Symbols.format_list_numbered,
+    intent: InsertNumberedListIntent(),
+    shortcut: SingleActivator(LogicalKeyboardKey.digit7, meta: true, shift: true),
+  );
   static const viewMode = MenuEntry('Mode', icon: Symbols.remove_red_eye);
   static const paragraphStyles = MenuEntry('Paragraph styles', icon: Symbols.format_align_left);
   static const language = MenuEntry('Language', icon: Symbols.language);
@@ -352,8 +370,6 @@ abstract class Menu {
     Entry.newPresentation,
   ]);
 
-  // In menu.dart or a suitable place
-
   // 1.1.1 submenu (leaf)
 
   // 1.1.1 submenu (now with children)
@@ -441,15 +457,15 @@ abstract class Menu {
   static const share = SubmenuEntry(_SubmenuLabel.share, [Entry.shareWithPeople, Entry.getLink]);
 
   static const main = SubmenuEntry<SubmenuEntry>(_SubmenuLabel.main, <SubmenuEntry>[
-    // file,
-    // edit,
-    // view,
-    // insert,
-    // format,
-    // tools,
-    // extensions,
-    // help,
-    testEntriesMenu,
+    file,
+    edit,
+    view,
+    insert,
+    format,
+    tools,
+    extensions,
+    help,
+    // testEntriesMenu,
   ]);
 
   static const context = SubmenuEntry(_SubmenuLabel.context, [

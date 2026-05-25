@@ -123,7 +123,6 @@ final _kColorNames = {
   const Color(0xFFFF00FF): 'Magenta',
 };
 
-// ...existing code...
 String colorLabel(Color color) {
   // Exact name for exact match.
   final exact = _kColorNames[color];

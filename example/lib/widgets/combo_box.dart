@@ -207,6 +207,8 @@ class ComboBox extends StatefulWidget {
     required this.menuController,
     this.alignment = AlignmentDirectional.centerStart,
     this.initialOffset = 0,
+    this.onOpen,
+    this.onClose,
     this.semanticsLabel = 'Combo Box',
   });
 
@@ -221,6 +223,8 @@ class ComboBox extends StatefulWidget {
   final TextStyle textStyle;
   final AlignmentGeometry alignment;
   final double initialOffset;
+  final VoidCallback? onOpen;
+  final VoidCallback? onClose;
 
   final String semanticsLabel;
 
@@ -292,8 +296,11 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   @override
   void didUpdateWidget(ComboBox oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _textController.text = widget.value;
-    _highlightValue = widget.value;
+    if (oldWidget.value != widget.value) {
+      _textController.text = widget.value;
+      _textController.selection = TextSelection(baseOffset: 0, extentOffset: widget.value.length);
+      _highlightValue = widget.value;
+    }
     if (oldWidget.focusNode != widget.focusNode) {
       if (widget.focusNode == null) {
         _internalFocusNode = FocusNode();
@@ -387,6 +394,8 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     return Actions(
       actions: actions,
       child: BaseMenu(
+        onOpen: widget.onOpen,
+        onClose: widget.onClose,
         controller: widget.menuController,
         positioningDelegate: DefaultBaseMenuPositioningDelegate(
           // The vertical padding is to account for the border and padding of the anchor.
@@ -410,7 +419,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
               TargetPlatform.android,
               TargetPlatform.iOS,
             },
-            child: MenuPanel(children: widget.children),
+            child: MenuPanel(clipBehavior: Clip.hardEdge, children: widget.children),
           ),
         ),
         builder: (BuildContext context, MenuController controller, Widget? child) {
@@ -488,7 +497,6 @@ class _Anchor extends StatelessWidget {
     Widget field = isOpen
         ? Editable(
             selectAllOnFocus: true,
-            autofocus: true,
             focusNode: focusNode,
             textController: textController,
             textAlign: TextAlign.center,
@@ -516,10 +524,7 @@ class _Anchor extends StatelessWidget {
       field = Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          field,
-          MouseRegion(cursor: SystemMouseCursors.click, child: trailing),
-        ],
+        children: [field, trailing!],
       );
     }
 
@@ -539,6 +544,8 @@ class _Anchor extends StatelessWidget {
     Widget listenable;
     if (!isOpen) {
       listenable = BaseControl(
+        focusNode: focusNode,
+        mouseCursor: WidgetStateMouseCursor.textable,
         child: Builder(
           builder: (context) {
             return DecoratedBox(
@@ -552,6 +559,10 @@ class _Anchor extends StatelessWidget {
         ),
         onPressed: () {
           menuController.open();
+          textController.selection = TextSelection(
+            baseOffset: 0,
+            extentOffset: textController.text.length,
+          );
           focusNode.requestFocus();
         },
       );
@@ -570,31 +581,36 @@ class _Anchor extends StatelessWidget {
         ),
       ),
       builder: (context, child) {
-        return Semantics.fromProperties(
-          properties: SemanticsProperties(
-            focusable: true,
-            focused: focusNode.hasFocus,
-            expanded: isOpen,
-            hint: defaultTargetPlatform == TargetPlatform.iOS
-                ? isOpen
-                      ? 'Collapse'
-                      : 'Expand'
-                : null,
-            onExpand: isOpen ? null : () => menuController.open(),
-            onCollapse: isOpen ? () => menuController.close() : null,
-            textDirection: Directionality.of(context),
-            label: semanticsLabel,
-            value: selected,
-            onTap: () {
-              if (isOpen) {
-                menuController.close();
-              } else {
-                menuController.open();
-                focusNode.requestFocus();
-              }
-            },
+        return MergeSemantics(
+          child: Semantics.fromProperties(
+            container: true,
+            explicitChildNodes: true,
+            properties: SemanticsProperties(
+              role: .none,
+              focusable: true,
+              focused: focusNode.hasFocus,
+              expanded: isOpen,
+              hint: defaultTargetPlatform == TargetPlatform.iOS
+                  ? isOpen
+                        ? 'Collapse'
+                        : 'Expand'
+                  : null,
+              onExpand: isOpen ? null : () => menuController.open(),
+              onCollapse: isOpen ? () => menuController.close() : null,
+              textDirection: Directionality.of(context),
+              label: semanticsLabel,
+              value: selected,
+              onTap: () {
+                if (isOpen) {
+                  menuController.close();
+                } else {
+                  menuController.open();
+                  focusNode.requestFocus();
+                }
+              },
+            ),
+            child: child,
           ),
-          child: child,
         );
       },
     );

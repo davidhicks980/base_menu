@@ -1,9 +1,10 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import '../../app_state_manager.dart';
 import '../../model/intents.dart';
 import '../../model/model.dart';
 import '../../utilities/colors.dart';
+import '../../utilities/localized_shortcut_labeler.dart';
 import '../icon_button.dart';
 
 class MenuEntryToolbarButton extends StatelessWidget {
@@ -14,13 +15,22 @@ class MenuEntryToolbarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String shortcut = item.shortcut != null
+        ? LocalizedShortcutLabeler.instance.getFormattedShortcutLabel(
+            item.shortcut!,
+            MaterialLocalizations.of(context),
+          )
+        : '';
+    final tooltip = item.label + (shortcut.isNotEmpty ? ' ($shortcut)' : '');
     if (item.intent case FloogleSelectableBooleanIntent(:final key, :final value)) {
       final toggled = AppStateManager.documentStateOf(context)[key] == value;
       return MergeSemantics(
         child: Semantics(
+          container: true,
           toggled: toggled,
-          child: IconButton(
-            tooltip: item.label,
+          tooltip: tooltip,
+          child: ToolbarIconButton(
+            tooltip: tooltip,
             onPressed: () {
               Actions.invoke(context, item.intent);
             },
@@ -44,14 +54,19 @@ class MenuEntryToolbarButton extends StatelessWidget {
       );
     }
 
-    return IconButton(
-      tooltip: item.label,
-      onPressed: () {
-        Actions.invoke(context, item.intent);
-      },
-      child: IconTheme.merge(
-        data: const IconThemeData(size: 18, color: FloogleColors.grey).merge(iconTheme),
-        child: Icon(item.icon),
+    return MergeSemantics(
+      child: Semantics(
+        container: true,
+        child: ToolbarIconButton(
+          tooltip: tooltip,
+          onPressed: () {
+            Actions.invoke(context, item.intent);
+          },
+          child: IconTheme.merge(
+            data: const IconThemeData(size: 18, color: FloogleColors.grey).merge(iconTheme),
+            child: Icon(item.icon),
+          ),
+        ),
       ),
     );
   }

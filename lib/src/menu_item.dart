@@ -3,8 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
+import 'menu_interface.dart';
 
-class BaseMenuItem extends StatefulWidget implements BaseControlInterface {
+class BaseMenuItem extends StatefulWidget implements BaseMenuItemInterface {
   const BaseMenuItem({
     super.key,
     this.onPressed,
@@ -48,14 +49,10 @@ class BaseMenuItem extends StatefulWidget implements BaseControlInterface {
   @override
   final bool autofocus;
 
-  /// Whether hovering over this menu item should request focus.
-  ///
-  /// Defaults to true.
+  @override
   final bool requestFocusOnHover;
 
-  /// Whether activating this menu item should request to close the menu.
-  ///
-  /// Defaults to true.
+  @override
   final bool requestCloseOnActivate;
 
   @override
@@ -70,7 +67,7 @@ class BaseMenuItem extends StatefulWidget implements BaseControlInterface {
   @override
   final SemanticsGestureDelegate? gestureSemantics;
 
-  /// The semantic role to assign to this menu item.
+  @override
   final SemanticsRole? role;
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
@@ -7,6 +8,7 @@ import '../../app_state_manager.dart';
 import '../../extensions/string.dart';
 import '../../model/enum.dart';
 import '../../model/intents.dart';
+import '../../tooltip.dart';
 import '../../utilities/colors.dart';
 import '../menu_action_label.dart';
 import '../menu_divider.dart';
@@ -24,8 +26,23 @@ class FontMenu extends StatefulWidget {
 }
 
 class _FontMenuState extends State<FontMenu> {
+  final FocusNode _focusNode = FocusNode();
+  final MenuController controller = MenuController();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   void _handleChanged(FontFamily family, FontWeight weight) {
     Actions.invoke(context, SetFontFamilyIntent((family: family, weight: weight)));
+  }
+
+  void _handleSurfaceEnter(PointerEnterEvent event) {
+    if (!_focusNode.hasFocus) {
+      _focusNode.requestFocus();
+    }
   }
 
   @override
@@ -46,65 +63,90 @@ class _FontMenuState extends State<FontMenu> {
       child: _FontSelector(
         family: family,
         onChanged: _handleChanged,
-        child: Select(
-          panel: const MenuPanel(
-            clipBehavior: Clip.hardEdge,
-            padding: .symmetric(vertical: 6),
-            constraints: .tightFor(width: 272),
-            children: [
-              MenuItem(leading: Icon(Symbols.add), child: Text('More fonts')),
-              MenuDivider(padding: EdgeInsets.fromLTRB(12, 8, 12, 8)),
-              MenuSectionHeader(child: Text('RECENT')),
-              _Option(FontFamily.inter, autofocusSelected: false),
-              _Option(FontFamily.lexend, autofocusSelected: false),
-              _Option(FontFamily.merriweather, autofocusSelected: false),
-              MenuDivider(padding: .fromLTRB(12, 8, 12, 8), color: FloogleColors.separatorColor),
-              _Option(FontFamily.amaticSc),
-              _Option(FontFamily.caveat),
-              _Option(FontFamily.comfortaa),
-              _Option(FontFamily.ebGaramond),
-              _Option(FontFamily.inter),
-              _Option(FontFamily.lato),
-              _Option(FontFamily.lexend),
-              _Option(FontFamily.libreBaskerville),
-              _Option(FontFamily.lora),
-              _Option(FontFamily.merriweather),
-              _Option(FontFamily.montserrat),
-              _Option(FontFamily.nunito),
-              _Option(FontFamily.oswald),
-              _Option(FontFamily.pacifico),
-              _Option(FontFamily.playfairDisplay),
-              _Option(FontFamily.raleway),
-              _Option(FontFamily.roboto),
-              _Option(FontFamily.robotoMono),
-              _Option(FontFamily.robotoSerif),
-              _Option(FontFamily.robotoSlab),
-              _Option(FontFamily.sourceSansPro),
-              _Option(FontFamily.ubuntu),
-            ],
-          ),
-          child: kIsWeb
-              ? WebLabel(
-                  label: family.label,
-                  textStyle: const TextStyle(
-                    color: FloogleColors.selectTextColor,
-                    fontSize: 14.2,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.1,
-                    fontVariations: [FontVariation.width(87), FontVariation.opticalSize(14.2)],
-                  ),
-                  uppercaseTextStyle: const TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: -0.3,
-                    fontVariations: [FontVariation.opticalSize(14)],
-                  ),
-                )
-              : Text(
-                  family.label,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: FloogleColors.selectTextColor),
+        child: MenuTooltip(
+          enableSemantics: false,
+          message: const TextSpan(text: 'Font'),
+          child: Select(
+            menuController: controller,
+            focusNode: _focusNode,
+            panel: MenuPanel(
+              clipBehavior: Clip.hardEdge,
+              onSurfaceEnter: _handleSurfaceEnter,
+              padding: const .symmetric(vertical: 6),
+              constraints: const .tightFor(width: 272),
+              scrollable: false,
+              children: const [
+                MenuItem(leading: Icon(Symbols.brand_family), child: Text('More fonts')),
+                MenuDivider(
+                  padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  color: FloogleColors.separatorColor,
                 ),
+                MenuSectionHeader(child: Text('RECENT')),
+                _Option(FontFamily.inter, autofocusSelected: false),
+                _Option(FontFamily.lexend, autofocusSelected: false),
+                _Option(FontFamily.merriweather, autofocusSelected: false),
+                MenuDivider(padding: .fromLTRB(12, 8, 12, 8), color: FloogleColors.separatorColor),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _Option(FontFamily.amaticSc),
+                        _Option(FontFamily.caveat),
+                        _Option(FontFamily.comfortaa),
+                        _Option(FontFamily.ebGaramond),
+                        _Option(FontFamily.inter),
+                        _Option(FontFamily.lato),
+                        _Option(FontFamily.lexend),
+                        _Option(FontFamily.libreBaskerville),
+                        _Option(FontFamily.lora),
+                        _Option(FontFamily.merriweather),
+                        _Option(FontFamily.montserrat),
+                        _Option(FontFamily.nunito),
+                        _Option(FontFamily.oswald),
+                        _Option(FontFamily.pacifico),
+                        _Option(FontFamily.playfairDisplay),
+                        _Option(FontFamily.raleway),
+                        _Option(FontFamily.roboto),
+                        _Option(FontFamily.robotoMono),
+                        _Option(FontFamily.robotoSerif),
+                        _Option(FontFamily.robotoSlab),
+                        _Option(FontFamily.sourceSansPro),
+                        _Option(FontFamily.ubuntu),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            child: kIsWeb
+                ? WebLabel(
+                    label: family.label,
+                    textStyle: const TextStyle(
+                      color: FloogleColors.selectTextColor,
+                      fontSize: 14.2,
+                      fontWeight: FontWeight(550),
+                      overflow: TextOverflow.ellipsis,
+                      letterSpacing: -0.1,
+
+                      fontVariations: [FontVariation.width(95), FontVariation.opticalSize(14.2)],
+                    ),
+                    uppercaseTextStyle: const TextStyle(
+                      color: FloogleColors.selectTextColor,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight(550),
+                      letterSpacing: -0.1,
+
+                      overflow: TextOverflow.ellipsis,
+                      fontVariations: [FontVariation.opticalSize(14)],
+                    ),
+                  )
+                : Text(
+                    family.label,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: FloogleColors.selectTextColor),
+                  ),
+          ),
         ),
       ),
     );
@@ -193,7 +235,7 @@ class _SubmenuOptionState extends State<_SubmenuOption> {
           focusNode: _focusNode,
           positioningDelegate: const DefaultBaseMenuPositioningDelegate(
             padding: EdgeInsets.symmetric(vertical: 6),
-            alignmentOffset: Offset(-12, 0),
+            alignmentOffset: Offset(-8, 0),
           ),
           autofocus: widget.autofocusSelected && checked,
           onPressed: () {

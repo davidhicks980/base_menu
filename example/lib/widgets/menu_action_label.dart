@@ -78,6 +78,7 @@ class MenuActionLabel extends StatelessWidget {
 
   static const _acceleratorTextStyle = TextStyle(
     fontFamily: 'RobotoFlex',
+    fontFamilyFallback: ['InterVariable'],
     fontSize: 14,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.2,
@@ -123,7 +124,7 @@ class MenuActionLabel extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           if (shortcut != null)
-            _ShortcutLabel(accelTextStyle: _acceleratorTextStyle, shortcut: shortcut),
+            _ShortcutLabel(acceleratorTextStyle: _acceleratorTextStyle, shortcut: shortcut),
           if (trailing != null) trailing!,
           const SizedBox(width: 15),
         ],
@@ -141,9 +142,9 @@ class MenuActionLabel extends StatelessWidget {
 }
 
 class _ShortcutLabel extends StatelessWidget {
-  const _ShortcutLabel({required this.accelTextStyle, required this.shortcut});
+  const _ShortcutLabel({required this.acceleratorTextStyle, required this.shortcut});
 
-  final TextStyle accelTextStyle;
+  final TextStyle acceleratorTextStyle;
   final MenuSerializableShortcut? shortcut;
 
   @override
@@ -157,7 +158,7 @@ class _ShortcutLabel extends StatelessWidget {
     } else {
       label = label.replaceAll(RegExp(r'\s'), '+');
     }
-    return DefaultTextStyle(style: accelTextStyle, child: Text(label));
+    return Text(label, style: acceleratorTextStyle);
   }
 }
 

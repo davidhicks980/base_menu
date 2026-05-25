@@ -8,7 +8,6 @@ class MenuPanel extends StatelessWidget {
   const MenuPanel({
     super.key,
     this.padding = defaultPadding,
-    this.scrollPadding = EdgeInsets.zero,
     this.constraints,
     this.orientation = Axis.vertical,
     required this.children,
@@ -18,12 +17,14 @@ class MenuPanel extends StatelessWidget {
     this.color = FloogleColors.white,
     this.onSurfaceEnter,
     this.onSurfaceExit,
+    this.onSurfaceHover,
+    this.cursor = MouseCursor.defer,
+    this.scrollable = true,
   });
 
   static const defaultPadding = EdgeInsets.symmetric(vertical: 7, horizontal: 1);
 
   final EdgeInsetsGeometry padding;
-  final EdgeInsetsGeometry scrollPadding;
   final BoxConstraints? constraints;
   final List<Widget> children;
   final BorderRadiusGeometry borderRadius;
@@ -32,7 +33,10 @@ class MenuPanel extends StatelessWidget {
   final double spacing;
   final Color color;
   final PointerEnterEventListener? onSurfaceEnter;
+  final PointerHoverEventListener? onSurfaceHover;
   final PointerExitEventListener? onSurfaceExit;
+  final MouseCursor cursor;
+  final bool scrollable;
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +46,15 @@ class MenuPanel extends StatelessWidget {
       color: color,
       child: BaseMenuPanel(
         padding: padding,
-        scrollPadding: scrollPadding,
         constraints: constraints,
         direction: orientation,
         menuChildren: children,
         spacing: spacing,
+        scrollable: scrollable,
         onEnter: onSurfaceEnter,
+        onHover: onSurfaceHover,
         onExit: onSurfaceExit,
+        cursor: cursor,
       ),
     );
   }

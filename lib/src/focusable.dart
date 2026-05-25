@@ -100,9 +100,8 @@ class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
 
   bool get _showFocusHighlight {
     // Web often defaults to 'touch' mode on first interaction
-    final bool showOnWeb = kIsWeb && _isFocused;
     return _isFocused &&
-        (FocusManager.instance.highlightMode == FocusHighlightMode.traditional || showOnWeb) &&
+        (FocusManager.instance.highlightMode == FocusHighlightMode.traditional || kIsWeb) &&
         _canRequestFocus;
   }
 

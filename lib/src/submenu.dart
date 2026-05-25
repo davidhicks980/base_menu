@@ -9,7 +9,7 @@ import 'package:flutter/widgets.dart';
 import '../menu_utilities.dart';
 import 'menu_interface.dart';
 
-class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuItem {
+class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuItemInterface {
   const BaseSubmenu({
     super.key,
     this.hoverOpenDelay = Duration.zero,
@@ -157,7 +157,9 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     ),
   };
 
-  final MenuController _menuController = MenuController();
+  MenuController? _internalMenuController;
+  MenuController get _menuController => widget.controller ?? _internalMenuController!;
+
   // Notifier to track whether the submenu or its button has focus.
   //
   // This is used to apply a pseudo focus highlight on ancestor submenu anchors.
@@ -173,6 +175,10 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     super.initState();
     if (widget.focusNode == null) {
       _internalFocusNode = FocusNode();
+    }
+
+    if (widget.controller == null) {
+      _internalMenuController = MenuController();
     }
 
     _focusNode.addListener(_handleFocusChange);
@@ -191,6 +197,15 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       }
       _focusNode.addListener(_handleFocusChange);
     }
+
+    if (oldWidget.controller != widget.controller) {
+      if (widget.controller == null) {
+        assert(_internalMenuController == null);
+        _internalMenuController = MenuController();
+      } else if (oldWidget.controller == null) {
+        _internalMenuController = null;
+      }
+    }
   }
 
   @override
@@ -202,6 +217,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     _focusNode.removeListener(_handleFocusChange);
     _internalFocusNode?.dispose();
     _internalFocusNode = null;
+    _internalMenuController = null;
     _highlightNotifier.dispose();
     super.dispose();
   }
@@ -257,6 +273,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     if (_menuController.isOpen && !_isScopeFocused) {
       _scheduleHoverClose();
     }
+
     _updateHighlight();
     widget.onPointerLeave?.call(event);
   }
@@ -341,7 +358,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
           onPointerEnter: _handlePointerEnterAnchor,
           onPointerHover: widget.onPointerHover,
           onPointerLeave: _handlePointerLeaveAnchor,
-          requestCloseOnActivate: false,
+          requestCloseOnActivate: widget.requestCloseOnActivate,
           requestFocusOnHover: widget.requestFocusOnHover,
           behavior: widget.behavior,
           mouseCursor: widget.mouseCursor,

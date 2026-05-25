@@ -14,7 +14,7 @@ class MenuItem extends StatelessWidget {
     this.leadingMidpointAlignment = const AlignmentDirectional(0.23529412, 0),
     this.trailing,
     this.shortcut,
-    this.mouseCursor = WidgetStateMouseCursor.clickable,
+    this.mouseCursor = const WidgetStatePropertyAll(MouseCursor.defer),
     this.autofocus = false,
     this.requestFocusOnHover = true,
     this.isExpanded,

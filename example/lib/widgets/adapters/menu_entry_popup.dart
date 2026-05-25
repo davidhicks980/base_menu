@@ -4,7 +4,7 @@ import '../../model/model.dart';
 import '../popup.dart';
 import 'menu_entry_panel.dart';
 
-class MenuEntryPopup extends StatelessWidget {
+class MenuEntryPopup extends StatefulWidget {
   const MenuEntryPopup({
     super.key,
     required this.model,
@@ -12,21 +12,52 @@ class MenuEntryPopup extends StatelessWidget {
     this.tooltip,
     this.buttonConstraints = const BoxConstraints(minWidth: 30, minHeight: 30),
     this.buttonDecoration,
+    this.onOpen,
+    this.onClose,
   });
   final SubmenuEntry model;
   final BoxConstraints? constraints;
   final WidgetStateProperty<BoxDecoration>? buttonDecoration;
   final BoxConstraints buttonConstraints;
   final InlineSpan? tooltip;
+  final VoidCallback? onOpen;
+  final VoidCallback? onClose;
+
+  @override
+  State<MenuEntryPopup> createState() => _MenuEntryPopupState();
+}
+
+class _MenuEntryPopupState extends State<MenuEntryPopup> {
+  final focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Popup(
-      buttonConstraints: buttonConstraints,
-      buttonDecoration: buttonDecoration,
-      tooltip: tooltip,
-      panel: MenuEntryPanel(constraints: constraints, menuEntry: model),
-      child: Icon(model.child.icon),
+      focusNode: focusNode,
+      buttonConstraints: widget.buttonConstraints,
+      buttonDecoration: widget.buttonDecoration,
+      tooltip: widget.tooltip,
+      onOpen: widget.onOpen,
+      onClose: widget.onClose,
+      panel: Builder(
+        builder: (context) {
+          return MenuEntryPanel(
+            constraints: widget.constraints,
+            menuEntry: widget.model,
+            onSurfaceEnter: (_) {
+              focusNode.requestFocus();
+              MenuController.maybeOf(context)?.open();
+            },
+          );
+        },
+      ),
+      child: Icon(widget.model.child.icon),
     );
   }
 }

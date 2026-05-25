@@ -9,13 +9,28 @@ import '../icon_button.dart';
 import '../menu_panel.dart';
 import '../popup.dart';
 
-class AlignIndentMenu extends StatelessWidget {
+class AlignIndentMenu extends StatefulWidget {
   const AlignIndentMenu({super.key});
+
+  @override
+  State<AlignIndentMenu> createState() => _AlignIndentMenuState();
+}
+
+class _AlignIndentMenuState extends State<AlignIndentMenu> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final align = AppStateManager.selectedTextStyleOf(context)?.textAlign ?? TextAlign.left;
     return Popup(
+      focusNode: _focusNode,
+      tooltip: const TextSpan(text: 'Align & indent'),
       buttonConstraints: const BoxConstraints(),
       panel: MenuPanel(
         spacing: 4,
@@ -23,6 +38,11 @@ class AlignIndentMenu extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         color: FloogleColors.alignSurfaceColor,
         orientation: Axis.horizontal,
+        onSurfaceEnter: (_) {
+          if (!_focusNode.hasFocus) {
+            _focusNode.requestFocus();
+          }
+        },
         children: [
           for (final entry in Menu.align.children)
             DecoratedBox(
@@ -30,7 +50,7 @@ class AlignIndentMenu extends StatelessWidget {
                 color: FloogleColors.alignUnselectedColor,
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: IconButton(
+              child: ToolbarIconButton(
                 autofocus: align == entry.intent.value,
                 decoration: align == entry.intent.value
                     ? WidgetStatePropertyAll(
@@ -42,10 +62,6 @@ class AlignIndentMenu extends StatelessWidget {
                     : null,
                 onPressed: () {
                   Actions.invoke<SetBlockAlignIntent>(context, entry.intent);
-                  FocusScope.of(
-                    context,
-                    createDependency: false,
-                  ).unfocus(disposition: UnfocusDisposition.previouslyFocusedChild);
                 },
                 tooltip: entry.label[0].toUpperCase() + entry.label.substring(1),
                 child: Icon(
@@ -80,7 +96,6 @@ class AlignIndentMenu extends StatelessWidget {
           ],
         ),
       ),
-      // ),
     );
   }
 }

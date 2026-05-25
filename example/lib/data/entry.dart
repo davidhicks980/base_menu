@@ -386,14 +386,14 @@ abstract class Entry {
   static const numberList = MenuEntryWithIntent(
     'Number list',
     icon: Symbols.format_list_numbered,
-    intent: SetNumberedListIntent(),
+    intent: InsertNumberedListIntent(),
     shortcut: SingleActivator(LogicalKeyboardKey.digit7, meta: true, shift: true),
   );
 
   static const bulletList = MenuEntryWithIntent(
     'Bullet list',
     icon: Symbols.format_list_bulleted,
-    intent: SetBulletedListIntent(),
+    intent: InsertBulletedListIntent(),
     shortcut: SingleActivator(LogicalKeyboardKey.digit8, meta: true, shift: true),
   );
 
@@ -586,7 +586,7 @@ abstract class Entry {
   static const numberedListMenu = SelectableMenuEntry(
     'Numbered list',
     icon: Symbols.format_list_numbered,
-    intent: SetNumberedListIntent(),
+    intent: InsertNumberedListIntent(),
   );
 
   static const headersAndFooters = MenuEntryWithIntent(
@@ -886,7 +886,7 @@ abstract class Entry {
     'Checklist',
     icon: Symbols.checklist,
     shortcut: SingleActivator(LogicalKeyboardKey.digit9, meta: true, shift: true),
-    intent: SetChecklistIntent(),
+    intent: InsertChecklistIntent(),
   );
 
   // Columns entries
@@ -1161,6 +1161,28 @@ abstract class Entry {
     [formatChecklistOne, formatChecklistTwo],
     size: Size(85.0, 50.0),
     columns: 2,
+  );
+
+  static const increaseFontSize = MenuEntryWithIntent(
+    'Increase font size',
+    icon: Symbols.add,
+    iconConfig: IconConfiguration(size: 16, opticalSize: 24),
+    shortcut: SingleActivator(LogicalKeyboardKey.period, meta: true, shift: true),
+    intent: FormatIncreaseFontSizeIntent(),
+  );
+
+  static const decreaseFontSize = MenuEntryWithIntent(
+    'Decrease font size',
+    icon: Symbols.remove,
+    shortcut: SingleActivator(LogicalKeyboardKey.comma, meta: true, shift: true),
+    intent: FormatDecreaseFontSizeIntent(),
+  );
+
+  static const showHideMenus = MenuEntryWithIntent(
+    'Show/hide menus',
+    icon: Symbols.menu,
+    shortcut: SingleActivator(LogicalKeyboardKey.keyF, control: true, shift: true),
+    intent: ToggleMenuVisibilityIntent(),
   );
 
   static const e_1 = MenuEntry('1', icon: Symbols.ac_unit);

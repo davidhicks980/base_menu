@@ -400,12 +400,12 @@ class InsertPageCountIntent extends FloogleIntent {
   const InsertPageCountIntent();
 }
 
-class SetBulletedListIntent extends FloogleSelectableBooleanIntent {
-  const SetBulletedListIntent() : super(SelectionKey.bulletedList);
+class InsertBulletedListIntent extends FloogleSelectableBooleanIntent {
+  const InsertBulletedListIntent() : super(SelectionKey.bulletedList);
 }
 
-class SetNumberedListIntent extends FloogleSelectableBooleanIntent {
-  const SetNumberedListIntent() : super(SelectionKey.numberedList);
+class InsertNumberedListIntent extends FloogleSelectableBooleanIntent {
+  const InsertNumberedListIntent() : super(SelectionKey.numberedList);
 }
 
 class HeadersAndFootersIntent extends FloogleIntent {
@@ -563,12 +563,12 @@ class UpdateStyleToMatchIntent extends FloogleIntent {
   const UpdateStyleToMatchIntent();
 }
 
-class FormatIncrementFontSizeIntent extends Intent {
-  const FormatIncrementFontSizeIntent();
+class FormatIncreaseFontSizeIntent extends Intent {
+  const FormatIncreaseFontSizeIntent();
 }
 
-class FormatDecrementFontSizeIntent extends Intent {
-  const FormatDecrementFontSizeIntent();
+class FormatDecreaseFontSizeIntent extends Intent {
+  const FormatDecreaseFontSizeIntent();
 }
 
 class PaintFormatIntent extends FloogleSelectableBooleanIntent {
@@ -582,8 +582,8 @@ class SetCommentVisibilityIntent extends FloogleSelectableIntent<CommentVisibili
   const SetCommentVisibilityIntent.showAll() : super(key: .commentVisibility, value: .showAll);
 }
 
-class SetChecklistIntent extends FloogleIntent {
-  const SetChecklistIntent();
+class InsertChecklistIntent extends FloogleIntent {
+  const InsertChecklistIntent();
 }
 
 class FormatChecklistIntent extends FloogleSelectableIntent<ChecklistType> {
@@ -660,4 +660,8 @@ class ToggleMenuAimAssistIntent extends FloogleSelectableBooleanIntent {
 
 class ToggleMenuAimDebugPaintIntent extends FloogleSelectableBooleanIntent {
   const ToggleMenuAimDebugPaintIntent() : super(SelectionKey.menuAimAssistDebugPaint);
+}
+
+class ToggleMenuVisibilityIntent extends FloogleSelectableBooleanIntent {
+  const ToggleMenuVisibilityIntent() : super(SelectionKey.menuVisibility);
 }

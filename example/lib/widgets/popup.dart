@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import '../utilities/colors.dart';
 import 'icon_button.dart';
 import 'menu_panel.dart';
 
@@ -11,22 +12,34 @@ class Popup extends StatelessWidget {
     this.tooltip,
     required this.panel,
     required this.child,
+    this.focusNode,
     this.orientation = Axis.vertical,
     this.buttonDecoration,
-    this.focusFirstOnOpen = true,
+    this.onOpen,
+    this.onClose,
   });
 
   final Widget panel;
   final Widget child;
+  final FocusNode? focusNode;
   final InlineSpan? tooltip;
   final Axis orientation;
   final BoxConstraints buttonConstraints;
   final WidgetStateProperty<BoxDecoration>? buttonDecoration;
-  final bool focusFirstOnOpen;
+  final VoidCallback? onOpen;
+  final VoidCallback? onClose;
+
+  static const openDecoration = WidgetStatePropertyAll(
+    BoxDecoration(
+      color: FloogleColors.toolbarItemHoverFocus,
+      borderRadius: BorderRadius.all(Radius.circular(4)),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
     final controller = MenuController();
+
     return BaseMenu(
       orientation: orientation,
       menu: panel,
@@ -34,22 +47,27 @@ class Popup extends StatelessWidget {
         alignmentOffset: Offset(0, 8),
         padding: MenuPanel.defaultPadding,
       ),
-      controller: controller,
+      onOpen: onOpen,
+      onClose: onClose,
+      onFocusChange: (bool value) {
+        if (!value && (focusNode != null && !focusNode!.hasFocus)) {
+          controller.close();
+        }
+      },
       child: Builder(
         builder: (context) {
-          return IconButton(
-            decoration: buttonDecoration,
+          return ToolbarIconButton(
+            focusNode: focusNode,
+            decoration:
+                buttonDecoration ??
+                (MenuController.maybeIsOpenOf(context) == true ? openDecoration : null),
             constraints: buttonConstraints,
             tooltip: tooltip?.toPlainText(includePlaceholders: false),
             onPressed: () {
               if (controller.isOpen) {
                 controller.close();
               } else {
-                if (focusFirstOnOpen) {
-                  Actions.invoke(context, const BaseMenuEnterIntent.focusFirst());
-                } else {
-                  controller.open();
-                }
+                controller.open();
               }
             },
             child: child,

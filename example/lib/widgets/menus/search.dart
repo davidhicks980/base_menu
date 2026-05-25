@@ -9,8 +9,8 @@ import '../../data/entry.dart';
 import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../../utilities/colors.dart';
+import '../adapters/menu_entry_toolbar_button.dart';
 import '../editable.dart';
-import '../icon_button.dart';
 import '../menu_action_label.dart';
 
 const defaultStyle = TextStyle(
@@ -65,14 +65,9 @@ class SearchMenu extends StatelessWidget {
       child: Builder(
         builder: (context) {
           return MediaQuery.widthOf(context) < breakpoint
-              ? Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 4, end: 2),
-                  child: IconButton(
-                    onPressed: () {
-                      MenuController.maybeOf(context)?.open();
-                    },
-                    child: const Icon(Symbols.search, size: 18, color: placeholderColor),
-                  ),
+              ? const Padding(
+                  padding: EdgeInsetsDirectional.only(start: 4, end: 2),
+                  child: MenuEntryToolbarButton(item: Entry.searchMenus),
                 )
               : BaseControl(
                   mouseCursor: WidgetStateMouseCursor.textable,
@@ -230,8 +225,9 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
     Actions.maybeInvoke(context, entry.intent);
   }
 
-  List<MenuEntryWithIntent> get entries =>
-      _searchResults.isNotEmpty ? _searchResults : _selectionHistory;
+  List<MenuEntryWithIntent> get entries {
+    return _searchResults.isNotEmpty ? _searchResults : _selectionHistory;
+  }
 
   String _query = '';
 
@@ -315,7 +311,7 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
                     child: Align(child: Icon(Symbols.search, size: 18, color: placeholderColor)),
                   ),
                   Flexible(
-                    child: InlineLabelWrapper(
+                    child: _InlineLabelWrapper(
                       hint: Text(
                         'Menus (Option+/)',
                         style: defaultStyle.copyWith(color: placeholderColor),
@@ -363,7 +359,8 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
             child: Column(
               children: [
                 for (var i = 0; i < entries.length; i++)
-                  SearchEntry(
+                  _SearchEntry(
+                    key: ValueKey(entries[i]),
                     entry: entries[i],
                     query: _textController.text,
                     onPressed: () => _selectEntry(entries[i]),
@@ -384,8 +381,8 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
   }
 }
 
-class BoldQueryLabel extends StatelessWidget {
-  const BoldQueryLabel({super.key, required this.label, required this.query});
+class _QueryLabel extends StatelessWidget {
+  const _QueryLabel({required this.label, required this.query});
   final String label;
   final String query;
 
@@ -426,13 +423,8 @@ class BoldQueryLabel extends StatelessWidget {
   }
 }
 
-class InlineLabelWrapper extends StatelessWidget {
-  const InlineLabelWrapper({
-    super.key,
-    required this.child,
-    required this.controller,
-    required this.hint,
-  });
+class _InlineLabelWrapper extends StatelessWidget {
+  const _InlineLabelWrapper({required this.child, required this.controller, required this.hint});
 
   final Widget child;
   final TextEditingController controller;
@@ -459,8 +451,8 @@ class InlineLabelWrapper extends StatelessWidget {
   }
 }
 
-class SearchEntry extends StatelessWidget {
-  const SearchEntry({
+class _SearchEntry extends StatelessWidget {
+  const _SearchEntry({
     super.key,
     required this.entry,
     required this.query,
@@ -510,7 +502,7 @@ class SearchEntry extends StatelessWidget {
                       ? [FontVariation.weight(450)]
                       : [FontVariation.weight(350)],
                 ),
-                child: BoldQueryLabel(label: entry.label, query: query),
+                child: _QueryLabel(label: entry.label, query: query),
               ),
             ),
           ),

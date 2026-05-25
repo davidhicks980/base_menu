@@ -59,27 +59,27 @@ const Map<ShortcutActivator, Intent> _kStopDirectionalPropagationShortcuts =
     };
 
 /// A base class for intents that trigger directional focus traversal within a menu.
-sealed class BaseMenuFocusTraversalIntent extends Intent {
-  const BaseMenuFocusTraversalIntent();
+sealed class _TraversalIntent extends Intent {
+  const _TraversalIntent();
 }
 
 /// An intent that moves focus to the next item within a horizontal menu or menubar.
-final class BaseMenuHorizontalFocusNextIntent extends BaseMenuFocusTraversalIntent {
+final class BaseMenuHorizontalFocusNextIntent extends _TraversalIntent {
   const BaseMenuHorizontalFocusNextIntent();
 }
 
 /// An intent that moves focus to the previous item within a horizontal menu or menubar.
-final class BaseMenuHorizontalFocusPreviousIntent extends BaseMenuFocusTraversalIntent {
+final class BaseMenuHorizontalFocusPreviousIntent extends _TraversalIntent {
   const BaseMenuHorizontalFocusPreviousIntent();
 }
 
 /// An intent that moves focus down to the next item within a vertical menu.
-final class BaseMenuVerticalFocusNextIntent extends BaseMenuFocusTraversalIntent {
+final class BaseMenuVerticalFocusNextIntent extends _TraversalIntent {
   const BaseMenuVerticalFocusNextIntent();
 }
 
 /// An intent that moves focus up to the previous item within a vertical menu.
-final class BaseMenuVerticalFocusPreviousIntent extends BaseMenuFocusTraversalIntent {
+final class BaseMenuVerticalFocusPreviousIntent extends _TraversalIntent {
   const BaseMenuVerticalFocusPreviousIntent();
 }
 
@@ -173,11 +173,13 @@ class BaseMenuPanel extends StatelessWidget {
     this.constraints,
     this.constrainCrossAxis = false,
     this.padding = EdgeInsets.zero,
-    this.scrollPadding = EdgeInsets.zero,
+    this.scrollable = true,
     this.spacing = 0,
     this.clipBehavior = Clip.none,
     this.onEnter,
     this.onExit,
+    this.onHover,
+    this.cursor = MouseCursor.defer,
     required this.direction,
     required this.menuChildren,
   });
@@ -214,7 +216,7 @@ class BaseMenuPanel extends StatelessWidget {
   final EdgeInsetsGeometry padding;
 
   /// The amount of padding to apply to the menu panel's scrollable.
-  final EdgeInsetsGeometry scrollPadding;
+  // final EdgeInsetsGeometry scrollPadding;
 
   /// The spacing to apply between menu items.
   ///
@@ -238,9 +240,18 @@ class BaseMenuPanel extends StatelessWidget {
   /// Called when a pointer leaves the menu surface after entering.
   final PointerExitEventListener? onExit;
 
+  /// Called when a pointer moves within the menu surface after entering.
+  final PointerHoverEventListener? onHover;
+
+  /// The mouse cursor to use when a pointer is hovering over the menu surface.
+  final MouseCursor cursor;
+
+  /// Whether the menu panel should be scrollable when its contents exceed the available space within the overlay.
+  final bool scrollable;
+
   @override
   Widget build(BuildContext context) {
-    Widget body = Flex(
+    Widget child = Flex(
       direction: direction,
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,18 +260,29 @@ class BaseMenuPanel extends StatelessWidget {
     );
 
     if (onEnter != null || onExit != null) {
-      body = BaseMenuPanelMouseRegion(onEnter: onEnter, onExit: onExit, child: body);
+      child = BaseMenuPanelMouseRegion(
+        onEnter: onEnter,
+        onExit: onExit,
+        cursor: cursor,
+        onHover: onHover,
+        child: child,
+      );
     }
 
-    Widget child = SingleChildScrollView(
-      scrollDirection: direction,
-      clipBehavior: clipBehavior,
-      padding: scrollPadding,
-      child: body,
-    );
+    if (scrollable) {
+      child = SingleChildScrollView(
+        scrollDirection: direction,
+        clipBehavior: clipBehavior,
+        child: child,
+      );
+    }
 
     if (padding != EdgeInsets.zero) {
       child = Padding(padding: padding, child: child);
+    }
+
+    if (clipBehavior != ui.Clip.none) {
+      child = ClipRect(clipBehavior: clipBehavior, child: child);
     }
 
     var applyIntrinsics = true;
@@ -273,7 +295,13 @@ class BaseMenuPanel extends StatelessWidget {
     }
 
     if (onEnter != null || onExit != null) {
-      child = BaseMenuPanelMouseRegion(onEnter: onEnter, onExit: onExit, child: child);
+      child = BaseMenuPanelMouseRegion(
+        onEnter: onEnter,
+        onExit: onExit,
+        cursor: cursor,
+        onHover: onHover,
+        child: child,
+      );
     }
 
     if (applyIntrinsics) {
@@ -324,9 +352,17 @@ abstract class BaseMenuPositioningDelegate {
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child);
 }
 
-/// A delegate that positions the menu panel of a [BaseMenu] relative to the
-/// menu's anchor using the provided [alignment], [alignmentOffset], and
-/// [menuAlignment].
+/// A delegate whose [build] method builds a widget that positions the menu
+/// panel of a [BaseMenu].
+///
+/// The position is determined relative to the menu's anchor using the provided
+/// [alignment], [menuAlignment], and [alignmentOffset]. If the menu overflows
+/// the edge of the screen, it will be flipped across the anchor's midpoint on
+/// the axis of overflow according to the [flipEdges] configuration.
+///
+/// The [padding] is applied to the menu surface but ignored during menu
+/// positioning, which is useful for ensuring a submenu's items align with their
+/// parent menu's items when the submenu applies padding to its surface.
 class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
   const DefaultBaseMenuPositioningDelegate({
     this.alignment,
@@ -334,6 +370,12 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
     this.menuAlignment,
     this.padding = EdgeInsets.zero,
     this.overlayPadding = const EdgeInsets.all(8),
+    this.flipEdges = const {
+      AxisDirection.up,
+      AxisDirection.down,
+      AxisDirection.left,
+      AxisDirection.right,
+    },
   });
 
   /// The point on the menu surface that attaches to the anchor.
@@ -351,11 +393,11 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
   /// The [alignment] is ignored if a `position` argument is provided to
   /// [MenuController.open].
   ///
-  /// If the menu overflows the edge of the screen, the menu will be flipped
-  /// across the anchor's midpoint on the axis of overflow, effectively negating
-  /// the alignment on that axis. For example, if the menu on the right side of
-  /// the anchor overflows the right edge of the screen, the menu will be
-  /// flipped to the left side of the anchor.
+  /// If the menu overflows an edge of the screen included in [flipEdges], the
+  /// menu will be flipped across the anchor's midpoint on the axis of overflow.
+  /// For example, if the menu on the right side of the anchor overflows the
+  /// right edge of the screen, the menu will be flipped to the left side of the
+  /// anchor.
   ///
   /// Defaults to [AlignmentDirectional.bottomStart] if this is a root menu, and
   /// [AlignmentDirectional.topEnd] if this is a submenu.
@@ -377,6 +419,10 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
   ///
   /// Defaults to [Offset.zero].
   final Offset alignmentOffset;
+
+  /// The edges of the screen that, when overflowed by the menu, should trigger
+  /// the menu to flip across the anchor's midpoint on the axis of overflow.
+  final Set<AxisDirection> flipEdges;
 
   /// The [EdgeInsetsGeometry] applied to the menu surface but ignored during
   /// menu positioning.
@@ -409,7 +455,7 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
                 })
             .resolve(textDirection);
 
-    final delegate = _MenuLayout(
+    final delegate = DefaultMenuLayoutDelegate(
       overlayPadding: overlayPadding.resolve(textDirection),
       padding: padding,
       avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
@@ -419,6 +465,7 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
       menuPosition: position.position,
       menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
       alignment: anchorAlignment,
+      flipEdges: flipEdges,
     );
 
     if (!MenuAimScope.isEnabledOf(context) || _MenuScope._maybeOf(context)?.isSubmenu != true) {
@@ -431,7 +478,7 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
             delegate: _MenuAimLayoutDecorator(delegate: delegate, geometry: geometry),
             child: child,
           ),
-          MenuAimListener(geometry: geometry),
+          MenuAimInterceptor(geometry: geometry),
         ],
       );
     }
@@ -463,7 +510,6 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
     this.onFocusChange,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
-      label: 'Menu',
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
@@ -579,8 +625,9 @@ class _BaseMenuState extends State<BaseMenu> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
       if (widget.controller == null) {
+        assert(_internalMenuController == null);
         _internalMenuController = MenuController();
-      } else {
+      } else if (oldWidget.controller == null) {
         _internalMenuController = null;
       }
     }
@@ -691,33 +738,29 @@ class _BaseMenuState extends State<BaseMenu> {
   void _handleClose() {
     widget.onClose?.call();
 
-    if (!kIsWeb) {
-      return;
+    if (kIsWeb) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        final previousPrimaryFocus = FocusManager.instance.primaryFocus;
+        if (previousPrimaryFocus == null) {
+          return;
+        }
+        FocusManager.instance.applyFocusChangesIfNeeded();
+        if (FocusManager.instance.rootScope.hasPrimaryFocus) {
+          previousPrimaryFocus.requestFocus();
+        }
+      });
     }
-
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      final previousPrimaryFocus = FocusManager.instance.primaryFocus;
-      if (previousPrimaryFocus == null) {
-        return;
-      }
-      FocusManager.instance.applyFocusChangesIfNeeded();
-      if (FocusManager.instance.rootScope.hasPrimaryFocus) {
-        previousPrimaryFocus.requestFocus();
-      }
-    });
   }
 
   void _handleOpen() {
     widget.onOpen?.call();
 
-    if (!kIsWeb) {
-      return;
+    if (kIsWeb) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        // Prevents the root focus scope from taking focus on web.
+        FocusManager.instance.primaryFocus?.requestFocus();
+      });
     }
-
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      // Prevents the root focus scope from taking focus on web.
-      FocusManager.instance.primaryFocus?.requestFocus();
-    });
   }
 
   @override
@@ -1045,11 +1088,11 @@ class _FocusLastAction extends Action<_MenuFocusLastIntent> {
   }
 }
 
-class _TraverseNextAction extends Action<BaseMenuFocusTraversalIntent> {
+class _TraverseNextAction extends Action<_TraversalIntent> {
   _TraverseNextAction(this.focusScopeNode);
   final FocusScopeNode focusScopeNode;
   @override
-  void invoke(BaseMenuFocusTraversalIntent intent) {
+  void invoke(_TraversalIntent intent) {
     final policy = FocusTraversalGroup.maybeOf(focusScopeNode.context!);
     if (policy == null) {
       primaryFocus?.nextFocus();
@@ -1071,11 +1114,11 @@ class _TraverseNextAction extends Action<BaseMenuFocusTraversalIntent> {
   }
 }
 
-class _TraversePreviousAction extends Action<BaseMenuFocusTraversalIntent> {
+class _TraversePreviousAction extends Action<_TraversalIntent> {
   _TraversePreviousAction(this.focusScopeNode);
   final FocusScopeNode focusScopeNode;
   @override
-  void invoke(BaseMenuFocusTraversalIntent intent) {
+  void invoke(_TraversalIntent intent) {
     final policy = FocusTraversalGroup.maybeOf(focusScopeNode.context!);
 
     if (policy == null) {
@@ -1103,8 +1146,8 @@ class _TraversePreviousAction extends Action<BaseMenuFocusTraversalIntent> {
 }
 
 // A layout delegate that positions the menu relative to its anchor.
-class _MenuLayout extends SingleChildLayoutDelegate {
-  const _MenuLayout({
+class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
+  const DefaultMenuLayoutDelegate({
     required this.alignmentOffset,
     required this.anchorRect,
     required this.overlayPadding,
@@ -1113,6 +1156,7 @@ class _MenuLayout extends SingleChildLayoutDelegate {
     required this.menuAlignment,
     required this.textDirection,
     required EdgeInsetsGeometry? padding,
+    required this.flipEdges,
     this.menuPosition,
   }) : menuPadding = padding;
 
@@ -1145,6 +1189,10 @@ class _MenuLayout extends SingleChildLayoutDelegate {
 
   // The direction in which the text flows within the menu.
   final ui.TextDirection textDirection;
+
+  // The axis or axes on which the menu should be flipped across the anchor's
+  // midpoint if it overflows the edge of the screen.
+  final Set<AxisDirection> flipEdges;
 
   // Finds the closest screen to the anchor position.
   //
@@ -1212,30 +1260,38 @@ class _MenuLayout extends SingleChildLayoutDelegate {
       }
 
       if (overLeftEdge(x)) {
-        // Flip the X position across the horizontal midpoint of the anchor so that the menu is to the right of the anchor.
-        double flipX = anchor.center.dx * 2 - position.dx - childSize.width;
-        if (shiftX != null) {
-          flipX -= padding!.horizontal + shiftX;
-        }
+        if (flipEdges.contains(AxisDirection.left)) {
+          // Flip the X position across the horizontal midpoint of the anchor so that the menu is to the right of the anchor.
+          double flipX = anchor.center.dx * 2 - position.dx - childSize.width;
+          if (shiftX != null) {
+            flipX -= padding!.horizontal + shiftX;
+          }
 
-        hasHorizontalAnchorOverlap = overRightEdge(flipX);
-        if (hasHorizontalAnchorOverlap || overLeftEdge(flipX)) {
-          x = screen.left + overlayPadding.left;
+          hasHorizontalAnchorOverlap = overRightEdge(flipX);
+          if (hasHorizontalAnchorOverlap || overLeftEdge(flipX)) {
+            x = screen.left + overlayPadding.left;
+          } else {
+            x = flipX;
+          }
         } else {
-          x = flipX;
+          x = screen.left + overlayPadding.left;
         }
       } else if (overRightEdge(x)) {
-        // Flip the X position across the horizontal midpoint of the anchor so that the menu is to the left of the anchor.
-        double flipX = anchor.center.dx * 2 - position.dx - childSize.width;
-        if (shiftX != null) {
-          flipX += padding!.horizontal - shiftX;
-        }
+        if (flipEdges.contains(AxisDirection.right)) {
+          // Flip the X position across the horizontal midpoint of the anchor so that the menu is to the left of the anchor.
+          double flipX = anchor.center.dx * 2 - position.dx - childSize.width;
+          if (shiftX != null) {
+            flipX += padding!.horizontal - shiftX;
+          }
 
-        hasHorizontalAnchorOverlap = overLeftEdge(flipX);
-        if (hasHorizontalAnchorOverlap || overRightEdge(flipX)) {
-          x = screen.right - childSize.width - overlayPadding.right;
+          hasHorizontalAnchorOverlap = overLeftEdge(flipX);
+          if (hasHorizontalAnchorOverlap || overRightEdge(flipX)) {
+            x = screen.right - childSize.width - overlayPadding.right;
+          } else {
+            x = flipX;
+          }
         } else {
-          x = flipX;
+          x = screen.right - childSize.width - overlayPadding.right;
         }
       }
     }
@@ -1272,29 +1328,37 @@ class _MenuLayout extends SingleChildLayoutDelegate {
     }
 
     if (overTopEdge(y)) {
-      // Flip the Y position across the vertical midpoint of the anchor so that the menu is below the anchor.
-      double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
-      if (shiftY != null) {
-        flipY -= padding!.vertical + shiftY;
-      }
+      if (flipEdges.contains(AxisDirection.up)) {
+        // Flip the Y position across the vertical midpoint of the anchor so that the menu is below the anchor.
+        double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
+        if (shiftY != null) {
+          flipY -= padding!.vertical + shiftY;
+        }
 
-      if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-        y = screen.top + overlayPadding.top;
+        if (overTopEdge(flipY) || overBottomEdge(flipY)) {
+          y = screen.top + overlayPadding.top;
+        } else {
+          y = flipY;
+        }
       } else {
-        y = flipY;
+        y = screen.top + overlayPadding.top;
       }
     } else if (overBottomEdge(y)) {
-      // Flip the Y position across the vertical midpoint of the anchor so that
-      // the menu is above the anchor.
-      double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
-      if (shiftY != null) {
-        flipY += padding!.vertical - shiftY;
-      }
+      if (flipEdges.contains(AxisDirection.down)) {
+        // Flip the Y position across the vertical midpoint of the anchor so that
+        // the menu is above the anchor.
+        double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
+        if (shiftY != null) {
+          flipY += padding!.vertical - shiftY;
+        }
 
-      if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-        y = screen.bottom - childSize.height - overlayPadding.bottom;
+        if (overTopEdge(flipY) || overBottomEdge(flipY)) {
+          y = screen.bottom - childSize.height - overlayPadding.bottom;
+        } else {
+          y = flipY;
+        }
       } else {
-        y = flipY;
+        y = screen.bottom - childSize.height - overlayPadding.bottom;
       }
     }
 
@@ -1333,7 +1397,7 @@ class _MenuLayout extends SingleChildLayoutDelegate {
   }
 
   @override
-  bool shouldRelayout(_MenuLayout oldDelegate) {
+  bool shouldRelayout(DefaultMenuLayoutDelegate oldDelegate) {
     return anchorRect != oldDelegate.anchorRect ||
         alignment != oldDelegate.alignment ||
         alignmentOffset != oldDelegate.alignmentOffset ||
@@ -1342,6 +1406,7 @@ class _MenuLayout extends SingleChildLayoutDelegate {
         menuPadding != oldDelegate.menuPadding ||
         overlayPadding != oldDelegate.overlayPadding ||
         textDirection != oldDelegate.textDirection ||
+        !setEquals(flipEdges, oldDelegate.flipEdges) ||
         !setEquals(avoidBounds, oldDelegate.avoidBounds);
   }
 }

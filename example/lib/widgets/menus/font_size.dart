@@ -1,13 +1,14 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../app_state_manager.dart';
+import '../../data/entry.dart';
 import '../../model/intents.dart';
+import '../../tooltip.dart';
+import '../adapters/menu_entry_toolbar_button.dart';
 import '../combo_box.dart';
-import '../icon_button.dart';
 
 class FontSizeMenu extends StatefulWidget {
   const FontSizeMenu({super.key});
@@ -68,10 +69,12 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final child = MergeSemantics(
-      child: DefaultTextStyle(
-        textAlign: TextAlign.center,
-        style: const TextStyle(height: 1.3),
+    final child = DefaultTextStyle(
+      textAlign: TextAlign.center,
+      style: const TextStyle(height: 1.3),
+      child: MenuTooltip(
+        enableSemantics: false,
+        message: const TextSpan(text: 'Font Size'),
         child: ComboBox(
           semanticsLabel: 'Font Size',
           alignment: Alignment.center,
@@ -92,7 +95,7 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
       ),
     );
     return BaseHoverable(
-      mouseCursor: WidgetStateMouseCursor.textable,
+      cursor: WidgetStateMouseCursor.textable,
       child: Builder(
         builder: (context) {
           return DecoratedBox(
@@ -120,12 +123,9 @@ class DecrementFontSizeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return ConstrainedBox(
       constraints: const BoxConstraints.tightFor(width: 24, height: 24),
-      onPressed: () {
-        Actions.invoke(context, const FormatDecrementFontSizeIntent());
-      },
-      child: const Icon(Symbols.remove, size: 16, opticalSize: 24),
+      child: const MenuEntryToolbarButton(item: Entry.decreaseFontSize),
     );
   }
 }
@@ -135,12 +135,9 @@ class IncrementFontSizeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return ConstrainedBox(
       constraints: const BoxConstraints.tightFor(width: 24, height: 24),
-      onPressed: () {
-        Actions.invoke(context, const FormatIncrementFontSizeIntent());
-      },
-      child: const Icon(Symbols.add, size: 16, opticalSize: 24),
+      child: const MenuEntryToolbarButton(item: Entry.increaseFontSize),
     );
   }
 }

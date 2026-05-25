@@ -33,7 +33,7 @@ class MenuBarButtonLabel extends StatelessWidget {
       borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
     WidgetState.hovered: BoxDecoration(
-      color: FloogleColors.logoFocusHoverColor,
+      color: FloogleColors.onDarkGray,
       borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
     WidgetState.any: BoxDecoration(),

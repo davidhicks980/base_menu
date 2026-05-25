@@ -27,7 +27,11 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
 
   late final gestures = {
     TapGestureRecognizer: GestureRecognizerFactoryWithHandlers(
-      () => TapGestureRecognizer(debugOwner: this),
+      () => TapGestureRecognizer(
+        debugOwner: this,
+        allowedButtonsFilter: (int buttons) =>
+            buttons == kSecondaryButton || buttons == kPrimaryButton,
+      ),
       (instance) {
         instance
           ..onTapDown = _handleTapDown
@@ -37,6 +41,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
   };
 
   bool _wasBrowserContextMenuEnabled = false;
+  bool _deferClose = false;
 
   @override
   void initState() {
@@ -52,14 +57,6 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
-  }
-
-  Future<void> _handleSecondaryTapDown(TapDownDetails details) async {
-    if (kIsWeb && BrowserContextMenu.enabled) {
-      return;
-    }
-
-    widget.menuController.open(position: details.localPosition);
   }
 
   Future<void>? _contextMenuStatus;
@@ -115,23 +112,34 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
     WidgetsBinding.instance.keyboard.removeHandler(_handleKeyEvent);
   }
 
+  void _handleSecondaryTapDown(TapDownDetails details) {
+    if (kIsWeb && BrowserContextMenu.enabled) {
+      return;
+    }
+
+    _deferClose = true;
+    widget.menuController.open(position: details.localPosition);
+    scheduleMicrotask(() {
+      _deferClose = false;
+    });
+  }
+
   void _handleTapDown(TapDownDetails details) {
+    // 2. Left Click - Close the menu if open
     if (widget.menuController.isOpen) {
       widget.menuController.close();
       return;
     }
+
+    // 3. Left Click (Ctrl+Click context menu on macOS/iOS)
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
       case TargetPlatform.linux:
       case TargetPlatform.windows:
-        // Don't open the menu on these platforms with a Ctrl-tap (or a
-        // tap).
         break;
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
-        // Only open the menu on these platforms if the control button is down
-        // when the tap occurs.
         if (HardwareKeyboard.instance.logicalKeysPressed.contains(LogicalKeyboardKey.controlLeft) ||
             HardwareKeyboard.instance.logicalKeysPressed.contains(
               LogicalKeyboardKey.controlRight,
@@ -147,22 +155,41 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
       positioningDelegate: const DefaultBaseMenuPositioningDelegate(
         padding: EdgeInsets.symmetric(vertical: 6),
       ),
+      useRootOverlay: true,
+      onCloseRequest: (hideOverlay) {
+        if (_deferClose) {
+          return;
+        }
+        hideOverlay();
+        return;
+      },
       menu: MouseRegion(
+        onEnter: _onHoverEnter,
         onExit: (event) {
-          _focusNode.requestFocus();
+          if (!_focusNode.hasFocus) {
+            _focusNode.requestFocus();
+          }
         },
         child: MenuEntryPanel(
           menuEntry: Menu.context,
           constraints: const BoxConstraints(minWidth: 320),
           onSurfaceEnter: (event) {
-            _focusNode.requestFocus();
+            if (!_focusNode.hasFocus) {
+              _focusNode.requestFocus();
+            }
           },
         ),
       ),
       controller: widget.menuController,
       child: BaseFocusable(
         focusNode: _focusNode,
-        child: RawGestureDetector(gestures: gestures, child: widget.child),
+        child: Semantics(
+          child: RawGestureDetector(
+            gestures: gestures,
+            behavior: HitTestBehavior.translucent,
+            child: widget.child,
+          ),
+        ),
       ),
     );
 

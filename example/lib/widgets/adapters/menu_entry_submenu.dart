@@ -50,7 +50,9 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
       ),
       hoverOpenDelay: widget.hoverDelay,
       hoverCloseDelay: widget.hoverDelay,
+      controller: _menuController,
       menu: MenuEntryPanel(
+        mouseCursor: SystemMouseCursors.basic,
         menuEntry: widget.entry,
         constraints: widget.entry == Menu.table ? null : widget.constraints,
         onSurfaceEnter: (event) {

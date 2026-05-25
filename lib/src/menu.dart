@@ -702,7 +702,9 @@ class _BaseMenuState extends State<BaseMenu> {
   }
 
   Widget _buildOverlay(BuildContext context, RawMenuOverlayInfo position) {
-    if (_overlayActions == null) {
+    // When _parentOrientation == null, there is no parent menu bar or menu
+    // anchor. In this case, overlay actions are not set.
+    if (_overlayActions == null && _parentOrientation != null) {
       final Type intentType = switch (widget.orientation) {
         Axis.vertical => BaseMenuHorizontalFocusPreviousIntent,
         Axis.horizontal => BaseMenuVerticalFocusPreviousIntent,
@@ -711,7 +713,7 @@ class _BaseMenuState extends State<BaseMenu> {
     }
 
     final overlay = Actions(
-      actions: _overlayActions!,
+      actions: _overlayActions ?? const {},
       child: _MenuOverlay(
         submenuAxis: widget.orientation,
         position: position,
@@ -740,6 +742,7 @@ class _BaseMenuState extends State<BaseMenu> {
 
     if (kIsWeb) {
       SchedulerBinding.instance.addPostFrameCallback((_) {
+        // Prevents the root focus scope from taking focus on web.
         final previousPrimaryFocus = FocusManager.instance.primaryFocus;
         if (previousPrimaryFocus == null) {
           return;

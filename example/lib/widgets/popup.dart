@@ -17,6 +17,7 @@ class Popup extends StatelessWidget {
     this.buttonDecoration,
     this.onOpen,
     this.onClose,
+    this.enableTooltipSemantics = true,
   });
 
   final Widget panel;
@@ -28,6 +29,7 @@ class Popup extends StatelessWidget {
   final WidgetStateProperty<BoxDecoration>? buttonDecoration;
   final VoidCallback? onOpen;
   final VoidCallback? onClose;
+  final bool enableTooltipSemantics;
 
   static const openDecoration = WidgetStatePropertyAll(
     BoxDecoration(
@@ -39,8 +41,8 @@ class Popup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = MenuController();
-
     return BaseMenu(
+      controller: controller,
       orientation: orientation,
       menu: panel,
       positioningDelegate: const DefaultBaseMenuPositioningDelegate(
@@ -57,6 +59,7 @@ class Popup extends StatelessWidget {
       child: Builder(
         builder: (context) {
           return ToolbarIconButton(
+            enableTooltipSemantics: enableTooltipSemantics,
             focusNode: focusNode,
             decoration:
                 buttonDecoration ??

@@ -16,6 +16,7 @@ class ToolbarIconButton extends StatelessWidget {
     this.autofocus = false,
     this.decoration,
     this.constraints = const BoxConstraints.tightFor(width: 30, height: 30),
+    this.enableTooltipSemantics = true,
   });
 
   final Widget child;
@@ -27,6 +28,7 @@ class ToolbarIconButton extends StatelessWidget {
   final BoxConstraints constraints;
   final bool autofocus;
   final bool requestFocusOnHover;
+  final bool enableTooltipSemantics;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,7 @@ class ToolbarIconButton extends StatelessWidget {
     }
 
     return MenuTooltip(
+      enableSemantics: enableTooltipSemantics,
       message: TextSpan(text: tooltip),
       child: item,
     );

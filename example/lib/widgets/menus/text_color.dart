@@ -58,7 +58,8 @@ class _TextColorButtonState extends State<TextColorButton> {
         label: 'Text color: ${colorLabel(color)}',
         child: Popup(
           focusNode: _focusNode,
-          tooltip: const TextSpan(text: 'Text color', semanticsLabel: ''),
+          enableTooltipSemantics: false,
+          tooltip: const TextSpan(text: 'Text color'),
           panel: MenuPanel(
             onSurfaceEnter: (event) {
               if (!_focusNode.hasFocus) {

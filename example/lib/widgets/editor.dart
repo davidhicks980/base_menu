@@ -157,7 +157,6 @@ class _EditorWidget extends StatelessWidget {
       onTapOutside: (event) {
         MenuController.maybeOf(context)?.close();
       },
-
       onSingleLongTapStart: (details) {
         if (kIsWeb && BrowserContextMenu.enabled) {
           return;

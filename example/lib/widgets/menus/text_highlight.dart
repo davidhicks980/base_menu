@@ -60,8 +60,9 @@ class _TextHighlightButtonState extends State<TextHighlightButton> {
       child: Semantics(
         label: 'Highlight color: ${colorLabel(selectedColor)}',
         child: Popup(
+          enableTooltipSemantics: false,
           focusNode: _focusNode,
-          tooltip: const TextSpan(text: 'Highlight color', semanticsLabel: ''),
+          tooltip: const TextSpan(text: 'Highlight color'),
           panel: Builder(
             builder: (context) {
               return MenuPanel(

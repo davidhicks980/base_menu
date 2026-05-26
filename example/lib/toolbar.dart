@@ -439,7 +439,7 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
 
     return BaseMenu(
       controller: widget.controller,
-      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+      positionDelegate: const DefaultBaseMenuPositioningDelegate(
         overlayPadding: .symmetric(horizontal: 5),
         alignmentOffset: Offset(0, 4),
         alignment: .bottomEnd,

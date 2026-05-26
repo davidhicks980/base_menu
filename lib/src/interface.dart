@@ -4,6 +4,8 @@ import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
 
+// These interfaces are used to limit duplicate documentation.
+
 abstract class BaseMenuInterface {
   /// An optional [MenuController] that allows opening and closing of the menu
   /// from other widgets.
@@ -154,7 +156,7 @@ abstract class BaseMenuInterface {
   Axis get orientation;
 
   /// A delegate that controls how the menu is positioned.
-  BaseMenuPositioningDelegate get positioningDelegate;
+  BaseMenuPositioningDelegate get positionDelegate;
 
   /// An optional builder that wraps the menu overlay.
   ///

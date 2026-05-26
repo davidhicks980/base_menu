@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
-import 'menu_interface.dart';
+import 'interface.dart';
 
 class BaseMenuItem extends StatefulWidget implements BaseMenuItemInterface {
   const BaseMenuItem({

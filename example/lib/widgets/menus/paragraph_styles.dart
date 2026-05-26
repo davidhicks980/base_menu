@@ -82,7 +82,7 @@ class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
               ),
               const SizedBox(height: 7.5),
               BaseSubmenu(
-                positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+                positionDelegate: const DefaultBaseMenuPositioningDelegate(
                   padding: EdgeInsets.symmetric(vertical: 6),
                 ),
                 menu: const MenuPanel(

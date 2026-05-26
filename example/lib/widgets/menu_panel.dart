@@ -48,13 +48,13 @@ class MenuPanel extends StatelessWidget {
         padding: padding,
         constraints: constraints,
         direction: orientation,
-        menuChildren: children,
         spacing: spacing,
         scrollable: scrollable,
         onEnter: onSurfaceEnter,
         onHover: onSurfaceHover,
         onExit: onSurfaceExit,
         cursor: cursor,
+        children: children,
       ),
     );
   }

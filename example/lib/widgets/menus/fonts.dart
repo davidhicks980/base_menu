@@ -233,7 +233,7 @@ class _SubmenuOptionState extends State<_SubmenuOption> {
         checked: checked,
         child: BaseSubmenu(
           focusNode: _focusNode,
-          positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+          positionDelegate: const DefaultBaseMenuPositioningDelegate(
             padding: EdgeInsets.symmetric(vertical: 6),
             alignmentOffset: Offset(-8, 0),
           ),

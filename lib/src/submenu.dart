@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
-import 'menu_interface.dart';
+import 'interface.dart';
 
 class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuItemInterface {
   const BaseSubmenu({
@@ -31,7 +31,7 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
     ),
     this.orientation = Axis.vertical,
     this.builder,
-    this.positioningDelegate = const DefaultBaseMenuPositioningDelegate(),
+    this.positionDelegate = const DefaultBaseMenuPositioningDelegate(),
     this.overlayChildBuilder,
     this.focusNode,
     this.autofocus = false,
@@ -101,7 +101,7 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
   final RawMenuAnchorChildBuilder? builder;
 
   @override
-  final BaseMenuPositioningDelegate positioningDelegate;
+  final BaseMenuPositioningDelegate positionDelegate;
 
   @override
   final PointerEnterEventListener? onPointerEnter;
@@ -347,7 +347,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       semanticProperties: widget.semanticProperties,
       orientation: widget.orientation,
       builder: widget.builder,
-      positioningDelegate: widget.positioningDelegate,
+      positionDelegate: widget.positionDelegate,
       overlayChildBuilder: _buildOverlayChild,
       child: Actions(
         actions: _actions,

@@ -62,7 +62,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
     return BaseMenu(
       onFocusChange: _handleFocusChange,
       overlayChildBuilder: _buildOverlayWrapper,
-      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+      positionDelegate: const DefaultBaseMenuPositioningDelegate(
         overlayPadding: EdgeInsets.only(top: 55, bottom: 8),
       ),
       orientation: widget.overflow ? Axis.horizontal : Axis.vertical,

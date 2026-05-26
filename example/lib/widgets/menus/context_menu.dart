@@ -142,7 +142,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
   @override
   Widget build(BuildContext context) {
     final child = BaseMenu(
-      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+      positionDelegate: const DefaultBaseMenuPositioningDelegate(
         padding: EdgeInsets.symmetric(vertical: 6),
       ),
       onCloseRequest: (hideOverlay) {

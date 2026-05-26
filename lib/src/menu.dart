@@ -9,7 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
-import 'menu_interface.dart';
+import 'interface.dart';
 
 // Examples can assume:
 // late BuildContext context;
@@ -127,7 +127,6 @@ class _MenuScope extends InheritedWidget {
 /// a [BaseMenu].
 typedef BaseMenuOverlayChildBuilder = Widget Function(BuildContext context, Widget child);
 
-/// A widget that
 class BaseMenuPanelMouseRegion extends StatelessWidget {
   const BaseMenuPanelMouseRegion({
     super.key,
@@ -148,6 +147,7 @@ class BaseMenuPanelMouseRegion extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       fit: StackFit.passthrough,
+      clipBehavior: .none,
       children: [
         Positioned.fill(
           child: MouseRegion(
@@ -167,7 +167,7 @@ class BaseMenuPanelMouseRegion extends StatelessWidget {
 class BaseMenuPanel extends StatelessWidget {
   /// Creates a [BaseMenuPanel].
   ///
-  /// The [menuChildren] argument is required.
+  /// The [children] argument is required.
   const BaseMenuPanel({
     super.key,
     this.constraints,
@@ -179,9 +179,9 @@ class BaseMenuPanel extends StatelessWidget {
     this.onEnter,
     this.onExit,
     this.onHover,
-    this.cursor = MouseCursor.defer,
+    this.cursor,
     required this.direction,
-    required this.menuChildren,
+    required this.children,
   });
 
   /// The constraints to apply to the menu surface.
@@ -191,7 +191,7 @@ class BaseMenuPanel extends StatelessWidget {
   final BoxConstraints? constraints;
 
   /// The menu items that should be displayed by this [BaseMenuPanel].
-  final List<Widget> menuChildren;
+  final List<Widget> children;
 
   /// Whether the menu's cross axis should be laid out with regard to the bounds
   /// of the overlay.
@@ -244,7 +244,7 @@ class BaseMenuPanel extends StatelessWidget {
   final PointerHoverEventListener? onHover;
 
   /// The mouse cursor to use when a pointer is hovering over the menu surface.
-  final MouseCursor cursor;
+  final MouseCursor? cursor;
 
   /// Whether the menu panel should be scrollable when its contents exceed the available space within the overlay.
   final bool scrollable;
@@ -256,14 +256,17 @@ class BaseMenuPanel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: spacing,
-      children: menuChildren,
+      children: children,
     );
 
-    if (onEnter != null || onExit != null) {
+    final bool applyMouseRegion =
+        onEnter != null || onExit != null || onHover != null || cursor != null;
+
+    if (applyMouseRegion) {
       child = BaseMenuPanelMouseRegion(
         onEnter: onEnter,
         onExit: onExit,
-        cursor: cursor,
+        cursor: cursor ?? MouseCursor.defer,
         onHover: onHover,
         child: child,
       );
@@ -294,23 +297,21 @@ class BaseMenuPanel extends StatelessWidget {
       };
     }
 
-    if (onEnter != null || onExit != null) {
+    if (applyMouseRegion) {
       child = BaseMenuPanelMouseRegion(
         onEnter: onEnter,
         onExit: onExit,
-        cursor: cursor,
+        cursor: cursor ?? MouseCursor.defer,
         onHover: onHover,
         child: child,
       );
     }
 
     if (applyIntrinsics) {
-      switch (direction) {
-        case Axis.vertical:
-          child = IntrinsicWidth(child: child);
-        case Axis.horizontal:
-          child = IntrinsicHeight(child: child);
-      }
+      child = switch (direction) {
+        Axis.vertical => IntrinsicWidth(child: child),
+        Axis.horizontal => IntrinsicHeight(child: child),
+      };
     }
 
     if (constrainCrossAxis) {
@@ -327,7 +328,7 @@ class BaseMenuPanel extends StatelessWidget {
 
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
-    return <DiagnosticsNode>[for (final Widget child in menuChildren) child.toDiagnosticsNode()];
+    return <DiagnosticsNode>[for (final Widget child in children) child.toDiagnosticsNode()];
   }
 
   @override
@@ -336,7 +337,7 @@ class BaseMenuPanel extends StatelessWidget {
     properties.add(DiagnosticsProperty<bool>('constrainCrossAxis', constrainCrossAxis));
     properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('padding override', padding));
     properties.add(DoubleProperty('spacing', spacing, defaultValue: 0));
-    properties.add(EnumProperty<Axis>('axis', direction));
+    properties.add(EnumProperty<Axis>('direction', direction));
     properties.add(EnumProperty<ui.Clip>('clipBehavior', clipBehavior, defaultValue: ui.Clip.none));
   }
 }
@@ -358,7 +359,7 @@ abstract class BaseMenuPositioningDelegate {
 /// The position is determined relative to the menu's anchor using the provided
 /// [alignment], [menuAlignment], and [alignmentOffset]. If the menu overflows
 /// the edge of the screen, it will be flipped across the anchor's midpoint on
-/// the axis of overflow according to the [flipEdges] configuration.
+/// the axis of overflow if that edge is included in [flipEdges].
 ///
 /// The [padding] is applied to the menu surface but ignored during menu
 /// positioning, which is useful for ensuring a submenu's items align with their
@@ -444,16 +445,13 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child) {
     final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
     final TextDirection textDirection = Directionality.of(context);
-
-    // Resolve fallback alignment here so that alignmentOffset defaults to
-    // being directionally-agnostic.
     final anchorAlignment =
-        (alignment ??
-                switch (_MenuScope._maybeOf(context)?.orientation) {
-                  Axis.vertical => AlignmentDirectional.topEnd,
-                  _ => AlignmentDirectional.bottomStart,
-                })
-            .resolve(textDirection);
+        alignment ??
+        // Only resolve the default alignment
+        (switch (_MenuScope._maybeOf(context)?.orientation) {
+          Axis.vertical => AlignmentDirectional.topEnd,
+          _ => AlignmentDirectional.bottomStart,
+        }).resolve(textDirection);
 
     final delegate = DefaultMenuLayoutDelegate(
       overlayPadding: overlayPadding.resolve(textDirection),
@@ -514,7 +512,7 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
     ),
     this.orientation = Axis.vertical,
     required this.menu,
-    this.positioningDelegate = const DefaultBaseMenuPositioningDelegate(),
+    this.positionDelegate = const DefaultBaseMenuPositioningDelegate(),
     this.builder,
     this.overlayChildBuilder,
     this.child,
@@ -560,7 +558,7 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
   final Axis orientation;
 
   @override
-  final BaseMenuPositioningDelegate positioningDelegate;
+  final BaseMenuPositioningDelegate positionDelegate;
 
   @override
   final BaseMenuOverlayChildBuilder? overlayChildBuilder;
@@ -721,7 +719,7 @@ class _BaseMenuState extends State<BaseMenu> {
         semanticProperties: widget.semanticProperties,
         menuController: _menuController,
         focusScopeNode: _menuScopeNode,
-        positioningDelegate: widget.positioningDelegate,
+        positioningDelegate: widget.positionDelegate,
         child: widget.menu,
       ),
     );
@@ -768,7 +766,6 @@ class _BaseMenuState extends State<BaseMenu> {
 
   @override
   Widget build(BuildContext context) {
-    _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final Widget child = Actions(
       actions: {DirectionalFocusIntent: DoNothingAction()},
       child: Shortcuts(
@@ -1176,7 +1173,7 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
   // The padding obtained from calling [MediaQuery.paddingOf].
   //
   // Used to prevent the menu from being obstructed by system UI.
-  final EdgeInsets overlayPadding;
+  final EdgeInsetsGeometry overlayPadding;
 
   // Padding applied to the menu surface.
   final EdgeInsetsGeometry? menuPadding;
@@ -1237,21 +1234,22 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
 
   Offset _fitInsideScreen(Rect screen, Size childSize, Offset position, Offset anchorPosition) {
     final EdgeInsets? padding = menuPadding?.resolve(textDirection);
+    final EdgeInsets overlayInsets = overlayPadding.resolve(textDirection);
     final Rect anchor = menuPosition == null ? anchorRect : anchorPosition & Size.zero;
 
     double x = position.dx;
     double y = position.dy;
 
-    bool overLeftEdge(double x) => x < screen.left + overlayPadding.left;
-    bool overRightEdge(double x) => x > screen.right - childSize.width - overlayPadding.right;
-    bool overTopEdge(double y) => y < screen.top + overlayPadding.top;
-    bool overBottomEdge(double y) => y > screen.bottom - childSize.height - overlayPadding.bottom;
+    bool overLeftEdge(double x) => x < screen.left + overlayInsets.left;
+    bool overRightEdge(double x) => x > screen.right - childSize.width - overlayInsets.right;
+    bool overTopEdge(double y) => y < screen.top + overlayInsets.top;
+    bool overBottomEdge(double y) => y > screen.bottom - childSize.height - overlayInsets.bottom;
 
     // Layout horizontally first to determine if the menu can be placed on
     // either side of the anchor without overlapping.
     bool hasHorizontalAnchorOverlap = childSize.width >= screen.width;
     if (hasHorizontalAnchorOverlap) {
-      x = screen.left + overlayPadding.left;
+      x = screen.left + overlayInsets.left;
     } else {
       // Shift the menu left or right to adjust for padding.
       double? shiftX;
@@ -1272,12 +1270,12 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
 
           hasHorizontalAnchorOverlap = overRightEdge(flipX);
           if (hasHorizontalAnchorOverlap || overLeftEdge(flipX)) {
-            x = screen.left + overlayPadding.left;
+            x = screen.left + overlayInsets.left;
           } else {
             x = flipX;
           }
         } else {
-          x = screen.left + overlayPadding.left;
+          x = screen.left + overlayInsets.left;
         }
       } else if (overRightEdge(x)) {
         if (flipEdges.contains(AxisDirection.right)) {
@@ -1289,19 +1287,19 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
 
           hasHorizontalAnchorOverlap = overLeftEdge(flipX);
           if (hasHorizontalAnchorOverlap || overRightEdge(flipX)) {
-            x = screen.right - childSize.width - overlayPadding.right;
+            x = screen.right - childSize.width - overlayInsets.right;
           } else {
             x = flipX;
           }
         } else {
-          x = screen.right - childSize.width - overlayPadding.right;
+          x = screen.right - childSize.width - overlayInsets.right;
         }
       }
     }
 
     if (childSize.height >= screen.height) {
       // Menu is too big to fit on screen. Fit as much as possible.
-      return Offset(x, overlayPadding.top);
+      return Offset(x, overlayInsets.top);
     }
 
     if (hasHorizontalAnchorOverlap && !anchor.isEmpty) {
@@ -1339,12 +1337,12 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
         }
 
         if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-          y = screen.top + overlayPadding.top;
+          y = screen.top + overlayInsets.top;
         } else {
           y = flipY;
         }
       } else {
-        y = screen.top + overlayPadding.top;
+        y = screen.top + overlayInsets.top;
       }
     } else if (overBottomEdge(y)) {
       if (flipEdges.contains(AxisDirection.down)) {
@@ -1356,12 +1354,12 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
         }
 
         if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-          y = screen.bottom - childSize.height - overlayPadding.bottom;
+          y = screen.bottom - childSize.height - overlayInsets.bottom;
         } else {
           y = flipY;
         }
       } else {
-        y = screen.bottom - childSize.height - overlayPadding.bottom;
+        y = screen.bottom - childSize.height - overlayInsets.bottom;
       }
     }
 

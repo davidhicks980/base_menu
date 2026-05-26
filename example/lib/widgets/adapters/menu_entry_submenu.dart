@@ -45,9 +45,7 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
   Widget build(BuildContext context) {
     return BaseSubmenu(
       focusNode: _focusNode,
-      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
-        padding: MenuPanel.defaultPadding,
-      ),
+      positionDelegate: const DefaultBaseMenuPositioningDelegate(padding: MenuPanel.defaultPadding),
       hoverOpenDelay: widget.hoverDelay,
       hoverCloseDelay: widget.hoverDelay,
       controller: _menuController,

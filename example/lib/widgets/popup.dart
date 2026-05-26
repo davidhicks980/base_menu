@@ -45,7 +45,7 @@ class Popup extends StatelessWidget {
       controller: controller,
       orientation: orientation,
       menu: panel,
-      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+      positionDelegate: const DefaultBaseMenuPositioningDelegate(
         alignmentOffset: Offset(0, 8),
         padding: MenuPanel.defaultPadding,
       ),

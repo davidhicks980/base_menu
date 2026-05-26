@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import 'focusable.dart';
 import 'hoverable.dart';
-import 'menu_interface.dart';
+import 'interface.dart';
 
 class _EnabledScope<T> extends InheritedWidget {
   const _EnabledScope({required this.enabled, required super.child});

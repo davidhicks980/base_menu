@@ -67,7 +67,7 @@ class _SelectState extends State<Select> {
       controller: widget.menuController,
       onFocusChange: _handleScopeFocusChange,
       onOpen: RawTooltip.dismissAllToolTips,
-      positioningDelegate: AppStateManager.isHeaderShownOf(context)
+      positionDelegate: AppStateManager.isHeaderShownOf(context)
           ? const DefaultBaseMenuPositioningDelegate(
               overlayPadding: EdgeInsets.only(top: 98, bottom: 8),
               padding: MenuPanel.defaultPadding,

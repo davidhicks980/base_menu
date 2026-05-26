@@ -280,7 +280,7 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
   Widget build(BuildContext context) {
     return BaseMenu(
       controller: menuController,
-      positioningDelegate: const DefaultBaseMenuPositioningDelegate(
+      positionDelegate: const DefaultBaseMenuPositioningDelegate(
         overlayPadding: .zero,
         alignment: .topStart,
         menuAlignment: .topStart,
@@ -290,7 +290,7 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
       menu: BaseMenuPanel(
         constraints: const BoxConstraints(minWidth: 348),
         direction: Axis.vertical,
-        menuChildren: [
+        children: [
           DecoratedBox(
             decoration: const BoxDecoration(
               color: FloogleColors.white,

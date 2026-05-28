@@ -154,7 +154,6 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
         _focusNode.requestFocus();
       },
       menu: MouseRegion(
-        onEnter: _onHoverEnter,
         onExit: (_) {
           if (!_focusNode.hasFocus) {
             _focusNode.requestFocus();

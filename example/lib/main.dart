@@ -117,15 +117,15 @@ class _MainState extends State<Main> {
                       height: 62,
                       child: Stack(
                         children: [
-                          AnimatedPositioned(
+                          AnimatedPositionedDirectional(
                             top: _isHeaderExpanded ? 16 : 16 - 40,
-                            left: 17,
+                            start: 17,
                             duration: const Duration(milliseconds: 100),
                             child: const FloogleDocsLogoButton(),
                           ),
-                          AnimatedPositioned(
+                          AnimatedPositionedDirectional(
                             top: _isHeaderExpanded ? 7 : 7 - 40,
-                            left: 55,
+                            start: 55,
                             duration: const Duration(milliseconds: 100),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
@@ -149,7 +149,12 @@ class _MainState extends State<Main> {
                             ),
                           ),
 
-                          const Positioned(top: 34, left: 54, right: 0, child: DocumentMenuBar()),
+                          const PositionedDirectional(
+                            top: 34,
+                            start: 54,
+                            end: 0,
+                            child: DocumentMenuBar(),
+                          ),
                         ],
                       ),
                     ),
@@ -158,7 +163,7 @@ class _MainState extends State<Main> {
               ),
 
               const Padding(
-                padding: EdgeInsets.only(left: 16, right: 16, bottom: 2, top: 2),
+                padding: EdgeInsetsDirectional.only(start: 16, end: 16, bottom: 2, top: 2),
                 child: Toolbar(),
               ),
 

@@ -119,7 +119,7 @@ class MenuActionLabel extends StatelessWidget {
           Flexible(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 512, minHeight: 33),
-              child: Align(alignment: Alignment.centerLeft, child: child),
+              child: Align(alignment: AlignmentDirectional.centerStart, child: child),
             ),
           ),
           const SizedBox(width: 16),
@@ -216,7 +216,10 @@ class _Arrow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final highlightArrow = BaseMenuItem.isHoveredOf(context) || BaseMenuItem.isFocusedOf(context);
-    return highlightArrow ? _fullOpacityArrow : _halfOpacityArrow;
+    return Transform.flip(
+      flipX: Directionality.of(context) == TextDirection.rtl,
+      child: highlightArrow ? _fullOpacityArrow : _halfOpacityArrow,
+    );
   }
 }
 

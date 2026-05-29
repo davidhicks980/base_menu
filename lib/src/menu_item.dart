@@ -5,7 +5,8 @@ import 'package:flutter/widgets.dart';
 import '../menu_utilities.dart';
 import 'interface.dart';
 
-class BaseMenuItem extends StatefulWidget implements BaseMenuItemInterface {
+@optionalTypeArgs
+class BaseMenuItem<T> extends StatefulWidget implements BaseMenuItemInterface {
   const BaseMenuItem({
     super.key,
     this.onPressed,
@@ -76,31 +77,36 @@ class BaseMenuItem extends StatefulWidget implements BaseMenuItemInterface {
   @override
   bool get enabled => onPressed != null;
 
-  static Set<WidgetState> statesOf(BuildContext context) {
-    return BaseControl.statesOf<BaseMenuItem>(context);
+  @optionalTypeArgs
+  static Set<WidgetState> statesOf<T>(BuildContext context) {
+    return BaseControl.statesOf<BaseMenuItem<T>>(context);
   }
 
-  static bool isHoveredOf(BuildContext context) {
-    return BaseHoverable.isHoveredOf<BaseMenuItem>(context);
+  @optionalTypeArgs
+  static bool isHoveredOf<T>(BuildContext context) {
+    return BaseHoverable.isHoveredOf<BaseMenuItem<T>>(context);
   }
 
-  static bool isPressedOf(BuildContext context) {
-    return BaseControl.isPressedOf<BaseMenuItem>(context);
+  @optionalTypeArgs
+  static bool isPressedOf<T>(BuildContext context) {
+    return BaseControl.isPressedOf<BaseMenuItem<T>>(context);
   }
 
-  static bool isFocusedOf(BuildContext context) {
-    return BaseControl.isFocusedOf<BaseMenuItem>(context);
+  @optionalTypeArgs
+  static bool isFocusedOf<T>(BuildContext context) {
+    return BaseControl.isFocusedOf<BaseMenuItem<T>>(context);
   }
 
-  static bool isDisabledOf(BuildContext context) {
-    return BaseControl.isDisabledOf<BaseMenuItem>(context);
+  @optionalTypeArgs
+  static bool isDisabledOf<T>(BuildContext context) {
+    return BaseControl.isDisabledOf<BaseMenuItem<T>>(context);
   }
 
   @override
-  State<BaseMenuItem> createState() => _BaseMenuItemState();
+  State<BaseMenuItem<T>> createState() => _BaseMenuItemState<T>();
 }
 
-class _BaseMenuItemState extends State<BaseMenuItem> {
+class _BaseMenuItemState<T> extends State<BaseMenuItem<T>> {
   FocusNode? _internalFocusNode;
   FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
 
@@ -113,7 +119,7 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
   }
 
   @override
-  void didUpdateWidget(BaseMenuItem oldWidget) {
+  void didUpdateWidget(BaseMenuItem<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.focusNode != widget.focusNode) {
       if (widget.focusNode == null) {
@@ -153,8 +159,8 @@ class _BaseMenuItemState extends State<BaseMenuItem> {
   Widget build(BuildContext context) {
     return MergeSemantics(
       child: Semantics.fromProperties(
-        properties: SemanticsProperties(role: widget.role),
-        child: BaseControl<BaseMenuItem>(
+        properties: SemanticsProperties(role: widget.role, button: true, enabled: widget.enabled),
+        child: BaseControl<BaseMenuItem<T>>(
           onPressed: widget.requestCloseOnActivate && widget.enabled
               ? _handlePressed
               : widget.onPressed,

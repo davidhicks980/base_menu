@@ -81,24 +81,195 @@ class MyDropdownMenu extends StatelessWidget {
 
 ## Advanced Interactions
 
-You can hook into the interactive state of your menu items to dynamically apply
-styles using `BaseControl` scopes:
+### Menu Items
+
+Menu Utilities provides compositional widgets that allow you to build menu items with
+different levels of theming granularity.
+
+Theme with the inherited `WidgetState` of a menu item:
 
 ```dart
-class StyledMenuItem extends StatelessWidget {
+/// A menu item that changes color when hovered, focused, or pressed.
+class MenuItem extends StatelessWidget {
+  const MenuItem({super.key, required this.child, required this.onPressed, this.suffix});
+  final Widget child;
+  final Widget? suffix;
+  final VoidCallback? onPressed;
+
+  static const WidgetStateProperty<BoxDecoration> decoration = WidgetStateProperty.fromMap({
+    WidgetState.pressed: BoxDecoration(color: Color(0xFFE9E9E9)),
+    WidgetState.hovered: BoxDecoration(color: Color(0xFFEDEDED)),
+    WidgetState.focused: BoxDecoration(color: Color(0xFFEDEDED)),
+    WidgetState.any:     BoxDecoration(color: Color(0x00000000)),
+  });
+
   @override
   Widget build(BuildContext context) {
+    final Widget body = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+      child: suffix != null
+        ? Row(spacing: 12, mainAxisAlignment: .spaceBetween, children: [child, suffix!])
+        : child,
+    );
+
     return BaseMenuItem(
       onPressed: () {},
       child: Builder(
         builder: (context) {
-          final isHovered = BaseControl.isHoveredOf(context);
-          final isFocused = BaseControl.isFocusedOf(context);
-          return Container(
-            color: isHovered || isFocused ? Colors.blue : Colors.transparent,
-            child: const Text('Interactive Item'),
+          // Rebuilds any time the menu item is hovered, focused, pressed, or
+          // disabled.
+          return DecoratedBox(
+            decoration: decoration.resolve(BaseMenuItem.statesOf(context)),
+            child: body,
           );
-        }
+        },
+      ),
+    );
+  }
+}
+```
+
+Depend on a specific menu item state to isolate updates:
+
+```dart
+/// A suffix that changes color when its parent menu item is hovered.
+class Suffix extends StatelessWidget {
+  const Suffix({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const box = SizedBox.square(dimension: 20);
+    // Rebuilds only when the parent menu item is hovered.
+    if (BaseMenuItem.isHoveredOf(context)) {
+      return const ColoredBox(color: Color(0xFFFF0000), child: box);
+    } else {
+      return const ColoredBox(color: Color(0xFF000000), child: box);
+    }
+  }
+}
+```
+
+Isolate hover effects to a particular part of a menu item:
+
+```dart
+/// A suffix that changes color it is hovered, but not when its parent menu item
+/// is hovered.
+class HoverableSuffix extends StatelessWidget {
+  const HoverableSuffix({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    const box = SizedBox.square(dimension: 20);
+    return BaseHoverable(
+      child: Builder(
+        builder: (context) {
+          // Rebuilds only when this widget is hovered.
+          if (BaseHoverable.isHoveredOf(context)) {
+            return const ColoredBox(color: Color(0xFFFF0000), child: box);
+          } else {
+            return const ColoredBox(color: Color(0xFF000000), child: box);
+          }
+        },
+      ),
+    );
+  }
+}
+```
+
+Use `BaseHoverable` with a generic type parameter to pass hover state to
+descendant widgets without exposing the Menu Utilities API:
+
+```dart
+/// A suffix that passes its hover state to its child.
+class SpecializedSuffix extends StatelessWidget {
+  const SpecializedSuffix({super.key, required this.child});
+  final Widget child;
+
+  static bool isHovered(BuildContext context) {
+    return BaseHoverable.isHoveredOf<SpecializedSuffix>(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BaseHoverable<SpecializedSuffix>(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints.tightFor(width: 20, height: 20),
+        child: child,
+      ),
+    );
+  }
+}
+```
+
+Putting it all together:
+
+```dart
+class CustomizedMenu extends StatelessWidget {
+  const CustomizedMenu({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTextStyle(
+      style: const TextStyle(fontSize: 14, color: Color(0xFF000000)),
+      child: ColoredBox(
+        color: const Color(0xFF0FF0FF),
+        child: BaseMenu(
+          builder: (BuildContext context, MenuController controller, Widget? child) {
+            return BaseControl(
+              onPressed: () {
+                if (controller.isOpen) {
+                  controller.close();
+                } else {
+                  controller.open();
+                }
+              },
+              child: const Text('Open Menu'),
+            );
+          },
+          menu: ColoredBox(
+            color: const Color(0xFFFFFFFF),
+            child: BaseMenuPanel(
+              direction: .vertical,
+              children: [
+                MenuItem(
+                  onPressed: () {
+                    print('Suffix Pressed');
+                  },
+                  suffix: const Suffix(),
+                  child: const Text('Suffix'),
+                ),
+                MenuItem(
+                  onPressed: () {
+                    print('Hoverable Suffix Pressed');
+                  },
+                  suffix: const HoverableSuffix(),
+                  child: const Text('Hoverable Suffix'),
+                ),
+                MenuItem(
+                  onPressed: () {
+                    print('Specialized Suffix Pressed');
+                  },
+                  suffix: SpecializedSuffix(
+                    child: Builder(
+                      builder: (context) {
+                        if (SpecializedSuffix.isHovered(context)) {
+                          return const ColoredBox(
+                            color: Color(0xFFFF0000),
+                          );
+                        } else {
+                          return const ColoredBox(
+                            color: Color(0xFF000000),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  child: const Text('Specialized Suffix'),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

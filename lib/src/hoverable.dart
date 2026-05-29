@@ -42,7 +42,7 @@ class BaseHoverable<T> extends StatefulWidget {
 
   static _HoverableScope<T>? _of<T>(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>();
-    assert(scope != null, 'No BaseHoverable of type $T found in context');
+    assert(scope != null, 'No BaseHoverable of type $T found in context. \n');
     return scope;
   }
 

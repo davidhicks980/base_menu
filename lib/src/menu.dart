@@ -508,6 +508,8 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
     this.onFocusChange,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
+      namesRoute: true,
+      label: 'Menu',
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,

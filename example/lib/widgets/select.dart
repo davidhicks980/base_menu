@@ -61,12 +61,17 @@ class _SelectState extends State<Select> {
     }
   }
 
+  void _handleOpen() {
+    RawTooltip.dismissAllToolTips();
+    widget.focusNode.requestFocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BaseMenu(
       controller: widget.menuController,
       onFocusChange: _handleScopeFocusChange,
-      onOpen: RawTooltip.dismissAllToolTips,
+      onOpen: _handleOpen,
       positionDelegate: AppStateManager.isHeaderShownOf(context)
           ? const DefaultBaseMenuPositioningDelegate(
               overlayPadding: EdgeInsets.only(top: 98, bottom: 8),

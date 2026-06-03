@@ -101,6 +101,7 @@ class _TitleFieldState extends State<TitleField> {
                 listenable: _focusNode,
                 builder: (context, child) {
                   return Stack(
+                    textDirection: .ltr,
                     children: [
                       if (!_focusNode.hasFocus)
                         Text(

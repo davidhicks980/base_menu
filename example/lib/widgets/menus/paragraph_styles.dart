@@ -211,7 +211,7 @@ class _OptionState extends State<_Option> {
                   Actions.invoke(context, ApplyParagraphStyleIntent(widget.style));
                 },
                 shortcut: widget.shortcut,
-                child: Text('Apply "${widget.label}"'),
+                child: Text("Apply '${widget.label}'", textDirection: TextDirection.ltr),
               ),
               const MenuDivider(padding: EdgeInsets.fromLTRB(30, 7.5, 0, 7.5)),
               MenuItem(
@@ -219,7 +219,7 @@ class _OptionState extends State<_Option> {
                   MenuController.maybeOf(context)?.close();
                   Actions.invoke(context, UpdateParagraphStyleToMatchIntent(widget.style));
                 },
-                child: Text('Update "${widget.label}" to match'),
+                child: Text("Update '${widget.label}' to match", textDirection: TextDirection.ltr),
               ),
             ],
           ),

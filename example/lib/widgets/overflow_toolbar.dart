@@ -44,12 +44,17 @@ class _OverflowRow extends MultiChildRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return RenderOverflowToolbarRow(onOverflow: onOverflow);
+    return RenderOverflowToolbarRow(
+      onOverflow: onOverflow,
+      textDirection: Directionality.of(context),
+    );
   }
 
   @override
   void updateRenderObject(BuildContext context, RenderOverflowToolbarRow renderObject) {
-    renderObject.onOverflow = onOverflow;
+    renderObject
+      ..onOverflow = onOverflow
+      ..textDirection = Directionality.of(context);
   }
 }
 
@@ -59,13 +64,22 @@ class RenderOverflowToolbarRow extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, _OverflowParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, _OverflowParentData> {
-  RenderOverflowToolbarRow({required this._onOverflow});
+  RenderOverflowToolbarRow({required this._onOverflow, required this._textDirection});
 
   OverflowCallback get onOverflow => _onOverflow;
   OverflowCallback _onOverflow;
   set onOverflow(OverflowCallback value) {
     if (_onOverflow != value) {
       _onOverflow = value;
+      markNeedsLayout();
+    }
+  }
+
+  TextDirection get textDirection => _textDirection;
+  TextDirection _textDirection;
+  set textDirection(TextDirection value) {
+    if (_textDirection != value) {
+      _textDirection = value;
       markNeedsLayout();
     }
   }
@@ -107,6 +121,18 @@ class RenderOverflowToolbarRow extends RenderBox
       child = childAfter(child);
     }
 
+    if (_textDirection == TextDirection.rtl) {
+      child = firstChild;
+      for (var i = 0; i < idx; i++) {
+        final childParentData = child!.parentData! as _OverflowParentData;
+        childParentData.offset = Offset(
+          currentX - childParentData.offset.dx - child.size.width,
+          childParentData.offset.dy,
+        );
+        child = childAfter(child);
+      }
+    }
+
     onOverflow(idx);
     _lastVisibleIndex = idx;
     size = constraints.constrain(Size(currentX, maxHeight));
@@ -117,7 +143,7 @@ class RenderOverflowToolbarRow extends RenderBox
     RenderBox? child = firstChild;
     for (var i = 0; i < _lastVisibleIndex; i++) {
       final childParentData = child!.parentData! as _OverflowParentData;
-      context.paintChild(child, childParentData.offset + offset);
+      context.paintChild(child, offset + childParentData.offset);
       child = childAfter(child);
     }
   }

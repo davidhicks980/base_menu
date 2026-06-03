@@ -25,6 +25,12 @@ class _TextHighlightButtonState extends State<TextHighlightButton> {
     super.dispose();
   }
 
+  void _handleOpen() {
+    if (!_focusNode.hasFocus) {
+      _focusNode.requestFocus();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final selectedColor =
@@ -60,6 +66,7 @@ class _TextHighlightButtonState extends State<TextHighlightButton> {
       child: Semantics(
         label: 'Highlight color: ${colorLabel(selectedColor)}',
         child: Popup(
+          onOpen: _handleOpen,
           enableTooltipSemantics: false,
           focusNode: _focusNode,
           tooltip: const TextSpan(text: 'Highlight color'),

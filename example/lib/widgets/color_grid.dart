@@ -223,7 +223,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
           onPointerEnter: (event) {
             // Announce the color name on hover for accessibility
             final label = colorLabel(widget.color);
-            SemanticsService.announce(label, TextDirection.ltr);
+            SemanticsService.announce(label, Directionality.maybeOf(context) ?? TextDirection.ltr);
             _focusNode.requestFocus();
           },
           mouseCursor: const WidgetStatePropertyAll(SystemMouseCursors.click),
@@ -291,7 +291,7 @@ class _ColorGrid extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 1),
                     child: _ColorSwatch(
-                      key: ValueKey('swatch_${row.indexOf(color)}_${rows.indexOf(row)}'),
+                      key: ValueKey('swatch_$color'),
                       color: color,
                       isSelected: selectedColor == color,
                       onTap: () {
@@ -333,12 +333,26 @@ class _ColorPickerPanelState extends State<ColorPickerPanel> {
     debugLabel: 'ColorPickerPanel Focus Scope',
     directionalTraversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
   );
+
+  final FocusScopeNode _customColorsFocusScopeNode = FocusScopeNode(
+    debugLabel: 'ColorPickerPanel Custom Colors Focus Scope',
+
+    directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
+  );
   Color? _selectedColor;
 
   @override
   void initState() {
     super.initState();
     _selectedColor = widget.selectedColor;
+  }
+
+  @override
+  void dispose() {
+    _panelFocusScopeNode.dispose();
+    _gridFocusScopeNode.dispose();
+    _customColorsFocusScopeNode.dispose();
+    super.dispose();
   }
 
   void _handleColorSelected(Color color) {
@@ -369,9 +383,8 @@ class _ColorPickerPanelState extends State<ColorPickerPanel> {
         shortcuts: {
           LogicalKeySet(LogicalKeyboardKey.arrowUp): const PreviousFocusIntent(),
           LogicalKeySet(LogicalKeyboardKey.arrowDown): const NextFocusIntent(),
-          LogicalKeySet(LogicalKeyboardKey.arrowLeft): const PreviousFocusIntent(),
-          LogicalKeySet(LogicalKeyboardKey.arrowRight): const NextFocusIntent(),
         },
+
         child: FocusScope(
           node: _panelFocusScopeNode,
           descendantsAreFocusable: true,
@@ -445,33 +458,51 @@ class _ColorPickerPanelState extends State<ColorPickerPanel> {
 
                 const SizedBox(height: 2),
 
-                Row(
-                  children: [
-                    for (int i = 0; i < _kCustomColors.length; i++) ...[
-                      _ColorSwatch(
-                        color: _kCustomColors[i],
-                        isSelected: _selectedColor == _kCustomColors[i],
-                        onTap: () => _handleColorSelected(_kCustomColors[i]),
+                Actions(
+                  actions: {DirectionalFocusIntent: DirectionalFocusAction()},
+                  child: Shortcuts(
+                    shortcuts: {
+                      LogicalKeySet(LogicalKeyboardKey.arrowLeft): const DirectionalFocusIntent(
+                        TraversalDirection.left,
                       ),
-                      const SizedBox(width: 2),
-                    ],
+                      LogicalKeySet(LogicalKeyboardKey.arrowRight): const DirectionalFocusIntent(
+                        TraversalDirection.right,
+                      ),
+                    },
+                    child: FocusScope(
+                      node: _customColorsFocusScopeNode,
+                      descendantsAreFocusable: true,
+                      descendantsAreTraversable: true,
+                      child: Row(
+                        children: [
+                          for (int i = 0; i < _kCustomColors.length; i++) ...[
+                            _ColorSwatch(
+                              color: _kCustomColors[i],
+                              isSelected: _selectedColor == _kCustomColors[i],
+                              onTap: () => _handleColorSelected(_kCustomColors[i]),
+                            ),
+                            const SizedBox(width: 2),
+                          ],
 
-                    const SizedBox(width: 4),
+                          const SizedBox(width: 4),
 
-                    CustomAction(
-                      icon: Symbols.add_circle_outline,
-                      label: 'Add custom color',
-                      onPressed: () {},
+                          CustomAction(
+                            icon: Symbols.add_circle_outline,
+                            label: 'Add custom color',
+                            onPressed: () {},
+                          ),
+
+                          const SizedBox(width: 4),
+
+                          CustomAction(
+                            icon: Symbols.colorize,
+                            label: 'Pick color from screen',
+                            onPressed: () {},
+                          ),
+                        ],
+                      ),
                     ),
-
-                    const SizedBox(width: 4),
-
-                    CustomAction(
-                      icon: Symbols.colorize,
-                      label: 'Pick color from screen',
-                      onPressed: () {},
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),

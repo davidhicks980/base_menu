@@ -29,6 +29,7 @@ class TileGroup<T> extends StatefulWidget {
 }
 
 class _TileGroupState<T> extends State<TileGroup<T>> {
+  final _actions = <Type, Action<Intent>>{DirectionalFocusIntent: DirectionalFocusAction()};
   final WidgetOrderTraversalPolicy _traversalPolicy = WidgetOrderTraversalPolicy();
   final FocusScopeNode _focusScopeNode = FocusScopeNode(
     traversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
@@ -48,6 +49,8 @@ class _TileGroupState<T> extends State<TileGroup<T>> {
   @override
   Widget build(BuildContext context) {
     final rows = (widget.children.length / widget.columns).ceil();
+    final directionality = Directionality.of(context);
+    final isRtl = directionality == TextDirection.rtl;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
       child: FocusTraversalGroup(
@@ -60,17 +63,17 @@ class _TileGroupState<T> extends State<TileGroup<T>> {
             const SingleActivator(LogicalKeyboardKey.arrowUp): const DirectionalFocusIntent(
               TraversalDirection.up,
             ),
-            if (!_exitStart)
+            if (isRtl ? !_exitEnd : !_exitStart)
               const SingleActivator(LogicalKeyboardKey.arrowLeft): const DirectionalFocusIntent(
                 TraversalDirection.left,
               ),
-            if (!_exitEnd)
+            if (isRtl ? !_exitStart : !_exitEnd)
               const SingleActivator(LogicalKeyboardKey.arrowRight): const DirectionalFocusIntent(
                 TraversalDirection.right,
               ),
           },
           child: Actions(
-            actions: <Type, Action<Intent>>{DirectionalFocusIntent: DirectionalFocusAction()},
+            actions: _actions,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               spacing: 8,

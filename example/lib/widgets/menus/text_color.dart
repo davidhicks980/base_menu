@@ -57,6 +57,7 @@ class _TextColorButtonState extends State<TextColorButton> {
       child: Semantics(
         label: 'Text color: ${colorLabel(color)}',
         child: Popup(
+          onOpen: _handleOpen,
           focusNode: _focusNode,
           enableTooltipSemantics: false,
           tooltip: const TextSpan(text: 'Text color'),
@@ -84,5 +85,11 @@ class _TextColorButtonState extends State<TextColorButton> {
         ),
       ),
     );
+  }
+
+  void _handleOpen() {
+    if (!_focusNode.hasFocus) {
+      _focusNode.requestFocus();
+    }
   }
 }

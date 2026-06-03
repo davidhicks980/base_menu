@@ -32,6 +32,11 @@ class _AlignIndentMenuState extends State<AlignIndentMenu> {
       focusNode: _focusNode,
       tooltip: const TextSpan(text: 'Align & indent'),
       buttonConstraints: const BoxConstraints(),
+      onOpen: () {
+        if (!_focusNode.hasFocus) {
+          _focusNode.requestFocus();
+        }
+      },
       panel: MenuPanel(
         spacing: 4,
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),

@@ -474,6 +474,7 @@ class VerticalDocumentRuler extends StatelessWidget {
       width: 16,
       height: pageHeight,
       child: Stack(
+        textDirection: .ltr,
         children: [
           Positioned.fill(
             child: CustomPaint(

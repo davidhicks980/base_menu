@@ -72,20 +72,21 @@ class _EditorViewState extends State<EditorView> {
                       child: Padding(
                         padding: const EdgeInsets.only(top: 16, bottom: 64),
                         child: Row(
+                          textDirection: .ltr,
                           children: [
                             const VerticalDocumentRuler(),
                             Expanded(
                               child: Align(
                                 alignment: Alignment.topCenter,
                                 child: Padding(
-                                  padding: const EdgeInsets.only(left: 64),
+                                  padding: const EdgeInsetsDirectional.only(start: 64),
                                   child: Align(
                                     child: UnconstrainedBox(
                                       clipBehavior: Clip.hardEdge,
                                       constrainedAxis: Axis.vertical,
                                       alignment: Alignment.topLeft,
                                       child: Padding(
-                                        padding: const EdgeInsets.only(right: 64),
+                                        padding: const EdgeInsetsDirectional.only(end: 64),
                                         child: SizedBox(
                                           width: 96 * 8.5,
                                           height: 96 * 11,

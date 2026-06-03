@@ -24,13 +24,13 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
     this.controller,
     this.consumeOutsideTaps = false,
     this.onFocusChange,
+    this.directionalFocusEdgeBehavior,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
       label: 'Submenu',
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
-    this.builder,
     this.positionDelegate = const DefaultBaseMenuPositioningDelegate(),
     this.overlayChildBuilder,
     this.focusNode,
@@ -92,13 +92,13 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
   final ValueChanged<bool>? onFocusChange;
 
   @override
+  final TraversalEdgeBehavior? directionalFocusEdgeBehavior;
+
+  @override
   final SemanticsProperties semanticProperties;
 
   @override
   final Axis orientation;
-
-  @override
-  final RawMenuAnchorChildBuilder? builder;
 
   @override
   final BaseMenuPositioningDelegate positionDelegate;
@@ -332,8 +332,45 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     return widget.overlayChildBuilder?.call(context, overlay) ?? overlay;
   }
 
+  bool _hasAnchorFocus = false;
+
   @override
   Widget build(BuildContext context) {
+    final isRootOpen = MenuController.maybeIsOpenOf(context) ?? false;
+    final anchor = Actions(
+      actions: _actions,
+      child: BaseMenuItem(
+        focusNode: _focusNode,
+        autofocus: widget.autofocus,
+        onPressed: widget.onPressed,
+        onPointerEnter: _handlePointerEnterAnchor,
+        onPointerHover: widget.onPointerHover,
+        onPointerLeave: _handlePointerLeaveAnchor,
+        requestCloseOnActivate: widget.requestCloseOnActivate,
+        requestFocusOnHover: widget.requestFocusOnHover,
+        onFocusChange: !BaseMenu.isNestedSubmenu(context) && isRootOpen
+            ? (value) {
+                final hasAnchorFocus = _focusNode.hasFocus;
+                if (_hasAnchorFocus != hasAnchorFocus) {
+                  _hasAnchorFocus = hasAnchorFocus;
+                  if (_hasAnchorFocus && !_menuController.isOpen) {
+                    _menuController.open();
+                  }
+                }
+              }
+            : null,
+        behavior: widget.behavior,
+        mouseCursor: widget.mouseCursor,
+        role: widget.role,
+        gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
+        gestureSemantics: widget.gestureSemantics,
+        child: ListenableBuilder(
+          listenable: _highlightNotifier,
+          builder: _buildHighlight,
+          child: widget.child,
+        ),
+      ),
+    );
     return BaseMenu(
       onOpen: widget.onOpen,
       onOpenRequest: widget.onOpenRequest,
@@ -344,33 +381,21 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       useRootOverlay: widget.useRootOverlay,
       menu: widget.menu,
       onFocusChange: _handleScopeFocusChange,
+      directionalFocusEdgeBehavior: widget.directionalFocusEdgeBehavior,
       semanticProperties: widget.semanticProperties,
       orientation: widget.orientation,
-      builder: widget.builder,
       positionDelegate: widget.positionDelegate,
       overlayChildBuilder: _buildOverlayChild,
-      child: Actions(
-        actions: _actions,
-        child: BaseMenuItem(
-          focusNode: _focusNode,
-          autofocus: widget.autofocus,
-          onPressed: widget.onPressed,
-          onPointerEnter: _handlePointerEnterAnchor,
-          onPointerHover: widget.onPointerHover,
-          onPointerLeave: _handlePointerLeaveAnchor,
-          requestCloseOnActivate: widget.requestCloseOnActivate,
-          requestFocusOnHover: widget.requestFocusOnHover,
-          behavior: widget.behavior,
-          mouseCursor: widget.mouseCursor,
-          role: widget.role,
-          gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
-          gestureSemantics: widget.gestureSemantics,
-          child: ListenableBuilder(
-            listenable: _highlightNotifier,
-            builder: _buildHighlight,
-            child: widget.child,
-          ),
-        ),
+      child: Builder(
+        builder: (context) {
+          final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
+          return MergeSemantics(
+            child: Semantics.fromProperties(
+              properties: SemanticsProperties(expanded: isOpen),
+              child: anchor,
+            ),
+          );
+        },
       ),
     );
   }

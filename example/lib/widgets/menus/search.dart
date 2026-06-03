@@ -282,14 +282,14 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
       controller: menuController,
       positionDelegate: const DefaultBaseMenuPositioningDelegate(
         overlayPadding: .zero,
-        alignment: .topStart,
+        anchorAlignment: .topStart,
         menuAlignment: .topStart,
       ),
       onClose: _handleClose,
       onFocusChange: _handleFocusChange,
       menu: BaseMenuPanel(
         constraints: const BoxConstraints(minWidth: 348),
-        direction: Axis.vertical,
+        orientation: Axis.vertical,
         children: [
           DecoratedBox(
             decoration: const BoxDecoration(
@@ -434,7 +434,7 @@ class _InlineLabelWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      alignment: Alignment.centerLeft,
+      alignment: AlignmentDirectional.centerStart,
       children: [
         child,
         ListenableBuilder(

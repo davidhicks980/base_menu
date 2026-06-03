@@ -83,7 +83,7 @@ class _ViewModeState extends State<_ViewMode> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(left: 3, right: 8, bottom: 2),
-                  child: Icon(selected.icon, size: 20, color: const Color(0xFF444746)),
+                  child: Icon(selected.icon, size: 18, color: const Color(0xFF444746)),
                 ),
                 DefaultTextStyle.merge(
                   style: const TextStyle(

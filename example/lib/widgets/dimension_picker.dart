@@ -46,6 +46,8 @@ class _DimensionPickerState extends State<DimensionPicker> {
     highlightedColumn = highlightedColumn ?? selectedColumn;
     final int rowCount = clampDouble(highlightedRow! + 2, 5, 20).toInt();
     final int columnCount = clampDouble(highlightedColumn! + 2, 11, 20).toInt();
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Actions(
@@ -78,11 +80,11 @@ class _DimensionPickerState extends State<DimensionPicker> {
             const SingleActivator(LogicalKeyboardKey.arrowDown): const DirectionalFocusIntent(
               TraversalDirection.down,
             ),
-            if (highlightedColumn! > 0)
+            if (isRtl ? highlightedColumn! < columnCount - 1 : highlightedColumn! > 0)
               const SingleActivator(LogicalKeyboardKey.arrowLeft): const DirectionalFocusIntent(
                 TraversalDirection.left,
               ),
-            if (highlightedColumn! < columnCount - 1)
+            if (isRtl ? highlightedColumn! > 0 : highlightedColumn! < columnCount - 1)
               const SingleActivator(LogicalKeyboardKey.arrowRight): const DirectionalFocusIntent(
                 TraversalDirection.right,
               ),
@@ -123,15 +125,16 @@ class _DimensionPickerState extends State<DimensionPicker> {
   }
 
   void onDirectionalFocus(DirectionalFocusIntent intent) {
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
     switch (intent.direction) {
       case TraversalDirection.up:
         _handleHighlight(highlightedRow! - 1, highlightedColumn!);
       case TraversalDirection.down:
         _handleHighlight(highlightedRow! + 1, highlightedColumn!);
       case TraversalDirection.left:
-        _handleHighlight(highlightedRow!, highlightedColumn! - 1);
+        _handleHighlight(highlightedRow!, isRtl ? highlightedColumn! + 1 : highlightedColumn! - 1);
       case TraversalDirection.right:
-        _handleHighlight(highlightedRow!, highlightedColumn! + 1);
+        _handleHighlight(highlightedRow!, isRtl ? highlightedColumn! - 1 : highlightedColumn! + 1);
     }
   }
 }

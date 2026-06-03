@@ -234,8 +234,8 @@ class _SubmenuOptionState extends State<_SubmenuOption> {
         child: BaseSubmenu(
           focusNode: _focusNode,
           positionDelegate: const DefaultBaseMenuPositioningDelegate(
-            padding: EdgeInsets.symmetric(vertical: 6),
-            alignmentOffset: Offset(-8, 0),
+            padding: EdgeInsetsDirectional.symmetric(vertical: 6),
+            offset: Offset(-8, 0),
           ),
           autofocus: widget.autofocusSelected && checked,
           onPressed: () {

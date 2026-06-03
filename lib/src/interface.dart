@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -7,6 +9,13 @@ import '../menu_utilities.dart';
 // These interfaces are used to limit duplicate documentation.
 
 abstract class BaseMenuInterface {
+  /// The behavior to use when focus reaches the edge of the menu overlay while
+  /// using directional focus traversal.
+  ///
+  /// Defaults to using [TraversalEdgeBehavior.stop] when [Platform.isMacOS] or
+  /// [Platform.isIOS], and [TraversalEdgeBehavior.closedLoop] otherwise.
+  TraversalEdgeBehavior? get directionalFocusEdgeBehavior;
+
   /// An optional [MenuController] that allows opening and closing of the menu
   /// from other widgets.
   ///
@@ -111,15 +120,6 @@ abstract class BaseMenuInterface {
   /// to rebuild this child when those change.
   Widget? get child;
 
-  /// The widget that this [BaseMenu] surrounds.
-  ///
-  /// Typically, this is a button used to open the menu by calling
-  /// [MenuController.open] on the `controller` passed to the builder.
-  ///
-  /// If not supplied, then the [BaseMenu] will be the size that its parent
-  /// allocates for it.
-  RawMenuAnchorChildBuilder? get builder;
-
   /// {@template flutter.widgets.RawMenuAnchor.useRootOverlay}
   /// Whether the menu panel should be rendered in the root [Overlay].
   ///
@@ -135,9 +135,11 @@ abstract class BaseMenuInterface {
   /// Defaults to false.
   bool get useRootOverlay;
 
-  // The menu panel that is displayed when the menu is opened.
-  //
-  // The panel should lay out its menu children in a vertical list.
+  /// A widget containing the contents of the menu. This widget will only be
+  /// displayed when the menu is open.
+  ///
+  /// Typically, this is a [BaseMenuPanel] that displays a list of menu items,
+  /// but it can be any widget.
   Widget get menu;
 
   /// Called when focus enters or leaves the menu overlay and its descendants.

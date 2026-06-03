@@ -43,7 +43,10 @@ class _MenuEntryPopupState extends State<MenuEntryPopup> {
       buttonConstraints: widget.buttonConstraints,
       buttonDecoration: widget.buttonDecoration,
       tooltip: widget.tooltip,
-      onOpen: widget.onOpen,
+      onOpen: () {
+        focusNode.requestFocus();
+        widget.onOpen?.call();
+      },
       onClose: widget.onClose,
       panel: Builder(
         builder: (context) {

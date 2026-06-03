@@ -108,7 +108,7 @@ void main() {
       App(
         BaseMenu(
           controller: controller,
-          menu: BaseMenuPanel(direction: Axis.vertical, children: <Widget>[Text(Tag.a.text)]),
+          menu: BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[Text(Tag.a.text)]),
           child: const AnchorButton(Tag.anchor),
         ),
       ),
@@ -136,13 +136,13 @@ void main() {
         BaseMenu(
           controller: controller,
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[
               Text(Tag.a.text),
               BaseMenu(
                 controller: nestedController,
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Text(Tag.b.a.text)],
                 ),
                 child: const AnchorButton(Tag.b),
@@ -220,12 +220,12 @@ void main() {
         BaseMenu(
           controller: controller,
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[
               Text(Tag.a.text),
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Text(Tag.b.a.text)],
                 ),
                 child: AnchorButton(Tag.b, focusNode: focusNode),
@@ -268,14 +268,14 @@ void main() {
             children: <Widget>[
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Text(Tag.a.a.text)],
                 ),
                 child: const AnchorButton(Tag.a),
               ),
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Text(Tag.b.a.text)],
                 ),
                 child: const AnchorButton(Tag.b),
@@ -312,7 +312,7 @@ void main() {
     await tester.pumpWidget(
       App(
         BaseMenu(
-          menu: BaseMenuPanel(direction: Axis.vertical, children: <Widget>[Button.tag(Tag.a.a)]),
+          menu: BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[Button.tag(Tag.a.a)]),
           builder: (BuildContext context, MenuController controller, Widget? child) {
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -320,7 +320,7 @@ void main() {
                 const AnchorButton(Tag.a),
                 BaseMenu(
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[Button.tag(Tag.b.a)],
                   ),
                   child: const AnchorButton(Tag.b),
@@ -354,7 +354,7 @@ void main() {
             children: <Widget>[
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Text(Tag.a.a.text)],
                 ),
                 child: const AnchorButton(Tag.a),
@@ -364,7 +364,7 @@ void main() {
                 padding: const EdgeInsets.all(8.0),
                 child: BaseMenu(
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[Text(Tag.b.a.text)],
                   ),
                   child: const AnchorButton(Tag.b),
@@ -411,7 +411,7 @@ void main() {
               BaseMenu(
                 controller: nestedController,
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Text(Tag.b.a.text)],
                 ),
                 child: const AnchorButton(Tag.b),
@@ -449,7 +449,7 @@ void main() {
               BaseMenu(
                 controller: nestedController,
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Text(Tag.b.a.text)],
                 ),
                 child: const AnchorButton(Tag.b),
@@ -490,7 +490,7 @@ void main() {
               BaseMenu(
                 controller: nestedController,
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Text(Tag.b.a.text)],
                 ),
                 child: const AnchorButton(Tag.b),
@@ -530,14 +530,14 @@ void main() {
             children: <Widget>[
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Text(Tag.a.a.text)],
                 ),
                 child: const AnchorButton(Tag.a),
               ),
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Text(Tag.b.a.text)],
                 ),
                 child: const AnchorButton(Tag.b),
@@ -579,7 +579,7 @@ void main() {
           controller: controller,
           child: BaseMenu(
             controller: groupController,
-            menu: BaseMenuPanel(direction: Axis.vertical, children: <Widget>[Text(Tag.a.text)]),
+            menu: BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[Text(Tag.a.text)]),
             child: const AnchorButton(Tag.anchor),
           ),
         ),
@@ -602,7 +602,7 @@ void main() {
           controller: newController,
           child: BaseMenu(
             controller: newGroupController,
-            menu: BaseMenuPanel(direction: Axis.vertical, children: <Widget>[Text(Tag.a.text)]),
+            menu: BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[Text(Tag.a.text)]),
             child: const AnchorButton(Tag.anchor),
           ),
         ),
@@ -630,7 +630,7 @@ void main() {
         BaseMenu(
           controller: controller,
           menu: const BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[SizedBox.shrink()],
           ),
           child: const SizedBox.shrink(),
@@ -644,7 +644,7 @@ void main() {
     await tester.pumpWidget(
       const App(
         BaseMenu(
-          menu: BaseMenuPanel(direction: Axis.vertical, children: <Widget>[SizedBox.shrink()]),
+          menu: BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[SizedBox.shrink()]),
           child: SizedBox.shrink(),
         ),
       ),
@@ -663,7 +663,7 @@ void main() {
       App(
         BaseMenu(
           controller: controller,
-          menu: const BaseMenuPanel(direction: Axis.vertical, children: <SizedBox>[]),
+          menu: const BaseMenuPanel(orientation: Axis.vertical, children: <SizedBox>[]),
           child: const SizedBox(),
         ),
       ),
@@ -754,14 +754,14 @@ void main() {
             children: <Widget>[
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[
                     Button.tag(Tag.a.a, focusNode: buttonFocus),
                     Button.tag(Tag.a.b),
                     BaseMenu(
                       controller: controller,
                       menu: BaseMenuPanel(
-                        direction: Axis.vertical,
+                        orientation: Axis.vertical,
                         children: <Widget>[Button.tag(Tag.a.c.a, focusNode: acaFocusNode)],
                       ),
                       child: AnchorButton(Tag.a.c),
@@ -811,11 +811,11 @@ void main() {
               BaseMenu(
                 controller: controller,
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[
                     BaseMenu(
                       menu: BaseMenuPanel(
-                        direction: Axis.vertical,
+                        orientation: Axis.vertical,
                         children: <Widget>[
                           Button.tag(Tag.b.a.a, focusNode: baaFocusNode, onPressed: () {}),
                         ],
@@ -903,7 +903,7 @@ void main() {
               children: <Widget>[
                 BaseMenu(
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[Text(Tag.a.text)],
                   ),
                   child: AnchorButton(Tag.anchor, focusNode: aFocusNode),
@@ -1082,7 +1082,7 @@ void main() {
           },
           child: BaseMenu(
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[Button.tag(Tag.a, focusNode: aFocusNode)],
             ),
             child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
@@ -1121,18 +1121,18 @@ void main() {
       App(
         BaseMenu(
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[
               Text(Tag.a.text),
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[
                     Text(Tag.b.a.text),
                     BaseMenu(
                       controller: controller,
                       menu: BaseMenuPanel(
-                        direction: Axis.vertical,
+                        orientation: Axis.vertical,
                         children: <Widget>[Text(Tag.b.b.a.text)],
                       ),
                       child: AnchorButton(Tag.b.b, focusNode: focusNode),
@@ -1216,14 +1216,14 @@ void main() {
                     onOpen: () => onOpen(Tag.anchor),
                     onClose: () => onClose(Tag.anchor),
                     menu: BaseMenuPanel(
-                      direction: Axis.vertical,
+                      orientation: Axis.vertical,
                       children: <Widget>[
                         BaseMenu(
                           consumeOutsideTaps: true,
                           onOpen: () => onOpen(Tag.a),
                           onClose: () => onClose(Tag.a),
                           menu: BaseMenuPanel(
-                            direction: Axis.vertical,
+                            orientation: Axis.vertical,
                             children: <Widget>[Text(Tag.a.a.text)],
                           ),
                           child: AnchorButton(Tag.a, onPressed: onPressed),
@@ -1298,13 +1298,13 @@ void main() {
                     // ignore: avoid_redundant_argument_values
                     consumeOutsideTaps: false,
                     menu: BaseMenuPanel(
-                      direction: Axis.vertical,
+                      orientation: Axis.vertical,
                       children: <Widget>[
                         BaseMenu(
                           onOpen: () => onOpen(Tag.a),
                           onClose: () => onClose(Tag.a),
                           menu: BaseMenuPanel(
-                            direction: Axis.vertical,
+                            orientation: Axis.vertical,
                             children: <Widget>[Text(Tag.a.a.text)],
                           ),
                           child: AnchorButton(Tag.a, onPressed: onPressed),
@@ -1368,7 +1368,7 @@ void main() {
           onOpen: () {
             opened = true;
           },
-          menu: const BaseMenuPanel(direction: Axis.vertical, children: <Widget>[]),
+          menu: const BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[]),
           child: const AnchorButton(Tag.anchor),
         ),
       ),
@@ -1403,7 +1403,7 @@ void main() {
           onClose: () {
             closed = true;
           },
-          menu: const BaseMenuPanel(direction: Axis.vertical, children: <Widget>[]),
+          menu: const BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[]),
           child: const AnchorButton(Tag.anchor),
         ),
       ),
@@ -1432,7 +1432,7 @@ void main() {
 
   testWidgets('panel diagnostics', (WidgetTester tester) async {
     const panel = BaseMenuPanel(
-      direction: Axis.vertical,
+      orientation: Axis.vertical,
       padding: EdgeInsetsDirectional.all(5),
       constrainCrossAxis: true,
       children: <Widget>[Text('1')],
@@ -1500,7 +1500,10 @@ void main() {
       App(
         BaseMenu(
           controller: controller,
-          menu: const BaseMenuPanel(direction: Axis.vertical, children: <Widget>[Text('Button 1')]),
+          menu: const BaseMenuPanel(
+            orientation: Axis.vertical,
+            children: <Widget>[Text('Button 1')],
+          ),
           child: const AnchorButton(Tag.anchor),
         ),
       ),
@@ -1517,7 +1520,7 @@ void main() {
         BaseMenu(
           controller: controller,
           menu: const BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             clipBehavior: Clip.hardEdge,
             children: <Widget>[Text('Button 1')],
           ),
@@ -1533,37 +1536,85 @@ void main() {
     );
   });
 
-  testWidgets('[Default] Home key from a menu item focuses first sibling', (
-    WidgetTester tester,
-  ) async {
-    const anchorConstraints = BoxConstraints.tightFor(height: 225);
+  testWidgets('MenuBar Home key focuses first menu bar item', (WidgetTester tester) async {
+    final aFocusNode = FocusNode(debugLabel: Tag.a.focusNode);
+    final cFocusNode = FocusNode(debugLabel: Tag.c.focusNode);
+    addTearDown(aFocusNode.dispose);
+    addTearDown(cFocusNode.dispose);
+
+    await tester.pumpWidget(
+      App(
+        BaseMenuBar(
+          child: Row(
+            children: <Widget>[
+              Button.tag(Tag.a, focusNode: aFocusNode),
+              Button.tag(Tag.b),
+              Button.tag(Tag.c, focusNode: cFocusNode, autofocus: true),
+              Button.tag(Tag.d),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    expect(primaryFocus, equals(cFocusNode));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.home);
+    await tester.pump();
+
+    expect(primaryFocus, equals(aFocusNode));
+  });
+
+  testWidgets('MenuBar End key focuses last menu bar item', (WidgetTester tester) async {
+    final bFocusNode = FocusNode(debugLabel: Tag.b.focusNode);
+    final dFocusNode = FocusNode(debugLabel: Tag.d.focusNode);
+    addTearDown(bFocusNode.dispose);
+    addTearDown(dFocusNode.dispose);
+
+    await tester.pumpWidget(
+      App(
+        BaseMenuBar(
+          child: Row(
+            children: <Widget>[
+              Button.tag(Tag.a),
+              Button.tag(Tag.b, focusNode: bFocusNode, autofocus: true),
+              Button.tag(Tag.c),
+              Button.tag(Tag.d, focusNode: dFocusNode),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    expect(primaryFocus, equals(bFocusNode));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.end);
+    await tester.pump();
+
+    expect(primaryFocus, equals(dFocusNode));
+  });
+
+  testWidgets('Home key from a menu item focuses first sibling', (WidgetTester tester) async {
+    final aFocusNode = FocusNode(debugLabel: Tag.a.focusNode);
+    final cFocusNode = FocusNode(debugLabel: Tag.c.focusNode);
     final anchorFocusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
-    final focusNode = FocusNode(debugLabel: Tag.d.c.focusNode);
+    addTearDown(aFocusNode.dispose);
+    addTearDown(cFocusNode.dispose);
     addTearDown(anchorFocusNode.dispose);
-    addTearDown(focusNode.dispose);
 
     await tester.pumpWidget(
       App(
         BaseMenu(
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
-            constraints: const BoxConstraints(maxHeight: 500),
+            orientation: Axis.vertical,
             children: <Widget>[
-              Button.tag(Tag.a),
-              Button.tag(Tag.b, constraints: anchorConstraints),
-              Button.tag(Tag.c, constraints: anchorConstraints),
-              BaseMenu(
-                controller: controller,
-                menu: BaseMenuPanel(
-                  direction: Axis.vertical,
-                  children: <Widget>[
-                    Button.tag(Tag.d.a),
-                    Button.tag(Tag.d.b),
-                    Button.tag(Tag.d.c, focusNode: focusNode),
-                  ],
-                ),
-                child: const AnchorButton(Tag.d, constraints: anchorConstraints),
-              ),
+              Button.tag(Tag.a, focusNode: aFocusNode),
+              Button.tag(Tag.b),
+              Button.tag(Tag.c, focusNode: cFocusNode),
+              Button.tag(Tag.d),
+              Button.tag(Tag.e),
             ],
           ),
           child: AnchorButton(autofocus: true, Tag.anchor, focusNode: anchorFocusNode),
@@ -1571,60 +1622,180 @@ void main() {
       ),
     );
 
-    listenForFocusChanges();
-
-    // Have to focus a menu item to get things started.
-    await tester.tap(find.text(Tag.anchor.text));
-    await tester.pump();
-    anchorFocusNode.requestFocus();
     await tester.pump();
 
     expect(primaryFocus, equals(anchorFocusNode));
 
-    // Test that root anchor is not affected by home key.
     await tester.sendKeyEvent(LogicalKeyboardKey.home);
+
+    // Test that home key doesn't affect root anchor focus.
+    expect(primaryFocus, equals(anchorFocusNode));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+
+    expect(primaryFocus, equals(cFocusNode));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.home);
+
+    expect(primaryFocus, equals(aFocusNode));
+  });
+
+  testWidgets('End key from a menu item focuses last sibling', (WidgetTester tester) async {
+    final eFocusNode = FocusNode(debugLabel: Tag.e.focusNode);
+    final cFocusNode = FocusNode(debugLabel: Tag.c.focusNode);
+    final anchorFocusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
+    addTearDown(eFocusNode.dispose);
+    addTearDown(cFocusNode.dispose);
+    addTearDown(anchorFocusNode.dispose);
+
+    await tester.pumpWidget(
+      App(
+        BaseMenu(
+          menu: BaseMenuPanel(
+            orientation: Axis.vertical,
+            children: <Widget>[
+              Button.tag(Tag.a),
+              Button.tag(Tag.b),
+              Button.tag(Tag.c, focusNode: cFocusNode),
+              Button.tag(Tag.d),
+              Button.tag(Tag.e, focusNode: eFocusNode),
+            ],
+          ),
+          child: AnchorButton(autofocus: true, Tag.anchor, focusNode: anchorFocusNode),
+        ),
+      ),
+    );
+
+    await tester.pump();
 
     expect(primaryFocus, equals(anchorFocusNode));
 
-    // Test from adjacent menu item sibling.
+    await tester.sendKeyEvent(LogicalKeyboardKey.end);
+
+    // Test that end key doesn't affect root anchor focus.
+    expect(primaryFocus, equals(anchorFocusNode));
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+    await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
 
-    expect(focusedMenu, Tag.c.focusNode);
+    expect(primaryFocus, equals(cFocusNode));
 
-    await tester.sendKeyEvent(LogicalKeyboardKey.home);
+    await tester.sendKeyEvent(LogicalKeyboardKey.end);
 
-    expect(focusedMenu, equals(Tag.a.focusNode));
+    expect(primaryFocus, equals(eFocusNode));
+  });
 
-    // Move to the nested anchor and open it.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+  testWidgets('Submenu Home key focuses first sibling', (WidgetTester tester) async {
+    final baaFocusNode = FocusNode(debugLabel: Tag.b.a.focusNode);
+    final bacFocusNode = FocusNode(debugLabel: Tag.b.c.focusNode);
+
+    addTearDown(baaFocusNode.dispose);
+    addTearDown(bacFocusNode.dispose);
+
+    await tester.pumpWidget(
+      App(
+        BaseMenu(
+          menu: BaseMenuPanel(
+            orientation: Axis.vertical,
+            children: <Widget>[
+              Button.tag(Tag.a),
+              BaseMenu(
+                menu: BaseMenuPanel(
+                  orientation: Axis.vertical,
+                  children: <Widget>[
+                    Button.tag(Tag.b.a, focusNode: baaFocusNode),
+                    Button.tag(Tag.b.b),
+                    Button.tag(Tag.b.c, focusNode: bacFocusNode),
+                  ],
+                ),
+                child: const AnchorButton(Tag.b),
+              ),
+            ],
+          ),
+          child: const AnchorButton(Tag.anchor, autofocus: true),
+        ),
+      ),
+    );
+
+    // Open menus and push focus all the way down into the submenu
+    await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await tester.pump();
-
-    // Test from opened anchor sibling to check that the event doesn't affect
-    // the attached submenu. The menu should scroll to the first menu item.
-    expect(focusedMenu, Tag.d.focusNode);
-    expect(find.text(Tag.d.a.text), findsOneWidget);
-    expect(find.text(Tag.a.text).hitTestable(), findsNothing);
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.home);
-
-    expect(focusedMenu, equals(Tag.a.focusNode));
-    expect(find.text(Tag.a.text).hitTestable(), findsOneWidget);
-
-    // Test from nested overlay.
-    await tester.ensureVisible(find.text(Tag.d.text));
-    await tester.tap(find.text(Tag.d.text));
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.pump();
-    focusNode.requestFocus();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
     await tester.pump();
 
-    expect(find.text(Tag.d.c.text), findsOneWidget);
-    expect(focusedMenu, equals(Tag.d.c.focusNode));
+    // Move down to the 3rd item in the submenu
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
 
+    expect(primaryFocus, equals(bacFocusNode));
+
+    // Press home key inside submenu
     await tester.sendKeyEvent(LogicalKeyboardKey.home);
+    await tester.pump();
 
-    expect(focusedMenu, equals(Tag.d.a.focusNode));
+    // Focus should only rewind to the top of the submenu
+    expect(primaryFocus, equals(baaFocusNode));
+  });
+
+  testWidgets('Submenu End key focuses last sibling', (WidgetTester tester) async {
+    final baaFocusNode = FocusNode(debugLabel: Tag.b.a.focusNode);
+    final bacFocusNode = FocusNode(debugLabel: Tag.b.c.focusNode);
+
+    addTearDown(baaFocusNode.dispose);
+    addTearDown(bacFocusNode.dispose);
+
+    await tester.pumpWidget(
+      App(
+        BaseMenu(
+          menu: BaseMenuPanel(
+            orientation: Axis.vertical,
+            children: <Widget>[
+              Button.tag(Tag.a),
+              BaseMenu(
+                menu: BaseMenuPanel(
+                  orientation: Axis.vertical,
+                  children: <Widget>[
+                    Button.tag(Tag.b.a, focusNode: baaFocusNode),
+                    Button.tag(Tag.b.b),
+                    Button.tag(Tag.b.c, focusNode: bacFocusNode),
+                  ],
+                ),
+                child: const AnchorButton(Tag.b),
+              ),
+            ],
+          ),
+          child: const AnchorButton(Tag.anchor, autofocus: true),
+        ),
+      ),
+    );
+
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump();
+
+    expect(primaryFocus, equals(baaFocusNode));
+
+    // Press end key inside submenu
+    await tester.sendKeyEvent(LogicalKeyboardKey.end);
+    await tester.pump();
+
+    // Focus should warp to the bottom of the submenu
+    expect(primaryFocus, equals(bacFocusNode));
   });
 
   testWidgets('[Default] End key from a menu item focuses last sibling', (
@@ -1645,14 +1816,14 @@ void main() {
           // childFocusNode: anchorFocusNode,
           controller: controller,
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             constraints: const BoxConstraints(maxHeight: 500),
             children: <Widget>[
               Button.tag(Tag.a, constraints: anchorConstraints),
               BaseMenu(
                 // childFocusNode: bFocusNode,
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[
                     Button.tag(Tag.b.a, focusNode: baFocusNode),
                     Button.tag(Tag.b.b),
@@ -1736,7 +1907,7 @@ void main() {
           controller: controller,
           // childFocusNode: focusNode,
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b)],
           ),
           child: AnchorButton(Tag.anchor, focusNode: focusNode),
@@ -1767,7 +1938,7 @@ void main() {
                 controller: controller,
                 // childFocusNode: focusNode,
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b)],
                 ),
                 child: AnchorButton(Tag.anchor, focusNode: focusNode),
@@ -1802,7 +1973,7 @@ void main() {
           controller: controller,
           // childFocusNode: focusNode,
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b)],
           ),
           child: AnchorButton(Tag.anchor, focusNode: focusNode),
@@ -1833,7 +2004,7 @@ void main() {
                 controller: controller,
                 // childFocusNode: focusNode,
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b)],
                 ),
                 child: AnchorButton(Tag.anchor, focusNode: focusNode),
@@ -1866,13 +2037,13 @@ void main() {
       App(
         BaseMenu(
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[
               Button.tag(Tag.a),
               Button.tag(Tag.b),
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Button.tag(Tag.c.a), Button.tag(Tag.c.b)],
                 ),
                 child: AnchorButton(Tag.c, focusNode: focusNode),
@@ -1914,13 +2085,13 @@ void main() {
         textDirection: TextDirection.rtl,
         BaseMenu(
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[
               Button.tag(Tag.a),
               Button.tag(Tag.b),
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[Button.tag(Tag.c.a), Button.tag(Tag.c.b)],
                 ),
                 child: AnchorButton(Tag.c, focusNode: focusNode),
@@ -1959,18 +2130,18 @@ void main() {
       App(
         BaseMenu(
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[
               Button.tag(Tag.a),
               Button.tag(Tag.b),
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[
                     Button.tag(Tag.c.a),
                     Button.tag(Tag.c.b),
                     BaseMenu(
-                      menu: const BaseMenuPanel(direction: Axis.vertical, children: <Widget>[]),
+                      menu: const BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[]),
                       child: AnchorButton(Tag.c.c),
                     ),
                   ],
@@ -2041,18 +2212,18 @@ void main() {
         textDirection: TextDirection.rtl,
         BaseMenu(
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[
               Button.tag(Tag.a),
               Button.tag(Tag.b),
               BaseMenu(
                 menu: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[
                     Button.tag(Tag.c.a),
                     Button.tag(Tag.c.b),
                     BaseMenu(
-                      menu: const BaseMenuPanel(direction: Axis.vertical, children: <Widget>[]),
+                      menu: const BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[]),
                       child: AnchorButton(Tag.c.c),
                     ),
                   ],
@@ -2134,13 +2305,13 @@ void main() {
           child: BaseMenu(
             // childFocusNode: focusNode,
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Button.tag(Tag.a),
                 Button.tag(Tag.b),
                 BaseMenu(
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[Button.tag(Tag.c.a), Button.tag(Tag.c.b)],
                   ),
                   child: const AnchorButton(Tag.c),
@@ -2148,13 +2319,13 @@ void main() {
                 Button.tag(Tag.d),
                 BaseMenu(
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[
                       Button.tag(Tag.e.a),
                       Button.tag(Tag.e.b),
                       BaseMenu(
                         menu: BaseMenuPanel(
-                          direction: Axis.vertical,
+                          orientation: Axis.vertical,
                           children: <Widget>[
                             Button.tag(Tag.e.c.a),
                             Button.tag(Tag.e.c.b),
@@ -2304,13 +2475,13 @@ void main() {
           child: BaseMenu(
             // childFocusNode: focusNode,
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Button.tag(Tag.a),
                 Button.tag(Tag.b),
                 BaseMenu(
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[Button.tag(Tag.c.a), Button.tag(Tag.c.b)],
                   ),
                   child: const AnchorButton(Tag.c),
@@ -2318,13 +2489,13 @@ void main() {
                 Button.tag(Tag.d),
                 BaseMenu(
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[
                       Button.tag(Tag.e.a),
                       Button.tag(Tag.e.b),
                       BaseMenu(
                         menu: BaseMenuPanel(
-                          direction: Axis.vertical,
+                          orientation: Axis.vertical,
                           children: <Widget>[
                             Button.tag(Tag.e.c.a),
                             Button.tag(Tag.e.c.b),
@@ -2467,7 +2638,7 @@ void main() {
             BaseMenu(
               controller: controller,
               menu: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[Button.tag(Tag.b.a), Button.tag(Tag.b.b), Button.tag(Tag.b.c)],
               ),
               child: AnchorButton(Tag.b, focusNode: focusNode),
@@ -2535,7 +2706,7 @@ void main() {
                       controller: controller,
                       // childFocusNode: focusNode,
                       menu: BaseMenuPanel(
-                        direction: Axis.vertical,
+                        orientation: Axis.vertical,
                         children: <Widget>[
                           Button.tag(Tag.b.a),
                           Button.tag(Tag.b.b),
@@ -2623,12 +2794,12 @@ void main() {
             BaseMenu(
               // childFocusNode: bFocusNode,
               menu: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[
                   Button.tag(Tag.b.a),
                   BaseMenu(
                     menu: BaseMenuPanel(
-                      direction: Axis.vertical,
+                      orientation: Axis.vertical,
                       children: <Widget>[Button.tag(Tag.b.b.a)],
                     ),
                     child: AnchorButton(Tag.b.b),
@@ -2759,7 +2930,10 @@ void main() {
                   closed = true;
                 },
                 controller: controller,
-                menu: BaseMenuPanel(direction: Axis.vertical, children: <Widget>[Text(Tag.a.text)]),
+                menu: BaseMenuPanel(
+                  orientation: Axis.vertical,
+                  children: <Widget>[Text(Tag.a.text)],
+                ),
                 child: const AnchorButton(Tag.anchor),
               ),
             ),
@@ -2801,7 +2975,7 @@ void main() {
               onClose(Tag.anchor);
             },
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Button.tag(Tag.a),
                 Button.tag(Tag.b),
@@ -2853,7 +3027,7 @@ void main() {
                 rootOpened = false;
               },
               menu: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[
                   BaseMenu(
                     // alignmentOffset: const Offset(10, 0),
@@ -2866,7 +3040,7 @@ void main() {
                       onClose(Tag.a);
                     },
                     menu: BaseMenuPanel(
-                      direction: Axis.vertical,
+                      orientation: Axis.vertical,
                       children: <Widget>[Button.tag(Tag.a.a, constraints: largeButtonConstraints)],
                     ),
                     child: const AnchorButton(Tag.a, constraints: largeButtonConstraints),
@@ -2921,7 +3095,7 @@ void main() {
       App(
         BaseMenu(
           menu: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[Button.text('Menu Item')],
           ),
           builder: (BuildContext context, MenuController controller, Widget? child) {
@@ -2994,11 +3168,11 @@ void main() {
                     useRootOverlay: true,
                     controller: controller,
                     menu: BaseMenuPanel(
-                      direction: Axis.vertical,
+                      orientation: Axis.vertical,
                       children: <Widget>[
                         BaseMenu(
                           menu: BaseMenuPanel(
-                            direction: Axis.vertical,
+                            orientation: Axis.vertical,
                             children: <Widget>[Button.tag(Tag.a.a)],
                           ),
                           child: const AnchorButton(Tag.a),
@@ -3067,14 +3241,14 @@ void main() {
                   child: BaseMenu(
                     controller: controller,
                     menu: BaseMenuPanel(
-                      direction: Axis.vertical,
+                      orientation: Axis.vertical,
                       children: <Widget>[
                         // Nested menus should be rendered in the same overlay as
                         // their parent, so useRootOverlay should have no effect.
                         BaseMenu(
                           useRootOverlay: true,
                           menu: BaseMenuPanel(
-                            direction: Axis.vertical,
+                            orientation: Axis.vertical,
                             children: <Widget>[Button.tag(Tag.a.a)],
                           ),
                           child: const AnchorButton(Tag.a),
@@ -3114,7 +3288,703 @@ void main() {
     expect(menuTheater, tester.renderObject(find.byWidget(nonRootOverlay)));
     expect(menuTheater, submenuTheater);
   });
+  group('Focus', () {
+    Future<void> expectFocusPath(
+      WidgetTester tester,
+      List<(LogicalKeyboardKey key, Tag tag)> path,
+    ) async {
+      for (final step in path) {
+        await tester.sendKeyEvent(step.$1);
+        await tester.pump();
 
+        final currentFocus = FocusManager.instance.primaryFocus?.debugLabel;
+        expect(
+          currentFocus,
+          contains(step.$2.focusNode),
+          reason:
+              'Failed after pressing ${step.$1.debugName}. Expected ${step.$2.text} but got $currentFocus.',
+        );
+      }
+    }
+
+    testWidgets(
+      '[Browser] Focus wraps on all platforms',
+      skip: !kIsWeb, // [intended] Web wraps focus regardless of platform.
+      (WidgetTester tester) async {
+        final anchorFocusNode = FocusNode();
+        final firstItemFocusNode = FocusNode();
+        final lastItemFocusNode = FocusNode();
+        addTearDown(anchorFocusNode.dispose);
+        addTearDown(firstItemFocusNode.dispose);
+        addTearDown(lastItemFocusNode.dispose);
+
+        await tester.pumpWidget(
+          App(
+            BaseMenu(
+              controller: controller,
+              menu: BaseMenuPanel(
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Button.tag(Tag.a, focusNode: firstItemFocusNode),
+                  Button.tag(Tag.b),
+                  Button.tag(Tag.c, focusNode: lastItemFocusNode),
+                ],
+              ),
+              child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+            ),
+          ),
+        );
+
+        controller.open();
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        firstItemFocusNode.requestFocus();
+        await tester.pump();
+
+        expect(FocusManager.instance.primaryFocus, firstItemFocusNode);
+
+        // Arrow up from first item should wrap to last item
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+        await tester.pump();
+
+        expect(FocusManager.instance.primaryFocus, lastItemFocusNode);
+
+        // Arrow down from last item should wrap to first item
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pump();
+
+        expect(FocusManager.instance.primaryFocus, firstItemFocusNode);
+      },
+    );
+
+    testWidgets(
+      '[Not Browser] Focus wraps when traversing with arrow keys on non-Apple platforms',
+      skip: kIsWeb, // [intended] Browser behavior is tested above.
+      variant: const TargetPlatformVariant(<TargetPlatform>{
+        TargetPlatform.android,
+        TargetPlatform.fuchsia,
+        TargetPlatform.linux,
+        TargetPlatform.windows,
+      }),
+      (WidgetTester tester) async {
+        final anchorFocusNode = FocusNode();
+        final firstItemFocusNode = FocusNode();
+        final lastItemFocusNode = FocusNode();
+        addTearDown(anchorFocusNode.dispose);
+        addTearDown(firstItemFocusNode.dispose);
+        addTearDown(lastItemFocusNode.dispose);
+
+        await tester.pumpWidget(
+          App(
+            BaseMenu(
+              controller: controller,
+              menu: BaseMenuPanel(
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Button.tag(Tag.a, focusNode: firstItemFocusNode),
+                  Button.tag(Tag.b),
+                  Button.tag(Tag.c, focusNode: lastItemFocusNode),
+                ],
+              ),
+              child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+            ),
+          ),
+        );
+
+        controller.open();
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        firstItemFocusNode.requestFocus();
+        await tester.pump();
+
+        expect(FocusManager.instance.primaryFocus, firstItemFocusNode);
+
+        // Arrow up from first item should wrap to last item
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+        await tester.pump();
+
+        expect(FocusManager.instance.primaryFocus, lastItemFocusNode);
+
+        // Arrow down from last item should wrap to first item
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pump();
+
+        expect(FocusManager.instance.primaryFocus, firstItemFocusNode);
+      },
+    );
+
+    testWidgets(
+      '[Not Browser] Focus does not wrap when traversing with arrow keys on Apple platforms',
+      skip: kIsWeb, // [intended] Browser behavior is tested above.
+      variant: const TargetPlatformVariant(<TargetPlatform>{
+        TargetPlatform.iOS,
+        TargetPlatform.macOS,
+      }),
+      (WidgetTester tester) async {
+        final anchorFocusNode = FocusNode();
+        final firstItemFocusNode = FocusNode();
+        final lastItemFocusNode = FocusNode();
+        addTearDown(anchorFocusNode.dispose);
+        addTearDown(firstItemFocusNode.dispose);
+        addTearDown(lastItemFocusNode.dispose);
+
+        await tester.pumpWidget(
+          App(
+            BaseMenu(
+              controller: controller,
+              menu: BaseMenuPanel(
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Button.tag(Tag.a, focusNode: firstItemFocusNode),
+                  Button.tag(Tag.b),
+                  Button.tag(Tag.c, focusNode: lastItemFocusNode),
+                ],
+              ),
+              child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        firstItemFocusNode.requestFocus();
+        await tester.pump();
+
+        expect(FocusManager.instance.primaryFocus, firstItemFocusNode);
+
+        // Arrow up from first item should not move focus on Apple platforms
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+        await tester.pump();
+
+        expect(FocusManager.instance.primaryFocus, firstItemFocusNode);
+
+        lastItemFocusNode.requestFocus();
+        await tester.pump();
+
+        // Arrow down from last item should not move focus on Apple platforms
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pump();
+
+        expect(FocusManager.instance.primaryFocus, lastItemFocusNode);
+      },
+    );
+
+    testWidgets('Menu items can be activated with enter key', (WidgetTester tester) async {
+      final anchorFocusNode = FocusNode();
+      final aFocusNode = FocusNode();
+      var itemActivated = false;
+      addTearDown(anchorFocusNode.dispose);
+      addTearDown(aFocusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[
+                Button.tag(
+                  Tag.a,
+                  focusNode: aFocusNode,
+                  onPressed: () {
+                    itemActivated = true;
+                  },
+                ),
+              ],
+            ),
+            child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+          ),
+        ),
+      );
+
+      controller.open();
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      aFocusNode.requestFocus();
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, aFocusNode);
+      expect(itemActivated, isFalse);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+
+      expect(itemActivated, isTrue);
+    });
+
+    testWidgets('Menu closes with escape key', (WidgetTester tester) async {
+      final anchorFocusNode = FocusNode();
+      final aFocusNode = FocusNode();
+      addTearDown(anchorFocusNode.dispose);
+      addTearDown(aFocusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[Button.tag(Tag.a, focusNode: aFocusNode)],
+            ),
+            child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+          ),
+        ),
+      );
+
+      controller.open();
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      aFocusNode.requestFocus();
+      await tester.pump();
+
+      expect(controller.isOpen, isTrue);
+      expect(FocusManager.instance.primaryFocus, aFocusNode);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(controller.isOpen, isFalse);
+    });
+
+    group('Extended Traversal & Interactions', () {
+      testWidgets('Home and End keys traverse correctly at all depths', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          const App(
+            MenuSystem(layers: [Axis.horizontal, Axis.vertical, Axis.vertical], autofocus: .a),
+            textDirection: ui.TextDirection.ltr,
+          ),
+        );
+
+        await expectFocusPath(tester, [
+          // On the root MenuBar
+          (LogicalKeyboardKey.end, Tag.e),
+          (LogicalKeyboardKey.home, Tag.a),
+
+          // Move into the vertical menu
+          (LogicalKeyboardKey.arrowDown, Tag.a.a),
+
+          // Inside the vertical menu
+          (LogicalKeyboardKey.end, Tag.a.e),
+          (LogicalKeyboardKey.home, Tag.a.a),
+
+          // Open the submenu
+          (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
+
+          // Inside the deepest submenu
+          (LogicalKeyboardKey.end, Tag.a.a.e),
+          (LogicalKeyboardKey.home, Tag.a.a.a),
+        ]);
+      });
+
+      testWidgets('LTR full directional traversal', (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const App(
+            MenuSystem(layers: [Axis.horizontal, Axis.vertical, Axis.vertical], autofocus: .a),
+            textDirection: ui.TextDirection.ltr,
+          ),
+        );
+
+        await expectFocusPath(tester, [
+          (LogicalKeyboardKey.arrowRight, Tag.b), // Move right on menu bar
+          (LogicalKeyboardKey.arrowRight, Tag.c),
+          (LogicalKeyboardKey.arrowDown, Tag.c.a), // Open nested vertical
+          (LogicalKeyboardKey.arrowDown, Tag.c.b), // Move down
+          (LogicalKeyboardKey.arrowRight, Tag.c.b.a), // Open LTR Submenu (ArrowRight)
+          (LogicalKeyboardKey.arrowDown, Tag.c.b.b), // Move down in submenu
+          (LogicalKeyboardKey.arrowLeft, Tag.c.b), // Close LTR Submenu (ArrowLeft)
+          (LogicalKeyboardKey.arrowUp, Tag.c.a), // Move back up
+          (LogicalKeyboardKey.arrowLeft, Tag.b), // Escapes to previous MenuBar root in LTR
+        ]);
+      });
+
+      testWidgets('RTL full directional traversal', (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const App(
+            MenuSystem(layers: [Axis.horizontal, Axis.vertical, Axis.vertical], autofocus: .a),
+            textDirection: ui.TextDirection.rtl,
+          ),
+        );
+
+        await expectFocusPath(tester, [
+          // In RTL, ArrowLeft moves forward along the horizontal bar
+          (LogicalKeyboardKey.arrowLeft, Tag.b),
+          (LogicalKeyboardKey.arrowLeft, Tag.c),
+          (LogicalKeyboardKey.arrowDown, Tag.c.a), // Down remains the same
+          (LogicalKeyboardKey.arrowDown, Tag.c.b),
+          (LogicalKeyboardKey.arrowLeft, Tag.c.b.a), // Open RTL Submenu (ArrowLeft)
+          (LogicalKeyboardKey.arrowDown, Tag.c.b.b),
+          (LogicalKeyboardKey.arrowRight, Tag.c.b), // Close RTL Submenu (ArrowRight)
+          (LogicalKeyboardKey.arrowUp, Tag.c.a),
+          (LogicalKeyboardKey.arrowRight, Tag.b), // Escapes to previous MenuBar root in RTL
+        ]);
+      });
+
+      testWidgets('Tab and Shift+Tab do not move focus within open menus', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          const App(MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: .a)),
+        );
+
+        // Open menu and move to 'b'
+        await expectFocusPath(tester, [
+          (LogicalKeyboardKey.arrowDown, Tag.a.a),
+          (LogicalKeyboardKey.arrowDown, Tag.a.b),
+        ]);
+
+        // Press Tab (Should do nothing to internal focus based on implementation constraints)
+        await expectFocusPath(tester, [
+          (LogicalKeyboardKey.tab, Tag.a.b),
+          (LogicalKeyboardKey.tab, Tag.a.b),
+        ]);
+
+        // Press Shift+Tab (Should also do nothing internally)
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
+        await tester.pump();
+
+        final currentFocus = FocusManager.instance.primaryFocus?.debugLabel;
+        expect(
+          currentFocus,
+          contains(Tag.a.b.focusNode),
+          reason: 'Shift+Tab should not change the primary internal focus traversal.',
+        );
+      });
+
+      testWidgets('Keyboard traversal resumes correctly after an item is hovered', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          const App(MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: .a)),
+        );
+
+        // Start keyboard tracking
+        await expectFocusPath(tester, [(LogicalKeyboardKey.arrowDown, Tag.a.a)]);
+
+
+        // Manually hover over item 'Tag.a.d'
+        final pointer = TestPointer(1, ui.PointerDeviceKind.mouse);
+        final targetOffset = tester.getCenter(find.text(Tag.a.d.text));
+
+  
+        await tester.sendEventToBinding(pointer.hover(targetOffset));
+        await tester.pumpAndSettle();
+
+        // Focus should have jumped to the hovered item 'Tag.a.d' via the pointer event
+        expect(
+          FocusManager.instance.primaryFocus?.debugLabel,
+          contains(Tag.a.d.focusNode),
+          reason: 'Hovering should request focus on the hovered item.',
+        );
+
+        // Resume keyboard traversal, ArrowDown should logically move to 'Tag.a.e'
+        await expectFocusPath(tester, [
+          (LogicalKeyboardKey.arrowDown, Tag.a.e),
+          (LogicalKeyboardKey.arrowUp, Tag.a.d),
+        ]);
+      });
+    });
+
+    testWidgets('Focus returns to button after menu closes', (WidgetTester tester) async {
+      final anchorFocusNode = FocusNode();
+      final aFocusNode = FocusNode();
+      addTearDown(anchorFocusNode.dispose);
+      addTearDown(aFocusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[Button.tag(Tag.a, focusNode: aFocusNode)],
+            ),
+            child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+          ),
+        ),
+      );
+
+      anchorFocusNode.requestFocus();
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      controller.open();
+      await tester.pump();
+
+      aFocusNode.requestFocus();
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, aFocusNode);
+
+      // Close menu with escape
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+
+      expect(controller.isOpen, isFalse);
+      expect(FocusManager.instance.primaryFocus, anchorFocusNode);
+    });
+
+    testWidgets('Down key on closed menu button opens menu and focuses first item', (
+      WidgetTester tester,
+    ) async {
+      final anchorFocusNode = FocusNode();
+      final firstItemFocusNode = FocusNode();
+      addTearDown(anchorFocusNode.dispose);
+      addTearDown(firstItemFocusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[
+                Button.tag(Tag.a, focusNode: firstItemFocusNode),
+                Button.tag(Tag.b),
+              ],
+            ),
+            child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+          ),
+        ),
+      );
+
+      // Focus the anchor button first.
+      anchorFocusNode.requestFocus();
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, anchorFocusNode);
+      expect(controller.isOpen, isFalse);
+
+      // Press down arrow key - should open menu and focus first item.
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(controller.isOpen, isTrue);
+      expect(FocusManager.instance.primaryFocus, firstItemFocusNode);
+    });
+
+    testWidgets('Up key on closed menu button opens menu and focuses last item', (
+      WidgetTester tester,
+    ) async {
+      final anchorFocusNode = FocusNode();
+      final lastItemFocusNode = FocusNode();
+      addTearDown(anchorFocusNode.dispose);
+      addTearDown(lastItemFocusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[
+                Button.tag(Tag.a),
+                Button.tag(Tag.b, focusNode: lastItemFocusNode),
+              ],
+            ),
+            child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+          ),
+        ),
+      );
+
+      // Focus the anchor button first.
+      anchorFocusNode.requestFocus();
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, anchorFocusNode);
+      expect(controller.isOpen, isFalse);
+
+      // Press up arrow key - should open menu and focus last item.
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(controller.isOpen, isTrue);
+      expect(FocusManager.instance.primaryFocus, lastItemFocusNode);
+    });
+
+    testWidgets('Down key after menu opens focuses the first menu item', (
+      WidgetTester tester,
+    ) async {
+      final anchorFocusNode = FocusNode();
+      final firstItemFocusNode = FocusNode();
+      final secondItemFocusNode = FocusNode();
+      addTearDown(anchorFocusNode.dispose);
+      addTearDown(firstItemFocusNode.dispose);
+      addTearDown(secondItemFocusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[
+                Button.tag(Tag.a, focusNode: firstItemFocusNode),
+                Button.tag(Tag.b, focusNode: secondItemFocusNode),
+              ],
+            ),
+            child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+          ),
+        ),
+      );
+
+      // Focus the anchor button first
+      anchorFocusNode.requestFocus();
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, anchorFocusNode);
+
+      // Open the menu
+      controller.open();
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Press down arrow key - should focus first menu item
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, firstItemFocusNode);
+    });
+
+    testWidgets('Up key after open focuses the last menu item', (WidgetTester tester) async {
+      final anchorFocusNode = FocusNode();
+      final firstItemFocusNode = FocusNode();
+      final lastItemFocusNode = FocusNode();
+      addTearDown(anchorFocusNode.dispose);
+      addTearDown(firstItemFocusNode.dispose);
+      addTearDown(lastItemFocusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[
+                Button.tag(Tag.a, focusNode: firstItemFocusNode),
+                Button.tag(Tag.b),
+                Button.tag(Tag.c, focusNode: lastItemFocusNode),
+              ],
+            ),
+            child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+          ),
+        ),
+      );
+
+      // Focus the anchor button first
+      anchorFocusNode.requestFocus();
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, anchorFocusNode);
+
+      // Open the menu
+      controller.open();
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      // Press up arrow key - should focus last menu item
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, lastItemFocusNode);
+    });
+
+    testWidgets('Home key moves focus to first menu item', (WidgetTester tester) async {
+      final anchorFocusNode = FocusNode();
+      final firstItemFocusNode = FocusNode();
+      final middleItemFocusNode = FocusNode();
+      final lastItemFocusNode = FocusNode();
+      addTearDown(anchorFocusNode.dispose);
+      addTearDown(firstItemFocusNode.dispose);
+      addTearDown(middleItemFocusNode.dispose);
+      addTearDown(lastItemFocusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[
+                Button.tag(Tag.a, focusNode: firstItemFocusNode),
+                Button.tag(Tag.b, focusNode: middleItemFocusNode),
+                Button.tag(Tag.c, focusNode: lastItemFocusNode),
+              ],
+            ),
+            child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+          ),
+        ),
+      );
+
+      controller.open();
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      lastItemFocusNode.requestFocus();
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, lastItemFocusNode);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.home);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, firstItemFocusNode);
+    });
+
+    testWidgets('End key moves focus to last menu item', (WidgetTester tester) async {
+      final anchorFocusNode = FocusNode();
+      final firstItemFocusNode = FocusNode();
+      final middleItemFocusNode = FocusNode();
+      final lastItemFocusNode = FocusNode();
+      addTearDown(anchorFocusNode.dispose);
+      addTearDown(firstItemFocusNode.dispose);
+      addTearDown(middleItemFocusNode.dispose);
+      addTearDown(lastItemFocusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[
+                Button.tag(Tag.a, focusNode: firstItemFocusNode),
+                Button.tag(Tag.b, focusNode: middleItemFocusNode),
+                Button.tag(Tag.c, focusNode: lastItemFocusNode),
+              ],
+            ),
+            child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+          ),
+        ),
+      );
+
+      controller.open();
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      firstItemFocusNode.requestFocus();
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, firstItemFocusNode);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.end);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, lastItemFocusNode);
+    });
+  });
   group('[Default] Layout', () {
     final alignments = <AlignmentGeometry>[
       for (double x = -2; x <= 2; x += 1)
@@ -3141,12 +4011,12 @@ void main() {
         return App(
           BaseMenu(
             positionDelegate: DefaultBaseMenuPositioningDelegate(
-              alignment: alignment,
+              anchorAlignment: alignment,
               menuAlignment: Alignment.center,
             ),
 
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(
                   width: 100,
@@ -3187,11 +4057,11 @@ void main() {
           textDirection: TextDirection.rtl,
           BaseMenu(
             positionDelegate: DefaultBaseMenuPositioningDelegate(
-              alignment: alignment,
+              anchorAlignment: alignment,
               menuAlignment: Alignment.center,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(
                   width: 100,
@@ -3234,11 +4104,11 @@ void main() {
         return App(
           BaseMenu(
             positionDelegate: DefaultBaseMenuPositioningDelegate(
-              alignment: Alignment.center,
+              anchorAlignment: Alignment.center,
               menuAlignment: alignment,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(
                   width: 100,
@@ -3282,11 +4152,11 @@ void main() {
           textDirection: TextDirection.rtl,
           BaseMenu(
             positionDelegate: DefaultBaseMenuPositioningDelegate(
-              alignment: Alignment.center,
+              anchorAlignment: Alignment.center,
               menuAlignment: alignment,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(
                   width: 100,
@@ -3325,7 +4195,7 @@ void main() {
         App(
           BaseMenu(
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(width: 100, height: 100, color: const Color(0xFF00FF00)),
               ],
@@ -3353,7 +4223,7 @@ void main() {
           textDirection: TextDirection.rtl,
           BaseMenu(
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(width: 100, height: 100, color: const Color(0xFF00FF00)),
               ],
@@ -3382,11 +4252,11 @@ void main() {
             menu: ColoredBox(
               color: const Color(0xFFFF00FF),
               child: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[
                   BaseMenu(
                     menu: BaseMenuPanel(
-                      direction: Axis.vertical,
+                      orientation: Axis.vertical,
                       children: <Widget>[
                         Container(width: 100, height: 100, color: const Color(0xFF00FF00)),
                       ],
@@ -3421,13 +4291,13 @@ void main() {
             menu: ColoredBox(
               color: const Color(0xFF0000FF),
               child: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[
                   BaseMenu(
                     menu: const ColoredBox(
                       color: Color(0xFFFF00FF),
                       child: BaseMenuPanel(
-                        direction: Axis.vertical,
+                        orientation: Axis.vertical,
                         children: <Widget>[SizedBox.square(dimension: 100)],
                       ),
                     ),
@@ -3451,7 +4321,7 @@ void main() {
       expect(submenu.bottomRight - menu.topRight, equals(const Offset(-100, 100)));
     });
 
-    testWidgets('alignmentOffset is not directional by default', (WidgetTester tester) async {
+    testWidgets('alignmentOffset is directional by default', (WidgetTester tester) async {
       const offset = Offset(24, 33);
 
       Widget buildApp({
@@ -3461,9 +4331,9 @@ void main() {
         return App(
           textDirection: textDirection,
           BaseMenu(
-            positionDelegate: DefaultBaseMenuPositioningDelegate(alignmentOffset: alignmentOffset),
+            positionDelegate: DefaultBaseMenuPositioningDelegate(offset: alignmentOffset),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(
                   width: 250,
@@ -3517,12 +4387,12 @@ void main() {
             // menuAlignment: Alignment.center,
             // alignmentOffset: alignmentOffset,
             positionDelegate: DefaultBaseMenuPositioningDelegate(
-              alignment: anchorAlignment,
+              anchorAlignment: anchorAlignment,
               menuAlignment: Alignment.center,
-              alignmentOffset: alignmentOffset,
+              offset: alignmentOffset,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(
                   width: 125,
@@ -3566,12 +4436,12 @@ void main() {
           textDirection: ui.TextDirection.rtl,
           BaseMenu(
             positionDelegate: DefaultBaseMenuPositioningDelegate(
-              alignment: anchorAlignment,
+              anchorAlignment: anchorAlignment,
               menuAlignment: Alignment.center,
-              alignmentOffset: alignmentOffset,
+              offset: alignmentOffset,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(
                   width: 125,
@@ -3615,12 +4485,12 @@ void main() {
           return App(
             BaseMenu(
               positionDelegate: DefaultBaseMenuPositioningDelegate(
-                alignment: alignment,
+                anchorAlignment: alignment,
                 menuAlignment: Alignment.center,
-                alignmentOffset: alignmentOffset,
+                offset: alignmentOffset,
               ),
               menu: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[
                   Container(
                     width: 50,
@@ -3678,13 +4548,13 @@ void main() {
           BaseMenu(
             controller: controller,
             positionDelegate: DefaultBaseMenuPositioningDelegate(
-              alignment: alignment,
+              anchorAlignment: alignment,
               menuAlignment: Alignment.center,
-              alignmentOffset: alignmentOffset,
+              offset: alignmentOffset,
               overlayPadding: EdgeInsets.zero,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(
                   width: 50,
@@ -3736,13 +4606,13 @@ void main() {
             textDirection: ui.TextDirection.rtl,
             BaseMenu(
               positionDelegate: DefaultBaseMenuPositioningDelegate(
-                alignment: Alignment.center,
+                anchorAlignment: Alignment.center,
                 menuAlignment: alignment,
-                alignmentOffset: alignmentOffset,
+                offset: alignmentOffset,
                 overlayPadding: EdgeInsets.zero,
               ),
               menu: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[
                   Container(
                     width: 50,
@@ -3791,20 +4661,20 @@ void main() {
         App(
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignmentOffset: Offset(-100, 100),
+              offset: Offset(-100, 100),
               overlayPadding: EdgeInsets.zero,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: constraints,
               children: <Widget>[
                 BaseMenu(
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                    alignmentOffset: Offset(100, -100),
+                    offset: Offset(100, -100),
                     overlayPadding: EdgeInsets.zero,
                   ),
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     constraints: constraints,
                     children: <Widget>[
                       Container(color: const Color(0xFF0000FF), constraints: constraints),
@@ -3839,20 +4709,20 @@ void main() {
           textDirection: TextDirection.rtl,
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignmentOffset: Offset(-100, 100),
+              offset: Offset(-100, 100),
               overlayPadding: EdgeInsets.zero,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: constraints,
               children: <Widget>[
                 BaseMenu(
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                    alignmentOffset: Offset(100, -100),
+                    offset: Offset(100, -100),
                     overlayPadding: EdgeInsets.zero,
                   ),
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     constraints: constraints,
                     children: <Widget>[
                       Container(color: const Color(0xFF0000FF), constraints: constraints),
@@ -3891,14 +4761,14 @@ void main() {
               overlayPadding: EdgeInsets.zero,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 BaseMenu(
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
                     overlayPadding: EdgeInsets.zero,
                   ),
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[Button.tag(Tag.a.a, constraints: constraints)],
                   ),
                   child: const AnchorButton(Tag.a, constraints: constraints),
@@ -3938,14 +4808,14 @@ void main() {
               overlayPadding: EdgeInsets.zero,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 BaseMenu(
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
                     overlayPadding: EdgeInsets.zero,
                   ),
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[Button.tag(Tag.a.a, constraints: constraints)],
                   ),
                   child: const AnchorButton(Tag.a, constraints: constraints),
@@ -3984,7 +4854,7 @@ void main() {
               overlayPadding: EdgeInsets.zero,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constrainCrossAxis: true,
               children: <Widget>[
                 BaseMenu(
@@ -3992,7 +4862,7 @@ void main() {
                     overlayPadding: EdgeInsets.zero,
                   ),
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     constrainCrossAxis: true,
                     children: <Widget>[Button.tag(Tag.a.a, constraints: constraints)],
                   ),
@@ -4031,7 +4901,7 @@ void main() {
               overlayPadding: EdgeInsets.zero,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constrainCrossAxis: true,
               children: <Widget>[
                 BaseMenu(
@@ -4039,7 +4909,7 @@ void main() {
                     overlayPadding: EdgeInsets.zero,
                   ),
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     constrainCrossAxis: true,
                     children: <Widget>[Button.tag(Tag.a.a, constraints: constraints)],
                   ),
@@ -4071,7 +4941,7 @@ void main() {
             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
             child: BaseMenu(
               menu: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[
                   Container(color: const Color(0xFFFF0000), height: 125, width: 200),
                 ],
@@ -4096,11 +4966,11 @@ void main() {
           alignment: const Alignment(0.5, 0),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: Alignment.topLeft,
+              anchorAlignment: Alignment.topLeft,
               menuAlignment: Alignment(-0.75, -0.75),
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(width: 350, height: 100, color: const Color(0x86FF00FF)),
               ],
@@ -4128,11 +4998,11 @@ void main() {
           alignment: const Alignment(0.5, 0),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: Alignment.topLeft,
+              anchorAlignment: Alignment.topLeft,
               menuAlignment: Alignment(-0.75, -0.75),
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(width: 350, height: 100, color: const Color(0x86FF00FF)),
               ],
@@ -4161,11 +5031,11 @@ void main() {
           alignment: const Alignment(-0.5, 0),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: Alignment.topLeft,
+              anchorAlignment: Alignment.topLeft,
               menuAlignment: Alignment(0.75, -0.75),
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(width: 350, height: 100, color: const Color(0x86FF00FF)),
               ],
@@ -4194,11 +5064,11 @@ void main() {
           alignment: const Alignment(-0.5, 0),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: Alignment.topLeft,
+              anchorAlignment: Alignment.topLeft,
               menuAlignment: Alignment(0.75, -0.75),
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[
                 Container(width: 350, height: 100, color: const Color(0x86FF00FF)),
               ],
@@ -4230,7 +5100,7 @@ void main() {
                 overlayPadding: EdgeInsets.zero,
               ),
               menu: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[
                   Container(width: 100, height: 100, color: const Color(0x86FF00FF)),
                 ],
@@ -4268,26 +5138,26 @@ void main() {
             // Overlaps the bottom of the anchor by 4px.
             BaseMenu(
               positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                alignmentOffset: Offset(0, -4),
-                alignment: AlignmentDirectional.bottomEnd,
+                offset: Offset(0, -4),
+                anchorAlignment: AlignmentDirectional.bottomEnd,
                 menuAlignment: AlignmentDirectional.topStart,
               ),
               menu: ColoredBox(
                 color: const Color(0xFF0000FF),
                 child: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[
                     // Overlaps the top of the anchor by 4px.
                     BaseMenu(
                       positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                        alignmentOffset: Offset(0, 4),
-                        alignment: AlignmentDirectional.topStart,
+                        offset: Offset(0, 4),
+                        anchorAlignment: AlignmentDirectional.topStart,
                         menuAlignment: AlignmentDirectional.bottomEnd,
                       ),
                       menu: ColoredBox(
                         color: const ui.Color(0xFF00FF77),
                         child: BaseMenuPanel(
-                          direction: Axis.vertical,
+                          orientation: Axis.vertical,
                           children: <Widget>[
                             Container(width: 125, height: 30, color: const Color(0xFFFF00FF)),
                           ],
@@ -4330,13 +5200,11 @@ void main() {
         App(
           alignment: const Alignment(0, 0.5),
           BaseMenu(
-            positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignmentOffset: Offset(0, -8),
-            ),
+            positionDelegate: const DefaultBaseMenuPositioningDelegate(offset: Offset(0, -8)),
             menu: ColoredBox(
               color: const Color(0xFF0000FF),
               child: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[
                   Container(width: 225, height: 230, color: const Color(0xFFFF00FF)),
                 ],
@@ -4360,14 +5228,14 @@ void main() {
           alignment: const Alignment(0, -0.5),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: AlignmentDirectional.topStart,
+              anchorAlignment: AlignmentDirectional.topStart,
               menuAlignment: AlignmentDirectional.bottomStart,
-              alignmentOffset: Offset(0, -8),
+              offset: Offset(0, -8),
             ),
             menu: ColoredBox(
               color: const Color(0xFF0000FF),
               child: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 children: <Widget>[
                   Container(width: 225, height: 230, color: const Color(0xFFFF00FF)),
                 ],
@@ -4393,12 +5261,12 @@ void main() {
           alignment: const Alignment(0.8, 0.8),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: Alignment.center,
+              anchorAlignment: Alignment.center,
               menuAlignment: Alignment.center,
-              alignmentOffset: Offset(200, 200),
+              offset: Offset(200, 200),
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[Container(width: 50, height: 50, color: const Color(0xFFFF00FF))],
             ),
             child: AnchorButton.small(Tag.anchor),
@@ -4421,11 +5289,11 @@ void main() {
           alignment: const AlignmentDirectional(0.95, 0.95),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: AlignmentDirectional.bottomEnd,
+              anchorAlignment: AlignmentDirectional.bottomEnd,
               menuAlignment: Alignment.center,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[Container(width: 50, height: 50, color: const Color(0xFFFF00FF))],
             ),
             child: AnchorButton.small(Tag.anchor),
@@ -4448,11 +5316,11 @@ void main() {
           alignment: const AlignmentDirectional(0.95, 0.95),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: Alignment.center,
+              anchorAlignment: Alignment.center,
               menuAlignment: AlignmentDirectional.topStart,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               children: <Widget>[Container(width: 50, height: 50, color: const Color(0xFFFF00FF))],
             ),
             child: AnchorButton.small(Tag.anchor),
@@ -4478,11 +5346,11 @@ void main() {
             BaseMenu(
               controller: controller,
               positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                alignment: Alignment.topLeft,
+                anchorAlignment: Alignment.topLeft,
                 menuAlignment: Alignment.topCenter,
               ),
               menu: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 constraints: const BoxConstraints(),
                 children: <Widget>[
                   Container(color: const Color(0xFFFF0000), height: 100, width: 100),
@@ -4526,13 +5394,13 @@ void main() {
         App(
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignmentOffset: Offset(33, 45),
-              alignment: Alignment.topLeft,
+              offset: Offset(33, 45),
+              anchorAlignment: Alignment.topLeft,
               menuAlignment: Alignment.topCenter,
             ),
             controller: controller,
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: const BoxConstraints(),
               children: <Widget>[
                 Container(color: const Color(0xFFFF0000), height: 100, width: 100),
@@ -4564,11 +5432,11 @@ void main() {
           BaseMenu(
             controller: controller,
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: Alignment.bottomRight,
+              anchorAlignment: Alignment.bottomRight,
               menuAlignment: Alignment.topLeft,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: const BoxConstraints(),
               children: <Widget>[
                 Container(color: const Color(0xFFFF0000), height: 100, width: 100),
@@ -4602,12 +5470,12 @@ void main() {
           BaseMenu(
             controller: controller,
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: Alignment.topLeft,
+              anchorAlignment: Alignment.topLeft,
               menuAlignment: Alignment.center,
               padding: EdgeInsets.all(25),
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: const BoxConstraints(),
               children: <Widget>[
                 Container(color: const Color(0xFFFF0000), height: 100, width: 100),
@@ -4644,7 +5512,7 @@ void main() {
               menuAlignment: Alignment.topLeft,
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: const BoxConstraints(),
               children: <Widget>[
                 Container(color: const ui.Color(0xFF2200FF), height: 100, width: 100),
@@ -4680,28 +5548,28 @@ void main() {
       final child = BaseMenu(
         controller: controller,
         positionDelegate: const DefaultBaseMenuPositioningDelegate(
-          alignment: AlignmentDirectional.bottomStart,
+          anchorAlignment: AlignmentDirectional.bottomStart,
           menuAlignment: AlignmentDirectional.topStart,
           padding: EdgeInsets.fromLTRB(0, 5, 0, 3),
         ),
         menu: ColoredBox(
           color: paddingColor,
           child: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             padding: const EdgeInsets.fromLTRB(0, 5, 0, 3),
             children: <Widget>[
               ColoredBox(
                 color: childColor,
                 child: BaseMenu(
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                    alignment: AlignmentDirectional.topEnd,
+                    anchorAlignment: AlignmentDirectional.topEnd,
                     menuAlignment: AlignmentDirectional.topStart,
                     padding: EdgeInsets.fromLTRB(0, 11, 0, 17),
                   ),
                   menu: ColoredBox(
                     color: paddingColor,
                     child: BaseMenuPanel(
-                      direction: Axis.vertical,
+                      orientation: Axis.vertical,
                       padding: const EdgeInsets.fromLTRB(0, 11, 0, 17),
                       children: <Widget>[
                         Container(
@@ -4785,7 +5653,7 @@ void main() {
       final child = BaseMenu(
         controller: controller,
         positionDelegate: const DefaultBaseMenuPositioningDelegate(
-          alignment: AlignmentDirectional.bottomStart,
+          anchorAlignment: AlignmentDirectional.bottomStart,
           menuAlignment: AlignmentDirectional.topStart,
           padding: EdgeInsetsDirectional.fromSTEB(5, 0, 3, 0),
         ),
@@ -4794,20 +5662,20 @@ void main() {
           child: BaseMenuPanel(
             padding: const EdgeInsetsDirectional.fromSTEB(5, 0, 3, 0),
 
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[
               ColoredBox(
                 color: childColor,
                 child: BaseMenu(
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                    alignment: AlignmentDirectional.topEnd,
+                    anchorAlignment: AlignmentDirectional.topEnd,
                     menuAlignment: AlignmentDirectional.topStart,
                     padding: EdgeInsetsDirectional.fromSTEB(11, 0, 17, 0),
                   ),
                   menu: ColoredBox(
                     color: paddingColor,
                     child: BaseMenuPanel(
-                      direction: Axis.vertical,
+                      orientation: Axis.vertical,
                       padding: const EdgeInsetsDirectional.fromSTEB(11, 0, 17, 0),
 
                       children: <Widget>[
@@ -4889,28 +5757,28 @@ void main() {
       final child = BaseMenu(
         controller: controller,
         positionDelegate: const DefaultBaseMenuPositioningDelegate(
-          alignment: AlignmentDirectional.bottomStart,
+          anchorAlignment: AlignmentDirectional.bottomStart,
           menuAlignment: AlignmentDirectional.topStart,
           padding: EdgeInsetsDirectional.fromSTEB(5, 0, 3, 0),
         ),
         menu: ColoredBox(
           color: paddingColor,
           child: BaseMenuPanel(
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             padding: const EdgeInsetsDirectional.fromSTEB(5, 0, 3, 0),
             children: <Widget>[
               ColoredBox(
                 color: childColor,
                 child: BaseMenu(
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                    alignment: AlignmentDirectional.topEnd,
+                    anchorAlignment: AlignmentDirectional.topEnd,
                     menuAlignment: AlignmentDirectional.topStart,
                     padding: EdgeInsetsDirectional.fromSTEB(11, 0, 17, 0),
                   ),
                   menu: ColoredBox(
                     color: paddingColor,
                     child: BaseMenuPanel(
-                      direction: Axis.vertical,
+                      orientation: Axis.vertical,
                       padding: const EdgeInsetsDirectional.fromSTEB(11, 0, 17, 0),
 
                       children: <Widget>[
@@ -4991,7 +5859,7 @@ void main() {
       final Widget menu = BaseMenu(
         controller: controller,
         positionDelegate: const DefaultBaseMenuPositioningDelegate(
-          alignment: AlignmentDirectional.topEnd,
+          anchorAlignment: AlignmentDirectional.topEnd,
           menuAlignment: AlignmentDirectional.topStart,
           padding: EdgeInsets.only(right: 50, top: 30),
           overlayPadding: EdgeInsets.zero,
@@ -5000,7 +5868,7 @@ void main() {
           color: const Color(0x62000DFF),
           child: BaseMenuPanel(
             padding: const EdgeInsets.only(right: 50, top: 30),
-            direction: Axis.vertical,
+            orientation: Axis.vertical,
             children: <Widget>[
               Container(
                 key: ValueKey<String>(Tag.a.text),
@@ -5075,15 +5943,15 @@ void main() {
                 padding: anchorPadding,
                 child: BaseMenu(
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                    alignment: AlignmentDirectional.topStart,
+                    anchorAlignment: AlignmentDirectional.topStart,
                     menuAlignment: AlignmentDirectional.bottomEnd,
                   ),
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[
                       BaseMenu(
                         menu: BaseMenuPanel(
-                          direction: Axis.vertical,
+                          orientation: Axis.vertical,
                           children: <Widget>[Button.tag(Tag.a.a)],
                         ),
                         child: AnchorButton.small(Tag.a),
@@ -5157,15 +6025,15 @@ void main() {
                 padding: anchorPadding,
                 child: BaseMenu(
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                    alignment: AlignmentDirectional.topStart,
+                    anchorAlignment: AlignmentDirectional.topStart,
                     menuAlignment: AlignmentDirectional.bottomEnd,
                   ),
                   menu: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[
                       BaseMenu(
                         menu: BaseMenuPanel(
-                          direction: Axis.vertical,
+                          orientation: Axis.vertical,
                           children: <Widget>[Button.tag(Tag.a.a)],
                         ),
                         child: AnchorButton.small(Tag.a),
@@ -5412,13 +6280,13 @@ void main() {
             ),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: AlignmentDirectional.topEnd,
+              anchorAlignment: AlignmentDirectional.topEnd,
               menuAlignment: AlignmentDirectional.topStart,
               padding: EdgeInsetsDirectional.fromSTEB(0.5, 4, 1, 6),
-              alignmentOffset: Offset(-1, 0),
+              offset: Offset(-1, 0),
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: BoxConstraints(minWidth: 125 + 75.0 * layers),
               children: children,
             ),
@@ -5434,7 +6302,7 @@ void main() {
           alignment: AlignmentDirectional.topStart,
           BaseMenu(
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: const BoxConstraints(maxWidth: 150),
               children: children,
             ),
@@ -5478,12 +6346,12 @@ void main() {
             ),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              alignment: AlignmentDirectional.topEnd,
+              anchorAlignment: AlignmentDirectional.topEnd,
               padding: EdgeInsetsDirectional.fromSTEB(0.5, 4, 1, 6),
-              alignmentOffset: Offset(-1, 0),
+              offset: Offset(-1, 0),
             ),
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: BoxConstraints(minWidth: 125 + 75.0 * layers),
               children: children,
             ),
@@ -5500,7 +6368,7 @@ void main() {
           alignment: AlignmentDirectional.topStart,
           BaseMenu(
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: const BoxConstraints(maxWidth: 150),
               children: children,
             ),
@@ -5564,11 +6432,11 @@ void main() {
                     top: 300,
                     child: BaseMenu(
                       positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                        alignment: Alignment.topLeft,
+                        anchorAlignment: Alignment.topLeft,
                         menuAlignment: Alignment.topRight,
                       ),
                       menu: const BaseMenuPanel(
-                        direction: Axis.vertical,
+                        orientation: Axis.vertical,
                         children: <Widget>[SizedBox(width: 150, height: 50)],
                       ),
                       child: AnchorButton.small(Tag.anchor),
@@ -5597,7 +6465,7 @@ void main() {
         App(
           BaseMenu(
             menu: BaseMenuPanel(
-              direction: Axis.vertical,
+              orientation: Axis.vertical,
               constraints: const BoxConstraints(minWidth: 75, maxHeight: 100),
               children: <Widget>[
                 Container(key: Tag.a.key, color: const Color(0xFFFF0000), height: 150, width: 50),
@@ -5624,7 +6492,7 @@ void main() {
             menu: ColoredBox(
               color: const Color(0xFF0000FF),
               child: BaseMenuPanel(
-                direction: Axis.vertical,
+                orientation: Axis.vertical,
                 constraints: BoxConstraints.tight(const Size(100, 100)),
                 padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 35),
                 children: <Widget>[
@@ -5658,16 +6526,16 @@ void main() {
               menu: ColoredBox(
                 color: Color(0xFF0000FF),
                 child: BaseMenuPanel(
-                  direction: Axis.vertical,
+                  orientation: Axis.vertical,
                   children: <Widget>[
                     BaseMenu(
                       positionDelegate: DefaultBaseMenuPositioningDelegate(
-                        alignment: AlignmentDirectional.bottomStart,
+                        anchorAlignment: AlignmentDirectional.bottomStart,
                         menuAlignment: AlignmentDirectional.topStart,
                         overlayPadding: EdgeInsets.zero,
                       ),
                       menu: BaseMenuPanel(
-                        direction: Axis.vertical,
+                        orientation: Axis.vertical,
                         children: <Widget>[SizedBox.square(dimension: 100)],
                       ),
                       child: AnchorButton(Tag.a),
@@ -5735,7 +6603,7 @@ void main() {
                 menu: ColoredBox(
                   color: Color(0xFF0000FF),
                   child: BaseMenuPanel(
-                    direction: Axis.vertical,
+                    orientation: Axis.vertical,
                     children: <Widget>[
                       // Nested menus should be placed in the same overlay as their
                       // parent menu, so this menu should be placed in the nearest
@@ -5744,12 +6612,12 @@ void main() {
                         positionDelegate: DefaultBaseMenuPositioningDelegate(
                           overlayPadding: EdgeInsets.zero,
                           menuAlignment: AlignmentDirectional.topStart,
-                          alignment: AlignmentDirectional.bottomStart,
+                          anchorAlignment: AlignmentDirectional.bottomStart,
                         ),
                         useRootOverlay: true,
 
                         menu: BaseMenuPanel(
-                          direction: Axis.vertical,
+                          orientation: Axis.vertical,
                           children: <Widget>[SizedBox.square(dimension: 100)],
                         ),
                         child: AnchorButton(Tag.a),
@@ -5816,6 +6684,11 @@ abstract class Tag {
 
   static const List<NestedTag> values = <NestedTag>[a, b, c, d, e];
 
+  Tag reparent(Tag parent) {
+    return NestedTag(_name, prefix: parent, level: parent.level + 1);
+  }
+
+  String get _name;
   String get text;
   String get focusNode;
   int get level;
@@ -5835,6 +6708,7 @@ class NestedTag extends Tag {
       ),
       _name = name;
 
+  @override
   final String _name;
   final Tag? _prefix;
 
@@ -5844,6 +6718,8 @@ class NestedTag extends Tag {
   NestedTag get a => NestedTag('a', prefix: this, level: level + 1);
   NestedTag get b => NestedTag('b', prefix: this, level: level + 1);
   NestedTag get c => NestedTag('c', prefix: this, level: level + 1);
+  NestedTag get d => NestedTag('d', prefix: this, level: level + 1);
+  NestedTag get e => NestedTag('e', prefix: this, level: level + 1);
 
   @override
   String get text {
@@ -5861,7 +6737,31 @@ class NestedTag extends Tag {
   Key get key => ValueKey<String>('${text}_Key');
 }
 
-class Button extends StatelessWidget {
+final testButtonDecoration = WidgetStateProperty.fromMap({
+  WidgetState.pressed: const BoxDecoration(
+    color: Color.fromARGB(172, 3, 218, 197),
+    border: Border.fromBorderSide(BorderSide(color: Color.fromARGB(255, 3, 218, 197))),
+  ),
+  WidgetState.focused: const BoxDecoration(
+    color: Color.fromARGB(176, 54, 0, 179),
+    border: Border.fromBorderSide(BorderSide(color: Color.fromARGB(255, 54, 0, 179))),
+  ),
+  WidgetState.focused & WidgetState.hovered: const BoxDecoration(
+    color: Color.fromARGB(112, 0, 63, 238),
+    border: Border.fromBorderSide(BorderSide(color: Color.fromARGB(255, 54, 0, 179))),
+  ),
+  WidgetState.hovered: const BoxDecoration(color: Color.fromARGB(149, 72, 42, 142)),
+  WidgetState.disabled: const BoxDecoration(
+    color: Color.fromARGB(255, 200, 200, 200),
+    border: Border.fromBorderSide(BorderSide(color: Color.fromARGB(255, 200, 200, 200))),
+  ),
+  WidgetState.any: const BoxDecoration(
+    color: Color.fromARGB(142, 46, 39, 58),
+    border: Border(bottom: BorderSide(color: Color.fromARGB(255, 46, 39, 58))),
+  ),
+});
+
+class Button extends StatefulWidget {
   const Button(
     this.child, {
     super.key,
@@ -5925,34 +6825,66 @@ class Button extends StatelessWidget {
 
   static void _defaultCallback() {}
 
-  static const decoration = WidgetStateProperty.fromMap({
-    WidgetState.hovered: BoxDecoration(color: Color(0xFF6200EE)),
-    WidgetState.focused: BoxDecoration(color: Color(0xFF3700B3)),
-    WidgetState.pressed: BoxDecoration(color: Color(0xFF03DAC6)),
-    WidgetState.any: BoxDecoration(color: Color(0xFF000000)),
-  });
+  @override
+  State<Button> createState() => _ButtonState();
+}
+
+class _ButtonState extends State<Button> {
+  FocusNode? internalFocusNode;
+  FocusNode get effectiveFocusNode => widget.focusNode ?? internalFocusNode!;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.focusNode == null) {
+      internalFocusNode = FocusNode(debugLabel: widget._focusNodeLabel);
+    }
+  }
+
+  @override
+  void didUpdateWidget(Button oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      if (widget.focusNode == null) {
+        internalFocusNode ??= FocusNode(debugLabel: widget._focusNodeLabel);
+      } else {
+        internalFocusNode?.dispose();
+        internalFocusNode = null;
+      }
+    }
+    if (oldWidget._focusNodeLabel != widget._focusNodeLabel) {
+      internalFocusNode?.debugLabel = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    internalFocusNode?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    focusNode?.debugLabel = _focusNodeLabel;
+    // Only apply the widget's label if the node doesn't already have one
+    effectiveFocusNode.debugLabel ??= widget._focusNodeLabel;
     return BaseControl(
-      onPressed: onPressed,
-      focusNode: focusNode,
-      autofocus: autofocus,
-      onFocusChange: onFocusChange,
+      onPressed: widget.onPressed,
+      focusNode: effectiveFocusNode,
+      autofocus: widget.autofocus,
+      onFocusChange: widget.onFocusChange,
       child: Builder(
         builder: (context) {
           return ConstrainedBox(
-            constraints: constraints,
+            constraints: widget.constraints,
             child: DecoratedBox(
-              decoration: decoration.resolve(BaseControl.statesOf(context)),
+              decoration: testButtonDecoration.resolve(BaseControl.statesOf(context)),
               child: Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: DefaultTextStyle(
-                    style: const TextStyle(fontSize: 12, color: Color(0xFFFFFFFF)),
-                    child: child,
+                    style: const TextStyle(color: Color(0xFFFFFFFF)),
+                    child: widget.child,
                   ),
                 ),
               ),
@@ -5975,7 +6907,7 @@ class AnchorButton extends StatelessWidget {
   });
 
   factory AnchorButton.small(Tag tag) {
-    return AnchorButton(tag, constraints: BoxConstraints.tight(const Size(100, 30)));
+    return AnchorButton(tag, constraints: BoxConstraints.tight(const Size(225, 30)));
   }
 
   final Tag tag;
@@ -6029,11 +6961,14 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: const Color(0xff000000),
-      child: WidgetsApp(
-        color: const Color(0xff000000),
-        onGenerateRoute: (RouteSettings settings) {
-          return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
-        },
+      child: FocusScope(
+        autofocus: true,
+        child: WidgetsApp(
+          color: const Color(0xff000000),
+          onGenerateRoute: (RouteSettings settings) {
+            return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
+          },
+        ),
       ),
     );
   }
@@ -6046,6 +6981,177 @@ class _AppState extends State<App> {
     return Directionality(
       textDirection: widget.textDirection ?? _directionality ?? TextDirection.ltr,
       child: Align(alignment: widget.alignment, child: widget.child),
+    );
+  }
+}
+
+class MenuSystem extends StatelessWidget {
+  const MenuSystem({
+    super.key,
+    this.layers = const [.horizontal, .vertical, .vertical, .vertical],
+    this.isMenuBar = true,
+    this.autofocus,
+    this.leading,
+    this.trailing,
+  });
+
+  final List<Axis> layers;
+  final bool isMenuBar;
+  final Tag? autofocus;
+
+  /// An optional widget to place before the first menu. This is useful for
+  /// testing that focus traversal works correctly with non-menu widgets in the
+  /// tree.
+  final Widget? leading;
+
+  /// An optional widget to place after the last menu. This is useful for
+  /// testing that focus traversal works correctly with non-menu widgets in the
+  /// tree.
+  final Widget? trailing;
+
+  Widget _buildLevel({required int depth, Tag? parentTag}) {
+    Iterable<Tag> currentTags = Tag.values;
+    if (parentTag != null) {
+      currentTags = currentTags.map((t) => t.reparent(parentTag));
+    }
+
+    // Otherwise, build a submenu and recurse to the next depth level
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF000000).withOpacity(0.25),
+            blurRadius: 4,
+            spreadRadius: 2,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: BaseMenuPanel(
+        padding: const EdgeInsetsDirectional.symmetric(horizontal: 4, vertical: 4),
+        orientation: layers[depth],
+        children: [
+          ?leading,
+          for (final tag in currentTags)
+            if (depth < layers.length - 1)
+              TestSubmenu(
+                autofocus: autofocus == tag && depth == 0,
+                tag: tag,
+                orientation: layers[depth + 1],
+                trailing: layers[depth] == Axis.vertical ? '>' : 'v',
+                menu: _buildLevel(depth: depth + 1, parentTag: tag),
+              )
+            else
+              Button.tag(
+                tag,
+                autofocus: autofocus == tag && depth == 0,
+                onPressed: () {
+                  print('Pressed ${tag.text}');
+                },
+              ),
+          ?trailing,
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isMenuBar) {
+      return BaseMenuBar(axis: layers.first, child: _buildLevel(depth: 0));
+    } else {
+      return TestSubmenu(
+        tag: Tag.anchor,
+        orientation: layers.first,
+        trailing: layers.first == Axis.vertical ? '>' : 'v',
+        menu: _buildLevel(depth: 0),
+      );
+    }
+  }
+}
+
+class TestSubmenu extends StatefulWidget {
+  const TestSubmenu({
+    super.key,
+    required this.tag,
+    required this.menu,
+    required this.trailing,
+    required this.orientation,
+    this.autofocus = false,
+  });
+
+  final Tag tag;
+  final Widget menu;
+  final String trailing;
+  final Axis orientation;
+  final bool autofocus;
+
+  @override
+  State<TestSubmenu> createState() => _TestSubmenuState();
+}
+
+class _TestSubmenuState extends State<TestSubmenu> {
+  final controller = MenuController();
+  late final FocusNode internalFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    internalFocusNode = FocusNode(debugLabel: widget.tag.focusNode);
+  }
+
+  @override
+  void dispose() {
+    internalFocusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: widget.tag.level == 0
+          ? const BoxConstraints.tightFor(width: 150, height: 32)
+          : const BoxConstraints.tightFor(width: 225, height: 32),
+      child: BaseSubmenu(
+        role: widget.tag == Tag.anchor ? null : .menuItem,
+        directionalFocusEdgeBehavior: .closedLoop,
+        positionDelegate: const DefaultBaseMenuPositioningDelegate(
+          padding: EdgeInsetsGeometry.symmetric(horizontal: 4, vertical: 4),
+        ),
+        autofocus: widget.autofocus,
+        controller: controller,
+        orientation: widget.orientation,
+        focusNode: internalFocusNode,
+        onPressed: () {
+          if (controller.isOpen) {
+            controller.close();
+          } else {
+            controller.open();
+          }
+        },
+        menu: widget.menu,
+        child: Builder(
+          builder: (context) {
+            return DecoratedBox(
+              decoration: testButtonDecoration.resolve(BaseMenuItem.statesOf(context)),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(widget.tag.text),
+                    Text(
+                      widget.trailing,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFFFFFFFF)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

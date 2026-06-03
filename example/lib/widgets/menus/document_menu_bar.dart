@@ -6,7 +6,7 @@ import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../data/menu.dart';
 import '../../model/model.dart';
-import '../adapters/menu_entry_menu_bar_submenu.dart';
+import '../adapters/menu_entry_menu_bar_menu.dart';
 import '../menu_panel.dart';
 import '../overflow_toolbar.dart';
 

@@ -441,8 +441,8 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
       controller: widget.controller,
       positionDelegate: const DefaultBaseMenuPositioningDelegate(
         overlayPadding: .symmetric(horizontal: 5),
-        alignmentOffset: Offset(0, 4),
-        alignment: .bottomEnd,
+        offset: Offset(0, 4),
+        anchorAlignment: .bottomEnd,
         menuAlignment: .topEnd,
       ),
       orientation: Axis.horizontal,

@@ -241,6 +241,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     _MovePreviousIntent: CallbackAction<_MovePreviousIntent>(onInvoke: _handleMovePrevious),
     _MoveFirstIntent: CallbackAction<_MoveFirstIntent>(onInvoke: _handleMoveFirst),
     _MoveLastIntent: CallbackAction<_MoveLastIntent>(onInvoke: _handleMoveLast),
+    ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: _handleActivate), // Add this
   };
 
   late ScrollController _scrollController;
@@ -318,6 +319,18 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     super.dispose();
   }
 
+  void _handleActivate(ActivateIntent intent) {
+    if (widget.menuController.isOpen) {
+      widget.onSubmit?.call(_textController.text);
+    } else {
+      _openMenuAndFocusButton();
+      _textController.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _textController.text.length,
+      );
+    }
+  }
+
   void _openMenuAndFocusButton() {
     if (!widget.menuController.isOpen) {
       widget.menuController.open();
@@ -357,7 +370,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     }
     final int nextIndex;
     final keys = _indexToValue.keys.toList();
-    if (_highlightValue != null) {
+    if (_highlightValue != null && keys.isNotEmpty) {
       final int index = keys.indexWhere((i) => _indexToValue[i] == _highlightValue);
       nextIndex = (index + 1) % keys.length;
     } else {
@@ -400,9 +413,9 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
         positionDelegate: DefaultBaseMenuPositioningDelegate(
           // The vertical padding is to account for the border and padding of the anchor.
           padding: MenuPanel.defaultPadding,
-          alignmentOffset: const Offset(0, 7),
+          offset: const Offset(0, 7),
           menuAlignment: Alignment(alignment.x, -1),
-          alignment: Alignment(alignment.x, 1),
+          anchorAlignment: Alignment(alignment.x, 1),
         ),
         menu: _ComboBoxHighlight(
           value: widget.value,
@@ -463,6 +476,8 @@ class _Anchor extends StatelessWidget {
   final TextStyle textStyle;
 
   static const _shortcuts = {
+    SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(), // Add this
+    SingleActivator(LogicalKeyboardKey.numpadEnter): ActivateIntent(), // Add this
     SingleActivator(LogicalKeyboardKey.arrowDown, alt: true): ActivateIntent(),
     SingleActivator(LogicalKeyboardKey.arrowUp): _MovePreviousIntent(),
     SingleActivator(LogicalKeyboardKey.arrowDown): _MoveNextIntent(),
@@ -600,6 +615,7 @@ class _Anchor extends StatelessWidget {
               textDirection: Directionality.of(context),
               label: semanticsLabel,
               value: selected,
+
               onTap: () {
                 if (isOpen) {
                   menuController.close();

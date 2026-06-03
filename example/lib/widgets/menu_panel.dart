@@ -47,7 +47,7 @@ class MenuPanel extends StatelessWidget {
       child: BaseMenuPanel(
         padding: padding,
         constraints: constraints,
-        direction: orientation,
+        orientation: orientation,
         spacing: spacing,
         scrollable: scrollable,
         onEnter: onSurfaceEnter,

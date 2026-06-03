@@ -45,7 +45,7 @@ class _MenuTooltipState extends State<MenuTooltip> {
   bool isForwardOrComplete = false;
   static Offset _positionDelegate(TooltipPositionContext positionContext) {
     return DefaultMenuLayoutDelegate(
-      alignmentOffset: const Offset(0, 4),
+      offset: const Offset(0, 4),
       anchorRect:
           (positionContext.target - positionContext.targetSize.center(Offset.zero)) &
           positionContext.targetSize,

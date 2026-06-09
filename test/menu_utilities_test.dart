@@ -3293,7 +3293,8 @@ void main() {
       WidgetTester tester,
       List<(LogicalKeyboardKey key, Tag tag)> path,
     ) async {
-      for (final step in path) {
+      for (var i = 0; i < path.length; i++) {
+        final step = path[i];
         await tester.sendKeyEvent(step.$1);
         await tester.pump();
 
@@ -3302,7 +3303,7 @@ void main() {
           currentFocus,
           contains(step.$2.focusNode),
           reason:
-              'Failed after pressing ${step.$1.debugName}. Expected ${step.$2.text} but got $currentFocus.',
+              'Failed on step $i. Failed after pressing ${step.$1.debugName}. Expected ${step.$2.text} but got $currentFocus.',
         );
       }
     }
@@ -3559,50 +3560,111 @@ void main() {
       ) async {
         await tester.pumpWidget(
           const App(
-            MenuSystem(layers: [Axis.horizontal, Axis.vertical, Axis.vertical], autofocus: .a),
+            MenuSystem(
+              layers: [
+                Axis.horizontal,
+                Axis.vertical,
+                Axis.vertical,
+                Axis.horizontal,
+                Axis.horizontal,
+              ],
+              autofocus: .a,
+            ),
+          ),
+        );
+
+        await expectFocusPath(tester, [
+          // Root MenuBar
+          (LogicalKeyboardKey.end, Tag.e),
+          (LogicalKeyboardKey.home, Tag.a),
+
+          (LogicalKeyboardKey.arrowDown, Tag.a.a),
+
+          // First vertical submenu
+          (LogicalKeyboardKey.end, Tag.a.e),
+          (LogicalKeyboardKey.home, Tag.a.a),
+
+          // Second vertical submenu
+          (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
+
+          (LogicalKeyboardKey.end, Tag.a.a.e),
+          (LogicalKeyboardKey.home, Tag.a.a.a),
+
+          // Third horizontal submenu
+          (LogicalKeyboardKey.arrowRight, Tag.a.a.a.a),
+
+          (LogicalKeyboardKey.end, Tag.a.a.a.e),
+          (LogicalKeyboardKey.home, Tag.a.a.a.a),
+
+          // Fourth horizontal submenu
+          (LogicalKeyboardKey.arrowDown, Tag.a.a.a.a.a),
+
+          (LogicalKeyboardKey.end, Tag.a.a.a.a.e),
+          (LogicalKeyboardKey.home, Tag.a.a.a.a.a),
+        ]);
+      });
+
+      testWidgets('Vertical crossaxis traversal moves between nearest horizontal ancestor', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          const App(
+            // Each layer has submenus from a - e
+            MenuSystem(
+              layers: [Axis.horizontal, Axis.horizontal, Axis.vertical, Axis.vertical],
+              autofocus: .a,
+            ),
             textDirection: ui.TextDirection.ltr,
           ),
         );
 
         await expectFocusPath(tester, [
-          // On the root MenuBar
-          (LogicalKeyboardKey.end, Tag.e),
-          (LogicalKeyboardKey.home, Tag.a),
-
-          // Move into the vertical menu
+          // Move into the first horizontal submenu
           (LogicalKeyboardKey.arrowDown, Tag.a.a),
 
-          // Inside the vertical menu
-          (LogicalKeyboardKey.end, Tag.a.e),
-          (LogicalKeyboardKey.home, Tag.a.a),
+          // Move into the second horizontal submenu
+          (LogicalKeyboardKey.arrowDown, Tag.a.a.a),
 
-          // Open the submenu
-          (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
+          // Move vertically to nearest horizontal ancestor's next item
+          (LogicalKeyboardKey.arrowDown, Tag.a.b),
 
-          // Inside the deepest submenu
-          (LogicalKeyboardKey.end, Tag.a.a.e),
-          (LogicalKeyboardKey.home, Tag.a.a.a),
+          // Move vertically to nearest horizontal ancestor's previous item
+          (LogicalKeyboardKey.arrowUp, Tag.a.a),
         ]);
       });
 
       testWidgets('LTR full directional traversal', (WidgetTester tester) async {
         await tester.pumpWidget(
           const App(
-            MenuSystem(layers: [Axis.horizontal, Axis.vertical, Axis.vertical], autofocus: .a),
+            MenuSystem(
+              layers: [
+                Axis.horizontal, // Root (Layer 0)
+                Axis.vertical, // Layer 1
+                Axis.vertical, // Layer 2
+                Axis.horizontal, // Layer 3
+                Axis.horizontal, // Layer 4
+              ],
+              autofocus: .a,
+            ),
             textDirection: ui.TextDirection.ltr,
           ),
         );
 
         await expectFocusPath(tester, [
-          (LogicalKeyboardKey.arrowRight, Tag.b), // Move right on menu bar
-          (LogicalKeyboardKey.arrowRight, Tag.c),
-          (LogicalKeyboardKey.arrowDown, Tag.c.a), // Open nested vertical
-          (LogicalKeyboardKey.arrowDown, Tag.c.b), // Move down
-          (LogicalKeyboardKey.arrowRight, Tag.c.b.a), // Open LTR Submenu (ArrowRight)
-          (LogicalKeyboardKey.arrowDown, Tag.c.b.b), // Move down in submenu
-          (LogicalKeyboardKey.arrowLeft, Tag.c.b), // Close LTR Submenu (ArrowLeft)
-          (LogicalKeyboardKey.arrowUp, Tag.c.a), // Move back up
-          (LogicalKeyboardKey.arrowLeft, Tag.b), // Escapes to previous MenuBar root in LTR
+          // Navigating Down into the 5-layer hierarchy
+          (LogicalKeyboardKey.arrowRight, Tag.b),
+          (LogicalKeyboardKey.arrowDown, Tag.b.a),
+          (LogicalKeyboardKey.arrowDown, Tag.b.b),
+          (LogicalKeyboardKey.arrowRight, Tag.b.b.a),
+          (LogicalKeyboardKey.arrowDown, Tag.b.b.b),
+          (LogicalKeyboardKey.arrowRight, Tag.b.b.b.a),
+          (LogicalKeyboardKey.arrowRight, Tag.b.b.b.b),
+          (LogicalKeyboardKey.arrowDown, Tag.b.b.b.b.a),
+          (LogicalKeyboardKey.arrowRight, Tag.b.b.b.b.b),
+          (LogicalKeyboardKey.arrowUp, Tag.b.b.b.b),
+          (LogicalKeyboardKey.arrowUp, Tag.b.b.b),
+          (LogicalKeyboardKey.arrowLeft, Tag.b.b),
+          (LogicalKeyboardKey.arrowLeft, Tag.a),
         ]);
       });
 
@@ -3671,12 +3733,10 @@ void main() {
         // Start keyboard tracking
         await expectFocusPath(tester, [(LogicalKeyboardKey.arrowDown, Tag.a.a)]);
 
-
         // Manually hover over item 'Tag.a.d'
         final pointer = TestPointer(1, ui.PointerDeviceKind.mouse);
         final targetOffset = tester.getCenter(find.text(Tag.a.d.text));
 
-  
         await tester.sendEventToBinding(pointer.hover(targetOffset));
         await tester.pumpAndSettle();
 
@@ -6771,6 +6831,9 @@ class Button extends StatefulWidget {
     this.onFocusChange,
     this._focusNodeLabel,
     BoxConstraints? constraints,
+    this.role,
+    this.requestFocusOnHover = false,
+    this.requestCloseOnActivate = false,
   }) : constraints = constraints ?? const BoxConstraints.tightFor(width: 225, height: 32);
 
   factory Button.text(
@@ -6781,6 +6844,9 @@ class Button extends StatefulWidget {
     bool autofocus = false,
     BoxConstraints? constraints,
     void Function(bool)? onFocusChange,
+    SemanticsRole? role,
+    bool requestFocusOnHover = false,
+    bool requestCloseOnActivate = false,
   }) {
     return Button(
       Text(text),
@@ -6791,6 +6857,9 @@ class Button extends StatefulWidget {
       constraints: constraints,
       onFocusChange: onFocusChange,
       focusNodeLabel: text,
+      role: role,
+      requestFocusOnHover: requestFocusOnHover,
+      requestCloseOnActivate: requestCloseOnActivate,
     );
   }
 
@@ -6802,6 +6871,9 @@ class Button extends StatefulWidget {
     bool autofocus = false,
     BoxConstraints? constraints,
     void Function(bool)? onFocusChange,
+    SemanticsRole? role,
+    bool requestFocusOnHover = false,
+    bool requestCloseOnActivate = false,
   }) {
     return Button(
       Text(tag.text),
@@ -6812,6 +6884,9 @@ class Button extends StatefulWidget {
       constraints: constraints,
       onFocusChange: onFocusChange,
       focusNodeLabel: tag.focusNode,
+      role: role,
+      requestFocusOnHover: requestFocusOnHover,
+      requestCloseOnActivate: requestCloseOnActivate,
     );
   }
 
@@ -6822,6 +6897,9 @@ class Button extends StatefulWidget {
   final bool autofocus;
   final BoxConstraints constraints;
   final String? _focusNodeLabel;
+  final SemanticsRole? role;
+  final bool requestFocusOnHover;
+  final bool requestCloseOnActivate;
 
   static void _defaultCallback() {}
 
@@ -6834,30 +6912,6 @@ class _ButtonState extends State<Button> {
   FocusNode get effectiveFocusNode => widget.focusNode ?? internalFocusNode!;
 
   @override
-  void initState() {
-    super.initState();
-    if (widget.focusNode == null) {
-      internalFocusNode = FocusNode(debugLabel: widget._focusNodeLabel);
-    }
-  }
-
-  @override
-  void didUpdateWidget(Button oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.focusNode != widget.focusNode) {
-      if (widget.focusNode == null) {
-        internalFocusNode ??= FocusNode(debugLabel: widget._focusNodeLabel);
-      } else {
-        internalFocusNode?.dispose();
-        internalFocusNode = null;
-      }
-    }
-    if (oldWidget._focusNodeLabel != widget._focusNodeLabel) {
-      internalFocusNode?.debugLabel = null;
-    }
-  }
-
-  @override
   void dispose() {
     internalFocusNode?.dispose();
     super.dispose();
@@ -6865,19 +6919,29 @@ class _ButtonState extends State<Button> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.focusNode == null) {
+      internalFocusNode ??= FocusNode(debugLabel: widget._focusNodeLabel);
+    } else {
+      internalFocusNode?.dispose();
+      internalFocusNode = null;
+    }
+
     // Only apply the widget's label if the node doesn't already have one
     effectiveFocusNode.debugLabel ??= widget._focusNodeLabel;
-    return BaseControl(
+    return BaseMenuItem(
       onPressed: widget.onPressed,
       focusNode: effectiveFocusNode,
       autofocus: widget.autofocus,
       onFocusChange: widget.onFocusChange,
+      role: widget.role,
+      requestFocusOnHover: widget.requestFocusOnHover,
+      requestCloseOnActivate: widget.requestCloseOnActivate,
       child: Builder(
         builder: (context) {
           return ConstrainedBox(
             constraints: widget.constraints,
             child: DecoratedBox(
-              decoration: testButtonDecoration.resolve(BaseControl.statesOf(context)),
+              decoration: testButtonDecoration.resolve(BaseMenuItem.statesOf(context)),
               child: Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: Padding(
@@ -7044,6 +7108,8 @@ class MenuSystem extends StatelessWidget {
             else
               Button.tag(
                 tag,
+                requestFocusOnHover: true,
+                requestCloseOnActivate: true,
                 autofocus: autofocus == tag && depth == 0,
                 onPressed: () {
                   print('Pressed ${tag.text}');

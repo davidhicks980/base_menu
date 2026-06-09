@@ -6,7 +6,7 @@ class MenuDivider extends StatelessWidget {
   const MenuDivider({
     super.key,
     this.padding = const EdgeInsets.symmetric(vertical: 7.5),
-    this.color = FloogleColors.lightSeparatorColor,
+    this.color = FloogleColors.separatorColor,
   });
 
   final EdgeInsets padding;
@@ -40,7 +40,7 @@ class VerticalMenuDivider extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 2, vertical: 5),
         child: ColoredBox(
-          color: FloogleColors.separatorColor,
+          color: Color.from(alpha: 1, red: 0.769, green: 0.78, blue: 0.773),
           isAntiAlias: false,
           child: SizedBox(width: 1, height: 20),
         ),

@@ -169,6 +169,10 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   bool _isScopeFocused = false;
   Timer? _closeTimer;
   Timer? _openTimer;
+  Axis? _parentOrientation;
+  bool _parentIsSubmenu = false;
+  Map<Type, Action<Intent>>? _overlayActions;
+  Map<Type, Action<Intent>>? _anchorActions;
 
   @override
   void initState() {
@@ -182,6 +186,17 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     }
 
     _focusNode.addListener(_handleFocusChange);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final scope = MenuScope.maybeOf(context);
+    if (scope?.orientation != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
+      _parentOrientation = scope?.orientation;
+      _parentIsSubmenu = scope?.isSubmenu ?? false;
+      _overlayActions = null;
+    }
   }
 
   @override
@@ -304,6 +319,57 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     widget.onFocusChange?.call(focused);
   }
 
+  void _handleCrossAxisPrevious(Intent intent) {
+    if (_parentIsSubmenu && _parentOrientation == widget.orientation) {
+      _menuController.close();
+      return;
+    }
+
+    final policy = FocusTraversalGroup.maybeOfNode(_focusNode);
+    if (policy != null) {
+      final parentScope = _focusNode.enclosingScope;
+      final first = policy.findFirstFocus(parentScope!, ignoreCurrentFocus: true);
+      if (_focusNode.traversalDescendants.contains(first)) {
+        final last = policy.findLastFocus(parentScope, ignoreCurrentFocus: true);
+        policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
+        MenuController.maybeOf(last.context!)?.open();
+        return;
+      }
+    }
+
+    final success = _focusNode.enclosingScope?.previousFocus();
+    if (success != true) {
+      Actions.maybeInvoke(context, intent);
+      return;
+    }
+    FocusManager.instance.applyFocusChangesIfNeeded();
+    MenuController.maybeOf(primaryFocus!.context!)?.open();
+  }
+
+  void _handleCrossAxisNext(Intent intent) {
+    final policy = FocusTraversalGroup.maybeOfNode(_focusNode);
+    if (policy != null) {
+      final parentScope = _focusNode.enclosingScope;
+      final last = policy.findLastFocus(parentScope!, ignoreCurrentFocus: true);
+      if (_focusNode.traversalDescendants.contains(last)) {
+        final first = policy.findFirstFocus(parentScope, ignoreCurrentFocus: true);
+        if (first != null) {
+          policy.requestFocusCallback(first, alignmentPolicy: .keepVisibleAtStart);
+          MenuController.maybeOf(first.context!)?.open();
+          return;
+        }
+      }
+    }
+
+    Actions.maybeInvoke(context, intent);
+    FocusManager.instance.applyFocusChangesIfNeeded();
+    if (primaryFocus?.context?.mounted != true) {
+      return;
+    }
+
+    MenuController.maybeOf(primaryFocus!.context!)?.open();
+  }
+
   void _handleClose() {
     _isScopeFocused = false;
 
@@ -329,48 +395,35 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       child: child,
     );
 
-    return widget.overlayChildBuilder?.call(context, overlay) ?? overlay;
-  }
+    // When _parentOrientation == null, there is no parent menu bar or menu
+    // anchor. In this case, overlay actions are not set.
+    if (_overlayActions == null && _parentOrientation != null) {
+      final Type previousIntentType = switch (widget.orientation) {
+        Axis.vertical => BaseMenuHorizontalFocusPreviousIntent,
+        Axis.horizontal => BaseMenuVerticalFocusPreviousIntent,
+      };
 
-  bool _hasAnchorFocus = false;
+      final Type? nextIntentType = _parentOrientation != widget.orientation
+          ? switch (widget.orientation) {
+              Axis.vertical => BaseMenuHorizontalFocusNextIntent,
+              Axis.horizontal => BaseMenuVerticalFocusNextIntent,
+            }
+          : null;
+
+      _overlayActions = {
+        previousIntentType: CallbackAction(onInvoke: _handleCrossAxisPrevious),
+        ?nextIntentType: CallbackAction(onInvoke: _handleCrossAxisNext),
+      };
+    }
+
+    return Actions(
+      actions: _overlayActions ?? const {},
+      child: widget.overlayChildBuilder?.call(context, overlay) ?? overlay,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isRootOpen = MenuController.maybeIsOpenOf(context) ?? false;
-    final anchor = Actions(
-      actions: _actions,
-      child: BaseMenuItem(
-        focusNode: _focusNode,
-        autofocus: widget.autofocus,
-        onPressed: widget.onPressed,
-        onPointerEnter: _handlePointerEnterAnchor,
-        onPointerHover: widget.onPointerHover,
-        onPointerLeave: _handlePointerLeaveAnchor,
-        requestCloseOnActivate: widget.requestCloseOnActivate,
-        requestFocusOnHover: widget.requestFocusOnHover,
-        onFocusChange: !BaseMenu.isNestedSubmenu(context) && isRootOpen
-            ? (value) {
-                final hasAnchorFocus = _focusNode.hasFocus;
-                if (_hasAnchorFocus != hasAnchorFocus) {
-                  _hasAnchorFocus = hasAnchorFocus;
-                  if (_hasAnchorFocus && !_menuController.isOpen) {
-                    _menuController.open();
-                  }
-                }
-              }
-            : null,
-        behavior: widget.behavior,
-        mouseCursor: widget.mouseCursor,
-        role: widget.role,
-        gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
-        gestureSemantics: widget.gestureSemantics,
-        child: ListenableBuilder(
-          listenable: _highlightNotifier,
-          builder: _buildHighlight,
-          child: widget.child,
-        ),
-      ),
-    );
     return BaseMenu(
       onOpen: widget.onOpen,
       onOpenRequest: widget.onOpenRequest,
@@ -386,16 +439,69 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       orientation: widget.orientation,
       positionDelegate: widget.positionDelegate,
       overlayChildBuilder: _buildOverlayChild,
-      child: Builder(
-        builder: (context) {
-          final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
-          return MergeSemantics(
-            child: Semantics.fromProperties(
-              properties: SemanticsProperties(expanded: isOpen),
-              child: anchor,
-            ),
-          );
-        },
+      child: Actions(
+        actions: _actions,
+        child: Builder(
+          builder: (context) {
+            final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
+            final shortcuts = <SingleActivator, Intent>{};
+            if (_parentOrientation == Axis.vertical) {
+              shortcuts.addAll({
+                switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
+                  TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
+                  TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
+                }: const BaseMenuEnterIntent.focusFirst(),
+              });
+            }
+
+            if (isOpen && _parentOrientation != widget.orientation) {
+              final Type previousIntentType = switch (widget.orientation) {
+                Axis.vertical => BaseMenuHorizontalFocusPreviousIntent,
+                Axis.horizontal => BaseMenuVerticalFocusPreviousIntent,
+              };
+
+              final Type? nextIntentType = _parentOrientation != widget.orientation
+                  ? switch (widget.orientation) {
+                      Axis.vertical => BaseMenuHorizontalFocusNextIntent,
+                      Axis.horizontal => BaseMenuVerticalFocusNextIntent,
+                    }
+                  : null;
+
+              _anchorActions = {
+                ..._actions,
+                previousIntentType: CallbackAction(onInvoke: _handleCrossAxisPrevious),
+                ?nextIntentType: CallbackAction(onInvoke: _handleCrossAxisNext),
+              };
+            }
+
+            return Actions(
+              actions: _anchorActions ?? _actions,
+              child: Shortcuts(
+                shortcuts: shortcuts,
+                child: BaseMenuItem(
+                  focusNode: _focusNode,
+                  autofocus: widget.autofocus,
+                  onPressed: widget.onPressed,
+                  onPointerEnter: _handlePointerEnterAnchor,
+                  onPointerHover: widget.onPointerHover,
+                  onPointerLeave: _handlePointerLeaveAnchor,
+                  requestCloseOnActivate: widget.requestCloseOnActivate,
+                  requestFocusOnHover: widget.requestFocusOnHover,
+                  behavior: widget.behavior,
+                  mouseCursor: widget.mouseCursor,
+                  role: widget.role,
+                  gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
+                  gestureSemantics: widget.gestureSemantics,
+                  child: ListenableBuilder(
+                    listenable: _highlightNotifier,
+                    builder: _buildHighlight,
+                    child: widget.child,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

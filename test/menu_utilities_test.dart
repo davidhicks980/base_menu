@@ -3555,141 +3555,6 @@ void main() {
     });
 
     group('Extended Traversal & Interactions', () {
-      testWidgets('Home and End keys traverse correctly at all depths', (
-        WidgetTester tester,
-      ) async {
-        await tester.pumpWidget(
-          const App(
-            MenuSystem(
-              layers: [
-                Axis.horizontal,
-                Axis.vertical,
-                Axis.vertical,
-                Axis.horizontal,
-                Axis.horizontal,
-              ],
-              autofocus: .a,
-            ),
-          ),
-        );
-
-        await expectFocusPath(tester, [
-          // Root MenuBar
-          (LogicalKeyboardKey.end, Tag.e),
-          (LogicalKeyboardKey.home, Tag.a),
-
-          (LogicalKeyboardKey.arrowDown, Tag.a.a),
-
-          // First vertical submenu
-          (LogicalKeyboardKey.end, Tag.a.e),
-          (LogicalKeyboardKey.home, Tag.a.a),
-
-          // Second vertical submenu
-          (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
-
-          (LogicalKeyboardKey.end, Tag.a.a.e),
-          (LogicalKeyboardKey.home, Tag.a.a.a),
-
-          // Third horizontal submenu
-          (LogicalKeyboardKey.arrowRight, Tag.a.a.a.a),
-
-          (LogicalKeyboardKey.end, Tag.a.a.a.e),
-          (LogicalKeyboardKey.home, Tag.a.a.a.a),
-
-          // Fourth horizontal submenu
-          (LogicalKeyboardKey.arrowDown, Tag.a.a.a.a.a),
-
-          (LogicalKeyboardKey.end, Tag.a.a.a.a.e),
-          (LogicalKeyboardKey.home, Tag.a.a.a.a.a),
-        ]);
-      });
-
-      testWidgets('Vertical crossaxis traversal moves between nearest horizontal ancestor', (
-        WidgetTester tester,
-      ) async {
-        await tester.pumpWidget(
-          const App(
-            // Each layer has submenus from a - e
-            MenuSystem(
-              layers: [Axis.horizontal, Axis.horizontal, Axis.vertical, Axis.vertical],
-              autofocus: .a,
-            ),
-            textDirection: ui.TextDirection.ltr,
-          ),
-        );
-
-        await expectFocusPath(tester, [
-          // Move into the first horizontal submenu
-          (LogicalKeyboardKey.arrowDown, Tag.a.a),
-
-          // Move into the second horizontal submenu
-          (LogicalKeyboardKey.arrowDown, Tag.a.a.a),
-
-          // Move vertically to nearest horizontal ancestor's next item
-          (LogicalKeyboardKey.arrowDown, Tag.a.b),
-
-          // Move vertically to nearest horizontal ancestor's previous item
-          (LogicalKeyboardKey.arrowUp, Tag.a.a),
-        ]);
-      });
-
-      testWidgets('LTR full directional traversal', (WidgetTester tester) async {
-        await tester.pumpWidget(
-          const App(
-            MenuSystem(
-              layers: [
-                Axis.horizontal, // Root (Layer 0)
-                Axis.vertical, // Layer 1
-                Axis.vertical, // Layer 2
-                Axis.horizontal, // Layer 3
-                Axis.horizontal, // Layer 4
-              ],
-              autofocus: .a,
-            ),
-            textDirection: ui.TextDirection.ltr,
-          ),
-        );
-
-        await expectFocusPath(tester, [
-          // Navigating Down into the 5-layer hierarchy
-          (LogicalKeyboardKey.arrowRight, Tag.b),
-          (LogicalKeyboardKey.arrowDown, Tag.b.a),
-          (LogicalKeyboardKey.arrowDown, Tag.b.b),
-          (LogicalKeyboardKey.arrowRight, Tag.b.b.a),
-          (LogicalKeyboardKey.arrowDown, Tag.b.b.b),
-          (LogicalKeyboardKey.arrowRight, Tag.b.b.b.a),
-          (LogicalKeyboardKey.arrowRight, Tag.b.b.b.b),
-          (LogicalKeyboardKey.arrowDown, Tag.b.b.b.b.a),
-          (LogicalKeyboardKey.arrowRight, Tag.b.b.b.b.b),
-          (LogicalKeyboardKey.arrowUp, Tag.b.b.b.b),
-          (LogicalKeyboardKey.arrowUp, Tag.b.b.b),
-          (LogicalKeyboardKey.arrowLeft, Tag.b.b),
-          (LogicalKeyboardKey.arrowLeft, Tag.a),
-        ]);
-      });
-
-      testWidgets('RTL full directional traversal', (WidgetTester tester) async {
-        await tester.pumpWidget(
-          const App(
-            MenuSystem(layers: [Axis.horizontal, Axis.vertical, Axis.vertical], autofocus: .a),
-            textDirection: ui.TextDirection.rtl,
-          ),
-        );
-
-        await expectFocusPath(tester, [
-          // In RTL, ArrowLeft moves forward along the horizontal bar
-          (LogicalKeyboardKey.arrowLeft, Tag.b),
-          (LogicalKeyboardKey.arrowLeft, Tag.c),
-          (LogicalKeyboardKey.arrowDown, Tag.c.a), // Down remains the same
-          (LogicalKeyboardKey.arrowDown, Tag.c.b),
-          (LogicalKeyboardKey.arrowLeft, Tag.c.b.a), // Open RTL Submenu (ArrowLeft)
-          (LogicalKeyboardKey.arrowDown, Tag.c.b.b),
-          (LogicalKeyboardKey.arrowRight, Tag.c.b), // Close RTL Submenu (ArrowRight)
-          (LogicalKeyboardKey.arrowUp, Tag.c.a),
-          (LogicalKeyboardKey.arrowRight, Tag.b), // Escapes to previous MenuBar root in RTL
-        ]);
-      });
-
       testWidgets('Tab and Shift+Tab do not move focus within open menus', (
         WidgetTester tester,
       ) async {
@@ -3752,6 +3617,1398 @@ void main() {
           (LogicalKeyboardKey.arrowDown, Tag.a.e),
           (LogicalKeyboardKey.arrowUp, Tag.a.d),
         ]);
+      });
+
+      testWidgets('Dropdown [V] traversal', (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const App(MenuSystem(layers: [Axis.vertical], autofocus: Tag.anchor, isMenuBar: false)),
+        );
+
+        await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+          (LogicalKeyboardKey.arrowDown, Tag.a),
+          (LogicalKeyboardKey.arrowDown, Tag.b),
+          (LogicalKeyboardKey.arrowDown, Tag.c),
+          (LogicalKeyboardKey.arrowDown, Tag.d),
+          (LogicalKeyboardKey.arrowDown, Tag.e),
+          (LogicalKeyboardKey.arrowDown, Tag.a),
+          (LogicalKeyboardKey.arrowUp, Tag.e),
+          (LogicalKeyboardKey.arrowUp, Tag.d),
+          (LogicalKeyboardKey.arrowUp, Tag.c),
+          (LogicalKeyboardKey.arrowUp, Tag.b),
+          (LogicalKeyboardKey.arrowUp, Tag.a),
+          (LogicalKeyboardKey.arrowUp, Tag.e),
+
+          // Horizontal movement should NOT work for single-layer vertical dropdown items
+          (LogicalKeyboardKey.arrowRight, Tag.e),
+          (LogicalKeyboardKey.arrowLeft, Tag.e),
+        ]);
+      });
+
+      testWidgets('Dropdown [H] LTR traversal', (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const App(MenuSystem(layers: [Axis.horizontal], autofocus: Tag.anchor, isMenuBar: false)),
+        );
+
+        await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+          // Vertical movement should work
+          (LogicalKeyboardKey.arrowDown, Tag.a),
+          (LogicalKeyboardKey.arrowRight, Tag.b),
+          (LogicalKeyboardKey.arrowRight, Tag.c),
+          (LogicalKeyboardKey.arrowRight, Tag.d),
+          (LogicalKeyboardKey.arrowRight, Tag.e),
+          (LogicalKeyboardKey.arrowRight, Tag.a),
+          (LogicalKeyboardKey.arrowLeft, Tag.e),
+          (LogicalKeyboardKey.arrowLeft, Tag.d),
+          (LogicalKeyboardKey.arrowLeft, Tag.c),
+          (LogicalKeyboardKey.arrowLeft, Tag.b),
+          (LogicalKeyboardKey.arrowLeft, Tag.a),
+          (LogicalKeyboardKey.arrowLeft, Tag.e),
+
+          (LogicalKeyboardKey.home, Tag.a),
+          (LogicalKeyboardKey.end, Tag.e),
+        ]);
+      });
+
+      testWidgets('Dropdown [H] RTL traversal', (WidgetTester tester) async {
+        await tester.pumpWidget(
+          const App(
+            MenuSystem(layers: [Axis.horizontal], autofocus: Tag.anchor, isMenuBar: false),
+            textDirection: TextDirection.rtl,
+          ),
+        );
+
+        await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+          // Vertical movement should work
+          (LogicalKeyboardKey.arrowDown, Tag.a),
+          (LogicalKeyboardKey.arrowLeft, Tag.b),
+          (LogicalKeyboardKey.arrowLeft, Tag.c),
+          (LogicalKeyboardKey.arrowLeft, Tag.d),
+          (LogicalKeyboardKey.arrowLeft, Tag.e),
+          (LogicalKeyboardKey.arrowLeft, Tag.a),
+          (LogicalKeyboardKey.arrowRight, Tag.e),
+          (LogicalKeyboardKey.arrowRight, Tag.d),
+          (LogicalKeyboardKey.arrowRight, Tag.c),
+          (LogicalKeyboardKey.arrowRight, Tag.b),
+          (LogicalKeyboardKey.arrowRight, Tag.a),
+          (LogicalKeyboardKey.arrowRight, Tag.e),
+
+          (LogicalKeyboardKey.home, Tag.a),
+          (LogicalKeyboardKey.end, Tag.e),
+        ]);
+      });
+
+      group('MenuBar', () {
+        testWidgets('MenuBar [H] [LTR]: ArrowLeft/ArrowRight traversal', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: .b),
+              textDirection: ui.TextDirection.ltr,
+            ),
+          );
+
+          await expectFocusPath(tester, [
+            (LogicalKeyboardKey.arrowLeft, Tag.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.e),
+            (LogicalKeyboardKey.arrowLeft, Tag.d),
+            (LogicalKeyboardKey.arrowRight, Tag.e),
+            (LogicalKeyboardKey.arrowRight, Tag.a),
+            (LogicalKeyboardKey.arrowRight, Tag.b),
+          ]);
+
+          // Make sure no menu is opened
+          expect(find.text(Tag.b.a.text), findsNothing);
+
+          await tester.pumpWidget(
+            App(
+              MenuSystem(
+                layers: const [Axis.horizontal, Axis.vertical],
+                autofocus: .a,
+                leading: Button.tag(Tag.leading),
+                trailing: Button.tag(Tag.trailing),
+              ),
+              textDirection: ui.TextDirection.ltr,
+            ),
+          );
+
+          await expectFocusPath(tester, [
+            (LogicalKeyboardKey.arrowLeft, Tag.leading),
+            (LogicalKeyboardKey.arrowLeft, Tag.trailing),
+            (LogicalKeyboardKey.arrowLeft, Tag.e),
+            (LogicalKeyboardKey.arrowRight, Tag.trailing),
+            (LogicalKeyboardKey.arrowRight, Tag.leading),
+            (LogicalKeyboardKey.arrowRight, Tag.a),
+          ]);
+
+          // Make sure no menu is opened
+          expect(find.text(Tag.a.a.text), findsNothing);
+        });
+
+        testWidgets('MenuBar [H] [RTL]: ArrowRight/ArrowLeft traversal', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: .b),
+              textDirection: ui.TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, [
+            (LogicalKeyboardKey.arrowRight, Tag.a),
+            (LogicalKeyboardKey.arrowRight, Tag.e),
+            (LogicalKeyboardKey.arrowRight, Tag.d),
+            (LogicalKeyboardKey.arrowLeft, Tag.e),
+            (LogicalKeyboardKey.arrowLeft, Tag.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.b),
+          ]);
+
+          // Make sure no menu is opened
+          expect(find.text(Tag.b.a.text), findsNothing);
+
+          await tester.pumpWidget(
+            App(
+              MenuSystem(
+                layers: const [Axis.horizontal, Axis.vertical],
+                autofocus: .a,
+                leading: Button.tag(Tag.leading),
+                trailing: Button.tag(Tag.trailing),
+              ),
+              textDirection: ui.TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, [
+            (LogicalKeyboardKey.arrowRight, Tag.leading),
+            (LogicalKeyboardKey.arrowRight, Tag.trailing),
+            (LogicalKeyboardKey.arrowRight, Tag.e),
+            (LogicalKeyboardKey.arrowLeft, Tag.trailing),
+            (LogicalKeyboardKey.arrowLeft, Tag.leading),
+            (LogicalKeyboardKey.arrowLeft, Tag.a),
+          ]);
+
+          // Make sure no menu is opened
+          expect(find.text(Tag.a.a.text), findsNothing);
+        });
+
+        testWidgets('MenuBar [V]: ArrowUp/ArrowDown traversal', (WidgetTester tester) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.vertical, Axis.vertical], autofocus: .b)),
+          );
+
+          await expectFocusPath(tester, [
+            (LogicalKeyboardKey.arrowUp, Tag.a),
+            (LogicalKeyboardKey.arrowUp, Tag.e),
+            (LogicalKeyboardKey.arrowUp, Tag.d),
+            (LogicalKeyboardKey.arrowDown, Tag.e),
+            (LogicalKeyboardKey.arrowDown, Tag.a),
+            (LogicalKeyboardKey.arrowDown, Tag.b),
+          ]);
+
+          // Make sure no menu is opened
+          expect(find.text(Tag.b.a.text), findsNothing);
+
+          await tester.pumpWidget(
+            App(
+              MenuSystem(
+                layers: const [Axis.vertical],
+                autofocus: .a,
+                leading: Button.tag(Tag.leading),
+                trailing: Button.tag(Tag.trailing),
+              ),
+              // Text direction should not make a difference.
+              textDirection: ui.TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, [
+            (LogicalKeyboardKey.arrowUp, Tag.leading),
+            (LogicalKeyboardKey.arrowUp, Tag.trailing),
+            (LogicalKeyboardKey.arrowUp, Tag.e),
+            (LogicalKeyboardKey.arrowDown, Tag.trailing),
+            (LogicalKeyboardKey.arrowDown, Tag.leading),
+            (LogicalKeyboardKey.arrowDown, Tag.a),
+          ]);
+
+          // Make sure no menu is opened
+          expect(find.text(Tag.a.a.text), findsNothing);
+        });
+
+        testWidgets('MenuBar [H]: ArrowUp/ArrowDown does not traverse', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.horizontal], autofocus: .b),
+              textDirection: ui.TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, [
+            (LogicalKeyboardKey.arrowDown, Tag.b),
+            (LogicalKeyboardKey.arrowDown, Tag.b),
+            (LogicalKeyboardKey.arrowUp, Tag.b),
+            (LogicalKeyboardKey.arrowUp, Tag.b),
+          ]);
+        });
+
+        testWidgets('MenuBar [V]: ArrowLeft/ArrowRight does not traverse', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(const App(MenuSystem(layers: [Axis.vertical], autofocus: .b)));
+
+          await expectFocusPath(tester, [
+            (LogicalKeyboardKey.arrowLeft, Tag.b),
+            (LogicalKeyboardKey.arrowLeft, Tag.b),
+            (LogicalKeyboardKey.arrowRight, Tag.b),
+            (LogicalKeyboardKey.arrowRight, Tag.b),
+          ]);
+        });
+
+        testWidgets('MenuBar [H]: Home/End keys focus first and last items', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: Tag.c)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.home, Tag.a),
+            (LogicalKeyboardKey.end, Tag.e),
+          ]);
+
+          await tester.pumpWidget(
+            App(
+              MenuSystem(
+                layers: const [Axis.horizontal, Axis.vertical],
+                autofocus: Tag.c,
+                leading: Button.tag(Tag.leading),
+                trailing: Button.tag(Tag.trailing),
+              ),
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.home, Tag.leading),
+            (LogicalKeyboardKey.end, Tag.trailing),
+          ]);
+        });
+
+        testWidgets('MenuBar [V]: Home/End keys focus first and last items', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.vertical, Axis.horizontal], autofocus: Tag.c)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.home, Tag.a),
+            (LogicalKeyboardKey.end, Tag.e),
+          ]);
+
+          await tester.pumpWidget(
+            App(
+              MenuSystem(
+                layers: const [Axis.vertical, Axis.horizontal],
+                autofocus: Tag.c,
+                leading: Button.tag(Tag.leading),
+                trailing: Button.tag(Tag.trailing),
+              ),
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.home, Tag.leading),
+            (LogicalKeyboardKey.end, Tag.trailing),
+          ]);
+        });
+      });
+
+      group('Submenu', () {
+        testWidgets('Submenu [H -> V]: ArrowDown on anchor enters submenu from top', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.a.a),
+          ]);
+        });
+
+        testWidgets('Submenu [H -> V]: ArrowUp on anchor enters submenu from bottom', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowUp, Tag.a.e),
+          ]);
+        });
+
+        testWidgets('Submenu [H -> V]: Submenu traversal', (WidgetTester tester) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.a.a),
+            (LogicalKeyboardKey.arrowDown, Tag.a.b),
+            (LogicalKeyboardKey.arrowDown, Tag.a.c),
+            (LogicalKeyboardKey.arrowDown, Tag.a.d),
+            (LogicalKeyboardKey.arrowDown, Tag.a.e),
+            (LogicalKeyboardKey.arrowDown, Tag.a.a), // Wraps to start
+            (LogicalKeyboardKey.arrowUp, Tag.a.e), // Wraps to end
+            (LogicalKeyboardKey.arrowUp, Tag.a.d),
+            (LogicalKeyboardKey.arrowUp, Tag.a.c),
+            (LogicalKeyboardKey.arrowUp, Tag.a.b),
+            (LogicalKeyboardKey.arrowUp, Tag.a.a),
+            (LogicalKeyboardKey.arrowUp, Tag.a.e),
+            (LogicalKeyboardKey.home, Tag.a.a),
+            (LogicalKeyboardKey.end, Tag.a.e),
+          ]);
+        });
+
+        testWidgets(
+          'Submenu [H -> V] [LTR]: ArrowLeft in submenu moves focus to previous parent anchor sibling',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: Tag.a)),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.e),
+            ]);
+
+            expect(find.text(Tag.e.a.text), findsOneWidget);
+          },
+        );
+
+        testWidgets(
+          'Submenu [H -> V] [RTL]: ArrowRight in submenu moves focus to previous parent anchor sibling',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: Tag.a),
+                textDirection: TextDirection.rtl,
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.e),
+            ]);
+
+            expect(find.text(Tag.e.a.text), findsOneWidget);
+          },
+        );
+
+        testWidgets(
+          'Submenu [H -> V] [LTR]: ArrowRight in submenu moves focus to next parent anchor sibling',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: Tag.e)),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.e.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a),
+            ]);
+
+            expect(find.text(Tag.a.a.text), findsOneWidget);
+          },
+        );
+
+        testWidgets(
+          'Submenu [H -> V] [RTL]: ArrowLeft in submenu moves focus to next parent anchor sibling',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: Tag.e),
+                textDirection: TextDirection.rtl,
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.e.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a),
+            ]);
+
+            expect(find.text(Tag.a.a.text), findsOneWidget);
+          },
+        );
+
+        testWidgets('Submenu [H -> H]: ArrowDown on anchor enters submenu from start', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.horizontal, Axis.horizontal], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.a.a),
+          ]);
+        });
+
+        testWidgets('Submenu [H -> H]: ArrowUp on anchor enters submenu from end', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.horizontal, Axis.horizontal], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowUp, Tag.a.e),
+          ]);
+        });
+
+        testWidgets(
+          'Submenu [H -> H]: ArrowUp in submenu closes submenu and returns focus to parent anchor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(MenuSystem(layers: [Axis.horizontal, Axis.horizontal], autofocus: Tag.a)),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowUp, Tag.a),
+            ]);
+
+            expect(find.text(Tag.a.a.text), findsNothing);
+          },
+        );
+
+        testWidgets('Submenu [H -> H] [LTR]: Submenu traversal', (WidgetTester tester) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.horizontal, Axis.horizontal], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.b),
+            (LogicalKeyboardKey.arrowRight, Tag.a.c),
+            (LogicalKeyboardKey.arrowRight, Tag.a.d),
+            (LogicalKeyboardKey.arrowRight, Tag.a.e),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a), // Wraps to start
+            (LogicalKeyboardKey.arrowLeft, Tag.a.e), // Wraps to end
+            (LogicalKeyboardKey.arrowLeft, Tag.a.d),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.c),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.b),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.e),
+
+            (LogicalKeyboardKey.home, Tag.a.a),
+            (LogicalKeyboardKey.end, Tag.a.e),
+          ]);
+        });
+
+        testWidgets('Submenu [H -> H] [RTL]: Submenu traversal', (WidgetTester tester) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.horizontal, Axis.horizontal], autofocus: Tag.a),
+              textDirection: TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.a.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.b),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.c),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.d),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.e),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a), // Wraps to start
+            (LogicalKeyboardKey.arrowRight, Tag.a.e), // Wraps to end
+            (LogicalKeyboardKey.arrowRight, Tag.a.d),
+            (LogicalKeyboardKey.arrowRight, Tag.a.c),
+            (LogicalKeyboardKey.arrowRight, Tag.a.b),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.e),
+
+            (LogicalKeyboardKey.home, Tag.a.a),
+            (LogicalKeyboardKey.end, Tag.a.e),
+          ]);
+        });
+
+        testWidgets('Submenu [V -> V] [LTR]: ArrowRight on anchor enters submenu from top', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.vertical, Axis.vertical], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.a.a),
+          ]);
+        });
+        testWidgets('Submenu [V -> V] [LTR]: ArrowLeft on anchor does nothing', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.vertical, Axis.vertical], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowLeft, Tag.a),
+          ]);
+        });
+
+        testWidgets(
+          'Submenu [V -> V] [LTR]: ArrowLeft in submenu closes submenu and returns focus to parent anchor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(MenuSystem(layers: [Axis.vertical, Axis.vertical], autofocus: Tag.a)),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a),
+            ]);
+
+            expect(find.text(Tag.a.a.text), findsNothing);
+          },
+        );
+
+        testWidgets('Submenu [V -> V] [RTL]: ArrowLeft on anchor enters submenu from top', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.vertical, Axis.vertical], autofocus: Tag.a),
+              textDirection: TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+          ]);
+        });
+        testWidgets('Submenu [V -> V] [RTL]: ArrowRight on anchor does nothing', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.vertical, Axis.vertical], autofocus: Tag.a),
+              textDirection: TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.a),
+          ]);
+        });
+
+        testWidgets(
+          'Submenu [V -> V] [RTL]: ArrowRight in submenu closes submenu and returns focus to parent anchor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(layers: [Axis.vertical, Axis.vertical], autofocus: Tag.a),
+                textDirection: TextDirection.rtl,
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a),
+            ]);
+
+            expect(find.text(Tag.a.a.text), findsNothing);
+          },
+        );
+
+        testWidgets('Submenu [V -> V]: Submenu traversal', (WidgetTester tester) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.vertical, Axis.vertical], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.a.a),
+            (LogicalKeyboardKey.arrowDown, Tag.a.b),
+            (LogicalKeyboardKey.arrowDown, Tag.a.c),
+            (LogicalKeyboardKey.arrowDown, Tag.a.d),
+            (LogicalKeyboardKey.arrowDown, Tag.a.e),
+            (LogicalKeyboardKey.arrowDown, Tag.a.a), // Wraps to start
+            (LogicalKeyboardKey.arrowUp, Tag.a.e), // Wraps to end
+            (LogicalKeyboardKey.arrowUp, Tag.a.d),
+            (LogicalKeyboardKey.arrowUp, Tag.a.c),
+            (LogicalKeyboardKey.arrowUp, Tag.a.b),
+            (LogicalKeyboardKey.arrowUp, Tag.a.a),
+            (LogicalKeyboardKey.arrowUp, Tag.a.e),
+
+            (LogicalKeyboardKey.home, Tag.a.a),
+            (LogicalKeyboardKey.end, Tag.a.e),
+          ]);
+        });
+
+        testWidgets('Submenu [V -> H] [LTR]: ArrowRight on anchor enters submenu from start', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.vertical, Axis.horizontal], autofocus: Tag.a),
+              textDirection: TextDirection.ltr,
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.a.a),
+          ]);
+        });
+
+        testWidgets('Submenu [V -> H] [LTR]: ArrowLeft on anchor enters submenu from end', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.vertical, Axis.horizontal], autofocus: Tag.a),
+              textDirection: TextDirection.ltr,
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowLeft, Tag.a.e),
+          ]);
+        });
+
+        testWidgets('Submenu [V -> H] [RTL]: ArrowLeft on anchor enters submenu from start', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.vertical, Axis.horizontal], autofocus: Tag.a),
+              textDirection: TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+          ]);
+        });
+
+        testWidgets('Submenu [V -> H] [RTL]: ArrowRight on anchor enters submenu from end', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.vertical, Axis.horizontal], autofocus: Tag.a),
+              textDirection: TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.a.e),
+          ]);
+        });
+
+        testWidgets('Submenu [V -> H]: ArrowUp in submenu moves to previous crossaxis ancestor', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.vertical, Axis.horizontal], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.a.a),
+            (LogicalKeyboardKey.arrowUp, Tag.e),
+          ]);
+
+          expect(find.text(Tag.e.a.text), findsOneWidget);
+        });
+
+        testWidgets('Submenu [V -> H]: ArrowDown in submenu moves to next crossaxis ancestor', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.vertical, Axis.horizontal], autofocus: Tag.e)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.e.a),
+            (LogicalKeyboardKey.arrowDown, Tag.a),
+          ]);
+
+          expect(find.text(Tag.a.a.text), findsOneWidget);
+        });
+
+        testWidgets('Submenu [V -> H] [LTR]: Submenu traversal', (WidgetTester tester) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.vertical, Axis.horizontal], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.b),
+            (LogicalKeyboardKey.arrowRight, Tag.a.c),
+            (LogicalKeyboardKey.arrowRight, Tag.a.d),
+            (LogicalKeyboardKey.arrowRight, Tag.a.e),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a), // Wraps to start
+            (LogicalKeyboardKey.arrowLeft, Tag.a.e), // Wraps to end
+            (LogicalKeyboardKey.arrowLeft, Tag.a.d),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.c),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.b),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.e),
+
+            (LogicalKeyboardKey.home, Tag.a.a),
+            (LogicalKeyboardKey.end, Tag.a.e),
+          ]);
+        });
+
+        testWidgets('Submenu [V -> H] [RTL]: Submenu traversal', (WidgetTester tester) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.vertical, Axis.horizontal], autofocus: Tag.a),
+              textDirection: TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.b),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.c),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.d),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.e),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a), // Wraps to start
+            (LogicalKeyboardKey.arrowRight, Tag.a.e), // Wraps to end
+            (LogicalKeyboardKey.arrowRight, Tag.a.d),
+            (LogicalKeyboardKey.arrowRight, Tag.a.c),
+            (LogicalKeyboardKey.arrowRight, Tag.a.b),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.e),
+
+            (LogicalKeyboardKey.home, Tag.a.a),
+            (LogicalKeyboardKey.end, Tag.a.e),
+          ]);
+        });
+
+        testWidgets(
+          'Submenu [Anchor Hover]: Opens after delay and closes when mouse leaves anchor',
+          (WidgetTester tester) async {
+            final anchorFocusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
+            addTearDown(anchorFocusNode.dispose);
+            final controller = MenuController();
+            await tester.pumpWidget(
+              App(
+                Column(
+                  children: [
+                    Text(Tag.outside.text),
+                    BaseSubmenu(
+                      semanticProperties: const SemanticsProperties(),
+                      role: null,
+                      controller: controller,
+                      hoverOpenDelay: const Duration(milliseconds: 100),
+                      hoverCloseDelay: const Duration(milliseconds: 200),
+                      menu: BaseMenuPanel(
+                        orientation: Axis.vertical,
+                        children: [Button(Text(Tag.a.text))],
+                      ),
+                      onPressed: () {
+                        if (controller.isOpen) {
+                          controller.close();
+                        } else {
+                          controller.open();
+                        }
+                      },
+                      focusNode: anchorFocusNode,
+                      child: Text(
+                        Tag.anchor.text,
+                        style: const TextStyle(color: Color(0xFfffffff)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+
+            final gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+            await gesture.addPointer(location: Offset.zero);
+            await gesture.moveTo(tester.getCenter(find.text(Tag.anchor.text)));
+            await tester.pump();
+
+            expect(controller.isOpen, isFalse);
+            expect(primaryFocus?.debugLabel, contains(Tag.anchor.focusNode));
+
+            await tester.pump(const Duration(milliseconds: 100));
+            expect(controller.isOpen, isTrue);
+
+            await gesture.moveTo(tester.getCenter(find.text(Tag.outside.text)));
+            await tester.pump();
+
+            await tester.pump(const Duration(milliseconds: 201));
+            expect(controller.isOpen, isFalse);
+
+            await gesture.removePointer();
+          },
+        );
+      });
+
+      group('Nested Submenu', () {
+        testWidgets(
+          'Submenu [V -> V -> V] [LTR]: ArrowLeft within nested submenu closes the menu and returns focus to parent anchor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(layers: [Axis.vertical, Axis.vertical, Axis.vertical], autofocus: Tag.a),
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a),
+            ]);
+
+            expect(find.text(Tag.a.a.a.text), findsNothing);
+            expect(find.text(Tag.a.a.text), findsNothing);
+          },
+        );
+
+        testWidgets(
+          'Submenu [V -> V -> V] [RTL]: ArrowRight within nested submenu closes the menu and returns focus to parent anchor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(layers: [Axis.vertical, Axis.vertical, Axis.vertical], autofocus: Tag.a),
+                textDirection: TextDirection.rtl,
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a),
+            ]);
+
+            expect(find.text(Tag.a.a.a.text), findsNothing);
+            expect(find.text(Tag.a.a.text), findsNothing);
+          },
+        );
+
+        testWidgets('Submenu [V -> V -> V]: Nested submenu traversal', (WidgetTester tester) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.vertical, Axis.vertical, Axis.vertical], autofocus: Tag.a),
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
+            (LogicalKeyboardKey.arrowDown, Tag.a.a.b),
+            (LogicalKeyboardKey.arrowDown, Tag.a.a.c),
+            (LogicalKeyboardKey.arrowDown, Tag.a.a.d),
+            (LogicalKeyboardKey.arrowDown, Tag.a.a.e),
+            (LogicalKeyboardKey.arrowDown, Tag.a.a.a), // Wraps to start
+            (LogicalKeyboardKey.arrowUp, Tag.a.a.e), // Wraps to end
+            (LogicalKeyboardKey.arrowUp, Tag.a.a.d),
+            (LogicalKeyboardKey.arrowUp, Tag.a.a.c),
+            (LogicalKeyboardKey.arrowUp, Tag.a.a.b),
+            (LogicalKeyboardKey.arrowUp, Tag.a.a.a),
+            (LogicalKeyboardKey.arrowUp, Tag.a.a.e),
+            (LogicalKeyboardKey.home, Tag.a.a.a),
+            (LogicalKeyboardKey.end, Tag.a.a.e),
+          ]);
+        });
+
+        testWidgets(
+          'Submenu [H -> H -> H]: ArrowUp within submenu closes the menu and returns focus to parent anchor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(
+                  layers: [Axis.horizontal, Axis.horizontal, Axis.horizontal],
+                  autofocus: Tag.a,
+                ),
+                textDirection: TextDirection.rtl,
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowDown, Tag.a.a.a),
+              (LogicalKeyboardKey.arrowUp, Tag.a.a),
+              (LogicalKeyboardKey.arrowUp, Tag.a),
+            ]);
+
+            expect(find.text(Tag.a.a.a.text), findsNothing);
+            expect(find.text(Tag.a.a.text), findsNothing);
+          },
+        );
+
+        testWidgets('Submenu [H -> H -> H] [LTR]: Nested submenu traversal', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(
+                layers: [Axis.horizontal, Axis.horizontal, Axis.horizontal],
+                autofocus: Tag.a,
+              ),
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.a.a),
+            (LogicalKeyboardKey.arrowDown, Tag.a.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.b),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.c),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.d),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.e),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.a), // Wraps to start
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.e), // Wraps to end
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.d),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.c),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.b),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.e),
+            (LogicalKeyboardKey.home, Tag.a.a.a),
+            (LogicalKeyboardKey.end, Tag.a.a.e),
+          ]);
+        });
+
+        testWidgets('Submenu [H -> H -> H] [RTL]: Nested submenu traversal', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(
+                layers: [Axis.horizontal, Axis.horizontal, Axis.horizontal],
+                autofocus: Tag.a,
+              ),
+              textDirection: TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.a.a),
+            (LogicalKeyboardKey.arrowDown, Tag.a.a.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.b),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.c),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.d),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.e),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.a), // Wraps to start
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.e), // Wraps to end
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.d),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.c),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.b),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.e),
+            (LogicalKeyboardKey.home, Tag.a.a.a),
+            (LogicalKeyboardKey.end, Tag.a.a.e),
+          ]);
+        });
+
+        testWidgets('Submenu [H -> V -> V] [LTR]: ArrowRight moves to next cross-axis ancestor', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.horizontal, Axis.vertical, Axis.vertical], autofocus: Tag.a),
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.b),
+          ]);
+
+          expect(find.text(Tag.a.a.a.text), findsNothing);
+          expect(find.text(Tag.b.a.text), findsOneWidget);
+        });
+
+        testWidgets('Submenu [H -> V -> V] [RTL]: ArrowLeft moves to next cross-axis ancestor', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.horizontal, Axis.vertical, Axis.vertical], autofocus: Tag.a),
+              textDirection: TextDirection.rtl,
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.a.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.a.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.b),
+          ]);
+
+          expect(find.text(Tag.a.a.a.text), findsNothing);
+          expect(find.text(Tag.b.a.text), findsOneWidget);
+        });
+
+        testWidgets(
+          'Submenu [H -> V -> V] [LTR]: ArrowLeft closes nested submenu and moves focus to parent anchor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(
+                  layers: [Axis.horizontal, Axis.vertical, Axis.vertical],
+                  autofocus: Tag.a,
+                ),
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+            ]);
+
+            expect(find.text(Tag.a.a.a.text), findsNothing);
+          },
+        );
+
+        testWidgets(
+          'Submenu [H -> V -> V] [RTL]: ArrowRight closes nested submenu and moves focus to parent anchor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(
+                  layers: [Axis.horizontal, Axis.vertical, Axis.vertical],
+                  autofocus: Tag.a,
+                ),
+                textDirection: TextDirection.rtl,
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+            ]);
+
+            expect(find.text(Tag.a.a.a.text), findsNothing);
+          },
+        );
+
+        testWidgets(
+          'Submenu [H -> H -> V -> V] [LTR]: ArrowRight moves to next cross-axis ancestor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(
+                  layers: [Axis.horizontal, Axis.horizontal, Axis.vertical, Axis.vertical],
+                  autofocus: Tag.a,
+                ),
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowDown, Tag.a.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.a.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.b),
+            ]);
+
+            expect(find.text(Tag.a.a.a.text), findsNothing);
+            expect(find.text(Tag.a.b.a.text), findsOneWidget);
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a.e),
+              (LogicalKeyboardKey.arrowDown, Tag.a.e.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.e.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+            ]);
+
+            expect(find.text(Tag.a.e.a.text), findsNothing);
+            expect(find.text(Tag.a.a.a.text), findsOneWidget);
+          },
+        );
+
+        testWidgets(
+          'Submenu [H -> H -> V -> V] [RTL]: ArrowLeft moves to next cross-axis ancestor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(
+                  layers: [Axis.horizontal, Axis.horizontal, Axis.vertical, Axis.vertical],
+                  autofocus: Tag.a,
+                ),
+                textDirection: TextDirection.rtl,
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowDown, Tag.a.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a.a.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a.b),
+            ]);
+
+            expect(find.text(Tag.a.a.a.text), findsNothing);
+            expect(find.text(Tag.a.b.a.text), findsOneWidget);
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.e),
+              (LogicalKeyboardKey.arrowDown, Tag.a.e.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a.e.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a.a),
+            ]);
+
+            expect(find.text(Tag.a.e.a.text), findsNothing);
+            expect(find.text(Tag.a.a.a.text), findsOneWidget);
+          },
+        );
+
+        testWidgets(
+          'Submenu [V -> H -> H]: ArrowDown in nested submenu closes child and moves to next cross-axis ancestor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(
+                  layers: [Axis.vertical, Axis.horizontal, Axis.horizontal],
+                  autofocus: Tag.a,
+                ),
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+              (LogicalKeyboardKey.arrowDown, Tag.a.a.a),
+              (LogicalKeyboardKey.arrowDown, Tag.b),
+            ]);
+
+            expect(find.text(Tag.a.a.a.text), findsNothing);
+            expect(find.text(Tag.b.a.text), findsOneWidget);
+          },
+        );
+
+        testWidgets(
+          'Submenu [V -> H -> H]: ArrowUp closes nested submenu and moves focus to parent anchor',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              const App(
+                MenuSystem(
+                  layers: [Axis.vertical, Axis.horizontal, Axis.horizontal],
+                  autofocus: Tag.a,
+                ),
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+              (LogicalKeyboardKey.arrowDown, Tag.a.a.a),
+              (LogicalKeyboardKey.arrowUp, Tag.a.a),
+            ]);
+
+            expect(find.text(Tag.a.a.a.text), findsNothing);
+          },
+        );
+
+        testWidgets('Submenu [V -> V -> H ]: ArrowUp moves to previous cross-axis ancestor', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.vertical, Axis.vertical, Axis.horizontal], autofocus: Tag.a),
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
+            (LogicalKeyboardKey.arrowUp, Tag.a.e),
+          ]);
+
+          expect(find.text(Tag.a.a.a.text), findsNothing);
+          expect(find.text(Tag.a.e.a.text), findsOneWidget);
+        });
+
+        testWidgets('Submenu [V -> V -> H -> H]: ArrowDown moves to next cross-axis ancestor', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(
+                layers: [Axis.vertical, Axis.vertical, Axis.horizontal, Axis.horizontal],
+                autofocus: Tag.a,
+              ),
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowRight, Tag.a.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.a.a),
+            (LogicalKeyboardKey.arrowDown, Tag.a.a.a.a),
+            (LogicalKeyboardKey.arrowDown, Tag.a.b),
+          ]);
+
+          expect(find.text(Tag.a.a.a.text), findsNothing);
+          expect(find.text(Tag.a.b.a.text), findsOneWidget);
+          expect(find.text(Tag.a.b.a.a.text), findsNothing);
+        });
+
+        testWidgets(
+          'Dropdown + Submenu [V -> V]: Horizontal arrow keys on leaf items do not move focus in dropdown',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              App(
+                Column(
+                  children: [
+                    Button.tag(Tag.leading),
+                    const MenuSystem(
+                      layers: [Axis.vertical, Axis.vertical],
+                      autofocus: Tag.anchor,
+                      isMenuBar: false,
+                    ),
+                    Button.tag(Tag.trailing),
+                  ],
+                ),
+                textDirection: TextDirection.ltr,
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+              (LogicalKeyboardKey.arrowRight, Tag.a.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a),
+              (LogicalKeyboardKey.arrowLeft, Tag.a),
+            ]);
+          },
+        );
+
+        testWidgets(
+          'Dropdown + Submenu [H -> H]: Vertical arrow keys on leaf items do not move focus in dropdown',
+          (WidgetTester tester) async {
+            await tester.pumpWidget(
+              App(
+                Column(
+                  children: [
+                    Button.tag(Tag.leading),
+                    const MenuSystem(
+                      layers: [Axis.horizontal, Axis.horizontal],
+                      autofocus: Tag.anchor,
+                      isMenuBar: false,
+                    ),
+                    Button.tag(Tag.trailing),
+                  ],
+                ),
+                textDirection: TextDirection.ltr,
+              ),
+            );
+
+            await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+              (LogicalKeyboardKey.arrowDown, Tag.a),
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowDown, Tag.a.a),
+              (LogicalKeyboardKey.arrowUp, Tag.a),
+              (LogicalKeyboardKey.arrowUp, Tag.a),
+            ]);
+          },
+        );
+      });
+
+      group('6. Edge Cases & State', () {
+        testWidgets('Disabled items are skipped by directional intents', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            App(
+              MenuSystem(
+                layers: const [Axis.vertical, Axis.vertical, Axis.horizontal],
+                autofocus: Tag.a,
+                disabledItems: {Tag.b, Tag.e, Tag.a.a, Tag.a.e, Tag.a.b.c, Tag.a.b.e},
+              ),
+            ),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.c),
+            (LogicalKeyboardKey.arrowDown, Tag.d),
+            (LogicalKeyboardKey.arrowDown, Tag.a),
+
+            (LogicalKeyboardKey.end, Tag.d),
+            (LogicalKeyboardKey.home, Tag.a),
+
+            (LogicalKeyboardKey.arrowRight, Tag.a.b),
+            (LogicalKeyboardKey.arrowDown, Tag.a.c),
+            (LogicalKeyboardKey.arrowDown, Tag.a.d),
+            (LogicalKeyboardKey.arrowDown, Tag.a.b),
+
+            (LogicalKeyboardKey.end, Tag.a.d),
+            (LogicalKeyboardKey.home, Tag.a.b),
+
+            (LogicalKeyboardKey.arrowRight, Tag.a.b.a),
+            (LogicalKeyboardKey.arrowRight, Tag.a.b.b),
+            (LogicalKeyboardKey.arrowRight, Tag.a.b.d),
+            (LogicalKeyboardKey.arrowRight, Tag.a.b.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.b.d),
+
+            (LogicalKeyboardKey.home, Tag.a.b.a),
+            (LogicalKeyboardKey.end, Tag.a.b.d),
+          ]);
+        });
+
+        testWidgets('Traversal: Focus remains inside menu when using Tab if configured to stop', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.horizontal, Axis.vertical], autofocus: Tag.a)),
+          );
+
+          await expectFocusPath(tester, <(LogicalKeyboardKey, Tag)>[
+            (LogicalKeyboardKey.arrowDown, Tag.a.a),
+            (LogicalKeyboardKey.arrowDown, Tag.a.b),
+            (LogicalKeyboardKey.tab, Tag.a.b),
+            (LogicalKeyboardKey.tab, Tag.a.b),
+          ]);
+        });
+
+        testWidgets(
+          'Focus Restoration: Closing a nested menu by tapping outside restores focus to the original external FocusNode',
+          (WidgetTester tester) async {
+            final externalFocusNode = FocusNode();
+            final rootController = MenuController();
+            addTearDown(externalFocusNode.dispose);
+
+            await tester.pumpWidget(
+              App(
+                Column(
+                  children: [
+                    Button(const Text('External Button'), focusNode: externalFocusNode),
+                    BaseMenu(
+                      controller: rootController,
+                      menu: BaseMenuPanel(
+                        orientation: Axis.vertical,
+                        children: <Widget>[Button.tag(Tag.a)],
+                      ),
+                      child: const AnchorButton(Tag.anchor),
+                    ),
+                  ],
+                ),
+              ),
+            );
+
+            externalFocusNode.requestFocus();
+            await tester.pump();
+
+            expect(FocusManager.instance.primaryFocus, externalFocusNode);
+
+            await tester.tap(find.text(Tag.anchor.text));
+            await tester.pump();
+
+            expect(FocusManager.instance.primaryFocus, isNot(externalFocusNode));
+
+            await tester.tap(find.text('External Button'));
+            await tester.pumpAndSettle();
+
+            expect(rootController.isOpen, isFalse);
+            expect(FocusManager.instance.primaryFocus, externalFocusNode);
+          },
+        );
       });
     });
 
@@ -6727,497 +7984,4 @@ void main() {
       },
     );
   });
-}
-
-// ********* UTILITIES *********  //
-/// Allows the creation of arbitrarily-nested tags in tests.
-abstract class Tag {
-  const Tag();
-
-  static const NestedTag anchor = NestedTag('anchor');
-  static const NestedTag outside = NestedTag('outside');
-  static const NestedTag a = NestedTag('a');
-  static const NestedTag b = NestedTag('b');
-  static const NestedTag c = NestedTag('c');
-  static const NestedTag d = NestedTag('d');
-  static const NestedTag e = NestedTag('e');
-
-  static const List<NestedTag> values = <NestedTag>[a, b, c, d, e];
-
-  Tag reparent(Tag parent) {
-    return NestedTag(_name, prefix: parent, level: parent.level + 1);
-  }
-
-  String get _name;
-  String get text;
-  String get focusNode;
-  int get level;
-
-  @override
-  String toString() {
-    return 'Tag($text, level: $level)';
-  }
-}
-
-class NestedTag extends Tag {
-  const NestedTag(String name, {this._prefix, this.level = 0})
-    : assert(
-        // Limit the nesting level to prevent stack overflow.
-        level < 9,
-        'NestedTag.level must be less than 9 (was $level).',
-      ),
-      _name = name;
-
-  @override
-  final String _name;
-  final Tag? _prefix;
-
-  @override
-  final int level;
-
-  NestedTag get a => NestedTag('a', prefix: this, level: level + 1);
-  NestedTag get b => NestedTag('b', prefix: this, level: level + 1);
-  NestedTag get c => NestedTag('c', prefix: this, level: level + 1);
-  NestedTag get d => NestedTag('d', prefix: this, level: level + 1);
-  NestedTag get e => NestedTag('e', prefix: this, level: level + 1);
-
-  @override
-  String get text {
-    if (level == 0 || _prefix == null) {
-      return _name;
-    }
-    return '${_prefix.text}.$_name';
-  }
-
-  @override
-  String get focusNode {
-    return 'Focus[$text]';
-  }
-
-  Key get key => ValueKey<String>('${text}_Key');
-}
-
-final testButtonDecoration = WidgetStateProperty.fromMap({
-  WidgetState.pressed: const BoxDecoration(
-    color: Color.fromARGB(172, 3, 218, 197),
-    border: Border.fromBorderSide(BorderSide(color: Color.fromARGB(255, 3, 218, 197))),
-  ),
-  WidgetState.focused: const BoxDecoration(
-    color: Color.fromARGB(176, 54, 0, 179),
-    border: Border.fromBorderSide(BorderSide(color: Color.fromARGB(255, 54, 0, 179))),
-  ),
-  WidgetState.focused & WidgetState.hovered: const BoxDecoration(
-    color: Color.fromARGB(112, 0, 63, 238),
-    border: Border.fromBorderSide(BorderSide(color: Color.fromARGB(255, 54, 0, 179))),
-  ),
-  WidgetState.hovered: const BoxDecoration(color: Color.fromARGB(149, 72, 42, 142)),
-  WidgetState.disabled: const BoxDecoration(
-    color: Color.fromARGB(255, 200, 200, 200),
-    border: Border.fromBorderSide(BorderSide(color: Color.fromARGB(255, 200, 200, 200))),
-  ),
-  WidgetState.any: const BoxDecoration(
-    color: Color.fromARGB(142, 46, 39, 58),
-    border: Border(bottom: BorderSide(color: Color.fromARGB(255, 46, 39, 58))),
-  ),
-});
-
-class Button extends StatefulWidget {
-  const Button(
-    this.child, {
-    super.key,
-    this.onPressed = _defaultCallback,
-    this.focusNode,
-    this.autofocus = false,
-    this.onFocusChange,
-    this._focusNodeLabel,
-    BoxConstraints? constraints,
-    this.role,
-    this.requestFocusOnHover = false,
-    this.requestCloseOnActivate = false,
-  }) : constraints = constraints ?? const BoxConstraints.tightFor(width: 225, height: 32);
-
-  factory Button.text(
-    String text, {
-    Key? key,
-    VoidCallback? onPressed = _defaultCallback,
-    FocusNode? focusNode,
-    bool autofocus = false,
-    BoxConstraints? constraints,
-    void Function(bool)? onFocusChange,
-    SemanticsRole? role,
-    bool requestFocusOnHover = false,
-    bool requestCloseOnActivate = false,
-  }) {
-    return Button(
-      Text(text),
-      key: key,
-      onPressed: onPressed,
-      focusNode: focusNode,
-      autofocus: autofocus,
-      constraints: constraints,
-      onFocusChange: onFocusChange,
-      focusNodeLabel: text,
-      role: role,
-      requestFocusOnHover: requestFocusOnHover,
-      requestCloseOnActivate: requestCloseOnActivate,
-    );
-  }
-
-  factory Button.tag(
-    Tag tag, {
-    Key? key,
-    VoidCallback? onPressed = _defaultCallback,
-    FocusNode? focusNode,
-    bool autofocus = false,
-    BoxConstraints? constraints,
-    void Function(bool)? onFocusChange,
-    SemanticsRole? role,
-    bool requestFocusOnHover = false,
-    bool requestCloseOnActivate = false,
-  }) {
-    return Button(
-      Text(tag.text),
-      key: key,
-      onPressed: onPressed,
-      focusNode: focusNode,
-      autofocus: autofocus,
-      constraints: constraints,
-      onFocusChange: onFocusChange,
-      focusNodeLabel: tag.focusNode,
-      role: role,
-      requestFocusOnHover: requestFocusOnHover,
-      requestCloseOnActivate: requestCloseOnActivate,
-    );
-  }
-
-  final Widget child;
-  final VoidCallback? onPressed;
-  final void Function(bool)? onFocusChange;
-  final FocusNode? focusNode;
-  final bool autofocus;
-  final BoxConstraints constraints;
-  final String? _focusNodeLabel;
-  final SemanticsRole? role;
-  final bool requestFocusOnHover;
-  final bool requestCloseOnActivate;
-
-  static void _defaultCallback() {}
-
-  @override
-  State<Button> createState() => _ButtonState();
-}
-
-class _ButtonState extends State<Button> {
-  FocusNode? internalFocusNode;
-  FocusNode get effectiveFocusNode => widget.focusNode ?? internalFocusNode!;
-
-  @override
-  void dispose() {
-    internalFocusNode?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.focusNode == null) {
-      internalFocusNode ??= FocusNode(debugLabel: widget._focusNodeLabel);
-    } else {
-      internalFocusNode?.dispose();
-      internalFocusNode = null;
-    }
-
-    // Only apply the widget's label if the node doesn't already have one
-    effectiveFocusNode.debugLabel ??= widget._focusNodeLabel;
-    return BaseMenuItem(
-      onPressed: widget.onPressed,
-      focusNode: effectiveFocusNode,
-      autofocus: widget.autofocus,
-      onFocusChange: widget.onFocusChange,
-      role: widget.role,
-      requestFocusOnHover: widget.requestFocusOnHover,
-      requestCloseOnActivate: widget.requestCloseOnActivate,
-      child: Builder(
-        builder: (context) {
-          return ConstrainedBox(
-            constraints: widget.constraints,
-            child: DecoratedBox(
-              decoration: testButtonDecoration.resolve(BaseMenuItem.statesOf(context)),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: DefaultTextStyle(
-                    style: const TextStyle(color: Color(0xFFFFFFFF)),
-                    child: widget.child,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class AnchorButton extends StatelessWidget {
-  const AnchorButton(
-    this.tag, {
-    super.key,
-    this.onPressed,
-    this.constraints,
-    this.autofocus = false,
-    this.focusNode,
-  });
-
-  factory AnchorButton.small(Tag tag) {
-    return AnchorButton(tag, constraints: BoxConstraints.tight(const Size(225, 30)));
-  }
-
-  final Tag tag;
-  final void Function(Tag)? onPressed;
-  final bool autofocus;
-  final BoxConstraints? constraints;
-  final FocusNode? focusNode;
-
-  @override
-  Widget build(BuildContext context) {
-    final MenuController? controller = MenuController.maybeOf(context);
-    return Button.tag(
-      tag,
-      onPressed: () {
-        onPressed?.call(tag);
-        if (controller != null) {
-          if (controller.isOpen) {
-            controller.close();
-          } else {
-            controller.open();
-          }
-        }
-      },
-      focusNode: focusNode,
-      constraints: constraints,
-      autofocus: autofocus,
-    );
-  }
-}
-
-class App extends StatefulWidget {
-  const App(this.child, {super.key, this.textDirection, this.alignment = Alignment.center});
-  final Widget child;
-  final TextDirection? textDirection;
-  final AlignmentGeometry alignment;
-
-  @override
-  State<App> createState() => _AppState();
-}
-
-class _AppState extends State<App> {
-  TextDirection? _directionality;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _directionality = Directionality.maybeOf(context);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: const Color(0xff000000),
-      child: FocusScope(
-        autofocus: true,
-        child: WidgetsApp(
-          color: const Color(0xff000000),
-          onGenerateRoute: (RouteSettings settings) {
-            return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    return Directionality(
-      textDirection: widget.textDirection ?? _directionality ?? TextDirection.ltr,
-      child: Align(alignment: widget.alignment, child: widget.child),
-    );
-  }
-}
-
-class MenuSystem extends StatelessWidget {
-  const MenuSystem({
-    super.key,
-    this.layers = const [.horizontal, .vertical, .vertical, .vertical],
-    this.isMenuBar = true,
-    this.autofocus,
-    this.leading,
-    this.trailing,
-  });
-
-  final List<Axis> layers;
-  final bool isMenuBar;
-  final Tag? autofocus;
-
-  /// An optional widget to place before the first menu. This is useful for
-  /// testing that focus traversal works correctly with non-menu widgets in the
-  /// tree.
-  final Widget? leading;
-
-  /// An optional widget to place after the last menu. This is useful for
-  /// testing that focus traversal works correctly with non-menu widgets in the
-  /// tree.
-  final Widget? trailing;
-
-  Widget _buildLevel({required int depth, Tag? parentTag}) {
-    Iterable<Tag> currentTags = Tag.values;
-    if (parentTag != null) {
-      currentTags = currentTags.map((t) => t.reparent(parentTag));
-    }
-
-    // Otherwise, build a submenu and recurse to the next depth level
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF000000).withOpacity(0.25),
-            blurRadius: 4,
-            spreadRadius: 2,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: BaseMenuPanel(
-        padding: const EdgeInsetsDirectional.symmetric(horizontal: 4, vertical: 4),
-        orientation: layers[depth],
-        children: [
-          ?leading,
-          for (final tag in currentTags)
-            if (depth < layers.length - 1)
-              TestSubmenu(
-                autofocus: autofocus == tag && depth == 0,
-                tag: tag,
-                orientation: layers[depth + 1],
-                trailing: layers[depth] == Axis.vertical ? '>' : 'v',
-                menu: _buildLevel(depth: depth + 1, parentTag: tag),
-              )
-            else
-              Button.tag(
-                tag,
-                requestFocusOnHover: true,
-                requestCloseOnActivate: true,
-                autofocus: autofocus == tag && depth == 0,
-                onPressed: () {
-                  print('Pressed ${tag.text}');
-                },
-              ),
-          ?trailing,
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (isMenuBar) {
-      return BaseMenuBar(axis: layers.first, child: _buildLevel(depth: 0));
-    } else {
-      return TestSubmenu(
-        tag: Tag.anchor,
-        orientation: layers.first,
-        trailing: layers.first == Axis.vertical ? '>' : 'v',
-        menu: _buildLevel(depth: 0),
-      );
-    }
-  }
-}
-
-class TestSubmenu extends StatefulWidget {
-  const TestSubmenu({
-    super.key,
-    required this.tag,
-    required this.menu,
-    required this.trailing,
-    required this.orientation,
-    this.autofocus = false,
-  });
-
-  final Tag tag;
-  final Widget menu;
-  final String trailing;
-  final Axis orientation;
-  final bool autofocus;
-
-  @override
-  State<TestSubmenu> createState() => _TestSubmenuState();
-}
-
-class _TestSubmenuState extends State<TestSubmenu> {
-  final controller = MenuController();
-  late final FocusNode internalFocusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    internalFocusNode = FocusNode(debugLabel: widget.tag.focusNode);
-  }
-
-  @override
-  void dispose() {
-    internalFocusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: widget.tag.level == 0
-          ? const BoxConstraints.tightFor(width: 150, height: 32)
-          : const BoxConstraints.tightFor(width: 225, height: 32),
-      child: BaseSubmenu(
-        role: widget.tag == Tag.anchor ? null : .menuItem,
-        directionalFocusEdgeBehavior: .closedLoop,
-        positionDelegate: const DefaultBaseMenuPositioningDelegate(
-          padding: EdgeInsetsGeometry.symmetric(horizontal: 4, vertical: 4),
-        ),
-        autofocus: widget.autofocus,
-        controller: controller,
-        orientation: widget.orientation,
-        focusNode: internalFocusNode,
-        onPressed: () {
-          if (controller.isOpen) {
-            controller.close();
-          } else {
-            controller.open();
-          }
-        },
-        menu: widget.menu,
-        child: Builder(
-          builder: (context) {
-            return DecoratedBox(
-              decoration: testButtonDecoration.resolve(BaseMenuItem.statesOf(context)),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(widget.tag.text),
-                    Text(
-                      widget.trailing,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFFFFFFFF)),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
 }

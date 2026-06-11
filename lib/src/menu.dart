@@ -602,8 +602,6 @@ class _BaseMenuState extends State<BaseMenu> {
     directionalTraversalEdgeBehavior: directionalTraversalEdgeBehavior,
   );
 
-  final GlobalKey _anchorKey = GlobalKey();
-
   late final Map<Type, Action<Intent>> _anchorActions = <Type, Action<Intent>>{
     BaseMenuEnterIntent: CallbackAction<BaseMenuEnterIntent>(onInvoke: _handleEnterMenu),
   };
@@ -620,12 +618,12 @@ class _BaseMenuState extends State<BaseMenu> {
         : TraversalEdgeBehavior.closedLoop;
   }
 
-  Map<Type, Action<Intent>>? _overlayActions;
   TextDirection _textDirection = TextDirection.ltr;
   bool _parentIsSubmenu = false;
   Axis? _parentOrientation;
 
   MenuController? _internalMenuController;
+  Map<Type, CallbackAction<Intent>>? _overlayActions;
   MenuController get _menuController {
     return widget.controller ?? _internalMenuController!;
   }
@@ -651,7 +649,6 @@ class _BaseMenuState extends State<BaseMenu> {
     if (scope?.orientation != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
       _parentOrientation = scope?.orientation;
       _parentIsSubmenu = scope?.isSubmenu ?? false;
-      _overlayActions = null;
     }
   }
 
@@ -695,61 +692,6 @@ class _BaseMenuState extends State<BaseMenu> {
     }
   }
 
-  void _handleCrossAxisPrevious(Intent intent) {
-    if (_parentIsSubmenu && _parentOrientation == widget.orientation) {
-      _menuController.close();
-      return;
-    }
-
-    final policy = FocusTraversalGroup.maybeOf(_anchorKey.currentContext!);
-    final anchorFocusNode = Focus.of(_anchorKey.currentContext!, createDependency: false);
-    if (policy != null) {
-      final parentScope = anchorFocusNode.enclosingScope;
-      final first = policy.findFirstFocus(parentScope!, ignoreCurrentFocus: true);
-      if (anchorFocusNode.traversalDescendants.contains(first)) {
-        final last = policy.findLastFocus(parentScope, ignoreCurrentFocus: true);
-        policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
-        MenuController.maybeOf(last.context!)?.open();
-        return;
-      }
-    }
-
-    final success = anchorFocusNode.enclosingScope?.previousFocus();
-    if (success != true) {
-      Actions.maybeInvoke(context, intent);
-      return;
-    }
-    FocusManager.instance.applyFocusChangesIfNeeded();
-    Actions.maybeInvoke(context, intent);
-    MenuController.maybeOf(primaryFocus!.context!)?.open();
-  }
-
-  void _handleCrossAxisNext(Intent intent) {
-    assert(_parentOrientation != widget.orientation);
-    final policy = FocusTraversalGroup.maybeOf(_anchorKey.currentContext!);
-    if (policy != null) {
-      final anchorFocusNode = Focus.of(_anchorKey.currentContext!, createDependency: false);
-      final parentScope = anchorFocusNode.enclosingScope;
-      final last = policy.findLastFocus(parentScope!, ignoreCurrentFocus: true);
-      if (anchorFocusNode.traversalDescendants.contains(last)) {
-        final first = policy.findFirstFocus(parentScope, ignoreCurrentFocus: true);
-        if (first != null) {
-          policy.requestFocusCallback(first, alignmentPolicy: .keepVisibleAtStart);
-          MenuController.maybeOf(first.context!)?.open();
-          return;
-        }
-      }
-    }
-
-    Actions.maybeInvoke(context, intent);
-    FocusManager.instance.applyFocusChangesIfNeeded();
-    if (primaryFocus?.context?.mounted != true) {
-      return;
-    }
-
-    MenuController.maybeOf(primaryFocus!.context!)?.open();
-  }
-
   Widget _buildAnchor(BuildContext context, MenuController controller, Widget? child) {
     return Actions(
       actions: _anchorActions,
@@ -760,6 +702,7 @@ class _BaseMenuState extends State<BaseMenu> {
               TextDirection.ltr => _kMenuLTRShortcuts,
               TextDirection.rtl => _kMenuRTLShortcuts,
             },
+
             if (controller.isOpen && widget.orientation == Axis.vertical) ...{
               const SingleActivator(LogicalKeyboardKey.arrowUp):
                   const BaseMenuEnterIntent.focusLast(),
@@ -779,13 +722,10 @@ class _BaseMenuState extends State<BaseMenu> {
                   const BaseMenuEnterIntent.focusLast(),
           },
         },
-        child: KeyedSubtree(
-          key: _anchorKey,
-          child:
-              widget.builder?.call(context, controller, widget.child) ??
-              widget.child ??
-              const SizedBox(),
-        ),
+        child:
+            widget.builder?.call(context, controller, widget.child) ??
+            widget.child ??
+            const SizedBox(),
       ),
     );
   }
@@ -802,14 +742,34 @@ class _BaseMenuState extends State<BaseMenu> {
       child: widget.menu,
     );
 
-    if (widget.overlayChildBuilder == null) {
-      return overlay;
+    final Widget child = widget.overlayChildBuilder != null
+        ? Builder(
+            builder: (context) {
+              return widget.overlayChildBuilder!.call(context, overlay);
+            },
+          )
+        : overlay;
+
+    if (_parentOrientation != null) {
+      return child;
     }
 
-    return Builder(
-      builder: (context) {
-        return widget.overlayChildBuilder!.call(context, overlay);
+    return Actions(
+      actions: _overlayActions ??= {
+        NextFocusIntent: CallbackAction(
+          onInvoke: (intent) {
+            _menuController.close();
+            return _menuScopeNode.enclosingScope?.nextFocus();
+          },
+        ),
+        PreviousFocusIntent: CallbackAction(
+          onInvoke: (intent) {
+            _menuController.close();
+            return _menuScopeNode.enclosingScope?.previousFocus();
+          },
+        ),
       },
+      child: child,
     );
   }
 
@@ -1100,28 +1060,26 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
   Widget build(BuildContext context) {
     return FocusTraversalGroup(
       policy: policy,
-      child: Shortcuts(
-        debugLabel: 'Menu Focus Traversal Shortcuts ${widget.child}',
-        shortcuts: switch (Directionality.of(context)) {
-          TextDirection.ltr => _kMenuLTRShortcuts,
-          TextDirection.rtl => _kMenuRTLShortcuts,
-        },
-        child: Actions(
-          actions: actions ??= {
-            _MenuFocusFirstIntent: _FocusFirstAction(widget.focusScopeNode),
-            _MenuFocusLastIntent: _FocusLastAction(widget.focusScopeNode),
-            ...switch (widget.axis) {
-              Axis.vertical => {
-                BaseMenuVerticalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
-                BaseMenuVerticalFocusPreviousIntent: _TraversePreviousAction(widget.focusScopeNode),
-              },
-              Axis.horizontal => {
-                BaseMenuHorizontalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
-                BaseMenuHorizontalFocusPreviousIntent: _TraversePreviousAction(
-                  widget.focusScopeNode,
-                ),
-              },
+      child: Actions(
+        actions: actions ??= {
+          _MenuFocusFirstIntent: _FocusFirstAction(widget.focusScopeNode),
+          _MenuFocusLastIntent: _FocusLastAction(widget.focusScopeNode),
+          ...switch (widget.axis) {
+            Axis.vertical => {
+              BaseMenuVerticalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
+              BaseMenuVerticalFocusPreviousIntent: _TraversePreviousAction(widget.focusScopeNode),
             },
+            Axis.horizontal => {
+              BaseMenuHorizontalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
+              BaseMenuHorizontalFocusPreviousIntent: _TraversePreviousAction(widget.focusScopeNode),
+            },
+          },
+        },
+        child: Shortcuts(
+          debugLabel: 'Menu Focus Traversal Shortcuts ${widget.child}',
+          shortcuts: switch (Directionality.of(context)) {
+            TextDirection.ltr => _kMenuLTRShortcuts,
+            TextDirection.rtl => _kMenuRTLShortcuts,
           },
           child: FocusScope(
             node: widget.focusScopeNode,
@@ -1500,7 +1458,6 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
         anchorOffset - menuAlignment.resolve(textDirection).alongSize(childSize);
 
     final Rect screen = _findClosestScreen(size, anchorRect.center, avoidBounds);
-
     return _fitInsideScreen(screen, childSize, position, anchorOffset);
   }
 

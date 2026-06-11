@@ -27,6 +27,7 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
     this.focusNode,
     this.autofocus = false,
     this.behavior = HitTestBehavior.deferToChild,
+    this.opaque = true,
     this.mouseCursor,
     this.gestureSemanticsEnabled = true,
     this.gestureSemantics,
@@ -56,6 +57,8 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
 
   @override
   final HitTestBehavior behavior;
+
+  final bool opaque;
 
   @override
   final WidgetStateProperty<MouseCursor>? mouseCursor;
@@ -141,25 +144,22 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
   Widget _buildHoverable(BuildContext context, void Function(void Function()) setState) {
     final hasMouseCursor = widget.mouseCursor != null;
     return BaseHoverable<T>(
-      behavior: widget.behavior,
       enabled: widget.enabled,
+      behavior: widget.behavior,
+      opaque: widget.opaque,
+      onEnter: (PointerEnterEvent event) {
+        widget.onPointerEnter?.call(event);
+        setState(() {
+          isHovered = true;
+        });
+      },
       onHover: widget.onPointerHover,
-      onEnter: hasMouseCursor
-          ? widget.onPointerEnter
-          : (PointerEnterEvent event) {
-              widget.onPointerEnter?.call(event);
-              setState(() {
-                isHovered = true;
-              });
-            },
-      onExit: !isHovered
-          ? widget.onPointerLeave
-          : (PointerExitEvent event) {
-              setState(() {
-                isHovered = false;
-              });
-              widget.onPointerLeave?.call(event);
-            },
+      onExit: (PointerExitEvent event) {
+        setState(() {
+          isHovered = false;
+        });
+        widget.onPointerLeave?.call(event);
+      },
       cursor: hasMouseCursor
           ? widget.mouseCursor!.resolve({
               if (isHovered) WidgetState.hovered,
@@ -246,9 +246,21 @@ class _PressableState<T> extends State<_Pressable<T>> {
   }
 
   void _handleTapCancel() {
-    setState(() {
+    // This guard is necessary to prevent a rebuild when the control is
+    // disabled while pressed.
+    if (isPressed) {
+      setState(() {
+        isPressed = false;
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(_Pressable<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.enabled && isPressed) {
       isPressed = false;
-    });
+    }
   }
 
   @override

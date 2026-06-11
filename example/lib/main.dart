@@ -27,7 +27,7 @@ void main() async {
       return true;
     }());
   }
-  runApp(const TestApp());
+  runApp(const MaterialApp(home: TabBarDemo()));
 }
 
 class App extends StatefulWidget {

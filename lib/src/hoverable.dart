@@ -61,20 +61,12 @@ class BaseHoverable<T> extends StatefulWidget {
 }
 
 class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
-  bool isHovered = false;
+  bool _isHovered = false;
 
   @override
   void initState() {
     super.initState();
     FocusManager.instance.addHighlightModeListener(_handleHighlightModeChange);
-  }
-
-  @override
-  void didUpdateWidget(BaseHoverable<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!widget.enabled && isHovered) {
-      isHovered = false;
-    }
   }
 
   @override
@@ -91,34 +83,32 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
   }
 
   void _handleEnter(PointerEnterEvent event) {
-    setState(() {
-      isHovered = true;
-    });
-    widget.onEnter?.call(event);
-  }
+    print('hover enter');
+    _isHovered = true;
 
-  void _handleHover(PointerHoverEvent event) {
-    if (!isHovered) {
-      setState(() {
-        isHovered = true;
-      });
+    if (widget.enabled) {
+      setState(() {});
+      widget.onEnter?.call(event);
     }
-    widget.onHover?.call(event);
   }
 
   void _handleLeave(PointerExitEvent event) {
-    if (isHovered) {
-      setState(() {
-        isHovered = false;
-      });
+    print('hover leave');
+    _isHovered = false;
+
+    if (widget.enabled) {
+      setState(() {});
       widget.onExit?.call(event);
     }
   }
 
   bool get _showHoverHighlight {
     // Hover highlights are only shown in traditional highlight modes (e.g. mouse),
-    // and not in touch modes. However, on web we want to show hover highlights regardless of the highlight mode, since web apps are often used with a mouse even on touch devices.
-    return isHovered &&
+    // and not in touch modes. However, on web we want to show hover highlights
+    // regardless of the highlight mode, since web apps are often used with a
+    // mouse even on touch devices.
+    print((_isHovered, widget.enabled, FocusManager.instance.highlightMode));
+    return _isHovered &&
         widget.enabled &&
         (FocusManager.instance.highlightMode == FocusHighlightMode.traditional || kIsWeb);
   }
@@ -127,13 +117,13 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
   Widget build(BuildContext context) {
     return MouseRegion(
       opaque: widget.opaque,
-      onEnter: widget.enabled ? _handleEnter : null,
-      onHover: widget.enabled || !isHovered ? _handleHover : null,
-      onExit: widget.enabled ? _handleLeave : null,
+      onEnter: _handleEnter,
+      onHover: widget.enabled ? widget.onHover : null,
+      onExit: _handleLeave,
       hitTestBehavior: widget.behavior,
       cursor: widget.cursor,
       child: _HoverableScope<T>(
-        hovered: isHovered,
+        hovered: _isHovered,
         showHoverHighlight: _showHoverHighlight,
         child: widget.child,
       ),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -85,7 +86,7 @@ class BaseMenuItem<T> extends StatefulWidget implements BaseMenuItemInterface {
 
   @optionalTypeArgs
   static bool isHoveredOf<T>(BuildContext context) {
-    return BaseHoverable.isHoveredOf<BaseMenuItem<T>>(context);
+    return BaseControl.isHoveredOf<BaseMenuItem<T>>(context);
   }
 
   @optionalTypeArgs
@@ -135,12 +136,13 @@ class _BaseMenuItemState<T> extends State<BaseMenuItem<T>> {
   @override
   void dispose() {
     _internalFocusNode?.dispose();
+    _internalFocusNode = null;
     super.dispose();
   }
 
   void _handlePressed() {
-    if (widget.requestCloseOnActivate) {
-      if (MenuController.maybeIsOpenOf(context) ?? false) {
+    if (widget.requestCloseOnActivate && widget.enabled) {
+      if (MenuController.maybeOf(context)?.isOpen ?? false) {
         Actions.invoke(context, const DismissIntent());
       }
     }
@@ -149,7 +151,7 @@ class _BaseMenuItemState<T> extends State<BaseMenuItem<T>> {
   }
 
   void _handleHoverEnter(PointerEnterEvent event) {
-    if (widget.requestFocusOnHover) {
+    if (widget.requestFocusOnHover && widget.enabled) {
       _focusNode.requestFocus();
     }
 
@@ -160,14 +162,10 @@ class _BaseMenuItemState<T> extends State<BaseMenuItem<T>> {
   Widget build(BuildContext context) {
     return MergeSemantics(
       child: Semantics.fromProperties(
-        properties: SemanticsProperties(role: widget.role, button: true, enabled: widget.enabled),
+        properties: SemanticsProperties(role: widget.role, button: kIsWeb ? true : null),
         child: BaseControl<BaseMenuItem<T>>(
-          onPressed: widget.requestCloseOnActivate && widget.enabled
-              ? _handlePressed
-              : widget.onPressed,
-          onPointerEnter: widget.requestFocusOnHover && widget.enabled
-              ? _handleHoverEnter
-              : widget.onPointerEnter,
+          onPressed: _handlePressed,
+          onPointerEnter: _handleHoverEnter,
           onPointerHover: widget.onPointerHover,
           onPointerLeave: widget.onPointerLeave,
           focusNode: _focusNode,

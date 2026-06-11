@@ -58,18 +58,11 @@ class BaseFocusable<T> extends StatefulWidget {
 
 class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
   bool _isFocused = false;
-  NavigationMode? _navigationMode;
 
   @override
   void initState() {
     super.initState();
     FocusManager.instance.addHighlightModeListener(_handleHighlightModeChange);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _navigationMode = MediaQuery.maybeNavigationModeOf(context);
   }
 
   @override
@@ -85,15 +78,13 @@ class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
   }
 
   void _handleFocusChange(bool focused) {
-    if (_isFocused != focused) {
-      setState(() {
-        _isFocused = focused;
-      });
-      widget.onFocusChange?.call(_isFocused);
-    }
+    setState(() {
+      _isFocused = focused;
+    });
+    widget.onFocusChange?.call(_isFocused);
   }
 
-  bool get _canRequestFocus => switch (_navigationMode) {
+  bool get _canRequestFocus => switch (MediaQuery.maybeNavigationModeOf(context)) {
     NavigationMode.traditional || null => widget.enabled,
     NavigationMode.directional => true,
   };

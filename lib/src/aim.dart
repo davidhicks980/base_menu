@@ -3,9 +3,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 class MenuAimGeometry {
@@ -152,16 +150,6 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
       result.add(BoxHitTestEntry(this, position));
       _exitTimer = Timer(exitDuration, () {
         enabled = false;
-
-        // If a pointer is quickly stopped while moving towards the target,
-        // hover hit testing may not trigger again after aim is disabled. To
-        // mitigate, a synthetic hover event is dispatched after a short delay
-        // to ensure the correct menu item is highlighted.
-        if (attached) {
-          GestureBinding.instance.handlePointerEvent(
-            PointerHoverEvent(position: localToGlobal(position), kind: PointerDeviceKind.mouse),
-          );
-        }
       });
       return true;
     }

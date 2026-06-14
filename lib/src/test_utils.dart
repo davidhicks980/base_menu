@@ -12,6 +12,9 @@ abstract class Tag {
 
   static const NestedTag anchor = NestedTag('anchor');
   static const NestedTag outside = NestedTag('outside');
+  static const NestedTag inner = NestedTag('inner');
+  static const NestedTag middle = NestedTag('middle');
+  static const NestedTag outer = NestedTag('outer');
   static const NestedTag leading = NestedTag('leading');
   static const NestedTag trailing = NestedTag('trailing');
   static const NestedTag a = NestedTag('a');
@@ -294,10 +297,19 @@ class AnchorButton extends StatelessWidget {
 }
 
 class App extends StatefulWidget {
-  const App(this.child, {super.key, this.textDirection, this.alignment = Alignment.center});
+  const App(
+    this.child, {
+    super.key,
+    this.textDirection,
+    this.alignment = Alignment.center,
+    this.actions,
+    this.shortcuts,
+  });
   final Widget child;
   final TextDirection? textDirection;
   final AlignmentGeometry alignment;
+  final Map<Type, Action<Intent>>? actions;
+  final Map<ShortcutActivator, Intent>? shortcuts;
 
   @override
   State<App> createState() => _AppState();
@@ -319,6 +331,8 @@ class _AppState extends State<App> {
       child: FocusScope(
         autofocus: true,
         child: WidgetsApp(
+          actions: widget.actions ?? WidgetsApp.defaultActions,
+          shortcuts: widget.shortcuts ?? WidgetsApp.defaultShortcuts,
           color: const Color(0xff000000),
           onGenerateRoute: (RouteSettings settings) {
             return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);

@@ -123,8 +123,9 @@ void main() {
       expect(BaseHoverable.isHoveredOf<void>(tester.element(find.text(Tag.a.text))), isFalse);
     });
 
-    testWidgets('disabling BaseHoverable disables callbacks', (WidgetTester tester) async {
+    testWidgets('disabling blocks callbacks', (WidgetTester tester) async {
       var entered = false;
+
       await tester.pumpWidget(
         App(
           BaseHoverable<void>(
@@ -145,10 +146,32 @@ void main() {
       await tester.pump();
 
       expect(entered, isFalse);
-      expect(BaseHoverable.isHoveredOf<void>(tester.element(find.text(Tag.a.text))), isFalse);
     });
 
-    testWidgets('disabling BaseHoverable clears hover state', (WidgetTester tester) async {
+    testWidgets('isHoveredOf reports on disabled BaseHoverable', (WidgetTester tester) async {
+      await tester.pumpWidget(App(BaseHoverable<void>(enabled: false, child: Text(Tag.a.text))));
+
+      final TestGesture gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(gesture.removePointer);
+
+      await gesture.addPointer(location: Offset.zero);
+      await gesture.moveTo(tester.getCenter(find.text(Tag.a.text)));
+      await tester.pump();
+      await tester.pump();
+
+      final element = tester.element(find.text(Tag.a.text));
+      expect(BaseHoverable.isHoveredOf<void>(element), isTrue);
+
+      await gesture.moveTo(Offset.zero);
+      await tester.pump();
+      await tester.pump();
+
+      expect(BaseHoverable.isHoveredOf<void>(element), isFalse);
+    });
+
+    testWidgets('isHoverHighlightShownOf reports on disabled BaseHoverable', (
+      WidgetTester tester,
+    ) async {
       var enabled = true;
       await tester.pumpWidget(
         App(
@@ -158,8 +181,12 @@ void main() {
                 children: [
                   BaseHoverable<void>(enabled: enabled, child: Text(Tag.a.text)),
                   ElevatedButton(
-                    onPressed: () => setState(() => enabled = false),
-                    child: const Text('Disable'),
+                    onPressed: () {
+                      setState(() {
+                        enabled = false;
+                      });
+                    },
+                    child: Text(Tag.outside.text),
                   ),
                 ],
               );
@@ -174,12 +201,16 @@ void main() {
       await gesture.addPointer(location: Offset.zero);
       await gesture.moveTo(tester.getCenter(find.text(Tag.a.text)));
       await tester.pump();
-      expect(BaseHoverable.isHoveredOf<void>(tester.element(find.text(Tag.a.text))), isTrue);
 
-      await tester.tap(find.text('Disable'));
+      final element = tester.element(find.text(Tag.a.text));
+
+      expect(BaseHoverable.isHoverHighlightShownOf<void>(element), isTrue);
+
+      await tester.tap(find.text(Tag.outside.text));
+      await tester.pump();
       await tester.pump();
 
-      expect(BaseHoverable.isHoveredOf<void>(tester.element(find.text(Tag.a.text))), isFalse);
+      expect(BaseHoverable.isHoverHighlightShownOf<void>(element), isFalse);
     });
 
     testWidgets('BaseHoverable passes properties to MouseRegion', (WidgetTester tester) async {
@@ -204,9 +235,7 @@ void main() {
       expect(mouseRegion.cursor, cursor);
       expect(mouseRegion.hitTestBehavior, behavior);
       expect(mouseRegion.opaque, isFalse);
-      expect(mouseRegion.onEnter, isNull);
       expect(mouseRegion.onHover, isNull);
-      expect(mouseRegion.onExit, isNull);
     });
 
     testWidgets('Generic type scoping identifies correct ancestor', (WidgetTester tester) async {

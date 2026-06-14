@@ -231,7 +231,37 @@ abstract interface class BaseControlInterface {
   /// semantics tree.
   SemanticsGestureDelegate? get gestureSemantics;
 
+  /// The shortcuts that this control should respond to.
+  ///
+  /// This map allows overriding the default keyboard shortcuts for the control.
+  ///
+  /// By default, [BaseControl] handles:
+  ///  * [LogicalKeyboardKey.space]:
+  ///    * Triggers [DoNothingAndStopPropagationIntent] on **key down**.
+  ///    * Triggers [ActivateIntent] on **key up**
+  ///  * [LogicalKeyboardKey.enter]:
+  ///    * KeyDown triggers [ButtonActivateIntent] on web.
+  ///    * KeyDown triggers [ActivateIntent] on all other platforms.
+  ///
+  /// If [shortcuts] is supplied, it will override the default shortcuts.
+  ///
+  /// The [ActivateIntent] and [ButtonActivateIntent] actions are overrideable,
+  /// meaning any ancestor [Actions] widget containing actions for these intents
+  /// will take precedence over the default behavior of activating the control.
+  Map<ShortcutActivator, Intent>? get shortcuts;
+
+  /// Whether tapping this control should request focus.
+  ///
+  /// This is commonly used for desktop platforms where users expect controls to
+  /// receive focus when they interact with them. On mobile platforms, this is
+  /// typically false.
+  ///
+  /// Defaults to false.
+  bool get requestFocusOnTap;
+
   /// Whether this control can be interacted with.
+  ///
+  /// Returns true if [onPressed] is not null, and false otherwise.
   bool get enabled;
 
   /// The visual content of this menu item.

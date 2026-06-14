@@ -120,7 +120,7 @@ void main() {
     });
   });
 
-  group('Pressable', () {
+  group('Press', () {
     testWidgets('onPressed invokes DismissIntent if requestCloseOnActivate is true', (
       WidgetTester tester,
     ) async {
@@ -490,10 +490,10 @@ void main() {
   testWidgets('Inherited properties target correct generic type (all states)', (
     WidgetTester tester,
   ) async {
-    final nodeVoid = FocusNode();
+    final nodeDynamic = FocusNode();
     final nodeInt = FocusNode();
     final nodeString = FocusNode();
-    addTearDown(nodeVoid.dispose);
+    addTearDown(nodeDynamic.dispose);
     addTearDown(nodeInt.dispose);
     addTearDown(nodeString.dispose);
 
@@ -510,7 +510,7 @@ void main() {
       expect(stringDiscreteStates, equals(stringStates));
     }
 
-    var enableVoid = true;
+    var enableDynamic = true;
 
     await tester.pumpWidget(
       App(
@@ -518,9 +518,9 @@ void main() {
           builder: (context, setState) {
             return Column(
               children: [
-                BaseMenuItem<void>(
-                  onPressed: enableVoid ? () {} : null,
-                  focusNode: nodeVoid,
+                BaseMenuItem(
+                  onPressed: enableDynamic ? () {} : null,
+                  focusNode: nodeDynamic,
                   role: null,
                   child: Container(
                     key: Tag.a.key,
@@ -545,15 +545,14 @@ void main() {
                             color: Colors.red,
                             child: Builder(
                               builder: (context) {
-                                voidStates = BaseMenuItem.statesOf<void>(context);
+                                voidStates = BaseMenuItem.statesOf(context);
                                 intStates = BaseMenuItem.statesOf<int>(context);
                                 stringStates = BaseMenuItem.statesOf<String>(context);
                                 voidDiscreteStates = {
-                                  if (BaseMenuItem.isHoveredOf<void>(context)) WidgetState.hovered,
-                                  if (BaseMenuItem.isFocusedOf<void>(context)) WidgetState.focused,
-                                  if (BaseMenuItem.isPressedOf<void>(context)) WidgetState.pressed,
-                                  if (BaseMenuItem.isDisabledOf<void>(context))
-                                    WidgetState.disabled,
+                                  if (BaseMenuItem.isHoveredOf(context)) WidgetState.hovered,
+                                  if (BaseMenuItem.isFocusedOf(context)) WidgetState.focused,
+                                  if (BaseMenuItem.isPressedOf(context)) WidgetState.pressed,
+                                  if (BaseMenuItem.isDisabledOf(context)) WidgetState.disabled,
                                 };
                                 intDiscreteStates = {
                                   if (BaseMenuItem.isHoveredOf<int>(context)) WidgetState.hovered,
@@ -584,7 +583,7 @@ void main() {
                   Tag.outside,
                   onPressed: () {
                     setState(() {
-                      enableVoid = false;
+                      enableDynamic = false;
                     });
                   },
                 ),
@@ -645,9 +644,9 @@ void main() {
     await mouse.down(redInner);
     await tester.pump(kPressTimeout);
 
-    expect(voidStates, equals({WidgetState.hovered, WidgetState.pressed}));
-    expect(intStates, equals({WidgetState.hovered, WidgetState.pressed}));
-    expect(stringStates, equals({WidgetState.hovered, WidgetState.pressed}));
+    expect(voidStates, equals({WidgetState.hovered, WidgetState.pressed, WidgetState.focused}));
+    expect(intStates, equals({WidgetState.hovered, WidgetState.pressed, WidgetState.focused}));
+    expect(stringStates, equals({WidgetState.hovered, WidgetState.pressed, WidgetState.focused}));
     matchDiscreteStates();
 
     await mouse.up();
@@ -660,7 +659,7 @@ void main() {
     expect(stringStates, equals(<WidgetState>{}));
     matchDiscreteStates();
 
-    nodeVoid.requestFocus();
+    nodeDynamic.requestFocus();
     await tester.pump();
     await tester.pump();
 
@@ -709,6 +708,7 @@ void main() {
 
     final controlFinder = find.byType(BaseControl<BaseMenuItem<void>>);
     var control = tester.widget<BaseControl<BaseMenuItem<void>>>(controlFinder);
+
     expect(control.focusNode, node);
     expect(control.autofocus, isTrue);
     expect(control.behavior, HitTestBehavior.opaque);

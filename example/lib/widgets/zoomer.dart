@@ -72,6 +72,7 @@ class _ZoomerState extends State<Zoomer> {
     if (focusedBox == null || viewerBox == null) {
       return;
     }
+
     if (!focusedBox.hasSize || !viewerBox.hasSize) {
       return;
     }

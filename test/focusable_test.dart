@@ -47,6 +47,7 @@ void main() {
           ),
         ),
       );
+
       await tester.pump(); // Allow autofocus to take effect
 
       expect(focusCount, 1);
@@ -148,32 +149,26 @@ void main() {
 
       await tester.tap(find.text(Tag.b.text));
       await tester.pump();
+      await tester.pump();
 
       expect(node.hasFocus, isFalse);
       expect(BaseFocusable.isFocusedOf<void>(tester.element(find.text(Tag.a.text))), isFalse);
     });
 
     testWidgets('disposes internal focusNode when widget is removed', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        App(BaseMenuItem<void>(onPressed: () {}, role: null, child: Text(Tag.a.text))),
-      );
+      await tester.pumpWidget(App(BaseFocusable<void>(child: Text(Tag.a.text))));
 
-      final finder = find
-          .descendant(
-            of: find.byType(BaseFocusable<BaseMenuItem<void>>),
-            matching: find.byType(Focus),
-          )
-          .first;
+      // Find the focus node created by the internal Focus widget
+      final element = tester.element(find.text(Tag.a.text));
+      final focusNode = Focus.of(element, scopeOk: true);
 
-      final FocusNode? focusNode = tester.widget<Focus>(finder).focusNode;
-      expect(focusNode?.context, isTrue);
+      // Remove the widget from the tree
+      await tester.pumpWidget(const App(SizedBox.shrink()));
 
-      await tester.pumpWidget(const App(SizedBox()));
-      await tester.pump();
-
-      expect(focusNode!.context, isNull);
+      // In Flutter, calling addListener on a disposed FocusNode
+      // throws an AssertionError in debug mode.
+      expect(() => focusNode.addListener(() {}), throwsAssertionError);
     });
-
     testWidgets('Generic type scoping identifies correct ancestor', (WidgetTester tester) async {
       final nodeA = FocusNode();
       final nodeB = FocusNode();
@@ -246,6 +241,53 @@ void main() {
       expect(find.text('Dynamic: true'), findsOneWidget);
       expect(find.text('Int: false'), findsOneWidget);
       expect(find.text('String: false'), findsOneWidget);
+    });
+
+    testWidgets('onFocusChange(false) called when disabled', (WidgetTester tester) async {
+      var enabled = true;
+      bool? lastFocusState;
+      final node = FocusNode();
+      addTearDown(node.dispose);
+
+      await tester.pumpWidget(
+        App(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                children: [
+                  BaseFocusable<void>(
+                    enabled: enabled,
+                    focusNode: node,
+                    onFocusChange: (val) {
+                      lastFocusState = val;
+                    },
+                    child: Text(Tag.a.text),
+                  ),
+                  BaseControl(
+                    onPressed: () {
+                      setState(() {
+                        enabled = false;
+                      });
+                    },
+                    child: const Text('Disable'),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+
+      node.requestFocus();
+      await tester.pump();
+      expect(lastFocusState, isTrue);
+
+      // Tapping disable will trigger didUpdateWidget and disable focusability
+      await tester.tap(find.text('Disable'));
+      await tester.pump();
+
+      // The callback must be fired with false
+      expect(lastFocusState, isFalse);
     });
   });
 
@@ -364,26 +406,7 @@ void main() {
   });
 
   group('BaseFocusable Modes', () {
-    testWidgets('NavigationMode.traditional: disabled widget cannot request focus', (tester) async {
-      final node = FocusNode();
-      addTearDown(node.dispose);
-
-      await tester.pumpWidget(
-        App(
-          MediaQuery(
-            data: const MediaQueryData(),
-            child: BaseFocusable<void>(enabled: false, focusNode: node, child: Text(Tag.a.text)),
-          ),
-        ),
-      );
-
-      node.requestFocus();
-      await tester.pump();
-
-      expect(node.hasFocus, isFalse);
-    });
-
-    testWidgets('NavigationMode.directional: disabled widget CAN request focus', (tester) async {
+    testWidgets('NavigationMode.directional: disabled widget can request focus', (tester) async {
       final node = FocusNode();
       addTearDown(node.dispose);
 
@@ -404,7 +427,148 @@ void main() {
       expect(BaseFocusable.isFocusedOf<void>(tester.element(find.text(Tag.a.text))), isTrue);
     });
 
-    testWidgets('[Not Browser] FocusHighlightMode.touch: hides focus highlight', skip: kIsWeb, (
+    testWidgets('NavigationMode.directional: disabling widget while focused retains focus', (
+      tester,
+    ) async {
+      final node = FocusNode();
+      addTearDown(node.dispose);
+      var enabled = true;
+
+      // Force Traditional highlight to see the highlight state
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      addTearDown(() {
+        FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
+      });
+
+      await tester.pumpWidget(
+        App(
+          StatefulBuilder(
+            builder: (context, setState) {
+              return MediaQuery(
+                data: const MediaQueryData(navigationMode: NavigationMode.directional),
+                child: Column(
+                  children: [
+                    BaseFocusable<void>(enabled: enabled, focusNode: node, child: Text(Tag.a.text)),
+                    BaseControl(
+                      onPressed: () => setState(() => enabled = false),
+                      child: Text(Tag.outside.text),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+
+      node.requestFocus();
+      await tester.pump();
+
+      final element = tester.element(find.text(Tag.a.text));
+
+      expect(node.hasFocus, isTrue);
+      expect(BaseFocusable.isFocusedOf<void>(element), isTrue);
+      expect(BaseFocusable.isFocusHighlightShownOf<void>(element), isTrue);
+
+      await tester.tap(find.text(Tag.outside.text));
+      await tester.pump();
+
+      expect(node.hasFocus, isTrue);
+      expect(BaseFocusable.isFocusedOf<void>(element), isTrue);
+      expect(BaseFocusable.isFocusHighlightShownOf<void>(element), isTrue);
+    });
+
+    testWidgets('NavigationMode.traditional: disabled widget cannot request focus', (tester) async {
+      final node = FocusNode();
+      addTearDown(node.dispose);
+
+      await tester.pumpWidget(
+        App(
+          MediaQuery(
+            data: const MediaQueryData(),
+            child: BaseFocusable<void>(enabled: false, focusNode: node, child: Text(Tag.a.text)),
+          ),
+        ),
+      );
+
+      node.requestFocus();
+      await tester.pump();
+
+      expect(node.hasFocus, isFalse);
+    });
+
+    testWidgets(
+      'Updating NavigationMode from directional to traditional while disabled removes focus',
+      (tester) async {
+        final node = FocusNode();
+        addTearDown(node.dispose);
+        var mode = NavigationMode.directional;
+
+        await tester.pumpWidget(
+          App(
+            StatefulBuilder(
+              builder: (context, setState) {
+                return MediaQuery(
+                  data: MediaQueryData(navigationMode: mode),
+                  child: Column(
+                    children: [
+                      BaseFocusable<void>(enabled: false, focusNode: node, child: Text(Tag.a.text)),
+                      BaseControl(
+                        onPressed: () {
+                          setState(() {
+                            mode = NavigationMode.traditional;
+                          });
+                        },
+                        child: Text(Tag.outside.text),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+
+        final element = tester.element(find.text(Tag.a.text));
+
+        node.requestFocus();
+        await tester.pump();
+
+        expect(node.hasFocus, isTrue);
+
+        await tester.tap(find.text(Tag.outside.text));
+        await tester.pump();
+
+        expect(node.hasFocus, isFalse);
+
+        await tester.pump();
+
+        expect(BaseFocusable.isFocusedOf<void>(element), isFalse);
+      },
+    );
+
+    testWidgets('FocusHighlightMode.traditional: shows focus highlight', (tester) async {
+      final node = FocusNode();
+      addTearDown(node.dispose);
+
+      // Force Traditional mode (Keyboard/Mouse)
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      addTearDown(() {
+        FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
+      });
+
+      await tester.pumpWidget(App(BaseFocusable<void>(focusNode: node, child: Text(Tag.a.text))));
+
+      node.requestFocus();
+      await tester.pump();
+
+      expect(
+        BaseFocusable.isFocusHighlightShownOf<void>(tester.element(find.text(Tag.a.text))),
+        isTrue,
+      );
+    });
+
+    testWidgets('FocusHighlightMode.touch: hides highlight [Not Web]', skip: kIsWeb, (
       tester,
     ) async {
       final node = FocusNode();
@@ -430,7 +594,7 @@ void main() {
       );
     });
 
-    testWidgets('[Browser] FocusHighlightMode.touch: shows highlight when focused', skip: !kIsWeb, (
+    testWidgets('FocusHighlightMode.touch: shows highlight when focused [Web]', skip: !kIsWeb, (
       tester,
     ) async {
       final node = FocusNode();
@@ -456,13 +620,15 @@ void main() {
       );
     });
 
-    testWidgets('FocusHighlightMode.traditional: shows focus highlight', (tester) async {
+    testWidgets('Changing FocusHighlightMode notifies dependents', skip: kIsWeb, (tester) async {
       final node = FocusNode();
       addTearDown(node.dispose);
 
-      // Force Traditional mode (Keyboard/Mouse)
-      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
-      addTearDown(() => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic);
+      // Start in touch
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTouch;
+      addTearDown(() {
+        FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
+      });
 
       await tester.pumpWidget(App(BaseFocusable<void>(focusNode: node, child: Text(Tag.a.text))));
 
@@ -471,90 +637,53 @@ void main() {
 
       expect(
         BaseFocusable.isFocusHighlightShownOf<void>(tester.element(find.text(Tag.a.text))),
+        isFalse,
+      );
+
+      // Switch highlight mode mid-test
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+
+      // The listener in _BaseFocusableState should call setState
+      await tester.pump();
+
+      expect(
+        BaseFocusable.isFocusHighlightShownOf<void>(tester.element(find.text(Tag.a.text))),
         isTrue,
       );
     });
 
-    testWidgets('onFocusChange(false) called when disabled', (WidgetTester tester) async {
-      var enabled = true;
-      bool? lastFocusState;
-      final node = FocusNode();
-      addTearDown(node.dispose);
-
-      await tester.pumpWidget(
-        App(
-          StatefulBuilder(
-            builder: (context, setState) {
-              return Column(
-                children: [
-                  BaseFocusable<void>(
-                    enabled: enabled,
-                    focusNode: node,
-                    onFocusChange: (val) {
-                      lastFocusState = val;
-                    },
-                    child: Text(Tag.a.text),
-                  ),
-                  BaseControl(
-                    onPressed: () {
-                      setState(() {
-                        enabled = false;
-                      });
-                    },
-                    child: const Text('Disable'),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      );
-
-      node.requestFocus();
-      await tester.pump();
-      expect(lastFocusState, isTrue);
-
-      // Tapping disable will trigger didUpdateWidget and disable focusability
-      await tester.tap(find.text('Disable'));
-      await tester.pump();
-
-      // The callback must be fired with false
-      expect(lastFocusState, isFalse);
-    });
-
     testWidgets(
-      '[Not Browser] Updates highlight when FocusManager mode changes at runtime',
+      'FocusHighlightMode.touch: isFocused is true and showFocusHighlight is false ',
       skip: kIsWeb,
       (tester) async {
         final node = FocusNode();
         addTearDown(node.dispose);
 
-        // Start in touch
+        // Force touch mode
         FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTouch;
-        addTearDown(
-          () => FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic,
-        );
+        addTearDown(() {
+          FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
+        });
 
-        await tester.pumpWidget(App(BaseFocusable<void>(focusNode: node, child: Text(Tag.a.text))));
+        await tester.pumpWidget(
+          App(
+            BaseFocusable<void>(
+              focusNode: node,
+              child: Builder(
+                builder: (BuildContext context) {
+                  final isFocused = BaseFocusable.isFocusedOf<void>(context);
+                  final showsHighlight = BaseFocusable.isFocusHighlightShownOf<void>(context);
+                  return Text('Focused: $isFocused; Highlight: $showsHighlight');
+                },
+              ),
+            ),
+          ),
+        );
 
         node.requestFocus();
         await tester.pump();
 
-        expect(
-          BaseFocusable.isFocusHighlightShownOf<void>(tester.element(find.text(Tag.a.text))),
-          isFalse,
-        );
-
-        // Switch highlight mode mid-test
-        FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
-
-        // The listener in _BaseFocusableState should call setState
-        await tester.pump();
-
-        expect(
-          BaseFocusable.isFocusHighlightShownOf<void>(tester.element(find.text(Tag.a.text))),
-          isTrue,
-        );
+        expect(find.text('Focused: true; Highlight: false'), findsOneWidget);
       },
     );
   });

@@ -45,6 +45,7 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
     this.role = SemanticsRole.menuItem,
     this.gestureSemanticsEnabled = true,
     this.gestureSemantics,
+    this.shortcuts,
   });
 
   /// The delay after which the submenu should open after being hovered.
@@ -129,10 +130,16 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
   final SemanticsGestureDelegate? gestureSemantics;
 
   @override
+  final Map<ShortcutActivator, Intent>? shortcuts;
+
+  @override
   final BaseMenuOverlayChildBuilder? overlayChildBuilder;
 
   @override
   bool get enabled => onPressed != null;
+
+  @override
+  bool get requestFocusOnTap => false;
 
   @override
   bool get requestFocusOnHover => true;
@@ -424,16 +431,13 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
     Actions.maybeInvoke(context, intent);
     if (!_menuController.isOpen) {
-      print('b');
       return;
     }
 
     FocusManager.instance.applyFocusChangesIfNeeded();
     if (primaryFocus?.context?.mounted != true) {
-      print('c');
       return;
     }
-    print('d');
 
     MenuController.maybeOf(primaryFocus!.context!)?.open();
   }
@@ -457,7 +461,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   Widget _buildOverlayChild(BuildContext context, Widget child) {
-    final overlay = BaseHoverable<BaseSubmenu>(
+    final overlay = MouseRegion(
       onEnter: _handlePointerEnterPanel,
       onExit: _handlePointerExitPanel,
       child: child,
@@ -510,20 +514,6 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
         child: Builder(
           builder: (context) {
             final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
-            final shortcuts = <SingleActivator, Intent>{
-              if (_parentOrientation == Axis.vertical)
-                switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
-                  TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
-                  TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
-                }: const BaseMenuEnterIntent.focusFirst(),
-
-              if (_parentOrientation == Axis.vertical && widget.orientation == Axis.horizontal)
-                switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
-                  TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowLeft),
-                  TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowRight),
-                }: const BaseMenuEnterIntent.focusLast(),
-            };
-
             if (isOpen) {
               final Type previousIntentType = switch (widget.orientation) {
                 Axis.vertical => BaseMenuHorizontalFocusPreviousIntent,
@@ -546,27 +536,39 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
             return Actions(
               actions: _anchorActions ?? _actions,
-              child: Shortcuts(
-                shortcuts: shortcuts,
-                child: BaseMenuItem(
-                  focusNode: _focusNode,
-                  autofocus: widget.autofocus,
-                  onPressed: widget.onPressed,
-                  onPointerEnter: _handlePointerEnterAnchor,
-                  onPointerHover: widget.onPointerHover,
-                  onPointerLeave: _handlePointerLeaveAnchor,
-                  requestCloseOnActivate: widget.requestCloseOnActivate,
-                  requestFocusOnHover: widget.requestFocusOnHover,
-                  behavior: widget.behavior,
-                  mouseCursor: widget.mouseCursor,
-                  role: widget.role,
-                  gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
-                  gestureSemantics: widget.gestureSemantics,
-                  child: ListenableBuilder(
-                    listenable: _highlightNotifier,
-                    builder: _buildHighlight,
-                    child: widget.child,
-                  ),
+              child: BaseMenuItem(
+                focusNode: _focusNode,
+                autofocus: widget.autofocus,
+                onPressed: widget.onPressed,
+                onPointerEnter: _handlePointerEnterAnchor,
+                onPointerHover: widget.onPointerHover,
+                onPointerLeave: _handlePointerLeaveAnchor,
+                requestCloseOnActivate: widget.requestCloseOnActivate,
+                requestFocusOnHover: widget.requestFocusOnHover,
+                requestFocusOnTap: widget.requestFocusOnTap,
+                behavior: widget.behavior,
+                mouseCursor: widget.mouseCursor,
+                role: widget.role,
+                gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
+                gestureSemantics: widget.gestureSemantics,
+                shortcuts: {
+                  if (_parentOrientation == Axis.vertical)
+                    switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
+                      TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
+                      TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
+                    }: const BaseMenuEnterIntent.focusFirst(),
+
+                  if (_parentOrientation == Axis.vertical && widget.orientation == Axis.horizontal)
+                    switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
+                      TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowLeft),
+                      TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowRight),
+                    }: const BaseMenuEnterIntent.focusLast(),
+                  ...?widget.shortcuts,
+                },
+                child: ListenableBuilder(
+                  listenable: _highlightNotifier,
+                  builder: _buildHighlight,
+                  child: widget.child,
                 ),
               ),
             );

@@ -20,11 +20,13 @@ class BaseMenuItem<T> extends StatefulWidget implements BaseMenuItemInterface {
     this.autofocus = false,
     this.requestFocusOnHover = true,
     this.requestCloseOnActivate = true,
+    this.requestFocusOnTap = false,
     this.behavior = .deferToChild,
     this.mouseCursor,
     this.role = .menuItem,
     this.gestureSemanticsEnabled = true,
     this.gestureSemantics,
+    this.shortcuts = BaseControl.defaultShortcuts,
     required this.child,
   }) : assert(
          gestureSemanticsEnabled || gestureSemantics == null,
@@ -59,6 +61,9 @@ class BaseMenuItem<T> extends StatefulWidget implements BaseMenuItemInterface {
   final bool requestCloseOnActivate;
 
   @override
+  final bool requestFocusOnTap;
+
+  @override
   final HitTestBehavior behavior;
 
   @override
@@ -72,6 +77,9 @@ class BaseMenuItem<T> extends StatefulWidget implements BaseMenuItemInterface {
 
   @override
   final SemanticsRole? role;
+
+  @override
+  final Map<ShortcutActivator, Intent> shortcuts;
 
   @override
   final Widget child;
@@ -164,7 +172,7 @@ class _BaseMenuItemState<T> extends State<BaseMenuItem<T>> {
       child: Semantics.fromProperties(
         properties: SemanticsProperties(role: widget.role, button: kIsWeb ? true : null),
         child: BaseControl<BaseMenuItem<T>>(
-          onPressed: _handlePressed,
+          onPressed: widget.enabled ? _handlePressed : null,
           onPointerEnter: _handleHoverEnter,
           onPointerHover: widget.onPointerHover,
           onPointerLeave: widget.onPointerLeave,
@@ -175,6 +183,7 @@ class _BaseMenuItemState<T> extends State<BaseMenuItem<T>> {
           behavior: widget.behavior,
           gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
           gestureSemantics: widget.gestureSemantics,
+          shortcuts: widget.shortcuts,
           child: widget.child,
         ),
       ),

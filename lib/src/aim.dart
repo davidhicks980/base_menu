@@ -61,6 +61,13 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
   bool enabled = true;
   Timer? _exitTimer;
 
+  @override
+  void detach() {
+    _exitTimer?.cancel();
+    _exitTimer = null;
+    super.detach();
+  }
+
   static bool _isMovingTowardsTarget(Offset start, Offset end, Rect target) {
     final Offset movement = end - start;
 
@@ -127,12 +134,11 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
     }
     points.add(position);
 
-    if (MenuAimInterceptor.visualizeAim) {
-      markNeedsPaint();
-    }
-
     if (delegate.anchorRect!.contains(position) || points.length < 2) {
       enabled = true;
+      if (MenuAimInterceptor.visualizeAim) {
+        markNeedsPaint();
+      }
       return false;
     }
 
@@ -151,6 +157,9 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
       _exitTimer = Timer(exitDuration, () {
         enabled = false;
       });
+      if (MenuAimInterceptor.visualizeAim) {
+        markNeedsPaint();
+      }
       return true;
     }
 

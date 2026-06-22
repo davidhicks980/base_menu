@@ -26,7 +26,7 @@ void main() async {
       return true;
     }());
   }
-  runApp(const MaterialApp(home: App()));
+  runApp(const App());
 }
 
 class App extends StatefulWidget {

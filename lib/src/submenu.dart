@@ -402,6 +402,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     if (primaryFocus?.context?.mounted != true) {
       return;
     }
+
     MenuController.maybeOf(primaryFocus!.context!)?.open();
   }
 
@@ -461,7 +462,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   Widget _buildOverlayChild(BuildContext context, Widget child) {
-    final overlay = MouseRegion(
+    final overlay = BaseHoverable<BaseSubmenu>(
       onEnter: _handlePointerEnterPanel,
       onExit: _handlePointerExitPanel,
       child: child,

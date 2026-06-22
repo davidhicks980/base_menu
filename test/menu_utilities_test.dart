@@ -4397,28 +4397,36 @@ void main() {
                 Column(
                   children: [
                     Text(Tag.outside.text),
-                    BaseSubmenu(
-                      semanticProperties: const SemanticsProperties(),
-                      role: null,
-                      controller: controller,
-                      hoverOpenDelay: const Duration(milliseconds: 100),
-                      hoverCloseDelay: const Duration(milliseconds: 200),
+                    BaseMenu(
                       menu: BaseMenuPanel(
                         orientation: Axis.vertical,
-                        children: [Button(Text(Tag.a.text))],
+                        children: [
+                          BaseSubmenu(
+                            semanticProperties: const SemanticsProperties(),
+                            role: null,
+                            controller: controller,
+                            hoverOpenDelay: const Duration(milliseconds: 100),
+                            hoverCloseDelay: const Duration(milliseconds: 200),
+                            menu: BaseMenuPanel(
+                              orientation: Axis.vertical,
+                              children: [Button(Text(Tag.a.text))],
+                            ),
+                            onPressed: () {
+                              if (controller.isOpen) {
+                                controller.close();
+                              } else {
+                                controller.open();
+                              }
+                            },
+                            focusNode: anchorFocusNode,
+                            child: Text(
+                              Tag.anchor.text,
+                              style: const TextStyle(color: Color(0xFfffffff)),
+                            ),
+                          ),
+                        ],
                       ),
-                      onPressed: () {
-                        if (controller.isOpen) {
-                          controller.close();
-                        } else {
-                          controller.open();
-                        }
-                      },
-                      focusNode: anchorFocusNode,
-                      child: Text(
-                        Tag.anchor.text,
-                        style: const TextStyle(color: Color(0xFfffffff)),
-                      ),
+                      child: const AnchorButton(Tag.anchor),
                     ),
                   ],
                 ),

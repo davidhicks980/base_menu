@@ -116,7 +116,7 @@ void main() {
       await tester.pump();
 
       expect(node.hasFocus, isFalse);
-      expect(BaseMenuItem.isHoveredOf<void>(tester.element(find.text(Tag.a.text))), isFalse);
+      expect(BaseMenuItem.isFocusedOf<void>(tester.element(find.text(Tag.a.text))), isFalse);
     });
   });
 

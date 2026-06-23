@@ -105,7 +105,6 @@ class BaseMenuEnterIntent extends Intent {
   final Intent? _scopeIntent;
 }
 
-@internal
 class MenuScope extends InheritedWidget {
   const MenuScope({
     super.key,
@@ -1107,12 +1106,21 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
           _MenuFocusLastIntent: _FocusLastAction(widget.focusScopeNode),
           ...switch (widget.axis) {
             Axis.vertical => {
-              BaseMenuVerticalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
-              BaseMenuVerticalFocusPreviousIntent: _TraversePreviousAction(widget.focusScopeNode),
+              BaseMenuVerticalFocusNextIntent: _TraverseNextAction<BaseMenuVerticalFocusNextIntent>(
+                widget.focusScopeNode,
+              ),
+              BaseMenuVerticalFocusPreviousIntent:
+                  _TraversePreviousAction<BaseMenuVerticalFocusPreviousIntent>(
+                    widget.focusScopeNode,
+                  ),
             },
             Axis.horizontal => {
-              BaseMenuHorizontalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
-              BaseMenuHorizontalFocusPreviousIntent: _TraversePreviousAction(widget.focusScopeNode),
+              BaseMenuHorizontalFocusNextIntent:
+                  _TraverseNextAction<BaseMenuHorizontalFocusNextIntent>(widget.focusScopeNode),
+              BaseMenuHorizontalFocusPreviousIntent:
+                  _TraversePreviousAction<BaseMenuHorizontalFocusPreviousIntent>(
+                    widget.focusScopeNode,
+                  ),
             },
           },
         },
@@ -1161,11 +1169,11 @@ class _FocusLastAction extends Action<_MenuFocusLastIntent> {
   }
 }
 
-class _TraverseNextAction extends Action<_TraversalIntent> {
+class _TraverseNextAction<T extends _TraversalIntent> extends Action<T> {
   _TraverseNextAction(this.focusScopeNode);
   final FocusScopeNode focusScopeNode;
   @override
-  void invoke(_TraversalIntent intent) {
+  void invoke(T intent) {
     final policy = FocusTraversalGroup.maybeOf(focusScopeNode.context!);
     if (policy == null) {
       primaryFocus?.nextFocus();
@@ -1207,11 +1215,11 @@ class _TraverseNextAction extends Action<_TraversalIntent> {
   }
 }
 
-class _TraversePreviousAction extends Action<_TraversalIntent> {
+class _TraversePreviousAction<T extends _TraversalIntent> extends Action<T> {
   _TraversePreviousAction(this.focusScopeNode);
   final FocusScopeNode focusScopeNode;
   @override
-  void invoke(_TraversalIntent intent) {
+  void invoke(T intent) {
     final policy = FocusTraversalGroup.maybeOf(focusScopeNode.context!);
 
     if (policy == null) {

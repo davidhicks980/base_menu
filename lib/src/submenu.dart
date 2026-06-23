@@ -8,7 +8,11 @@ import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
 import 'interface.dart';
-import 'menu.dart';
+
+typedef HPreviousIntent = BaseMenuHorizontalFocusPreviousIntent;
+typedef HNextIntent = BaseMenuHorizontalFocusNextIntent;
+typedef VPreviousIntent = BaseMenuVerticalFocusPreviousIntent;
+typedef VNextIntent = BaseMenuVerticalFocusNextIntent;
 
 class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuItemInterface {
   const BaseSubmenu({
@@ -322,26 +326,24 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       return;
     }
 
-    final policy = FocusTraversalGroup.maybeOfNode(_focusNode);
-    if (policy != null) {
-      final parentScope = _focusNode.enclosingScope;
-      final first = policy.findFirstFocus(parentScope!, ignoreCurrentFocus: true);
-
-      if (first == _focusNode || _focusNode.traversalDescendants.contains(first)) {
-        final last = policy.findLastFocus(parentScope, ignoreCurrentFocus: true);
-        policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
-        MenuController.maybeOf(last.context!)?.open();
-        return;
-      }
+    final policy = FocusTraversalGroup.of(_focusNode.context!);
+    final parentScope = _focusNode.enclosingScope;
+    final first = policy.findFirstFocus(parentScope!, ignoreCurrentFocus: true);
+    if (first == _focusNode || _focusNode.traversalDescendants.contains(first)) {
+      final last = policy.findLastFocus(parentScope, ignoreCurrentFocus: true);
+      policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
+      MenuController.maybeOf(last.context!)?.open();
+      return;
     }
 
-    final success = _focusNode.enclosingScope?.previousFocus();
-    if (success != true) {
+    _focusNode.requestFocus();
+    final success = _focusNode.previousFocus();
+    if (!success) {
       Actions.maybeInvoke(context, intent);
       return;
     }
+
     FocusManager.instance.applyFocusChangesIfNeeded();
-    Actions.maybeInvoke(context, intent);
     if (primaryFocus?.context?.mounted != true) {
       return;
     }
@@ -358,22 +360,21 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       return;
     }
 
-    final policy = FocusTraversalGroup.maybeOfNode(_focusNode);
-    if (policy != null) {
-      final parentScope = _focusNode.enclosingScope;
-      final first = policy.findFirstFocus(parentScope!, ignoreCurrentFocus: true);
-      if (first == _focusNode || _focusNode.traversalDescendants.contains(first)) {
-        final last = policy.findLastFocus(parentScope, ignoreCurrentFocus: true);
-        policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
-        if (widget.controller.isOpen) {
-          MenuController.maybeOf(last.context!)?.open();
-        }
-        return;
+    final policy = FocusTraversalGroup.of(_focusNode.context!);
+    final parentScope = _focusNode.enclosingScope;
+    final first = policy.findFirstFocus(parentScope!, ignoreCurrentFocus: true);
+    if (first == _focusNode || _focusNode.traversalDescendants.contains(first)) {
+      final last = policy.findLastFocus(parentScope, ignoreCurrentFocus: true);
+      policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
+      if (widget.controller.isOpen) {
+        MenuController.maybeOf(last.context!)?.open();
       }
+      return;
     }
 
-    final success = _focusNode.enclosingScope?.previousFocus();
-    if (success != true) {
+    _focusNode.requestFocus();
+    final success = _focusNode.previousFocus();
+    if (!success) {
       Actions.maybeInvoke(context, intent);
       return;
     }
@@ -383,7 +384,6 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     }
 
     FocusManager.instance.applyFocusChangesIfNeeded();
-
     if (primaryFocus?.context?.mounted != true) {
       return;
     }
@@ -399,23 +399,27 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       return;
     }
 
-    final policy = FocusTraversalGroup.maybeOfNode(_focusNode);
-    if (policy != null) {
-      final parentScope = _focusNode.enclosingScope;
-      final last = policy.findLastFocus(parentScope!, ignoreCurrentFocus: true);
-      if (last == _focusNode || _focusNode.traversalDescendants.contains(last)) {
-        final first = policy.findFirstFocus(parentScope, ignoreCurrentFocus: true);
-        if (first != null) {
-          policy.requestFocusCallback(first, alignmentPolicy: .keepVisibleAtStart);
-          if (widget.controller.isOpen) {
-            MenuController.maybeOf(first.context!)?.open();
-          }
-          return;
+    final policy = FocusTraversalGroup.of(_focusNode.context!);
+    final parentScope = _focusNode.enclosingScope;
+    final last = policy.findLastFocus(parentScope!, ignoreCurrentFocus: true);
+    if (last == _focusNode || _focusNode.traversalDescendants.contains(last)) {
+      final first = policy.findFirstFocus(parentScope, ignoreCurrentFocus: true);
+      if (first != null) {
+        policy.requestFocusCallback(first, alignmentPolicy: .keepVisibleAtStart);
+        if (widget.controller.isOpen) {
+          MenuController.maybeOf(first.context!)?.open();
         }
+        return;
       }
     }
 
-    Actions.maybeInvoke(context, intent);
+    _focusNode.requestFocus();
+    final success = _focusNode.nextFocus();
+    if (!success) {
+      Actions.maybeInvoke(context, intent);
+      return;
+    }
+
     if (!widget.controller.isOpen) {
       return;
     }
@@ -465,20 +469,16 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
     // When _parentOrientation == null, there is no parent menu bar or menu
     // anchor. In this case, overlay actions are not set.
-    if (_overlayActions == null && _parentOrientation != null) {
-      final Type previousIntentType = switch (widget.orientation) {
-        Axis.vertical => BaseMenuHorizontalFocusPreviousIntent,
-        Axis.horizontal => BaseMenuVerticalFocusPreviousIntent,
-      };
-
-      final Type nextIntentType = switch (widget.orientation) {
-        Axis.vertical => BaseMenuHorizontalFocusNextIntent,
-        Axis.horizontal => BaseMenuVerticalFocusNextIntent,
-      };
-
-      _overlayActions = {
-        previousIntentType: CallbackAction(onInvoke: _handleCrossAxisPrevious),
-        nextIntentType: CallbackAction(onInvoke: _handleCrossAxisNext),
+    if (_parentOrientation != null) {
+      _overlayActions ??= switch (widget.orientation) {
+        Axis.vertical => {
+          HPreviousIntent: CallbackAction<HPreviousIntent>(onInvoke: _handleCrossAxisPrevious),
+          HNextIntent: CallbackAction<HNextIntent>(onInvoke: _handleCrossAxisNext),
+        },
+        Axis.horizontal => {
+          VPreviousIntent: CallbackAction<VPreviousIntent>(onInvoke: _handleCrossAxisPrevious),
+          VNextIntent: CallbackAction<VNextIntent>(onInvoke: _handleCrossAxisNext),
+        },
       };
     }
 
@@ -511,26 +511,26 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
   Widget _buildChild(BuildContext context, MenuController controller, Widget? child) {
     if (controller.isOpen) {
-      final Type previousIntentType = switch (widget.orientation) {
-        Axis.vertical => BaseMenuHorizontalFocusPreviousIntent,
-        Axis.horizontal => BaseMenuVerticalFocusPreviousIntent,
-      };
-
-      final Type? nextIntentType = _parentOrientation != widget.orientation
-          ? switch (widget.orientation) {
-              Axis.vertical => BaseMenuHorizontalFocusNextIntent,
-              Axis.horizontal => BaseMenuVerticalFocusNextIntent,
-            }
-          : null;
-
-      _anchorActions = {
-        previousIntentType: CallbackAction(onInvoke: _handleAnchorCrossAxisPrevious),
-        ?nextIntentType: CallbackAction(onInvoke: _handleCrossAxisNext),
+      _anchorActions ??= switch (widget.orientation) {
+        Axis.vertical => {
+          HPreviousIntent: CallbackAction<HPreviousIntent>(
+            onInvoke: _handleAnchorCrossAxisPrevious,
+          ),
+          if (_parentOrientation != widget.orientation)
+            HNextIntent: CallbackAction<HNextIntent>(onInvoke: _handleCrossAxisNext),
+        },
+        Axis.horizontal => {
+          VPreviousIntent: CallbackAction<VPreviousIntent>(
+            onInvoke: _handleAnchorCrossAxisPrevious,
+          ),
+          if (_parentOrientation != widget.orientation)
+            VNextIntent: CallbackAction<VNextIntent>(onInvoke: _handleCrossAxisNext),
+        },
       };
     }
 
     return Actions(
-      actions: _anchorActions ?? const {},
+      actions: controller.isOpen ? _anchorActions! : const {},
       child: BaseMenuItem(
         focusNode: _focusNode,
         autofocus: widget.autofocus,

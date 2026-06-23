@@ -332,14 +332,17 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     if (first == _focusNode || _focusNode.traversalDescendants.contains(first)) {
       final last = policy.findLastFocus(parentScope, ignoreCurrentFocus: true);
       policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
-      MenuController.maybeOf(last.context!)?.open();
+      if (widget.controller.isOpen) {
+        MenuController.maybeOf(last.context!)?.open();
+      }
       return;
     }
 
-    _focusNode.requestFocus();
-    final success = _focusNode.previousFocus();
-    if (!success) {
-      Actions.maybeInvoke(context, intent);
+    _focusNode
+      ..requestFocus()
+      ..previousFocus();
+
+    if (!widget.controller.isOpen) {
       return;
     }
 
@@ -372,12 +375,9 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       return;
     }
 
-    _focusNode.requestFocus();
-    final success = _focusNode.previousFocus();
-    if (!success) {
-      Actions.maybeInvoke(context, intent);
-      return;
-    }
+    _focusNode
+      ..requestFocus()
+      ..previousFocus();
 
     if (!widget.controller.isOpen) {
       return;
@@ -413,12 +413,9 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       }
     }
 
-    _focusNode.requestFocus();
-    final success = _focusNode.nextFocus();
-    if (!success) {
-      Actions.maybeInvoke(context, intent);
-      return;
-    }
+    _focusNode
+      ..requestFocus()
+      ..nextFocus();
 
     if (!widget.controller.isOpen) {
       return;

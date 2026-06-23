@@ -971,6 +971,40 @@ void main() {
       panelItemFocus2.dispose();
       intents.clear();
     });
+
+    Widget buildTestWidget({Axis? parentAxis, Axis axis = Axis.vertical}) {
+      Widget child = Column(
+        children: [
+          BaseSubmenu(
+            role: null,
+            controller: controller1,
+            focusNode: focusNode1,
+            orientation: axis,
+            menu: Focus(
+              focusNode: panelItemFocus1,
+              child: Container(color: const ui.Color(0xFFFFBB00), width: 100, height: 100),
+            ),
+            child: const SubmenuChild(tag: Tag.a),
+          ),
+          BaseSubmenu(
+            role: null,
+            controller: controller2,
+            focusNode: focusNode2,
+            orientation: axis,
+            menu: Focus(
+              focusNode: panelItemFocus2,
+              child: Container(color: const ui.Color(0xFFFF6A00), width: 100, height: 100),
+            ),
+            child: const SubmenuChild(tag: Tag.b),
+          ),
+        ],
+      );
+      if (parentAxis != null) {
+        child = MenuScope(orientation: parentAxis, isSubmenu: false, child: child);
+      }
+      return App(child);
+    }
+
     testWidgets('H -> H OverlayPrevious: closes menu when orientations match and open', (
       WidgetTester tester,
     ) async {
@@ -1040,7 +1074,7 @@ void main() {
       );
 
       await tester.pump();
-      await tester.pump();
+
       expect(controller.isOpen, isFalse);
     });
 
@@ -1086,38 +1120,7 @@ void main() {
     testWidgets('H -> V OverlayPrevious: wraps to last item when at first item', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        App(
-          MenuScope(
-            orientation: Axis.horizontal,
-            isSubmenu: false,
-            child: Column(
-              children: [
-                BaseSubmenu(
-                  role: null,
-                  controller: controller1,
-                  focusNode: focusNode1,
-                  menu: Focus(
-                    focusNode: panelItemFocus1,
-                    child: Container(color: const Color(0xFFFFBB00), height: 20, width: 20),
-                  ),
-                  child: const SubmenuChild(tag: Tag.a),
-                ),
-                BaseSubmenu(
-                  role: null,
-                  controller: controller2,
-                  focusNode: focusNode2,
-                  menu: Focus(
-                    focusNode: panelItemFocus2,
-                    child: Container(color: const ui.Color(0xFFFF6A00), height: 20, width: 20),
-                  ),
-                  child: const SubmenuChild(tag: Tag.b),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.horizontal));
 
       controller1.open();
       await tester.pump();
@@ -1136,40 +1139,7 @@ void main() {
     testWidgets('V -> H OverlayPrevious: wraps to last item when at first item', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        App(
-          MenuScope(
-            orientation: Axis.vertical,
-            isSubmenu: false,
-            child: Column(
-              children: [
-                BaseSubmenu(
-                  role: null,
-                  controller: controller1,
-                  focusNode: focusNode1,
-                  orientation: Axis.horizontal,
-                  menu: Focus(
-                    focusNode: panelItemFocus1,
-                    child: Container(color: const Color(0xFFFFBB00), height: 20, width: 20),
-                  ),
-                  child: const SubmenuChild(tag: Tag.a),
-                ),
-                BaseSubmenu(
-                  role: null,
-                  controller: controller2,
-                  focusNode: focusNode2,
-                  orientation: Axis.horizontal,
-                  menu: Focus(
-                    focusNode: panelItemFocus2,
-                    child: Container(color: const ui.Color(0xFFFF6A00), height: 20, width: 20),
-                  ),
-                  child: const SubmenuChild(tag: Tag.b),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.vertical, axis: Axis.horizontal));
 
       controller1.open();
       await tester.pump();
@@ -1186,39 +1156,7 @@ void main() {
     });
 
     testWidgets('H -> V OverlayPrevious: moves to previous', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        App(
-          MenuScope(
-            orientation: Axis.horizontal,
-            isSubmenu: false,
-            child: Column(
-              children: [
-                BaseSubmenu(
-                  role: null,
-                  controller: controller1,
-                  focusNode: focusNode1,
-                  menu: Focus(
-                    key: Tag.a.key,
-                    focusNode: panelItemFocus1,
-                    child: Container(color: const Color(0xFFFFBB00), height: 20, width: 20),
-                  ),
-                  child: const SubmenuChild(tag: Tag.a),
-                ),
-                BaseSubmenu(
-                  role: null,
-                  controller: controller2,
-                  focusNode: focusNode2,
-                  menu: Focus(
-                    focusNode: panelItemFocus2,
-                    child: Container(color: const ui.Color(0xFFFF6A00), height: 20, width: 20),
-                  ),
-                  child: const SubmenuChild(tag: Tag.b),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.horizontal));
 
       controller2.open();
       await tester.pump();
@@ -1231,45 +1169,11 @@ void main() {
       await tester.pump();
 
       expect(focusNode1.hasPrimaryFocus, isTrue);
-      expect(find.byKey(Tag.a.key), findsOneWidget);
+      expect(controller1.isOpen, isTrue);
     });
 
     testWidgets('V -> H OverlayPrevious: moves to previous', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        App(
-          MenuScope(
-            orientation: Axis.vertical,
-            isSubmenu: false,
-            child: Column(
-              children: [
-                BaseSubmenu(
-                  role: null,
-                  controller: controller1,
-                  focusNode: focusNode1,
-                  orientation: Axis.horizontal,
-                  menu: Focus(
-                    key: Tag.a.key,
-                    focusNode: panelItemFocus1,
-                    child: Container(color: const Color(0xFFFFBB00), height: 20, width: 20),
-                  ),
-                  child: const SubmenuChild(tag: Tag.a),
-                ),
-                BaseSubmenu(
-                  role: null,
-                  controller: controller2,
-                  focusNode: focusNode2,
-                  orientation: Axis.horizontal,
-                  menu: Focus(
-                    focusNode: panelItemFocus2,
-                    child: Container(color: const ui.Color(0xFFFF6A00), height: 20, width: 20),
-                  ),
-                  child: const SubmenuChild(tag: Tag.b),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.vertical, axis: Axis.horizontal));
 
       controller2.open();
       await tester.pump();
@@ -1283,7 +1187,7 @@ void main() {
       await tester.pump();
 
       expect(focusNode1.hasPrimaryFocus, isTrue);
-      expect(find.byKey(Tag.a.key), findsOneWidget);
+      expect(controller1.isOpen, isTrue);
     });
 
     testWidgets('V OverlayPrevious: propagates intent if no ancestor exists', (
@@ -1355,41 +1259,10 @@ void main() {
       );
     });
 
-    testWidgets('H -> V OverlayNext: wraps to first item when at last item', (
+    testWidgets('H -> V OverlayNext: wraps to and opens first anchor when at last anchor', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        App(
-          MenuScope(
-            orientation: Axis.horizontal,
-            isSubmenu: false,
-            child: Column(
-              children: [
-                BaseSubmenu(
-                  role: null,
-                  controller: controller1,
-                  focusNode: focusNode1,
-                  menu: Focus(
-                    focusNode: panelItemFocus1,
-                    child: const SizedBox(height: 20, width: 20),
-                  ),
-                  child: Text(Tag.a.text),
-                ),
-                BaseSubmenu(
-                  role: null,
-                  controller: controller2,
-                  focusNode: focusNode2,
-                  menu: Focus(
-                    focusNode: panelItemFocus2,
-                    child: const SizedBox(height: 20, width: 20),
-                  ),
-                  child: Text(Tag.b.text),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.horizontal));
       controller2.open();
       await tester.pump();
       panelItemFocus2.requestFocus();
@@ -1402,43 +1275,10 @@ void main() {
       expect(controller1.isOpen, isTrue);
     });
 
-    testWidgets('V -> H OverlayNext: wraps to first item when at last item', (
+    testWidgets('V -> H OverlayNext: wraps to and opens first anchor when at last anchor', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        App(
-          MenuScope(
-            orientation: Axis.vertical,
-            isSubmenu: false,
-            child: Column(
-              children: [
-                BaseSubmenu(
-                  role: null,
-                  controller: controller1,
-                  focusNode: focusNode1,
-                  orientation: Axis.horizontal,
-                  menu: Focus(
-                    focusNode: panelItemFocus1,
-                    child: const SizedBox(height: 20, width: 20),
-                  ),
-                  child: Text(Tag.a.text),
-                ),
-                BaseSubmenu(
-                  role: null,
-                  controller: controller2,
-                  focusNode: focusNode2,
-                  orientation: Axis.horizontal,
-                  menu: Focus(
-                    focusNode: panelItemFocus2,
-                    child: const SizedBox(height: 20, width: 20),
-                  ),
-                  child: Text(Tag.b.text),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.vertical, axis: Axis.horizontal));
 
       controller2.open();
       await tester.pump();
@@ -1453,148 +1293,34 @@ void main() {
       expect(controller1.isOpen, isTrue);
     });
 
-    testWidgets(
-      'H -> V OverlayNext: moves to next item when not at last item (focus inside overlay)',
-      (WidgetTester tester) async {
-        await tester.pumpWidget(
-          App(
-            MenuScope(
-              orientation: Axis.horizontal,
-              isSubmenu: false,
-              child: Column(
-                children: [
-                  BaseSubmenu(
-                    role: null,
-                    controller: controller1,
-                    focusNode: focusNode1,
-                    menu: Focus(
-                      focusNode: panelItemFocus1,
-                      child: const SizedBox(height: 20, width: 20),
-                    ),
-                    child: Text(Tag.a.text),
-                  ),
-                  BaseSubmenu(
-                    role: null,
-                    controller: controller2,
-                    focusNode: focusNode2,
-                    menu: Focus(
-                      focusNode: panelItemFocus2,
-                      child: const SizedBox(height: 20, width: 20),
-                    ),
-                    child: Text(Tag.b.text),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-        controller1.open();
-        await tester.pump();
-        panelItemFocus1.requestFocus();
-        await tester.pump();
-        Actions.invoke(panelItemFocus1.context!, const BaseMenuHorizontalFocusNextIntent());
-        await tester.pump();
+    testWidgets('H -> V OverlayNext: moves to and opens next anchor when not at last anchor', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.horizontal));
+      controller1.open();
+      await tester.pump();
+      panelItemFocus1.requestFocus();
+      await tester.pump();
+      Actions.invoke(panelItemFocus1.context!, const BaseMenuHorizontalFocusNextIntent());
+      await tester.pump();
 
-        expect(focusNode2.hasFocus, isTrue);
-        expect(controller2.isOpen, isTrue);
-      },
-    );
+      expect(focusNode2.hasFocus, isTrue);
+      expect(controller2.isOpen, isTrue);
+    });
 
-    testWidgets(
-      'V -> H OverlayNext: moves to next item when not at last item (focus inside overlay)',
-      (WidgetTester tester) async {
-        await tester.pumpWidget(
-          App(
-            MenuScope(
-              orientation: Axis.vertical,
-              isSubmenu: false,
-              child: Column(
-                children: [
-                  BaseSubmenu(
-                    role: null,
-                    orientation: Axis.horizontal,
-                    controller: controller1,
-                    focusNode: focusNode1,
-                    menu: Focus(
-                      focusNode: panelItemFocus1,
-                      child: const SizedBox(height: 20, width: 20),
-                    ),
-                    child: Text(Tag.a.text),
-                  ),
-                  BaseSubmenu(
-                    role: null,
-                    orientation: Axis.horizontal,
-                    controller: controller2,
-                    focusNode: focusNode2,
-                    menu: Focus(
-                      focusNode: panelItemFocus2,
-                      child: const SizedBox(height: 20, width: 20),
-                    ),
-                    child: Text(Tag.b.text),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-        controller1.open();
-        await tester.pump();
-        panelItemFocus1.requestFocus();
-        await tester.pump();
-        Actions.invoke(panelItemFocus1.context!, const BaseMenuVerticalFocusNextIntent());
-        await tester.pump();
-        expect(focusNode2.hasFocus, isTrue);
-        expect(controller2.isOpen, isTrue);
-      },
-    );
-
-    testWidgets(
-      'V -> H OverlayNext: moves to next item when not at last item (focus inside overlay)',
-      (WidgetTester tester) async {
-        await tester.pumpWidget(
-          App(
-            MenuScope(
-              orientation: Axis.vertical,
-              isSubmenu: false,
-              child: Column(
-                children: [
-                  BaseSubmenu(
-                    role: null,
-                    orientation: Axis.horizontal,
-                    controller: controller1,
-                    focusNode: focusNode1,
-                    menu: Focus(
-                      focusNode: panelItemFocus1,
-                      child: const SizedBox(height: 20, width: 20),
-                    ),
-                    child: Text(Tag.a.text),
-                  ),
-                  BaseSubmenu(
-                    role: null,
-                    orientation: Axis.horizontal,
-                    controller: controller2,
-                    focusNode: focusNode2,
-                    menu: Focus(
-                      focusNode: panelItemFocus2,
-                      child: const SizedBox(height: 20, width: 20),
-                    ),
-                    child: Text(Tag.b.text),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-        controller1.open();
-        await tester.pump();
-        panelItemFocus1.requestFocus();
-        await tester.pump();
-        Actions.invoke(panelItemFocus1.context!, const BaseMenuVerticalFocusNextIntent());
-        await tester.pump();
-        expect(focusNode2.hasFocus, isTrue);
-        expect(controller2.isOpen, isTrue);
-      },
-    );
+    testWidgets('V -> H OverlayNext: moves to and opens next anchor when not at last anchor', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.vertical, axis: Axis.horizontal));
+      controller1.open();
+      await tester.pump();
+      panelItemFocus1.requestFocus();
+      await tester.pump();
+      Actions.invoke(panelItemFocus1.context!, const BaseMenuVerticalFocusNextIntent());
+      await tester.pump();
+      expect(focusNode2.hasFocus, isTrue);
+      expect(controller2.isOpen, isTrue);
+    });
 
     testWidgets('V -> V AnchorPrevious: closes menu inside nested submenu', (
       WidgetTester tester,
@@ -1767,28 +1493,23 @@ void main() {
     testWidgets('V AnchorPrevious: focuses and opens previous anchor when open', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        App(
-          Column(
-            children: [
-              BaseSubmenu(
-                role: null,
-                controller: controller1,
-                focusNode: focusNode1,
-                menu: Text(Tag.a.a.text),
-                child: Text(Tag.a.text),
-              ),
-              BaseSubmenu(
-                role: null,
-                controller: controller2,
-                focusNode: focusNode2,
-                menu: Text(Tag.b.a.text),
-                child: Text(Tag.b.text),
-              ),
-            ],
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget());
+
+      focusNode2.requestFocus();
+      controller2.open();
+      await tester.pump();
+      Actions.invoke(focusNode2.context!, const BaseMenuHorizontalFocusPreviousIntent());
+      await tester.pump();
+
+      expect(focusNode1.hasFocus, isTrue);
+      expect(controller1.isOpen, isTrue);
+    });
+
+    testWidgets('V AnchorPrevious: focuses and opens previous anchor when open (wrap)', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget());
+
       focusNode1.requestFocus();
       controller1.open();
       await tester.pump();
@@ -1802,35 +1523,31 @@ void main() {
     testWidgets('H AnchorPrevious: focuses and opens previous anchor when open', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        App(
-          Column(
-            children: [
-              BaseSubmenu(
-                role: null,
-                orientation: Axis.horizontal,
-                controller: controller1,
-                focusNode: focusNode1,
-                menu: Text(Tag.a.a.text),
-                child: Text(Tag.a.text),
-              ),
-              BaseSubmenu(
-                role: null,
-                orientation: Axis.horizontal,
-                controller: controller2,
-                focusNode: focusNode2,
-                menu: Text(Tag.b.a.text),
-                child: Text(Tag.b.text),
-              ),
-            ],
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget(axis: Axis.horizontal));
+
+      focusNode2.requestFocus();
+      controller2.open();
+      await tester.pump();
+
+      Actions.invoke(focusNode2.context!, const BaseMenuVerticalFocusPreviousIntent());
+
+      await tester.pump();
+
+      expect(focusNode1.hasFocus, isTrue);
+      expect(controller1.isOpen, isTrue);
+    });
+
+    testWidgets('H AnchorPrevious: focuses and opens previous anchor when open (wrap)', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget(axis: .horizontal));
 
       focusNode1.requestFocus();
       controller1.open();
       await tester.pump();
+
       Actions.invoke(focusNode1.context!, const BaseMenuVerticalFocusPreviousIntent());
+
       await tester.pump();
 
       expect(focusNode2.hasFocus, isTrue);
@@ -1917,6 +1634,165 @@ void main() {
 
       expect(focusNode2.hasFocus, isTrue);
       expect(controller2.isOpen, isTrue);
+    });
+
+    testWidgets('H -> H AnchorPrevious: delegates to parent actions when nested and closed', (
+      WidgetTester tester,
+    ) async {
+      var parentActionCalled = false;
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          Actions(
+            actions: {
+              BaseMenuVerticalFocusPreviousIntent:
+                  CallbackAction<BaseMenuVerticalFocusPreviousIntent>(
+                    onInvoke: (intent) {
+                      parentActionCalled = true;
+                      return null;
+                    },
+                  ),
+            },
+            child: MenuScope(
+              orientation: Axis.horizontal,
+              isSubmenu: true, // Forces _parentIsSubmenu = true
+              child: BaseSubmenu(
+                role: null,
+                orientation: Axis.horizontal, // Matches parent orientation
+                controller: controller1,
+                focusNode: focusNode,
+                menu: const SizedBox.shrink(),
+                child: const Text('Anchor'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Open to mount anchor actions, then close it to fulfill `widget.controller.isOpen == false`
+      controller1.open();
+      await tester.pump();
+      controller1.close();
+      await tester.pump();
+
+      focusNode.requestFocus();
+      await tester.pump();
+
+      // For horizontal orientation, AnchorCrossAxisPrevious uses VPreviousIntent
+      Actions.invoke(focusNode.context!, const BaseMenuVerticalFocusPreviousIntent());
+      await tester.pump();
+
+      expect(
+        parentActionCalled,
+        isTrue,
+        reason: 'Closed nested submenu matching cross-axis intent should propagate upwards',
+      );
+    });
+
+    testWidgets('OverlayNext with closed controller', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.horizontal));
+      controller1.open();
+      await tester.pump();
+      controller1.close();
+
+      Actions.invoke(panelItemFocus1.context!, const BaseMenuHorizontalFocusNextIntent());
+      await tester.pump();
+
+      expect(focusNode2.hasFocus, isTrue);
+      expect(controller2.isOpen, isFalse);
+    });
+
+    testWidgets('OverlayNext wrapped with closed controller', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.horizontal));
+      controller1.open();
+      await tester.pump();
+      controller1.close();
+
+      Actions.invoke(panelItemFocus1.context!, const BaseMenuHorizontalFocusNextIntent());
+      await tester.pump();
+
+      expect(focusNode2.hasFocus, isTrue);
+      expect(controller2.isOpen, isFalse);
+    });
+
+    testWidgets('OverlayPrevious with closed controller', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.horizontal));
+      controller2.open();
+      await tester.pump();
+      controller2.close();
+
+      Actions.invoke(panelItemFocus2.context!, const BaseMenuHorizontalFocusPreviousIntent());
+      await tester.pump();
+
+      expect(focusNode1.hasFocus, isTrue);
+      expect(controller1.isOpen, isFalse);
+    });
+
+    testWidgets('OverlayPrevious wrapped with closed controller', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.horizontal));
+      controller1.open();
+      await tester.pump();
+      controller1.close();
+
+      Actions.invoke(panelItemFocus1.context!, const BaseMenuHorizontalFocusPreviousIntent());
+      await tester.pump();
+
+      expect(focusNode2.hasFocus, isTrue);
+      expect(controller2.isOpen, isFalse);
+    });
+
+    testWidgets('AnchorNext with closed controller', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.horizontal));
+      controller1.open();
+      await tester.pump();
+      controller1.close();
+
+      Actions.invoke(focusNode1.context!, const BaseMenuHorizontalFocusNextIntent());
+      await tester.pump();
+
+      expect(focusNode2.hasFocus, isTrue);
+      expect(controller2.isOpen, isFalse);
+    });
+
+    testWidgets('AnchorNext wrapped with closed controller', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget(parentAxis: Axis.horizontal));
+      controller2.open();
+      await tester.pump();
+      controller2.close();
+
+      Actions.invoke(focusNode2.context!, const BaseMenuHorizontalFocusNextIntent());
+      await tester.pump();
+
+      expect(focusNode1.hasFocus, isTrue);
+      expect(controller1.isOpen, isFalse);
+    });
+
+    testWidgets('AnchorPrevious with closed controller', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      controller2.open();
+      await tester.pump();
+      controller2.close();
+
+      Actions.invoke(focusNode2.context!, const BaseMenuHorizontalFocusPreviousIntent());
+      await tester.pump();
+
+      expect(focusNode1.hasFocus, isTrue);
+      expect(controller1.isOpen, isFalse);
+    });
+
+    testWidgets('AnchorPrevious wrapped with closed controller', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      controller1.open();
+      await tester.pump();
+      controller1.close();
+
+      Actions.invoke(focusNode1.context!, const BaseMenuHorizontalFocusPreviousIntent());
+      await tester.pump();
+
+      expect(focusNode2.hasFocus, isTrue);
+      expect(controller2.isOpen, isFalse);
     });
   });
 
@@ -2033,7 +1909,6 @@ void main() {
             axis: Axis.vertical,
             child: BaseSubmenu(
               role: null,
-
               controller: controller,
               focusNode: focusNode,
               orientation: Axis.horizontal,

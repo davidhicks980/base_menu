@@ -8,7 +8,7 @@ import '../menu_utilities.dart';
 
 // These interfaces are used to limit duplicate documentation.
 
-abstract class BaseMenuInterface {
+abstract mixin class BaseMenuInterface {
   /// The behavior to use when focus reaches the edge of the menu overlay while
   /// using directional focus traversal.
   ///
@@ -166,6 +166,10 @@ abstract class BaseMenuInterface {
   /// panel. As a result, it can be used to add widgets that should be outside
   /// of the menu panel, such as a barrier that dismisses the menu when tapped.
   BaseMenuOverlayChildBuilder? get overlayChildBuilder;
+
+  TraversalEdgeBehavior get effectiveDirectionalTraversalEdgeBehavior {
+    return directionalFocusEdgeBehavior ?? MenuFocusManager.defaultDirectionalTraversalEdgeBehavior;
+  }
 
   /// The fallback [onOpenRequest] if one is not supplied to the menu.
   ///

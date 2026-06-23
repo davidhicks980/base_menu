@@ -14,7 +14,7 @@ typedef HNextIntent = BaseMenuHorizontalFocusNextIntent;
 typedef VPreviousIntent = BaseMenuVerticalFocusPreviousIntent;
 typedef VNextIntent = BaseMenuVerticalFocusNextIntent;
 
-class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuItemInterface {
+class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseMenuItemInterface {
   const BaseSubmenu({
     super.key,
     this.hoverOpenDelay = Duration.zero,
@@ -316,45 +316,12 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     widget.onFocusChange?.call(focused);
   }
 
-  void _handleCrossAxisPrevious(Intent intent) {
-    if (_parentOrientation == widget.orientation) {
-      if (widget.controller.isOpen) {
-        widget.controller.close();
-      } else {
-        Actions.maybeInvoke(context, intent);
-      }
-      return;
-    }
-
-    final policy = FocusTraversalGroup.of(_focusNode.context!);
-    final parentScope = _focusNode.enclosingScope;
-    final first = policy.findFirstFocus(parentScope!, ignoreCurrentFocus: true);
-    if (first == _focusNode || _focusNode.traversalDescendants.contains(first)) {
-      final last = policy.findLastFocus(parentScope, ignoreCurrentFocus: true);
-      policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
-      if (widget.controller.isOpen) {
-        MenuController.maybeOf(last.context!)?.open();
-      }
-      return;
-    }
-
-    _focusNode
-      ..requestFocus()
-      ..previousFocus();
-
-    if (!widget.controller.isOpen) {
-      return;
-    }
-
-    FocusManager.instance.applyFocusChangesIfNeeded();
-    if (primaryFocus?.context?.mounted != true) {
-      return;
-    }
-    MenuController.maybeOf(primaryFocus!.context!)?.open();
+  void _handleAnchorCrossAxisPrevious(Intent intent) {
+    _handleCrossAxisPrevious(intent, isRoot: !_parentIsSubmenu);
   }
 
-  void _handleAnchorCrossAxisPrevious(Intent intent) {
-    if (_parentIsSubmenu && _parentOrientation == widget.orientation) {
+  void _handleCrossAxisPrevious(Intent intent, {bool isRoot = false}) {
+    if (!isRoot && _parentOrientation == widget.orientation) {
       if (widget.controller.isOpen) {
         widget.controller.close();
       } else {
@@ -363,32 +330,21 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       return;
     }
 
-    final policy = FocusTraversalGroup.of(_focusNode.context!);
-    final parentScope = _focusNode.enclosingScope;
-    final first = policy.findFirstFocus(parentScope!, ignoreCurrentFocus: true);
-    if (first == _focusNode || _focusNode.traversalDescendants.contains(first)) {
-      final last = policy.findLastFocus(parentScope, ignoreCurrentFocus: true);
-      policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
-      if (widget.controller.isOpen) {
-        MenuController.maybeOf(last.context!)?.open();
-      }
-      return;
-    }
-
-    _focusNode
-      ..requestFocus()
-      ..previousFocus();
-
-    if (!widget.controller.isOpen) {
-      return;
+    if (MenuFocusManager.isFirstNode(_focusNode, checkDescendants: true)) {
+      MenuFocusManager.traverseReverseEdge(
+        _focusNode,
+        edgeBehavior: widget.effectiveDirectionalTraversalEdgeBehavior,
+      );
+    } else {
+      _focusNode
+        ..requestFocus()
+        ..previousFocus();
     }
 
     FocusManager.instance.applyFocusChangesIfNeeded();
-    if (primaryFocus?.context?.mounted != true) {
-      return;
+    if (widget.controller.isOpen && primaryFocus?.context?.mounted == true) {
+      MenuController.maybeOf(primaryFocus!.context!)?.open();
     }
-
-    MenuController.maybeOf(primaryFocus!.context!)?.open();
   }
 
   void _handleCrossAxisNext(Intent intent) {
@@ -399,34 +355,21 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       return;
     }
 
-    final policy = FocusTraversalGroup.of(_focusNode.context!);
-    final parentScope = _focusNode.enclosingScope;
-    final last = policy.findLastFocus(parentScope!, ignoreCurrentFocus: true);
-    if (last == _focusNode || _focusNode.traversalDescendants.contains(last)) {
-      final first = policy.findFirstFocus(parentScope, ignoreCurrentFocus: true);
-      if (first != null) {
-        policy.requestFocusCallback(first, alignmentPolicy: .keepVisibleAtStart);
-        if (widget.controller.isOpen) {
-          MenuController.maybeOf(first.context!)?.open();
-        }
-        return;
-      }
-    }
-
-    _focusNode
-      ..requestFocus()
-      ..nextFocus();
-
-    if (!widget.controller.isOpen) {
-      return;
+    if (MenuFocusManager.isLastNode(_focusNode, checkDescendants: true)) {
+      MenuFocusManager.traverseForwardEdge(
+        _focusNode,
+        edgeBehavior: widget.effectiveDirectionalTraversalEdgeBehavior,
+      );
+    } else {
+      _focusNode
+        ..requestFocus()
+        ..nextFocus();
     }
 
     FocusManager.instance.applyFocusChangesIfNeeded();
-    if (primaryFocus?.context?.mounted != true) {
-      return;
+    if (widget.controller.isOpen && primaryFocus?.context?.mounted == true) {
+      MenuController.maybeOf(primaryFocus!.context!)?.open();
     }
-
-    MenuController.maybeOf(primaryFocus!.context!)?.open();
   }
 
   void _handleClose() {

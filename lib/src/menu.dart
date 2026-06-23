@@ -504,7 +504,7 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
 }
 
 /// A widget that displays a popup menu positioned relative to its [child].
-class BaseMenu extends StatefulWidget implements BaseMenuInterface {
+class BaseMenu extends StatefulWidget with BaseMenuInterface {
   const BaseMenu({
     super.key,
     this.onOpen,
@@ -583,21 +583,6 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
 
   @override
   final BaseMenuOverlayChildBuilder? overlayChildBuilder;
-
-  TraversalEdgeBehavior get effectiveDirectionalTraversalEdgeBehavior {
-    if (directionalFocusEdgeBehavior != null) {
-      return directionalFocusEdgeBehavior!;
-    }
-
-    if (kIsWeb) {
-      return .closedLoop;
-    }
-
-    return switch (defaultTargetPlatform) {
-      .android || .fuchsia || .linux || .windows => .closedLoop,
-      .iOS || .macOS => .stop,
-    };
-  }
 
   static const debugMenuFocusScopeLabel = 'BaseMenu FocusScope';
 
@@ -1149,11 +1134,7 @@ class _FocusFirstAction extends Action<_MenuFocusFirstIntent> {
 
   @override
   void invoke(_MenuFocusFirstIntent intent) {
-    final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
-    final FocusNode? firstNode = policy.findFirstFocus(focusScopeNode, ignoreCurrentFocus: true);
-    if (firstNode != null) {
-      policy.requestFocusCallback(firstNode, alignmentPolicy: .keepVisibleAtStart);
-    }
+    MenuFocusManager.focusFirst(focusScopeNode);
   }
 }
 
@@ -1163,9 +1144,7 @@ class _FocusLastAction extends Action<_MenuFocusLastIntent> {
 
   @override
   void invoke(_MenuFocusLastIntent intent) {
-    final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
-    final FocusNode lastNode = policy.findLastFocus(focusScopeNode, ignoreCurrentFocus: true);
-    policy.requestFocusCallback(lastNode, alignmentPolicy: .keepVisibleAtEnd);
+    MenuFocusManager.focusLast(focusScopeNode);
   }
 }
 
@@ -1174,43 +1153,25 @@ class _TraverseNextAction<T extends _TraversalIntent> extends Action<T> {
   final FocusScopeNode focusScopeNode;
   @override
   void invoke(T intent) {
-    final policy = FocusTraversalGroup.maybeOf(focusScopeNode.context!);
-    if (policy == null) {
-      primaryFocus?.nextFocus();
+    print('TraverseNextAction invoked with intent: $intent');
+    if (MenuFocusManager.isLastNode(focusScopeNode)) {
+      MenuFocusManager.traverseForwardEdge(
+        focusScopeNode,
+        edgeBehavior: focusScopeNode.directionalTraversalEdgeBehavior,
+      );
       return;
     }
 
-    final last = policy.findLastFocus(focusScopeNode, ignoreCurrentFocus: true);
-    if (!last.hasFocus) {
-      // Find the next node in the traversal order
-      final isFocusRequested = focusScopeNode.nextFocus();
-      if (isFocusRequested) {
-        FocusManager.instance.applyFocusChangesIfNeeded();
-        if (primaryFocus == focusScopeNode.focusedChild &&
-            focusScopeNode.focusedChild!.context != null) {
-          Scrollable.ensureVisible(
-            focusScopeNode.focusedChild!.context!,
-            alignmentPolicy: .keepVisibleAtStart,
-          );
-        }
+    // Find the next node in the traversal order
+    if (focusScopeNode.nextFocus()) {
+      FocusManager.instance.applyFocusChangesIfNeeded();
+      if (primaryFocus == focusScopeNode.focusedChild &&
+          focusScopeNode.focusedChild!.context != null) {
+        Scrollable.ensureVisible(
+          focusScopeNode.focusedChild!.context!,
+          alignmentPolicy: .keepVisibleAtStart,
+        );
       }
-      return;
-    }
-
-    switch (focusScopeNode.directionalTraversalEdgeBehavior) {
-      case .stop:
-        return;
-      case .parentScope:
-        focusScopeNode.enclosingScope?.nextFocus();
-      case .closedLoop:
-        final first = policy.findFirstFocus(focusScopeNode, ignoreCurrentFocus: true);
-        if (first == null || first == primaryFocus) {
-          return;
-        }
-
-        policy.requestFocusCallback(first, alignmentPolicy: .keepVisibleAtStart);
-      case .leaveFlutterView:
-        primaryFocus?.unfocus();
     }
   }
 }
@@ -1220,47 +1181,24 @@ class _TraversePreviousAction<T extends _TraversalIntent> extends Action<T> {
   final FocusScopeNode focusScopeNode;
   @override
   void invoke(T intent) {
-    final policy = FocusTraversalGroup.maybeOf(focusScopeNode.context!);
-
-    if (policy == null) {
-      primaryFocus?.previousFocus();
+    if (MenuFocusManager.isFirstNode(focusScopeNode)) {
+      MenuFocusManager.traverseReverseEdge(
+        focusScopeNode,
+        edgeBehavior: focusScopeNode.directionalTraversalEdgeBehavior,
+      );
       return;
     }
 
-    final first = policy.findFirstFocus(focusScopeNode, ignoreCurrentFocus: true);
-    if (first == null) {
-      return;
-    }
-
-    if (!first.hasFocus) {
-      final isFocusRequested = focusScopeNode.previousFocus();
-      if (isFocusRequested) {
-        FocusManager.instance.applyFocusChangesIfNeeded();
-        if (primaryFocus == focusScopeNode.focusedChild &&
-            focusScopeNode.focusedChild!.context != null) {
-          Scrollable.ensureVisible(
-            focusScopeNode.focusedChild!.context!,
-            alignmentPolicy: .keepVisibleAtEnd,
-          );
-        }
+    final isFocusRequested = focusScopeNode.previousFocus();
+    if (isFocusRequested) {
+      FocusManager.instance.applyFocusChangesIfNeeded();
+      if (primaryFocus == focusScopeNode.focusedChild &&
+          focusScopeNode.focusedChild!.context != null) {
+        Scrollable.ensureVisible(
+          focusScopeNode.focusedChild!.context!,
+          alignmentPolicy: .keepVisibleAtEnd,
+        );
       }
-      return;
-    }
-
-    switch (focusScopeNode.directionalTraversalEdgeBehavior) {
-      case .stop:
-        return;
-      case .parentScope:
-        focusScopeNode.enclosingScope?.previousFocus();
-      case .closedLoop:
-        final last = policy.findLastFocus(focusScopeNode, ignoreCurrentFocus: true);
-        if (last == primaryFocus) {
-          return;
-        }
-
-        policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
-      case .leaveFlutterView:
-        primaryFocus?.unfocus();
     }
   }
 }
@@ -1552,5 +1490,84 @@ class _MenuAimLayoutDecorator<T extends SingleChildLayoutDelegate>
   @override
   bool shouldRelayout(covariant _MenuAimLayoutDecorator<T> oldDelegate) {
     return geometry != oldDelegate.geometry || delegate.shouldRelayout(oldDelegate.delegate);
+  }
+}
+
+abstract class MenuFocusManager {
+  static bool isFirstNode(FocusNode focusNode, {bool checkDescendants = false}) {
+    final policy = FocusTraversalGroup.of(focusNode.context!);
+    final nearestScope = focusNode.nearestScope;
+    final first = policy.findFirstFocus(nearestScope!, ignoreCurrentFocus: true);
+    return first == focusNode ||
+        (checkDescendants && focusNode.traversalDescendants.contains(first));
+  }
+
+  static bool isLastNode(FocusNode focusNode, {bool checkDescendants = false}) {
+    final policy = FocusTraversalGroup.of(focusNode.context!);
+    final nearestScope = focusNode.nearestScope;
+    final last = policy.findLastFocus(nearestScope!, ignoreCurrentFocus: true);
+    return last == focusNode || (checkDescendants && focusNode.traversalDescendants.contains(last));
+  }
+
+  static TraversalEdgeBehavior get defaultDirectionalTraversalEdgeBehavior {
+    if (kIsWeb) {
+      return .closedLoop;
+    }
+
+    return switch (defaultTargetPlatform) {
+      .android || .fuchsia || .linux || .windows => .closedLoop,
+      .iOS || .macOS => .stop,
+    };
+  }
+
+  static FocusNode? traverseForwardEdge(
+    FocusNode focusNode, {
+    TraversalEdgeBehavior? edgeBehavior,
+  }) {
+    switch (edgeBehavior ?? focusNode.nearestScope!.directionalTraversalEdgeBehavior) {
+      case .stop:
+        break;
+      case .parentScope:
+        focusNode.enclosingScope?.nextFocus();
+      case .closedLoop:
+        return focusFirst(focusNode);
+      case .leaveFlutterView:
+        primaryFocus?.unfocus();
+    }
+    return null;
+  }
+
+  static FocusNode? traverseReverseEdge(
+    FocusNode focusNode, {
+    TraversalEdgeBehavior? edgeBehavior,
+  }) {
+    switch (edgeBehavior ?? focusNode.nearestScope!.directionalTraversalEdgeBehavior) {
+      case .stop:
+        break;
+      case .parentScope:
+        focusNode.enclosingScope?.previousFocus();
+      case .closedLoop:
+        return focusLast(focusNode);
+      case .leaveFlutterView:
+        primaryFocus?.unfocus();
+    }
+
+    return null;
+  }
+
+  static FocusNode focusFirst(FocusNode focusNode) {
+    final policy = FocusTraversalGroup.of(focusNode.context!);
+    final nearestScope = focusNode.nearestScope;
+    final first = policy.findFirstFocus(nearestScope!, ignoreCurrentFocus: true) ?? focusNode;
+    policy.requestFocusCallback(first, alignmentPolicy: .keepVisibleAtStart);
+    return first;
+  }
+
+  static FocusNode focusLast(FocusNode focusNode) {
+    final policy = FocusTraversalGroup.of(focusNode.context!);
+    final nearestScope = focusNode.nearestScope;
+    final last = policy.findLastFocus(nearestScope!, ignoreCurrentFocus: true);
+    policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
+    return last;
   }
 }

@@ -29,6 +29,7 @@ class ParagraphStylesMenu extends StatefulWidget {
 class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
   final FocusNode _focusNode = FocusNode();
   final MenuController controller = MenuController();
+  final MenuController optionsController = MenuController();
   @override
   void dispose() {
     _focusNode.dispose();
@@ -82,6 +83,7 @@ class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
               ),
               const SizedBox(height: 7.5),
               BaseSubmenu(
+                controller: optionsController,
                 positionDelegate: const DefaultBaseMenuPositioningDelegate(
                   padding: EdgeInsets.symmetric(vertical: 6),
                 ),
@@ -173,6 +175,7 @@ class _Option extends StatefulWidget {
 
 class _OptionState extends State<_Option> {
   final FocusNode _focusNode = FocusNode();
+  final MenuController controller = MenuController();
 
   @override
   void dispose() {
@@ -190,6 +193,7 @@ class _OptionState extends State<_Option> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 64),
         child: BaseSubmenu(
+          controller: controller,
           focusNode: _focusNode,
           autofocus: isSelected,
           onPressed: () {

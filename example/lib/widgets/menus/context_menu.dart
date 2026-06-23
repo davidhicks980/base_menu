@@ -170,7 +170,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
         ),
       ),
       controller: widget.menuController,
-      child: BaseFocusable(
+      child: Focus(
         focusNode: _focusNode,
         child: Semantics(
           onLongPress: () {

@@ -17,41 +17,15 @@ import 'package:menu_utilities/menu_utilities.dart';
 // constructor the test applies to:
 //  * [Default]: Applies to [RawMenuAnchor],
 //  * [OverlayBuilder]: Applies to [BaseMenu]
-//  * [Node]: Applies to [RawMenuAnchor.menuPanel].
-//  * [Overlays]: Applies to [RawMenuAnchor] and [BaseMenu]
+//  * [BaseMenuBar]: Applies to [RawMenuAnchor.menuPanel].
+//  * [BaseMenu]: Applies to [RawMenuAnchor] and [BaseMenu]
 // Otherwise, the test applies to all constructors.
 
 void main() {
   late MenuController controller;
-  String? focusedMenu;
-  final selected = <Tag>[];
-  final opened = <Tag>[];
-  final closed = <Tag>[];
-
-  void onPressed(Tag item) {
-    selected.add(item);
-  }
-
-  void onOpen(Tag item) {
-    opened.add(item);
-  }
-
-  void onClose(Tag item) {
-    opened.remove(item);
-    closed.add(item);
-  }
-
-  void handleFocusChange() {
-    focusedMenu = (primaryFocus?.debugLabel ?? primaryFocus).toString();
-  }
 
   setUp(() {
-    focusedMenu = null;
-    selected.clear();
-    opened.clear();
-    closed.clear();
     controller = MenuController();
-    focusedMenu = null;
   });
 
   Future<void> changeSurfaceSize(WidgetTester tester, Size size) async {
@@ -59,11 +33,6 @@ void main() {
     addTearDown(() async {
       await tester.binding.setSurfaceSize(null);
     });
-  }
-
-  void listenForFocusChanges() {
-    FocusManager.instance.addListener(handleFocusChange);
-    addTearDown(() => FocusManager.instance.removeListener(handleFocusChange));
   }
 
   Finder findOverlayContents() {
@@ -101,7 +70,7 @@ void main() {
     );
   }
 
-  testWidgets("[Overlays] MenuController.isOpen is true when a menu's overlay is shown", (
+  testWidgets("[BaseMenu] MenuController.isOpen is true when a menu's overlay is shown", (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -127,7 +96,7 @@ void main() {
     expect(find.text(Tag.a.text), findsNothing);
   });
 
-  testWidgets('[Overlays] MenuController.open() and .close() toggle overlay visibility', (
+  testWidgets('[BaseMenu] MenuController.open() and .close() toggle overlay visibility', (
     WidgetTester tester,
   ) async {
     final nestedController = MenuController();
@@ -209,7 +178,7 @@ void main() {
     expect(find.text(Tag.b.a.text), findsNothing);
   });
 
-  testWidgets('[Overlays] MenuController.closeChildren closes submenu children', (
+  testWidgets('[BaseMenu] MenuController.closeChildren closes submenu children', (
     WidgetTester tester,
   ) async {
     final focusNode = FocusNode();
@@ -260,7 +229,7 @@ void main() {
     expect(FocusManager.instance.primaryFocus, focusNode);
   });
 
-  testWidgets('[Overlays] Can only have one open child anchor', (WidgetTester tester) async {
+  testWidgets('[BaseMenu] Can only have one open child anchor', (WidgetTester tester) async {
     await tester.pumpWidget(
       App(
         BaseMenu(
@@ -308,7 +277,7 @@ void main() {
     expect(find.text(Tag.b.a.text), findsOneWidget);
   });
 
-  testWidgets('[Overlays] Context menus can be nested', (WidgetTester tester) async {
+  testWidgets('[BaseMenu] Context menus can be nested', (WidgetTester tester) async {
     await tester.pumpWidget(
       App(
         BaseMenu(
@@ -343,7 +312,7 @@ void main() {
     expect(find.text(Tag.b.a.text), findsOneWidget);
   });
 
-  testWidgets('[Node] MenuController.isOpen is true when a descendent menu is open', (
+  testWidgets('[BaseMenuBar] MenuController.isOpen is true when a descendent menu is open', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -400,7 +369,7 @@ void main() {
     expect(find.text(Tag.b.a.text), findsNothing);
   });
 
-  testWidgets('[Node] MenuController.open does nothing', (WidgetTester tester) async {
+  testWidgets('[BaseMenuBar] MenuController.open does nothing', (WidgetTester tester) async {
     final nestedController = MenuController();
     await tester.pumpWidget(
       App(
@@ -438,7 +407,7 @@ void main() {
     expect(find.text(Tag.b.a.text), findsNothing);
   });
 
-  testWidgets('[Node] MenuController.close closes children', (WidgetTester tester) async {
+  testWidgets('[BaseMenuBar] MenuController.close closes children', (WidgetTester tester) async {
     final nestedController = MenuController();
     await tester.pumpWidget(
       App(
@@ -479,7 +448,9 @@ void main() {
     expect(find.text(Tag.b.a.text), findsNothing);
   });
 
-  testWidgets('[Node] MenuController.closeChildren closes children', (WidgetTester tester) async {
+  testWidgets('[BaseMenuBar] MenuController.closeChildren closes children', (
+    WidgetTester tester,
+  ) async {
     final nestedController = MenuController();
     await tester.pumpWidget(
       App(
@@ -520,7 +491,7 @@ void main() {
     expect(find.text(Tag.b.a.text), findsNothing);
   });
 
-  testWidgets('[Node] Should only display one open child anchor at a time', (
+  testWidgets('[BaseMenuBar] Should only display one open child anchor at a time', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -741,7 +712,7 @@ void main() {
   //   expect(FocusManager.instance.primaryFocus, equals(externalFocus));
   // });
 
-  testWidgets('[Default] Previous focus is restored on submenu close', (WidgetTester tester) async {
+  testWidgets('Previous focus is restored on submenu close', (WidgetTester tester) async {
     final acaFocusNode = FocusNode();
     final buttonFocus = FocusNode();
     addTearDown(acaFocusNode.dispose);
@@ -873,12 +844,6 @@ void main() {
       App(
         Actions(
           actions: <Type, Action<Intent>>{
-            DirectionalFocusIntent: CallbackAction<DirectionalFocusIntent>(
-              onInvoke: (DirectionalFocusIntent intent) {
-                invokedIntents.add(intent);
-                return;
-              },
-            ),
             NextFocusIntent: CallbackAction<NextFocusIntent>(
               onInvoke: (NextFocusIntent intent) {
                 invokedIntents.add(intent);
@@ -915,147 +880,13 @@ void main() {
       ),
     );
 
-    aFocusNode.requestFocus();
-    await tester.pump();
-    Actions.invoke(aFocusNode.context!, const DirectionalFocusIntent(TraversalDirection.left));
-    Actions.invoke(aFocusNode.context!, const DirectionalFocusIntent(TraversalDirection.right));
     Actions.invoke(aFocusNode.context!, const NextFocusIntent());
     Actions.invoke(aFocusNode.context!, const PreviousFocusIntent());
     Actions.invoke(aFocusNode.context!, const DismissIntent());
-    await tester.pump();
 
     expect(
       invokedIntents,
-      equals(const <Intent>[
-        DirectionalFocusIntent(TraversalDirection.left),
-        DirectionalFocusIntent(TraversalDirection.right),
-        NextFocusIntent(),
-        PreviousFocusIntent(),
-        DismissIntent(),
-      ]),
-    );
-  });
-
-  testWidgets('[OverlayBuilder] Focus traversal shortcuts are not bound to actions', (
-    WidgetTester tester,
-  ) async {
-    final anchorFocusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
-    final bFocusNode = FocusNode(debugLabel: Tag.b.focusNode);
-    addTearDown(anchorFocusNode.dispose);
-    addTearDown(bFocusNode.dispose);
-
-    final traversalShortcuts = <ShortcutActivator, Intent>{
-      LogicalKeySet(LogicalKeyboardKey.tab): const NextFocusIntent(),
-      LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.tab): const PreviousFocusIntent(),
-      LogicalKeySet(LogicalKeyboardKey.arrowLeft): const DirectionalFocusIntent(
-        TraversalDirection.left,
-      ),
-    };
-
-    final invokedIntents = <Intent>[];
-    await tester.pumpWidget(
-      App(
-        Column(
-          children: <Widget>[
-            Button.tag(Tag.a),
-            Actions(
-              actions: <Type, Action<Intent>>{
-                DirectionalFocusIntent: CallbackAction<DirectionalFocusIntent>(
-                  onInvoke: (DirectionalFocusIntent intent) {
-                    invokedIntents.add(intent);
-                    return null;
-                  },
-                ),
-                NextFocusIntent: CallbackAction<NextFocusIntent>(
-                  onInvoke: (NextFocusIntent intent) {
-                    invokedIntents.add(intent);
-                    return null;
-                  },
-                ),
-                PreviousFocusIntent: CallbackAction<PreviousFocusIntent>(
-                  onInvoke: (PreviousFocusIntent intent) {
-                    invokedIntents.add(intent);
-                    return null;
-                  },
-                ),
-              },
-              child: BaseMenu(
-                controller: controller,
-                menu: Column(
-                  children: <Widget>[
-                    Button.tag(Tag.a),
-                    Shortcuts(
-                      // Web doesn't automatically handle directional traversal.
-                      shortcuts: traversalShortcuts,
-                      child: Button.tag(Tag.b, focusNode: bFocusNode),
-                    ),
-                    Button.tag(Tag.d),
-                  ],
-                ),
-                child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
-              ),
-            ),
-            Button.tag(Tag.c),
-          ],
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-
-    controller.open();
-    await tester.pump();
-
-    anchorFocusNode.requestFocus();
-    await tester.pump();
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.home);
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.end);
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    bFocusNode.requestFocus();
-    await tester.pump();
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.home);
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.end);
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    expect(
-      invokedIntents,
-      equals(const <Intent>[
-        DirectionalFocusIntent(TraversalDirection.left),
-        NextFocusIntent(),
-        PreviousFocusIntent(),
-        DirectionalFocusIntent(TraversalDirection.left),
-        NextFocusIntent(),
-        PreviousFocusIntent(),
-      ]),
+      equals(const <Intent>[NextFocusIntent(), PreviousFocusIntent(), DismissIntent()]),
     );
   });
 
@@ -1171,7 +1002,7 @@ void main() {
     expect(find.text(Tag.a.text), findsNothing);
   });
 
-  testWidgets('[Node] Menu panel builder', (WidgetTester tester) async {
+  testWidgets('[BaseMenuBar] Menu panel builder', (WidgetTester tester) async {
     await tester.pumpWidget(
       App(
         alignment: AlignmentDirectional.topStart,
@@ -1198,6 +1029,9 @@ void main() {
   testWidgets('Menus close and consume tap when consumesOutsideTap is true', (
     WidgetTester tester,
   ) async {
+    final opened = <NestedTag>[];
+    final closed = <NestedTag>[];
+    final selected = <NestedTag>[];
     await tester.pumpWidget(
       App(
         Column(
@@ -1213,24 +1047,42 @@ void main() {
                 children: <Widget>[
                   BaseMenu(
                     consumeOutsideTaps: true,
-                    onOpen: () => onOpen(Tag.anchor),
-                    onClose: () => onClose(Tag.anchor),
+                    onOpen: () {
+                      opened.add(Tag.anchor);
+                    },
+                    onClose: () {
+                      closed.add(Tag.anchor);
+                    },
                     menu: BaseMenuPanel(
                       orientation: Axis.vertical,
                       children: <Widget>[
                         BaseMenu(
                           consumeOutsideTaps: true,
-                          onOpen: () => onOpen(Tag.a),
-                          onClose: () => onClose(Tag.a),
+                          onOpen: () {
+                            opened.add(Tag.a);
+                          },
+                          onClose: () {
+                            closed.add(Tag.a);
+                          },
                           menu: BaseMenuPanel(
                             orientation: Axis.vertical,
                             children: <Widget>[Text(Tag.a.a.text)],
                           ),
-                          child: AnchorButton(Tag.a, onPressed: onPressed),
+                          child: AnchorButton(
+                            Tag.a,
+                            onPressed: (tag) {
+                              selected.add(Tag.a);
+                            },
+                          ),
                         ),
                       ],
                     ),
-                    child: AnchorButton(Tag.anchor, onPressed: onPressed),
+                    child: AnchorButton(
+                      Tag.anchor,
+                      onPressed: (tag) {
+                        selected.add(Tag.anchor);
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -1276,9 +1128,12 @@ void main() {
     closed.clear();
   });
 
-  testWidgets('[Overlays] Menus close and do not consume tap when consumesOutsideTap is false', (
+  testWidgets('[BaseMenu] Menus close and do not consume tap when consumesOutsideTap is false', (
     WidgetTester tester,
   ) async {
+    final opened = <NestedTag>[];
+    final closed = <NestedTag>[];
+    final selected = <NestedTag>[];
     await tester.pumpWidget(
       App(
         Column(
@@ -1293,25 +1148,43 @@ void main() {
               child: Column(
                 children: <Widget>[
                   BaseMenu(
-                    onOpen: () => onOpen(Tag.anchor),
-                    onClose: () => onClose(Tag.anchor),
+                    onOpen: () {
+                      opened.add(Tag.anchor);
+                    },
+                    onClose: () {
+                      closed.add(Tag.anchor);
+                    },
                     // ignore: avoid_redundant_argument_values
                     consumeOutsideTaps: false,
                     menu: BaseMenuPanel(
                       orientation: Axis.vertical,
                       children: <Widget>[
                         BaseMenu(
-                          onOpen: () => onOpen(Tag.a),
-                          onClose: () => onClose(Tag.a),
+                          onOpen: () {
+                            opened.add(Tag.a);
+                          },
+                          onClose: () {
+                            closed.add(Tag.a);
+                          },
                           menu: BaseMenuPanel(
                             orientation: Axis.vertical,
                             children: <Widget>[Text(Tag.a.a.text)],
                           ),
-                          child: AnchorButton(Tag.a, onPressed: onPressed),
+                          child: AnchorButton(
+                            Tag.a,
+                            onPressed: (tag) {
+                              selected.add(Tag.a);
+                            },
+                          ),
                         ),
                       ],
                     ),
-                    child: AnchorButton(Tag.anchor, onPressed: onPressed),
+                    child: AnchorButton(
+                      Tag.anchor,
+                      onPressed: (tag) {
+                        selected.add(Tag.anchor);
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -1455,7 +1328,7 @@ void main() {
     ]);
   });
 
-  testWidgets('[Default] diagnostics', (WidgetTester tester) async {
+  testWidgets('[BaseMenu] diagnostics', (WidgetTester tester) async {
     final focusNode = FocusNode();
     addTearDown(focusNode.dispose);
     final menuAnchor = BaseMenu(
@@ -1478,7 +1351,7 @@ void main() {
     expect(properties, const <String>['has controller']);
   });
 
-  testWidgets('[Node] diagnostics', (WidgetTester tester) async {
+  testWidgets('[BaseMenuBar] diagnostics', (WidgetTester tester) async {
     final menuNode = BaseMenuBar(
       controller: controller,
       child: const SizedBox(height: 30, width: 30),
@@ -1536,1095 +1409,7 @@ void main() {
     );
   });
 
-  testWidgets('MenuBar Home key focuses first menu bar item', (WidgetTester tester) async {
-    final aFocusNode = FocusNode(debugLabel: Tag.a.focusNode);
-    final cFocusNode = FocusNode(debugLabel: Tag.c.focusNode);
-    addTearDown(aFocusNode.dispose);
-    addTearDown(cFocusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenuBar(
-          child: Row(
-            children: <Widget>[
-              Button.tag(Tag.a, focusNode: aFocusNode),
-              Button.tag(Tag.b),
-              Button.tag(Tag.c, focusNode: cFocusNode, autofocus: true),
-              Button.tag(Tag.d),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    await tester.pump();
-    expect(primaryFocus, equals(cFocusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.home);
-    await tester.pump();
-
-    expect(primaryFocus, equals(aFocusNode));
-  });
-
-  testWidgets('MenuBar End key focuses last menu bar item', (WidgetTester tester) async {
-    final bFocusNode = FocusNode(debugLabel: Tag.b.focusNode);
-    final dFocusNode = FocusNode(debugLabel: Tag.d.focusNode);
-    addTearDown(bFocusNode.dispose);
-    addTearDown(dFocusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenuBar(
-          child: Row(
-            children: <Widget>[
-              Button.tag(Tag.a),
-              Button.tag(Tag.b, focusNode: bFocusNode, autofocus: true),
-              Button.tag(Tag.c),
-              Button.tag(Tag.d, focusNode: dFocusNode),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    await tester.pump();
-    expect(primaryFocus, equals(bFocusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.end);
-    await tester.pump();
-
-    expect(primaryFocus, equals(dFocusNode));
-  });
-
-  testWidgets('Home key from a menu item focuses first sibling', (WidgetTester tester) async {
-    final aFocusNode = FocusNode(debugLabel: Tag.a.focusNode);
-    final cFocusNode = FocusNode(debugLabel: Tag.c.focusNode);
-    final anchorFocusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
-    addTearDown(aFocusNode.dispose);
-    addTearDown(cFocusNode.dispose);
-    addTearDown(anchorFocusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenu(
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            children: <Widget>[
-              Button.tag(Tag.a, focusNode: aFocusNode),
-              Button.tag(Tag.b),
-              Button.tag(Tag.c, focusNode: cFocusNode),
-              Button.tag(Tag.d),
-              Button.tag(Tag.e),
-            ],
-          ),
-          child: AnchorButton(autofocus: true, Tag.anchor, focusNode: anchorFocusNode),
-        ),
-      ),
-    );
-
-    await tester.pump();
-
-    expect(primaryFocus, equals(anchorFocusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.home);
-
-    // Test that home key doesn't affect root anchor focus.
-    expect(primaryFocus, equals(anchorFocusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-
-    expect(primaryFocus, equals(cFocusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.home);
-
-    expect(primaryFocus, equals(aFocusNode));
-  });
-
-  testWidgets('End key from a menu item focuses last sibling', (WidgetTester tester) async {
-    final eFocusNode = FocusNode(debugLabel: Tag.e.focusNode);
-    final cFocusNode = FocusNode(debugLabel: Tag.c.focusNode);
-    final anchorFocusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
-    addTearDown(eFocusNode.dispose);
-    addTearDown(cFocusNode.dispose);
-    addTearDown(anchorFocusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenu(
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            children: <Widget>[
-              Button.tag(Tag.a),
-              Button.tag(Tag.b),
-              Button.tag(Tag.c, focusNode: cFocusNode),
-              Button.tag(Tag.d),
-              Button.tag(Tag.e, focusNode: eFocusNode),
-            ],
-          ),
-          child: AnchorButton(autofocus: true, Tag.anchor, focusNode: anchorFocusNode),
-        ),
-      ),
-    );
-
-    await tester.pump();
-
-    expect(primaryFocus, equals(anchorFocusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.end);
-
-    // Test that end key doesn't affect root anchor focus.
-    expect(primaryFocus, equals(anchorFocusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-
-    expect(primaryFocus, equals(cFocusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.end);
-
-    expect(primaryFocus, equals(eFocusNode));
-  });
-
-  testWidgets('Submenu Home key focuses first sibling', (WidgetTester tester) async {
-    final baaFocusNode = FocusNode(debugLabel: Tag.b.a.focusNode);
-    final bacFocusNode = FocusNode(debugLabel: Tag.b.c.focusNode);
-
-    addTearDown(baaFocusNode.dispose);
-    addTearDown(bacFocusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenu(
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            children: <Widget>[
-              Button.tag(Tag.a),
-              BaseMenu(
-                menu: BaseMenuPanel(
-                  orientation: Axis.vertical,
-                  children: <Widget>[
-                    Button.tag(Tag.b.a, focusNode: baaFocusNode),
-                    Button.tag(Tag.b.b),
-                    Button.tag(Tag.b.c, focusNode: bacFocusNode),
-                  ],
-                ),
-                child: const AnchorButton(Tag.b),
-              ),
-            ],
-          ),
-          child: const AnchorButton(Tag.anchor, autofocus: true),
-        ),
-      ),
-    );
-
-    // Open menus and push focus all the way down into the submenu
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    // Move down to the 3rd item in the submenu
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pump();
-
-    expect(primaryFocus, equals(bacFocusNode));
-
-    // Press home key inside submenu
-    await tester.sendKeyEvent(LogicalKeyboardKey.home);
-    await tester.pump();
-
-    // Focus should only rewind to the top of the submenu
-    expect(primaryFocus, equals(baaFocusNode));
-  });
-
-  testWidgets('Submenu End key focuses last sibling', (WidgetTester tester) async {
-    final baaFocusNode = FocusNode(debugLabel: Tag.b.a.focusNode);
-    final bacFocusNode = FocusNode(debugLabel: Tag.b.c.focusNode);
-
-    addTearDown(baaFocusNode.dispose);
-    addTearDown(bacFocusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenu(
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            children: <Widget>[
-              Button.tag(Tag.a),
-              BaseMenu(
-                menu: BaseMenuPanel(
-                  orientation: Axis.vertical,
-                  children: <Widget>[
-                    Button.tag(Tag.b.a, focusNode: baaFocusNode),
-                    Button.tag(Tag.b.b),
-                    Button.tag(Tag.b.c, focusNode: bacFocusNode),
-                  ],
-                ),
-                child: const AnchorButton(Tag.b),
-              ),
-            ],
-          ),
-          child: const AnchorButton(Tag.anchor, autofocus: true),
-        ),
-      ),
-    );
-
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(primaryFocus, equals(baaFocusNode));
-
-    // Press end key inside submenu
-    await tester.sendKeyEvent(LogicalKeyboardKey.end);
-    await tester.pump();
-
-    // Focus should warp to the bottom of the submenu
-    expect(primaryFocus, equals(bacFocusNode));
-  });
-
-  testWidgets('[Default] End key from a menu item focuses last sibling', (
-    WidgetTester tester,
-  ) async {
-    const anchorConstraints = BoxConstraints.tightFor(height: 200, width: 225);
-    final anchorFocusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
-    final bFocusNode = FocusNode(debugLabel: Tag.b.focusNode);
-    final baFocusNode = FocusNode(debugLabel: Tag.b.a.focusNode);
-
-    addTearDown(anchorFocusNode.dispose);
-    addTearDown(bFocusNode.dispose);
-    addTearDown(baFocusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenu(
-          // childFocusNode: anchorFocusNode,
-          controller: controller,
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            constraints: const BoxConstraints(maxHeight: 500),
-            children: <Widget>[
-              Button.tag(Tag.a, constraints: anchorConstraints),
-              BaseMenu(
-                // childFocusNode: bFocusNode,
-                menu: BaseMenuPanel(
-                  orientation: Axis.vertical,
-                  children: <Widget>[
-                    Button.tag(Tag.b.a, focusNode: baFocusNode),
-                    Button.tag(Tag.b.b),
-                    Button.tag(Tag.b.c),
-                  ],
-                ),
-                child: AnchorButton(Tag.b, focusNode: bFocusNode, constraints: anchorConstraints),
-              ),
-              Button.tag(Tag.c, constraints: anchorConstraints),
-              Button.tag(Tag.d, constraints: anchorConstraints),
-            ],
-          ),
-          child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-
-    await tester.tap(find.text(Tag.anchor.text));
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    // Test that root anchor is not affected by end key.
-    await tester.sendKeyEvent(LogicalKeyboardKey.end);
-
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-
-    expect(focusedMenu, Tag.a.focusNode);
-    expect(find.text(Tag.d.text).hitTestable(), findsNothing);
-
-    // Test from menu item sibling.
-    await tester.sendKeyEvent(LogicalKeyboardKey.end);
-
-    expect(focusedMenu, equals(Tag.d.focusNode));
-    expect(find.text(Tag.d.text).hitTestable(), findsOneWidget);
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pump();
-
-    expect(focusedMenu, Tag.b.focusNode);
-    expect(find.text(Tag.b.a.text), findsOneWidget);
-
-    // Test from opened anchor sibling to check that the event doesn't affect
-    // attached submenu.
-    await tester.sendKeyEvent(LogicalKeyboardKey.end);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.d.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.tap(find.text(Tag.b.text));
-    await tester.pump();
-    baFocusNode.requestFocus();
-    await tester.pump();
-
-    expect(find.text(Tag.b.a.text), findsOneWidget);
-    expect(focusedMenu, equals(Tag.b.a.focusNode));
-
-    // Test from nested overlay.
-    await tester.sendKeyEvent(LogicalKeyboardKey.end);
-
-    expect(focusedMenu, equals(Tag.b.c.focusNode));
-  });
-
-  testWidgets('[Default] ArrowDown key from open root anchor focuses first menu item', (
-    WidgetTester tester,
-  ) async {
-    final focusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
-    addTearDown(focusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenu(
-          controller: controller,
-          // childFocusNode: focusNode,
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b)],
-          ),
-          child: AnchorButton(Tag.anchor, focusNode: focusNode),
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-
-    controller.open();
-    await tester.pump();
-
-    expect(find.text(Tag.b.text), findsOneWidget);
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.a.focusNode));
-
-    // Test that the action still works in a menu panel.
-    await tester.pumpWidget(
-      App(
-        BaseMenuBar(
-          child: Column(
-            children: <Widget>[
-              BaseMenu(
-                controller: controller,
-                // childFocusNode: focusNode,
-                menu: BaseMenuPanel(
-                  orientation: Axis.vertical,
-                  children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b)],
-                ),
-                child: AnchorButton(Tag.anchor, focusNode: focusNode),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    controller.open();
-    await tester.pump();
-
-    expect(find.text(Tag.b.text), findsOneWidget);
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.a.focusNode));
-  });
-
-  testWidgets('[Default] ArrowUp key from open root anchor focuses last menu item', (
-    WidgetTester tester,
-  ) async {
-    final focusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
-    addTearDown(focusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenu(
-          controller: controller,
-          // childFocusNode: focusNode,
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b)],
-          ),
-          child: AnchorButton(Tag.anchor, focusNode: focusNode),
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-
-    controller.open();
-    await tester.pump();
-
-    expect(find.text(Tag.a.text), findsOneWidget);
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    // Test that the action works in a menu panel.
-    await tester.pumpWidget(
-      App(
-        BaseMenuBar(
-          child: Column(
-            children: <Widget>[
-              BaseMenu(
-                controller: controller,
-                // childFocusNode: focusNode,
-                menu: BaseMenuPanel(
-                  orientation: Axis.vertical,
-                  children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b)],
-                ),
-                child: AnchorButton(Tag.anchor, focusNode: focusNode),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-
-    controller.open();
-    await tester.pump();
-
-    expect(find.text(Tag.a.text), findsOneWidget);
-    expect(focusedMenu, equals(Tag.anchor.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.b.focusNode));
-  });
-
-  testWidgets('[Default] LTR ArrowRight key opens a submenu anchor and focuses first item', (
-    WidgetTester tester,
-  ) async {
-    final focusNode = FocusNode();
-    addTearDown(focusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenu(
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            children: <Widget>[
-              Button.tag(Tag.a),
-              Button.tag(Tag.b),
-              BaseMenu(
-                menu: BaseMenuPanel(
-                  orientation: Axis.vertical,
-                  children: <Widget>[Button.tag(Tag.c.a), Button.tag(Tag.c.b)],
-                ),
-                child: AnchorButton(Tag.c, focusNode: focusNode),
-              ),
-            ],
-          ),
-          child: const AnchorButton(Tag.anchor),
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-
-    // Have to open a menu initially to start things going.
-    await tester.tap(find.text(Tag.anchor.text));
-    await tester.pump();
-
-    focusNode.requestFocus();
-    await tester.pump();
-
-    expect(FocusManager.instance.primaryFocus, equals(focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(find.text(Tag.c.a.text), findsOneWidget);
-    expect(focusedMenu, equals(Tag.c.a.focusNode));
-  });
-
-  testWidgets('[Default] RTL ArrowLeft key opens a submenu anchor and focuses first item', (
-    WidgetTester tester,
-  ) async {
-    final focusNode = FocusNode();
-    addTearDown(focusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        textDirection: TextDirection.rtl,
-        BaseMenu(
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            children: <Widget>[
-              Button.tag(Tag.a),
-              Button.tag(Tag.b),
-              BaseMenu(
-                menu: BaseMenuPanel(
-                  orientation: Axis.vertical,
-                  children: <Widget>[Button.tag(Tag.c.a), Button.tag(Tag.c.b)],
-                ),
-                child: AnchorButton(Tag.c, focusNode: focusNode),
-              ),
-            ],
-          ),
-          child: const AnchorButton(Tag.anchor),
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-
-    // Have to open a menu initially to start things going.
-    await tester.tap(find.text(Tag.anchor.text));
-    await tester.pump();
-
-    focusNode.requestFocus();
-    await tester.pump();
-
-    expect(FocusManager.instance.primaryFocus, equals(focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-
-    expect(find.text(Tag.c.a.text), findsOneWidget);
-    expect(focusedMenu, equals(Tag.c.a.focusNode));
-  });
-
-  testWidgets('[Default] LTR ArrowLeft key closes a submenu', (WidgetTester tester) async {
-    final focusNode = FocusNode();
-    addTearDown(focusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        BaseMenu(
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            children: <Widget>[
-              Button.tag(Tag.a),
-              Button.tag(Tag.b),
-              BaseMenu(
-                menu: BaseMenuPanel(
-                  orientation: Axis.vertical,
-                  children: <Widget>[
-                    Button.tag(Tag.c.a),
-                    Button.tag(Tag.c.b),
-                    BaseMenu(
-                      menu: const BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[]),
-                      child: AnchorButton(Tag.c.c),
-                    ),
-                  ],
-                ),
-                child: const AnchorButton(Tag.c),
-              ),
-            ],
-          ),
-          child: AnchorButton(Tag.anchor, focusNode: focusNode),
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-
-    // Move into submenu.
-    focusNode.requestFocus();
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.space);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.a.focusNode));
-
-    // Arrow left from regular item should close the submenu and refocus its
-    // anchor.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    // ArrowLeft from submenu anchor should close the submenu and refocus its
-    // anchor.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    // ArrowLeft from root overlay anchor and root overlay button should do
-    // nothing.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.b.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-  });
-
-  testWidgets('[Default] RTL ArrowRight key closes a submenu', (WidgetTester tester) async {
-    final focusNode = FocusNode();
-    addTearDown(focusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        textDirection: TextDirection.rtl,
-        BaseMenu(
-          menu: BaseMenuPanel(
-            orientation: Axis.vertical,
-            children: <Widget>[
-              Button.tag(Tag.a),
-              Button.tag(Tag.b),
-              BaseMenu(
-                menu: BaseMenuPanel(
-                  orientation: Axis.vertical,
-                  children: <Widget>[
-                    Button.tag(Tag.c.a),
-                    Button.tag(Tag.c.b),
-                    BaseMenu(
-                      menu: const BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[]),
-                      child: AnchorButton(Tag.c.c),
-                    ),
-                  ],
-                ),
-                child: const AnchorButton(Tag.c),
-              ),
-            ],
-          ),
-          child: AnchorButton(Tag.anchor, focusNode: focusNode),
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-
-    // Move into submenu.
-    focusNode.requestFocus();
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.space);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.a.focusNode));
-
-    // Arrow left from regular item should close the submenu and refocus its
-    // anchor.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    // arrowRight from submenu anchor should close the submenu and refocus its
-    // anchor.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    // arrowRight from root overlay anchor and root overlay button should do
-    // nothing.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.b.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-  });
-
-  testWidgets('[Default] LTR Directional traversal', (WidgetTester tester) async {
-    final focusNode = FocusNode();
-    addTearDown(focusNode.dispose);
-
-    var eventBubbled = false;
-    await tester.pumpWidget(
-      App(
-        Actions(
-          actions: <Type, Action<Intent>>{
-            // Intents should not bubble up to the root anchor.
-            DirectionalFocusIntent: CallbackAction<DirectionalFocusIntent>(
-              onInvoke: (DirectionalFocusIntent intent) {
-                eventBubbled = true;
-                return null;
-              },
-            ),
-          },
-          child: BaseMenu(
-            // childFocusNode: focusNode,
-            menu: BaseMenuPanel(
-              orientation: Axis.vertical,
-              children: <Widget>[
-                Button.tag(Tag.a),
-                Button.tag(Tag.b),
-                BaseMenu(
-                  menu: BaseMenuPanel(
-                    orientation: Axis.vertical,
-                    children: <Widget>[Button.tag(Tag.c.a), Button.tag(Tag.c.b)],
-                  ),
-                  child: const AnchorButton(Tag.c),
-                ),
-                Button.tag(Tag.d),
-                BaseMenu(
-                  menu: BaseMenuPanel(
-                    orientation: Axis.vertical,
-                    children: <Widget>[
-                      Button.tag(Tag.e.a),
-                      Button.tag(Tag.e.b),
-                      BaseMenu(
-                        menu: BaseMenuPanel(
-                          orientation: Axis.vertical,
-                          children: <Widget>[
-                            Button.tag(Tag.e.c.a),
-                            Button.tag(Tag.e.c.b),
-                            Button.tag(Tag.e.c.c),
-                          ],
-                        ),
-                        child: AnchorButton(Tag.e.c),
-                      ),
-                    ],
-                  ),
-                  child: const AnchorButton(Tag.e),
-                ),
-              ],
-            ),
-            child: AnchorButton(Tag.anchor, focusNode: focusNode),
-          ),
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-
-    // Have to open a menu initially to start things going.
-    await tester.tap(find.text(Tag.anchor.text));
-    await tester.pump();
-
-    // Arrow down moves to first item
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.a.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    // Horizontal traversal on menu items without submenus shouldn't do
-    // anything.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    // Move to the first submenu
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.c.focusNode));
-
-    // Arrow left should do nothing since no menu is open
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-
-    // Arrow right should open the submenu and focus the first item
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.a.focusNode));
-
-    // Arrow left should close the submenu and refocus its anchor.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    // Enter should open the submenu without changing focus.
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.c.a.text), findsOneWidget);
-
-    // Arrow down should close the submenu and focus the next anchor sibling.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.d.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.e.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.a.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    // Cycle back up
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    expect(focusedMenu, equals(Tag.a.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    expect(focusedMenu, equals(Tag.e.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-
-    expect(focusedMenu, equals(Tag.e.a.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    expect(focusedMenu, equals(Tag.e.c.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-    expect(focusedMenu, equals(Tag.e.c.a.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.e.c.b.focusNode));
-
-    // Arrow left should close a menu item's overlay and refocus its anchor.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.e.c.focusNode));
-    expect(find.text(Tag.e.c.a.text), findsNothing);
-
-    // Arrow left from the submenu anchor should behave the same as a regular
-    // menu item.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-    expect(focusedMenu, equals(Tag.e.focusNode));
-    expect(find.text(Tag.e.c.text), findsNothing);
-    expect(eventBubbled, isFalse);
-  });
-
-  testWidgets('[Default] RTL Directional traversal', (WidgetTester tester) async {
-    final focusNode = FocusNode();
-    addTearDown(focusNode.dispose);
-
-    var eventBubbled = false;
-    await tester.pumpWidget(
-      App(
-        textDirection: TextDirection.rtl,
-        Actions(
-          actions: <Type, Action<Intent>>{
-            // Intents should not bubble up to the root anchor.
-            DirectionalFocusIntent: CallbackAction<DirectionalFocusIntent>(
-              onInvoke: (DirectionalFocusIntent intent) {
-                eventBubbled = true;
-                return null;
-              },
-            ),
-          },
-          child: BaseMenu(
-            // childFocusNode: focusNode,
-            menu: BaseMenuPanel(
-              orientation: Axis.vertical,
-              children: <Widget>[
-                Button.tag(Tag.a),
-                Button.tag(Tag.b),
-                BaseMenu(
-                  menu: BaseMenuPanel(
-                    orientation: Axis.vertical,
-                    children: <Widget>[Button.tag(Tag.c.a), Button.tag(Tag.c.b)],
-                  ),
-                  child: const AnchorButton(Tag.c),
-                ),
-                Button.tag(Tag.d),
-                BaseMenu(
-                  menu: BaseMenuPanel(
-                    orientation: Axis.vertical,
-                    children: <Widget>[
-                      Button.tag(Tag.e.a),
-                      Button.tag(Tag.e.b),
-                      BaseMenu(
-                        menu: BaseMenuPanel(
-                          orientation: Axis.vertical,
-                          children: <Widget>[
-                            Button.tag(Tag.e.c.a),
-                            Button.tag(Tag.e.c.b),
-                            Button.tag(Tag.e.c.c),
-                          ],
-                        ),
-                        child: AnchorButton(Tag.e.c),
-                      ),
-                    ],
-                  ),
-                  child: const AnchorButton(Tag.e),
-                ),
-              ],
-            ),
-            child: AnchorButton(Tag.anchor, focusNode: focusNode),
-          ),
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-    // Have to open a menu initially to start things going.
-    await tester.tap(find.text(Tag.anchor.text));
-    await tester.pump();
-
-    // Arrow down moves to first item
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.a.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    // Horizontal traversal on menu items without submenus shouldn't do
-    // anything.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.c.focusNode));
-
-    // Arrow right should do nothing since no menu is open
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-
-    // Arrow left should open the submenu and focus the first item
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.a.focusNode));
-
-    // Arrow right should close the submenu and refocus its anchor.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    // Enter should open the submenu without changing focus.
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.c.a.text), findsOneWidget);
-
-    // Arrow down should close the submenu and focus the next anchor sibling.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.d.focusNode));
-    expect(find.text(Tag.c.a.text), findsNothing);
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.e.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.a.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.b.focusNode));
-
-    // Cycle back up
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    expect(focusedMenu, equals(Tag.a.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    expect(focusedMenu, equals(Tag.e.focusNode));
-
-    // Drill down to the nested anchor.
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-
-    expect(focusedMenu, equals(Tag.e.a.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    expect(focusedMenu, equals(Tag.e.c.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-    await tester.pump();
-    expect(focusedMenu, equals(Tag.e.c.a.focusNode));
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    expect(focusedMenu, equals(Tag.e.c.b.focusNode));
-
-    // Arrow right should close a menu item's overlay refocus its anchor.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.e.c.focusNode));
-    expect(find.text(Tag.e.c.a.text), findsNothing);
-
-    // Arrow right from the submenu anchor should behave the same as a menu
-    // item without a submenu.
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.e.focusNode));
-    expect(find.text(Tag.e.c.text), findsNothing);
-    expect(eventBubbled, isFalse);
-  });
-
-  testWidgets('[Default] Closed RawMenuAnchor does not affect anchor tab traversal', (
+  testWidgets('[BaseMenu] does not affect anchor tab traversal if closed', (
     WidgetTester tester,
   ) async {
     final focusNode = FocusNode(debugLabel: Tag.b.focusNode);
@@ -2649,26 +1434,24 @@ void main() {
       ),
     );
 
-    listenForFocusChanges();
-
     focusNode.requestFocus();
     await tester.pump();
-    expect(focusedMenu, equals(Tag.b.focusNode));
+    expect(primaryFocus?.debugLabel, equals(Tag.b.focusNode));
 
     // Tab on an unopened anchor should move focus to next widget
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    expect(focusedMenu, equals(Tag.c.focusNode));
+    expect(primaryFocus?.debugLabel, equals(Tag.c.focusNode));
 
     // Move focus back to the anchor
     focusNode.requestFocus();
     await tester.pump();
-    expect(focusedMenu, equals(Tag.b.focusNode));
+    expect(primaryFocus?.debugLabel, equals(Tag.b.focusNode));
 
     // Shift+Tab on unopened anchor should move focus to previous widget
     await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
     await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
-    expect(focusedMenu, equals(Tag.a.focusNode));
+    expect(primaryFocus?.debugLabel, equals(Tag.a.focusNode));
   });
 
   // Menu implementations differ as to whether tabbing traverses a closes a
@@ -2725,25 +1508,23 @@ void main() {
       ),
     );
 
-    listenForFocusChanges();
-
     // Open overlay and focus first menu item
     focusNode.requestFocus();
     await tester.pump();
 
-    expect(focusedMenu, equals(Tag.b.focusNode));
+    expect(primaryFocus?.debugLabel, equals(Tag.b.focusNode));
 
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
     await tester.pump();
 
-    expect(focusedMenu, equals(Tag.b.focusNode));
+    expect(primaryFocus?.debugLabel, equals(Tag.b.focusNode));
 
     await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
     await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
     await tester.pump();
 
-    expect(focusedMenu, equals(Tag.b.focusNode));
+    expect(primaryFocus?.debugLabel, equals(Tag.b.focusNode));
 
     // Open and move focus to nested menu
     await tester.tap(find.text(Tag.b.text));
@@ -2754,19 +1535,19 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.pump();
 
-    expect(focusedMenu, equals(Tag.b.b.focusNode));
+    expect(primaryFocus?.debugLabel, equals(Tag.b.b.focusNode));
 
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
     await tester.pump();
 
-    expect(focusedMenu, equals(Tag.b.b.focusNode));
+    expect(primaryFocus?.debugLabel, equals(Tag.b.b.focusNode));
 
     await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
     await tester.sendKeyEvent(LogicalKeyboardKey.tab);
     await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
     await tester.pump();
 
-    expect(focusedMenu, equals(Tag.b.b.focusNode));
+    expect(primaryFocus?.debugLabel, equals(Tag.b.b.focusNode));
     expect(
       invokedIntents,
       equals(const <Intent>[
@@ -2778,138 +1559,10 @@ void main() {
     );
   });
 
-  testWidgets('[Default] Menus close when anchor and overlay are blurred', (
-    WidgetTester tester,
-  ) async {
-    final bFocusNode = FocusNode(debugLabel: Tag.b.focusNode);
-    final cFocusNode = FocusNode(debugLabel: Tag.c.focusNode);
-    addTearDown(bFocusNode.dispose);
-    addTearDown(cFocusNode.dispose);
-
-    await tester.pumpWidget(
-      App(
-        Row(
-          children: <Widget>[
-            Button.tag(Tag.a),
-            BaseMenu(
-              // childFocusNode: bFocusNode,
-              menu: BaseMenuPanel(
-                orientation: Axis.vertical,
-                children: <Widget>[
-                  Button.tag(Tag.b.a),
-                  BaseMenu(
-                    menu: BaseMenuPanel(
-                      orientation: Axis.vertical,
-                      children: <Widget>[Button.tag(Tag.b.b.a)],
-                    ),
-                    child: AnchorButton(Tag.b.b),
-                  ),
-                  Button.tag(Tag.b.c),
-                ],
-              ),
-              child: AnchorButton(Tag.b, focusNode: bFocusNode),
-            ),
-            Button.tag(Tag.c, focusNode: cFocusNode),
-          ],
-        ),
-      ),
-    );
-
-    listenForFocusChanges();
-
-    // First, test that a root anchor is closed when tabbing away from it.
-    bFocusNode.requestFocus();
-    await tester.tap(find.text(Tag.b.text));
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.b.focusNode));
-    expect(find.text(Tag.b.a.text), findsOneWidget);
-
-    // Tab moves focus to the next root anchor sibling
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    await tester.pump();
-
-    // Menu should be closed
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.b.a.text), findsNothing);
-
-    bFocusNode.requestFocus();
-    await tester.tap(find.text(Tag.b.text));
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.b.focusNode));
-    expect(find.text(Tag.b.a.text), findsOneWidget);
-
-    // Move focus to the previous root anchor sibling
-    await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
-    await tester.pump();
-
-    // Menu should be closed
-    expect(focusedMenu, equals(Tag.a.focusNode));
-    expect(find.text(Tag.b.a.text), findsNothing);
-
-    // Next, test that a nested anchor is closed when tabbing away from it.
-    // This test also checks that the presence of a focus node does not
-    // affect the menu
-
-    // Open nested menu and focus first anchor
-    bFocusNode.requestFocus();
-    await tester.tap(find.text(Tag.b.text));
-    await tester.pump();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-    await tester.sendKeyEvent(LogicalKeyboardKey.space);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.b.b.focusNode));
-    expect(find.text(Tag.b.b.a.text), findsOneWidget);
-
-    // Tab moves focus to the next anchor sibling
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    await tester.pump();
-
-    // Nested menu should be closed
-    expect(focusedMenu, equals(Tag.b.c.focusNode));
-    expect(find.text(Tag.b.b.a.text), findsNothing);
-
-    // Move focus to nested anchor and open menu.
-    bFocusNode.requestFocus();
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.sendKeyEvent(LogicalKeyboardKey.space);
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.b.b.focusNode));
-    expect(find.text(Tag.b.b.a.text), findsOneWidget);
-
-    // Shift+Tab moves focus to the previous root anchor sibling
-    await tester.sendKeyDownEvent(LogicalKeyboardKey.shift);
-    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-    await tester.sendKeyUpEvent(LogicalKeyboardKey.shift);
-    await tester.pump();
-
-    // Nested menu should be closed
-    expect(focusedMenu, equals(Tag.b.a.focusNode));
-    expect(find.text(Tag.b.b.a.text), findsNothing);
-
-    // Finally, test that menus are closed when focus is moved
-    // programmatically.
-    cFocusNode.requestFocus();
-    await tester.pump();
-    await tester.pump();
-
-    expect(focusedMenu, equals(Tag.c.focusNode));
-    expect(find.text(Tag.b.a.text), findsNothing);
-  });
-
   testWidgets('Menu closes on view size change', (WidgetTester tester) async {
     final scrollController = ScrollController();
     addTearDown(scrollController.dispose);
     final mediaQueryData = MediaQueryData.fromView(tester.view);
-
-    var opened = false;
-    var closed = false;
 
     Widget build(Size size) {
       return MediaQuery(
@@ -2921,14 +1574,6 @@ void main() {
               height: 1000,
               alignment: Alignment.center,
               child: BaseMenu(
-                onOpen: () {
-                  opened = true;
-                  closed = false;
-                },
-                onClose: () {
-                  opened = false;
-                  closed = true;
-                },
                 controller: controller,
                 menu: BaseMenuPanel(
                   orientation: Axis.vertical,
@@ -2946,15 +1591,13 @@ void main() {
     await tester.tap(find.text(Tag.anchor.text));
     await tester.pump();
 
-    expect(opened, isTrue);
-    expect(closed, isFalse);
+    expect(controller.isOpen, isTrue);
 
     const smallSize = Size(200, 200);
     await changeSurfaceSize(tester, smallSize);
     await tester.pumpWidget(build(smallSize));
 
-    expect(opened, isFalse);
-    expect(closed, isTrue);
+    expect(controller.isOpen, isFalse);
   });
 
   testWidgets('Menu closes on ancestor scroll', (WidgetTester tester) async {
@@ -2966,14 +1609,7 @@ void main() {
         SingleChildScrollView(
           controller: scrollController,
           child: BaseMenu(
-            // alignment: Alignment.bottomCenter,
-            // menuAlignment: Alignment.topCenter,
-            onOpen: () {
-              onOpen(Tag.anchor);
-            },
-            onClose: () {
-              onClose(Tag.anchor);
-            },
+            controller: controller,
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
               children: <Widget>[
@@ -2992,23 +1628,20 @@ void main() {
     await tester.tap(find.text(Tag.anchor.text));
     await tester.pump();
 
-    expect(opened, isNotEmpty);
-    expect(closed, isEmpty);
-    opened.clear();
+    expect(controller.isOpen, isTrue);
 
     scrollController.jumpTo(1000);
     await tester.pump();
 
-    expect(opened, isEmpty);
-    expect(closed, isNotEmpty);
+    expect(controller.isOpen, isFalse);
   });
 
   testWidgets('Menus do not close on root menu internal scroll', (WidgetTester tester) async {
     // Regression test for https://github.com/flutter/flutter/issues/122168.
     final scrollController = ScrollController();
     addTearDown(scrollController.dispose);
-    var rootOpened = false;
     const largeButtonConstraints = BoxConstraints.tightFor(width: 200, height: 300);
+    final nestedController = MenuController();
 
     await tester.pumpWidget(
       App(
@@ -3018,27 +1651,12 @@ void main() {
             height: 700,
             alignment: Alignment.topLeft,
             child: BaseMenu(
-              // alignment: Alignment.bottomCenter,
-              // menuAlignment: Alignment.topCenter,
-              onOpen: () {
-                rootOpened = true;
-              },
-              onClose: () {
-                rootOpened = false;
-              },
+              controller: controller,
               menu: BaseMenuPanel(
                 orientation: Axis.vertical,
                 children: <Widget>[
                   BaseMenu(
-                    // alignmentOffset: const Offset(10, 0),
-                    // alignment: Alignment.topRight,
-                    // menuAlignment: Alignment.topLeft,
-                    onOpen: () {
-                      onOpen(Tag.a);
-                    },
-                    onClose: () {
-                      onClose(Tag.a);
-                    },
+                    controller: nestedController,
                     menu: BaseMenuPanel(
                       orientation: Axis.vertical,
                       children: <Widget>[Button.tag(Tag.a.a, constraints: largeButtonConstraints)],
@@ -3059,26 +1677,30 @@ void main() {
 
     await tester.tap(find.text(Tag.anchor.text));
     await tester.pump();
-    expect(rootOpened, true);
+
+    expect(controller.isOpen, isTrue);
 
     // Hover the first submenu anchor.
     final pointer = TestPointer(1, ui.PointerDeviceKind.mouse);
     await tester.tap(find.text(Tag.a.text));
     await tester.sendEventToBinding(pointer.hover(tester.getCenter(find.text(Tag.a.text))));
     await tester.pump();
-    expect(opened, equals(<Tag>[Tag.a]));
+
+    expect(nestedController.isOpen, isTrue);
 
     // Menus do not close on internal scroll.
     await tester.sendEventToBinding(pointer.scroll(const Offset(0.0, 30.0)));
     await tester.pump();
-    expect(rootOpened, true);
-    expect(closed, isEmpty);
+
+    expect(controller.isOpen, isTrue);
+    expect(nestedController.isOpen, isTrue);
 
     // Menus close on external scroll.
     scrollController.jumpTo(700);
     await tester.pump();
-    expect(rootOpened, false);
-    expect(closed, equals(<Tag>[Tag.a]));
+
+    expect(controller.isOpen, isFalse);
+    expect(nestedController.isOpen, isFalse);
   });
 
   // Copied from [MenuAnchor] tests.
@@ -3288,6 +1910,73 @@ void main() {
     expect(menuTheater, tester.renderObject(find.byWidget(nonRootOverlay)));
     expect(menuTheater, submenuTheater);
   });
+
+  testWidgets('onFocusChange is called when focus enters and leaves the menu overlay', (
+    WidgetTester tester,
+  ) async {
+    var focusChanged = false;
+    late bool isFocused;
+    final buttonFocusNode = FocusNode();
+    final anchorFocusNode = FocusNode();
+    addTearDown(buttonFocusNode.dispose);
+    addTearDown(anchorFocusNode.dispose);
+
+    await tester.pumpWidget(
+      App(
+        BaseMenu(
+          controller: controller,
+          onFocusChange: (bool value) {
+            focusChanged = true;
+            isFocused = value;
+          },
+          menu: BaseMenuPanel(
+            orientation: Axis.vertical,
+            children: <Widget>[Button.tag(Tag.a, focusNode: buttonFocusNode)],
+          ),
+          child: AnchorButton(Tag.anchor, focusNode: anchorFocusNode),
+        ),
+      ),
+    );
+
+    // Opening the menu should not trigger onFocusChange yet.
+    await tester.tap(find.text(Tag.anchor.text));
+    await tester.pump();
+
+    expect(controller.isOpen, isTrue);
+    expect(focusChanged, isFalse);
+
+    // Requesting focus on a button inside the menu should trigger onFocusChange(true).
+    buttonFocusNode.requestFocus();
+    await tester.pump();
+
+    expect(focusChanged, isTrue);
+    expect(isFocused, isTrue);
+
+    // Closing the menu should trigger onFocusChange(false).
+    focusChanged = false;
+
+    anchorFocusNode.requestFocus();
+    await tester.pump();
+
+    expect(focusChanged, isTrue);
+    expect(isFocused, isFalse);
+
+    focusChanged = false;
+
+    buttonFocusNode.requestFocus();
+    await tester.pump();
+
+    expect(focusChanged, isTrue);
+    expect(isFocused, isTrue);
+
+    controller.close();
+    await tester.pump();
+
+    expect(controller.isOpen, isFalse);
+    expect(focusChanged, isTrue);
+    expect(isFocused, isFalse);
+  });
+
   group('Focus', () {
     Future<void> expectFocusPath(
       WidgetTester tester,
@@ -3360,7 +2049,7 @@ void main() {
     );
 
     testWidgets(
-      '[Not Browser] Focus wraps when traversing with arrow keys on non-Apple platforms',
+      'Focus wraps when traversing with arrow keys on non-Apple platforms',
       skip: kIsWeb, // [intended] Browser behavior is tested above.
       variant: const TargetPlatformVariant(<TargetPlatform>{
         TargetPlatform.android,
@@ -3417,7 +2106,7 @@ void main() {
     );
 
     testWidgets(
-      '[Not Browser] Focus does not wrap when traversing with arrow keys on Apple platforms',
+      'Focus does not wrap when traversing with arrow keys on Apple platforms',
       skip: kIsWeb, // [intended] Browser behavior is tested above.
       variant: const TargetPlatformVariant(<TargetPlatform>{
         TargetPlatform.iOS,
@@ -3516,6 +2205,192 @@ void main() {
       await tester.pump();
 
       expect(itemActivated, isTrue);
+    });
+
+    testWidgets('default directionalFocusEdgeBehavior behavior matches platform expectations', (
+      WidgetTester tester,
+    ) async {
+      const menu = BaseMenu(menu: SizedBox(), child: SizedBox());
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      expect(menu.effectiveDirectionalTraversalEdgeBehavior, TraversalEdgeBehavior.closedLoop);
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      expect(menu.effectiveDirectionalTraversalEdgeBehavior, TraversalEdgeBehavior.stop);
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      expect(menu.effectiveDirectionalTraversalEdgeBehavior, TraversalEdgeBehavior.stop);
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      expect(menu.effectiveDirectionalTraversalEdgeBehavior, TraversalEdgeBehavior.closedLoop);
+
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('directionalFocusEdgeBehavior.closedLoop wraps focus', (WidgetTester tester) async {
+      final controller = MenuController();
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            directionalFocusEdgeBehavior: TraversalEdgeBehavior.closedLoop,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b), Button.tag(Tag.c)],
+            ),
+            child: const AnchorButton(Tag.anchor, autofocus: true),
+          ),
+        ),
+      );
+
+      // Open menu
+      await tester.tap(find.text(Tag.anchor.text));
+      await tester.pump();
+
+      // Focus first item
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.debugLabel, equals(Tag.a.focusNode));
+
+      // Wrap around to the bottom item using Arrow Up
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.debugLabel, equals(Tag.c.focusNode));
+
+      // Wrap back to the top item using Arrow Down
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.debugLabel, equals(Tag.a.focusNode));
+    });
+
+    testWidgets('directionalFocusEdgeBehavior.stop does not wrap focus', (
+      WidgetTester tester,
+    ) async {
+      final controller = MenuController();
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            directionalFocusEdgeBehavior: TraversalEdgeBehavior.stop,
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b), Button.tag(Tag.c)],
+            ),
+            child: const AnchorButton(Tag.anchor, autofocus: true),
+          ),
+        ),
+      );
+
+      // Open menu
+      await tester.tap(find.text(Tag.anchor.text));
+      await tester.pump();
+
+      // Focus first item
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.debugLabel, equals(Tag.a.focusNode));
+
+      // Press Arrow Up again; should not wrap to the bottom item
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.debugLabel, equals(Tag.a.focusNode));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.debugLabel, equals(Tag.b.focusNode));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.debugLabel, equals(Tag.c.focusNode));
+
+      // Press Arrow Down again; should not wrap to the top item
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+    });
+
+    testWidgets('directionalFocusEdgeBehavior.parentScope escapes to parent scope', (
+      WidgetTester tester,
+    ) async {
+      final controller = MenuController();
+      final afterNode = FocusNode(debugLabel: Tag.outside.focusNode);
+
+      await tester.pumpWidget(
+        App(
+          Column(
+            children: [
+              BaseMenu(
+                controller: controller,
+                directionalFocusEdgeBehavior: TraversalEdgeBehavior.parentScope,
+                menu: BaseMenuPanel(
+                  orientation: Axis.vertical,
+                  children: <Widget>[Button.tag(Tag.a)],
+                ),
+                child: const AnchorButton(Tag.anchor, autofocus: true),
+              ),
+              Focus(focusNode: afterNode, child: Text(Tag.outside.text)),
+            ],
+          ),
+        ),
+      );
+
+      // Open menu
+      await tester.tap(find.text(Tag.anchor.text));
+      await tester.pump();
+
+      // Focus only item
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.debugLabel, equals(Tag.a.focusNode));
+
+      // Press Arrow Down again; should escape the menu scope and focus the next node in the parent scope
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus, afterNode);
+    });
+
+    testWidgets('directionalFocusEdgeBehavior.leaveFlutterView escapes to parent scope', (
+      WidgetTester tester,
+    ) async {
+      final controller = MenuController();
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            controller: controller,
+            directionalFocusEdgeBehavior: TraversalEdgeBehavior.leaveFlutterView,
+            menu: BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[Button.tag(Tag.a)]),
+            child: const AnchorButton(Tag.anchor, autofocus: true),
+          ),
+        ),
+      );
+
+      // Open menu
+      await tester.tap(find.text(Tag.anchor.text));
+      await tester.pump();
+
+      // Focus only item
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(FocusManager.instance.primaryFocus?.debugLabel, equals(Tag.a.focusNode));
+
+      // Press Arrow Down again; should escape the menu scope and focus the next node in the parent scope
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(
+        FocusManager.instance.primaryFocus?.debugLabel,
+        equals(BaseMenu.debugMenuFocusScopeLabel),
+      );
     });
 
     testWidgets('Menu closes with escape key', (WidgetTester tester) async {
@@ -4387,72 +3262,213 @@ void main() {
         });
 
         testWidgets(
-          'Submenu [Anchor Hover]: Opens after delay and closes when mouse leaves anchor',
+          'Submenu [Anchor Hover]: Opens after delay and closes when pointer leaves anchor',
           (WidgetTester tester) async {
-            final anchorFocusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
-            addTearDown(anchorFocusNode.dispose);
-            final controller = MenuController();
+            const hoverOpenDelay = Duration(milliseconds: 100);
+            const hoverCloseDelay = Duration(milliseconds: 300);
+
             await tester.pumpWidget(
               App(
-                Column(
-                  children: [
-                    Text(Tag.outside.text),
-                    BaseMenu(
-                      menu: BaseMenuPanel(
-                        orientation: Axis.vertical,
-                        children: [
-                          BaseSubmenu(
-                            semanticProperties: const SemanticsProperties(),
-                            role: null,
-                            controller: controller,
-                            hoverOpenDelay: const Duration(milliseconds: 100),
-                            hoverCloseDelay: const Duration(milliseconds: 200),
-                            menu: BaseMenuPanel(
-                              orientation: Axis.vertical,
-                              children: [Button(Text(Tag.a.text))],
-                            ),
-                            onPressed: () {
-                              if (controller.isOpen) {
-                                controller.close();
-                              } else {
-                                controller.open();
-                              }
-                            },
-                            focusNode: anchorFocusNode,
-                            child: Text(
-                              Tag.anchor.text,
-                              style: const TextStyle(color: Color(0xFfffffff)),
-                            ),
-                          ),
-                        ],
+                BaseSubmenu(
+                  controller: controller,
+                  role: null,
+                  hoverOpenDelay: hoverOpenDelay,
+                  hoverCloseDelay: hoverCloseDelay,
+                  menu: BaseMenuPanel(
+                    orientation: Axis.vertical,
+                    children: <Widget>[
+                      Container(
+                        width: 200,
+                        height: 200,
+                        color: const Color(0xFF00FF00),
+                        child: Text(Tag.a.text),
                       ),
-                      child: const AnchorButton(Tag.anchor),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Text(
+                    Tag.anchor.text,
+                    style: const TextStyle(fontSize: 24, color: Color(0xFFFFFFFF)),
+                  ),
                 ),
               ),
             );
 
+            final Finder anchorFinder = find.text(Tag.anchor.text);
             final gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+            addTearDown(gesture.removePointer);
             await gesture.addPointer(location: Offset.zero);
-            await gesture.moveTo(tester.getCenter(find.text(Tag.anchor.text)));
+
+            expect(find.text(Tag.a.text), findsNothing);
+
+            await gesture.moveTo(tester.getCenter(anchorFinder));
             await tester.pump();
 
-            expect(controller.isOpen, isFalse);
-            expect(primaryFocus?.debugLabel, contains(Tag.anchor.focusNode));
+            expect(find.text(Tag.a.text), findsNothing);
 
-            await tester.pump(const Duration(milliseconds: 100));
-            expect(controller.isOpen, isTrue);
+            await tester.pump(hoverOpenDelay);
 
-            await gesture.moveTo(tester.getCenter(find.text(Tag.outside.text)));
+            expect(find.text(Tag.a.text), findsOneWidget);
+
+            await gesture.moveTo(Offset.zero);
             await tester.pump();
 
-            await tester.pump(const Duration(milliseconds: 201));
-            expect(controller.isOpen, isFalse);
+            expect(find.text(Tag.a.text), findsOneWidget);
 
-            await gesture.removePointer();
+            await tester.pump(hoverCloseDelay);
+
+            expect(find.text(Tag.a.text), findsNothing);
+
+            await gesture.moveTo(tester.getCenter(anchorFinder));
+            await tester.pump();
+            await tester.pump(hoverOpenDelay ~/ 2);
+
+            expect(find.text(Tag.a.text), findsNothing);
+
+            await gesture.moveTo(Offset.zero);
+            await tester.pump();
+            await tester.pump(hoverOpenDelay);
+
+            expect(find.text(Tag.a.text), findsNothing);
           },
         );
+
+        testWidgets(
+          'Submenu [Anchor Hover]: Stays open when pointer moves from anchor to submenu',
+          (WidgetTester tester) async {
+            const hoverOpenDelay = Duration(milliseconds: 100);
+            const hoverCloseDelay = Duration(milliseconds: 300);
+
+            await tester.pumpWidget(
+              App(
+                BaseSubmenu(
+                  controller: controller,
+                  role: null,
+                  onPressed: () {}, // Must be enabled for hover to work.
+                  hoverOpenDelay: hoverOpenDelay,
+                  hoverCloseDelay: hoverCloseDelay,
+                  menu: BaseMenuPanel(
+                    orientation: Axis.vertical,
+                    children: <Widget>[
+                      Container(
+                        width: 200,
+                        height: 200,
+                        color: const Color(0xFF00FF00),
+                        child: Text(Tag.a.text),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    Tag.anchor.text,
+                    style: const TextStyle(fontSize: 24, color: Color(0xFFFFFFFF)),
+                  ),
+                ),
+              ),
+            );
+
+            final Finder anchorFinder = find.text(Tag.anchor.text);
+            final gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+            addTearDown(gesture.removePointer);
+            await gesture.addPointer(location: Offset.zero);
+
+            expect(find.text(Tag.a.text), findsNothing);
+
+            await gesture.moveTo(tester.getCenter(anchorFinder));
+            await tester.pump();
+            await tester.pump(hoverOpenDelay);
+            await gesture.moveTo(tester.getCenter(find.text(Tag.a.text)));
+            await tester.pump();
+
+            expect(find.text(Tag.a.text), findsOneWidget);
+
+            await gesture.moveTo(Offset.zero);
+            await tester.pump(hoverCloseDelay);
+
+            expect(find.text(Tag.a.text), findsOneWidget);
+
+            // Move back to anchor to refocus and leave to close the submenu.
+            await gesture.moveTo(tester.getCenter(anchorFinder));
+            await tester.pump();
+            await tester.pump(hoverCloseDelay);
+
+            expect(find.text(Tag.a.text), findsOneWidget);
+
+            await gesture.moveTo(Offset.zero);
+            await tester.pump();
+            await tester.pump(hoverCloseDelay ~/ 2);
+
+            expect(find.text(Tag.a.text), findsOneWidget);
+
+            await tester.pump(hoverCloseDelay);
+
+            expect(find.text(Tag.a.text), findsNothing);
+          },
+        );
+
+        testWidgets('Submenu: transitioning between hover and directional traversal', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(
+              MenuSystem(layers: [Axis.horizontal, Axis.vertical, Axis.vertical], autofocus: Tag.a),
+            ),
+          );
+
+          // 1. Enter submenu via keyboard
+          await expectFocusPath(tester, [(LogicalKeyboardKey.arrowDown, Tag.a.a)]);
+
+          // 2. Transition to hover: hover over 'Tag.a.c'
+          final gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+          addTearDown(gesture.removePointer);
+          await gesture.addPointer(location: Offset.zero);
+          await gesture.moveTo(tester.getCenter(find.text(Tag.a.c.text)));
+          await tester.pump();
+          await tester.pump();
+
+          expect(FocusManager.instance.primaryFocus?.debugLabel, contains(Tag.a.c.focusNode));
+          expect(find.text(Tag.a.c.a.text), findsOneWidget);
+
+          // 3. Transition to directional: move from 'Tag.a.c' to 'Tag.a.d' via keyboard
+          await expectFocusPath(tester, [(LogicalKeyboardKey.arrowDown, Tag.a.d)]);
+
+          expect(find.text(Tag.a.c.a.text), findsNothing);
+
+          // 4. Transition back to hover: hover over 'Tag.a.b'
+          await gesture.moveTo(tester.getCenter(find.text(Tag.a.b.text)));
+          await tester.pump();
+
+          expect(FocusManager.instance.primaryFocus?.debugLabel, contains(Tag.a.b.focusNode));
+
+          // 5. Transition to directional: move from 'Tag.a.b' to 'Tag.a.a' via keyboard
+          await expectFocusPath(tester, [(LogicalKeyboardKey.arrowUp, Tag.a.a)]);
+        });
+
+        testWidgets('Menu: transitioning between hover and directional traversal', (
+          WidgetTester tester,
+        ) async {
+          await tester.pumpWidget(
+            const App(MenuSystem(layers: [Axis.vertical], autofocus: Tag.anchor, isMenuBar: false)),
+          );
+
+          // 1. Open menu and focus first item via keyboard
+          await expectFocusPath(tester, [(LogicalKeyboardKey.arrowDown, Tag.a)]);
+
+          // 2. Transition to hover: hover over 'Tag.c'
+          final pointer = TestPointer(1, ui.PointerDeviceKind.mouse);
+          await tester.sendEventToBinding(pointer.hover(tester.getCenter(find.text(Tag.c.text))));
+          await tester.pumpAndSettle();
+          expect(FocusManager.instance.primaryFocus?.debugLabel, contains(Tag.c.focusNode));
+
+          // 3. Transition to directional: move from 'Tag.c' to 'Tag.d' via keyboard
+          await expectFocusPath(tester, [(LogicalKeyboardKey.arrowDown, Tag.d)]);
+
+          // 4. Transition back to hover: hover over 'Tag.b'
+          await tester.sendEventToBinding(pointer.hover(tester.getCenter(find.text(Tag.b.text))));
+          await tester.pumpAndSettle();
+          expect(FocusManager.instance.primaryFocus?.debugLabel, contains(Tag.b.focusNode));
+
+          // 5. Transition to directional: move from 'Tag.b' to 'Tag.a' via keyboard
+          await expectFocusPath(tester, [(LogicalKeyboardKey.arrowUp, Tag.a)]);
+        });
       });
 
       group('Nested Submenu', () {

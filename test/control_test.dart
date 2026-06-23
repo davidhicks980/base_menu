@@ -31,7 +31,16 @@ void main() {
     expect(tester.widget<BaseControl<void>>(find.byType(BaseControl<void>)).enabled, isTrue);
   });
 
-  testWidgets('disabled when onPressed is null', (WidgetTester tester) async {
+  testWidgets('enabled when onActivate is not null', (WidgetTester tester) async {
+    await tester.pumpWidget(App(BaseControl<void>(onActivate: () {}, child: Text(Tag.a.text))));
+
+    final element = tester.element(find.text(Tag.a.text));
+    expect(BaseControl.statesOf<void>(element), isEmpty);
+    expect(BaseControl.isDisabledOf<void>(element), isFalse);
+    expect(tester.widget<BaseControl<void>>(find.byType(BaseControl<void>)).enabled, isTrue);
+  });
+
+  testWidgets('disabled when onPressed and onActivate are null', (WidgetTester tester) async {
     await tester.pumpWidget(App(BaseControl<void>(child: Text(Tag.a.text))));
 
     final element = tester.element(find.text(Tag.a.text));
@@ -501,6 +510,26 @@ void main() {
     expect(pressedCount, 1);
   });
 
+  testWidgets('onActivate is NOT triggered by pointer activation', (WidgetTester tester) async {
+    var activateCount = 0;
+
+    await tester.pumpWidget(
+      App(
+        BaseControl<void>(
+          onActivate: () {
+            activateCount++;
+          },
+          child: Text(Tag.a.text),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text(Tag.a.text));
+    await tester.pump();
+
+    expect(activateCount, 0);
+  });
+
   testWidgets('onPressed is triggered by Space key up', (WidgetTester tester) async {
     var pressedCount = 0;
 
@@ -574,6 +603,81 @@ void main() {
     await tester.pump();
 
     expect(pressedCount, 0);
+  });
+
+  testWidgets('onActivate is triggered by Space key up', (WidgetTester tester) async {
+    var activateCount = 0;
+
+    await tester.pumpWidget(
+      App(
+        BaseControl<void>(
+          onActivate: () => activateCount++,
+          autofocus: true,
+          child: Text(Tag.a.text),
+        ),
+      ),
+    );
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+
+    expect(activateCount, 0);
+
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+
+    expect(activateCount, 1);
+  });
+
+  testWidgets('onActivate is triggered by Enter key down', (WidgetTester tester) async {
+    var activateCount = 0;
+    final node = FocusNode();
+    addTearDown(node.dispose);
+
+    await tester.pumpWidget(
+      App(
+        BaseControl<void>(
+          onActivate: () => activateCount++,
+          focusNode: node,
+          child: Text(Tag.a.text),
+        ),
+      ),
+    );
+
+    node.requestFocus();
+    await tester.pump();
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+
+    expect(activateCount, 1);
+  });
+
+  testWidgets('onActivate is preferred over onPressed for keyboard activation', (
+    WidgetTester tester,
+  ) async {
+    var pressedCount = 0;
+    var activateCount = 0;
+
+    await tester.pumpWidget(
+      App(
+        BaseControl<void>(
+          onPressed: () => pressedCount++,
+          onActivate: () => activateCount++,
+          autofocus: true,
+          child: Text(Tag.a.text),
+        ),
+      ),
+    );
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+
+    expect(pressedCount, 0);
+    expect(activateCount, 2);
   });
 
   testWidgets('only primary pointer triggers onPressed', (WidgetTester tester) async {
@@ -1272,152 +1376,174 @@ void main() {
     expect(getMouseRegion().cursor, SystemMouseCursors.forbidden);
   });
 
-  testWidgets('inherited properties target correct generic type (all states)', (
-    WidgetTester tester,
-  ) async {
-    final nodeVoid = FocusNode();
-    final nodeInt = FocusNode();
-    final nodeString = FocusNode();
-    addTearDown(nodeVoid.dispose);
-    addTearDown(nodeInt.dispose);
-    addTearDown(nodeString.dispose);
+  group('Inheritance', () {
+    late FocusNode objectNode;
+    late FocusNode intNode;
+    late FocusNode stringNode;
 
-    Set<WidgetState> voidStates = {};
-    Set<WidgetState> intStates = {};
-    Set<WidgetState> stringStates = {};
-    var enableVoid = true;
+    setUp(() {
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      objectNode = FocusNode(debugLabel: 'focusNodeObject');
+      intNode = FocusNode(debugLabel: 'focusNodeInt');
+      stringNode = FocusNode(debugLabel: 'focusNodeString');
+    });
 
-    await tester.pumpWidget(
-      App(
-        StatefulBuilder(
-          builder: (context, setState) {
-            return Column(
-              children: [
-                BaseControl<void>(
-                  onPressed: enableVoid ? () {} : null,
-                  focusNode: nodeVoid,
-                  child: Container(
-                    key: Tag.a.key,
-                    color: const Color.fromARGB(255, 0, 255, 106),
-                    padding: const EdgeInsets.all(50), // Outer zone (Level 0)
-                    child: BaseControl<int>(
-                      onPressed: () {},
-                      focusNode: nodeInt,
-                      child: Container(
-                        key: Tag.b.key,
-                        color: const Color(0xFF0011FF),
-                        padding: const EdgeInsets.all(50), // Inner zone (Level 2)
-                        child: BaseControl<String>(
-                          onPressed: () {},
-                          focusNode: nodeString,
-                          child: Container(
-                            key: Tag.c.key,
-                            height: 100,
-                            width: 100,
-                            color: Colors.red,
-                            child: Builder(
-                              builder: (context) {
-                                voidStates = BaseControl.statesOf<void>(context);
-                                intStates = BaseControl.statesOf<int>(context);
-                                stringStates = BaseControl.statesOf<String>(context);
-                                return const SizedBox.expand();
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+    tearDown(() {
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
+      objectNode.dispose();
+      intNode.dispose();
+      stringNode.dispose();
+    });
+
+    void verifyStates<T extends Object?>(WidgetTester tester, Set<WidgetState> expected) {
+      final context = tester.element(find.byKey(Tag.c.key));
+      expect(BaseControl.statesOf<T>(context), equals(expected));
+      expect(BaseControl.isHoveredOf<T>(context), expected.contains(WidgetState.hovered));
+      expect(BaseControl.isFocusedOf<T>(context), expected.contains(WidgetState.focused));
+      expect(BaseControl.isPressedOf<T>(context), expected.contains(WidgetState.pressed));
+      expect(BaseControl.isDisabledOf<T>(context), expected.contains(WidgetState.disabled));
+    }
+
+    Widget buildTest({bool enabled = true, bool requestFocusOnHover = true}) {
+      return App(
+        BaseControl(
+          onPressed: enabled ? () {} : null,
+          focusNode: objectNode,
+          child: Container(
+            key: Tag.a.key,
+            padding: const EdgeInsets.all(50),
+            color: const Color.fromARGB(255, 0, 255, 106),
+            child: BaseControl<int>(
+              onPressed: enabled ? () {} : null,
+              focusNode: intNode,
+              child: Container(
+                key: Tag.b.key,
+                padding: const EdgeInsets.all(50),
+                color: const Color(0xFF0011FF),
+                child: BaseControl<String>(
+                  onPressed: enabled ? () {} : null,
+                  focusNode: stringNode,
+                  child: Container(key: Tag.c.key, height: 100, width: 100, color: Colors.red),
                 ),
-                Button.tag(
-                  Tag.outside,
-                  onPressed: () {
-                    setState(() {
-                      enableVoid = false;
-                    });
-                  },
-                ),
-              ],
-            );
-          },
+              ),
+            ),
+          ),
         ),
-      ),
-    );
+      );
+    }
 
-    final greenOuter = tester.getTopLeft(find.byKey(Tag.a.key)) + const Offset(5, 5);
-    final blueMiddle = tester.getTopLeft(find.byKey(Tag.b.key)) + const Offset(5, 5);
-    final redInner = tester.getCenter(find.byKey(Tag.c.key));
+    testWidgets('hover state', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTest(requestFocusOnHover: false));
 
-    expect(voidStates, isEmpty);
-    expect(intStates, isEmpty);
-    expect(stringStates, isEmpty);
+      final greenOuter = tester.getTopLeft(find.byKey(Tag.a.key)) + const Offset(5, 5);
+      final blueMiddle = tester.getTopLeft(find.byKey(Tag.b.key)) + const Offset(5, 5);
+      final redInner = tester.getCenter(find.byKey(Tag.c.key));
 
-    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    addTearDown(mouse.removePointer);
-    await mouse.addPointer(location: Offset.zero);
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
 
-    await mouse.moveTo(greenOuter);
-    await tester.pump();
+      // Initial state
+      verifyStates(tester, {});
+      verifyStates<int>(tester, {});
+      verifyStates<String>(tester, {});
 
-    expect(voidStates, contains(WidgetState.hovered));
-    expect(intStates, isEmpty);
-    expect(stringStates, isEmpty);
+      // Hover outer (Object?)
+      await mouse.moveTo(greenOuter);
+      await tester.pump();
 
-    await mouse.moveTo(blueMiddle);
-    await tester.pump();
+      verifyStates(tester, {WidgetState.hovered});
+      verifyStates<int>(tester, {});
+      verifyStates<String>(tester, {});
 
-    expect(voidStates, contains(WidgetState.hovered));
-    expect(intStates, contains(WidgetState.hovered));
-    expect(stringStates, isEmpty);
+      // Hover middle (int)
+      await mouse.moveTo(blueMiddle);
+      await tester.pump();
 
-    await mouse.moveTo(redInner);
-    await tester.pump();
+      verifyStates(tester, {WidgetState.hovered});
+      verifyStates<int>(tester, {WidgetState.hovered});
+      verifyStates<String>(tester, {});
 
-    expect(voidStates, contains(WidgetState.hovered));
-    expect(intStates, contains(WidgetState.hovered));
-    expect(stringStates, contains(WidgetState.hovered));
+      // Hover inner (String)
+      await mouse.moveTo(redInner);
+      await tester.pump();
 
-    await mouse.moveTo(greenOuter);
-    await mouse.down(greenOuter);
-    await tester.pump();
+      verifyStates(tester, {WidgetState.hovered});
+      verifyStates<int>(tester, {WidgetState.hovered});
+      verifyStates<String>(tester, {WidgetState.hovered});
+    });
 
-    expect(voidStates, equals({WidgetState.hovered, WidgetState.pressed}));
-    expect(intStates, equals(<WidgetState>{}));
-    expect(stringStates, equals(<WidgetState>{}));
+    testWidgets('pressed state', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTest());
 
-    await mouse.up();
-    await mouse.down(redInner);
-    await tester.pump(kPressTimeout);
+      final greenOuter = tester.getTopLeft(find.byKey(Tag.a.key)) + const Offset(5, 5);
+      final redInner = tester.getCenter(find.byKey(Tag.c.key));
 
-    expect(voidStates, equals({WidgetState.hovered, WidgetState.pressed}));
-    expect(intStates, equals({WidgetState.hovered, WidgetState.pressed}));
-    expect(stringStates, equals({WidgetState.hovered, WidgetState.pressed}));
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
 
-    await mouse.up();
-    await mouse.moveTo(Offset.zero);
-    nodeInt.requestFocus();
-    await tester.pump();
+      // Press outer (Object?)
+      await mouse.moveTo(greenOuter);
+      await mouse.down(greenOuter);
+      await tester.pump();
 
-    expect(intStates, equals({WidgetState.focused}));
-    expect(voidStates, equals({WidgetState.focused}));
-    expect(stringStates, equals(<WidgetState>{}));
+      verifyStates(tester, {WidgetState.hovered, WidgetState.pressed});
+      verifyStates<int>(tester, {});
+      verifyStates<String>(tester, {});
 
-    nodeVoid.requestFocus();
-    await tester.pump();
-    await tester.pump();
+      // Press inner (String)
+      await mouse.up();
+      await mouse.down(redInner);
+      await tester.pump(kPressTimeout);
 
-    expect(voidStates, equals({WidgetState.focused}));
-    expect(intStates, equals(<WidgetState>{}));
-    expect(stringStates, equals(<WidgetState>{}));
+      verifyStates(tester, {WidgetState.hovered, WidgetState.pressed});
+      verifyStates<int>(tester, {WidgetState.hovered, WidgetState.pressed});
+      verifyStates<String>(tester, {WidgetState.hovered, WidgetState.pressed});
 
-    await tester.tap(find.text(Tag.outside.text));
-    await tester.pump(kPressTimeout);
+      await mouse.up();
+    });
 
-    expect(voidStates, equals({WidgetState.disabled}));
-    expect(intStates, equals(<WidgetState>{}));
-    expect(stringStates, equals(<WidgetState>{}));
+    testWidgets('focus state', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTest());
+
+      // Focus Middle (int)
+      intNode.requestFocus();
+      await tester.pump();
+
+      verifyStates(tester, {WidgetState.focused});
+      verifyStates<int>(tester, {WidgetState.focused});
+      verifyStates<String>(tester, {});
+
+      // Focus Outer (Object?)
+      intNode.unfocus();
+      await tester.pump();
+      objectNode.requestFocus();
+      await tester.pump();
+
+      verifyStates(tester, {WidgetState.focused});
+      verifyStates<int>(tester, {});
+      verifyStates<String>(tester, {});
+    });
+
+    testWidgets('disabled state', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTest());
+
+      intNode.requestFocus();
+      await tester.pump();
+
+      verifyStates(tester, {WidgetState.focused});
+      verifyStates<int>(tester, {WidgetState.focused});
+      verifyStates<String>(tester, {});
+
+      await tester.pumpWidget(buildTest(enabled: false));
+      await tester.pump();
+
+      verifyStates(tester, {WidgetState.disabled});
+      verifyStates<int>(tester, {WidgetState.disabled});
+      verifyStates<String>(tester, {WidgetState.disabled});
+    });
   });
-
   group('semantics', () {
     testWidgets('enabled', (WidgetTester tester) async {
       final SemanticsHandle handle = tester.ensureSemantics();

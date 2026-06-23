@@ -9,7 +9,7 @@ import 'package:flutter/widgets.dart';
 ///    subtree.
 ///  * Override the value of [BaseHoverable.isHoverHighlightShownOf] for a
 ///    specific subtree using the [showHoverHighlight] property.
-class BaseHoverableStateInjector<T> extends StatelessWidget {
+class BaseHoverableStateInjector<T extends Object?> extends StatelessWidget {
   const BaseHoverableStateInjector({super.key, this.showHoverHighlight, required this.child});
 
   /// A value used to override the value of
@@ -37,7 +37,7 @@ class BaseHoverableStateInjector<T> extends StatelessWidget {
 }
 
 @optionalTypeArgs
-class BaseHoverable<T> extends StatefulWidget {
+class BaseHoverable<T extends Object?> extends StatefulWidget {
   const BaseHoverable({
     super.key,
     this.onHover,
@@ -88,7 +88,7 @@ class BaseHoverable<T> extends StatefulWidget {
   final bool opaque;
   final Widget child;
 
-  static _HoverableScope<T>? _of<T>(BuildContext context) {
+  static _HoverableScope<T>? _of<T extends Object?>(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>();
     assert(scope != null, 'No BaseHoverable of type $T found in context. \n');
     return scope;
@@ -109,7 +109,7 @@ class BaseHoverable<T> extends StatefulWidget {
   ///
   /// {@endtemplate}
   @optionalTypeArgs
-  static bool isHoveredOf<T>(BuildContext context) {
+  static bool isHoveredOf<T extends Object?>(BuildContext context) {
     return _of<T>(context)?.hovered ?? false;
   }
 
@@ -136,7 +136,7 @@ class BaseHoverable<T> extends StatefulWidget {
   ///
   /// {@endtemplate}
   @optionalTypeArgs
-  static bool isHoverHighlightShownOf<T>(BuildContext context) {
+  static bool isHoverHighlightShownOf<T extends Object?>(BuildContext context) {
     return _of<T>(context)?.showHoverHighlight ?? false;
   }
 
@@ -144,7 +144,7 @@ class BaseHoverable<T> extends StatefulWidget {
   State<BaseHoverable<T>> createState() => _BaseHoverableState<T>();
 }
 
-class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
+class _BaseHoverableState<T extends Object?> extends State<BaseHoverable<T>> {
   bool _isHovered = false;
 
   @override
@@ -216,7 +216,7 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
   }
 }
 
-class _HoverableScope<T> extends InheritedWidget {
+class _HoverableScope<T extends Object?> extends InheritedWidget {
   const _HoverableScope({
     required this.hovered,
     required super.child,

@@ -9,10 +9,11 @@ import 'hoverable.dart';
 import 'interface.dart';
 
 @optionalTypeArgs
-class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
+class BaseControl<T extends Object?> extends StatefulWidget implements BaseControlInterface {
   const BaseControl({
     super.key,
     this.onPressed,
+    this.onActivate,
     this.onPointerHover,
     this.onPointerEnter,
     this.onPointerLeave,
@@ -25,12 +26,14 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
     this.gestureSemanticsEnabled = true,
     this.gestureSemantics,
     this.shortcuts = defaultShortcuts,
-    this.requestFocusOnTap = false,
     required this.child,
   });
 
   @override
   final VoidCallback? onPressed;
+
+  @override
+  final VoidCallback? onActivate;
 
   @override
   final PointerEnterEventListener? onPointerEnter;
@@ -65,13 +68,10 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   final SemanticsGestureDelegate? gestureSemantics;
 
   @override
-  bool get enabled => onPressed != null;
+  bool get enabled => onPressed != null || onActivate != null;
 
   @override
   final Map<ShortcutActivator, Intent> shortcuts;
-
-  @override
-  final bool requestFocusOnTap;
 
   @override
   final Widget child;
@@ -109,7 +109,7 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   /// whether a highlight is shown.
   /// {@endtemplate}
   @optionalTypeArgs
-  static Set<WidgetState> statesOf<T>(BuildContext context) {
+  static Set<WidgetState> statesOf<T extends Object?>(BuildContext context) {
     return {
       if (BaseControl.isPressedOf<T>(context)) WidgetState.pressed,
       if (BaseControl.isHoverHighlightShownOf<T>(context)) WidgetState.hovered,
@@ -129,7 +129,7 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   ///     visually indicate that it is hovered.
   ///   * [isFocusedOf], which indicates whether the control is focused.
   @optionalTypeArgs
-  static bool isHoveredOf<T>(BuildContext context) {
+  static bool isHoveredOf<T extends Object?>(BuildContext context) {
     return BaseHoverable.isHoveredOf<T>(context);
   }
 
@@ -138,7 +138,7 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   ///
   /// When true, [statesOf] will also include [WidgetState.pressed].
   @optionalTypeArgs
-  static bool isPressedOf<T>(BuildContext context) {
+  static bool isPressedOf<T extends Object?>(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<_PressableScope<T>>()!.pressed;
   }
 
@@ -147,7 +147,7 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   ///
   /// {@macro BaseFocusable.isFocusedOf}
   @optionalTypeArgs
-  static bool isFocusedOf<T>(BuildContext context) {
+  static bool isFocusedOf<T extends Object?>(BuildContext context) {
     return BaseFocusable.isFocusedOf<T>(context);
   }
 
@@ -160,7 +160,7 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   ///
 
   @optionalTypeArgs
-  static bool isFocusHighlightShownOf<T>(BuildContext context) {
+  static bool isFocusHighlightShownOf<T extends Object?>(BuildContext context) {
     return BaseFocusable.isFocusHighlightShownOf<T>(context);
   }
 
@@ -172,7 +172,7 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   /// When true, the set returned by [statesOf] will contain
   /// [WidgetState.hovered].
   @optionalTypeArgs
-  static bool isHoverHighlightShownOf<T>(BuildContext context) {
+  static bool isHoverHighlightShownOf<T extends Object?>(BuildContext context) {
     return BaseHoverable.isHoverHighlightShownOf<T>(context);
   }
 
@@ -182,7 +182,7 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   /// When true, the set returned by [statesOf] will contain
   /// [WidgetState.disabled].
   @optionalTypeArgs
-  static bool isDisabledOf<T>(BuildContext context) {
+  static bool isDisabledOf<T extends Object?>(BuildContext context) {
     return !context.dependOnInheritedWidgetOfExactType<_EnabledScope<T>>()!.enabled;
   }
 
@@ -194,7 +194,8 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   /// These shortcuts can be overridden by providing a different map to the
   /// [shortcuts] parameter.
   static const defaultShortcuts = <ShortcutActivator, Intent>{
-    SingleActivator(LogicalKeyboardKey.space): _ActivateDownIntent(),
+    SingleActivator(LogicalKeyboardKey.space, includeRepeats: false): _ActivateDownIntent(),
+    SingleActivator(LogicalKeyboardKey.space): DoNothingAndStopPropagationIntent(),
     _SingleKeyUpActivator(LogicalKeyboardKey.space): ActivateIntent(),
     SingleActivator(LogicalKeyboardKey.enter): kIsWeb ? ButtonActivateIntent() : ActivateIntent(),
   };
@@ -203,7 +204,7 @@ class BaseControl<T> extends StatefulWidget implements BaseControlInterface {
   State<BaseControl<T>> createState() => _BaseControlState<T>();
 }
 
-class _BaseControlState<T> extends State<BaseControl<T>> {
+class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
   late final _actions = <Type, Action<Intent>>{
     _ActivateDownIntent: CallbackAction<_ActivateDownIntent>(onInvoke: _handleActivateDown),
     ActivateIntent: Action<ActivateIntent>.overridable(
@@ -243,6 +244,7 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
       _activationSource = null;
       _isPressed = false;
     });
+
     widget.onPressed?.call();
   }
 
@@ -271,7 +273,7 @@ class _BaseControlState<T> extends State<BaseControl<T>> {
       });
     }
 
-    widget.onPressed?.call();
+    (widget.onActivate ?? widget.onPressed)?.call();
   }
 
   void _handleTapCancel() {
@@ -387,7 +389,11 @@ class _ActivateDownIntent extends Intent {
   const _ActivateDownIntent();
 }
 
-class _PressableScope<T> extends InheritedWidget {
+class ActivateCompleteIntent extends Intent {
+  const ActivateCompleteIntent();
+}
+
+class _PressableScope<T extends Object?> extends InheritedWidget {
   const _PressableScope({required this.pressed, required super.child});
 
   final bool pressed;
@@ -398,7 +404,7 @@ class _PressableScope<T> extends InheritedWidget {
   }
 }
 
-class _EnabledScope<T> extends InheritedWidget {
+class _EnabledScope<T extends Object?> extends InheritedWidget {
   const _EnabledScope({required this.enabled, required super.child});
   final bool enabled;
 

@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
 import 'interface.dart';
+import 'menu.dart';
 
 class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuItemInterface {
   const BaseSubmenu({
@@ -21,7 +22,7 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
     this.onCloseRequest = BaseMenuInterface.defaultOnCloseRequested,
     this.useRootOverlay = false,
     required this.menu,
-    this.controller,
+    required this.controller,
     this.consumeOutsideTaps = false,
     this.onFocusChange,
     this.directionalFocusEdgeBehavior,
@@ -37,6 +38,7 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
     this.focusNode,
     this.autofocus = false,
     this.onPressed,
+    this.onActivate,
     this.onPointerEnter,
     this.onPointerHover,
     this.onPointerLeave,
@@ -45,17 +47,9 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
     this.role = SemanticsRole.menuItem,
     this.gestureSemanticsEnabled = true,
     this.gestureSemantics,
-    this.shortcuts,
+    this.shortcuts = BaseControl.defaultShortcuts,
+    this.enabled = true,
   });
-
-  /// The delay after which the submenu should open after being hovered.
-  final Duration hoverOpenDelay;
-
-  /// The delay after which the submenu should close when no longer hovered.
-  final Duration hoverCloseDelay;
-
-  @override
-  final VoidCallback? onPressed;
 
   @override
   final Widget child;
@@ -67,7 +61,7 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
   final bool autofocus;
 
   @override
-  final MenuController? controller;
+  final MenuController controller;
 
   @override
   final bool consumeOutsideTaps;
@@ -106,6 +100,22 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
   final BaseMenuPositioningDelegate positionDelegate;
 
   @override
+  final BaseMenuOverlayChildBuilder? overlayChildBuilder;
+
+  @override
+  final VoidCallback? onPressed;
+
+  /// Called when the button is activated by a keyboard shortcut or other
+  /// non-pointer input.
+  ///
+  /// When null, the default behavior is to open the submenu and focus the first
+  /// item.
+  ///
+  /// Defaults to null.
+  @override
+  final VoidCallback? onActivate;
+
+  @override
   final PointerEnterEventListener? onPointerEnter;
 
   @override
@@ -132,14 +142,14 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
   @override
   final Map<ShortcutActivator, Intent>? shortcuts;
 
-  @override
-  final BaseMenuOverlayChildBuilder? overlayChildBuilder;
+  /// The delay after which the submenu should open after being hovered.
+  final Duration hoverOpenDelay;
+
+  /// The delay after which the submenu should close when no longer hovered.
+  final Duration hoverCloseDelay;
 
   @override
-  bool get enabled => onPressed != null;
-
-  @override
-  bool get requestFocusOnTap => false;
+  final bool enabled;
 
   @override
   bool get requestFocusOnHover => true;
@@ -152,22 +162,6 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
 }
 
 class _BaseSubmenuState extends State<BaseSubmenu> {
-  late final _actions = {
-    ActivateIntent: CallbackAction<ActivateIntent>(
-      onInvoke: (intent) {
-        return Actions.maybeInvoke(_focusNode.context!, const BaseMenuEnterIntent.focusFirst());
-      },
-    ),
-    ButtonActivateIntent: CallbackAction<ButtonActivateIntent>(
-      onInvoke: (intent) {
-        return Actions.maybeInvoke(_focusNode.context!, const BaseMenuEnterIntent.focusFirst());
-      },
-    ),
-  };
-
-  MenuController? _internalMenuController;
-  MenuController get _menuController => widget.controller ?? _internalMenuController!;
-
   // Notifier to track whether the submenu or its button has focus.
   //
   // This is used to apply a pseudo focus highlight on ancestor submenu anchors.
@@ -189,10 +183,6 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       _internalFocusNode = FocusNode();
     }
 
-    if (widget.controller == null) {
-      _internalMenuController = MenuController();
-    }
-
     _focusNode.addListener(_handleFocusChange);
   }
 
@@ -210,24 +200,20 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   @override
   void didUpdateWidget(BaseSubmenu oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.enabled && !widget.enabled && widget.controller.isOpen) {
+      widget.controller.close();
+    }
+
     if (oldWidget.focusNode != widget.focusNode) {
       oldWidget.focusNode?.removeListener(_handleFocusChange);
       if (widget.focusNode == null) {
+        assert(_internalFocusNode == null);
         _internalFocusNode = FocusNode();
       } else {
-        _internalFocusNode!.dispose();
+        _internalFocusNode?.dispose();
         _internalFocusNode = null;
       }
       _focusNode.addListener(_handleFocusChange);
-    }
-
-    if (oldWidget.controller != widget.controller) {
-      if (widget.controller == null) {
-        assert(_internalMenuController == null);
-        _internalMenuController = MenuController();
-      } else if (oldWidget.controller == null) {
-        _internalMenuController = null;
-      }
     }
   }
 
@@ -240,13 +226,12 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     _focusNode.removeListener(_handleFocusChange);
     _internalFocusNode?.dispose();
     _internalFocusNode = null;
-    _internalMenuController = null;
     _highlightNotifier.dispose();
     super.dispose();
   }
 
   void _updateHighlight() {
-    if (_menuController.isOpen) {
+    if (widget.controller.isOpen) {
       _highlightNotifier.value = _focusNode.hasFocus || _isScopeFocused;
     } else {
       _highlightNotifier.value = null;
@@ -254,7 +239,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   void _handleFocusChange() {
-    if (!_focusNode.hasFocus && !_isScopeFocused && _menuController.isOpen) {
+    if (!_focusNode.hasFocus && !_isScopeFocused && widget.controller.isOpen) {
       _scheduleHoverClose();
     } else {
       _closeTimer?.cancel();
@@ -264,27 +249,27 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   void _scheduleHoverClose() {
-    assert(_menuController.isOpen);
+    assert(widget.controller.isOpen);
     _closeTimer?.cancel();
     _closeTimer = Timer(widget.hoverCloseDelay, () {
       _closeTimer = null;
       assert(_openTimer?.isActive != true);
-      _menuController.close();
+      widget.controller.close();
     });
   }
 
   void _scheduleHoverOpen() {
-    assert(!_menuController.isOpen);
+    assert(!widget.controller.isOpen);
     _openTimer?.cancel();
     _openTimer = Timer(widget.hoverOpenDelay, () {
-      if (!_menuController.isOpen) {
-        _menuController.open();
+      if (!widget.controller.isOpen) {
+        widget.controller.open();
       }
     });
   }
 
   void _handlePointerEnterAnchor(PointerEnterEvent event) {
-    if (!_menuController.isOpen) {
+    if (!widget.controller.isOpen) {
       _scheduleHoverOpen();
     }
     _closeTimer?.cancel();
@@ -293,7 +278,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
   void _handlePointerLeaveAnchor(PointerExitEvent event) {
     _openTimer?.cancel();
-    if (_menuController.isOpen && !_isScopeFocused) {
+    if (widget.controller.isOpen && !_isScopeFocused) {
       _scheduleHoverClose();
     }
 
@@ -318,7 +303,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     if (_isScopeFocused) {
       _closeTimer?.cancel();
     } else {
-      if (_menuController.isOpen && !_focusNode.hasFocus) {
+      if (widget.controller.isOpen && !_focusNode.hasFocus) {
         _scheduleHoverClose();
       }
     }
@@ -329,8 +314,8 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
   void _handleCrossAxisPrevious(Intent intent) {
     if (_parentOrientation == widget.orientation) {
-      if (_menuController.isOpen) {
-        _menuController.close();
+      if (widget.controller.isOpen) {
+        widget.controller.close();
       } else {
         Actions.maybeInvoke(context, intent);
       }
@@ -365,8 +350,8 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
   void _handleAnchorCrossAxisPrevious(Intent intent) {
     if (_parentIsSubmenu && _parentOrientation == widget.orientation) {
-      if (_menuController.isOpen) {
-        _menuController.close();
+      if (widget.controller.isOpen) {
+        widget.controller.close();
       } else {
         Actions.maybeInvoke(context, intent);
       }
@@ -380,7 +365,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       if (first == _focusNode || _focusNode.traversalDescendants.contains(first)) {
         final last = policy.findLastFocus(parentScope, ignoreCurrentFocus: true);
         policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
-        if (_menuController.isOpen) {
+        if (widget.controller.isOpen) {
           MenuController.maybeOf(last.context!)?.open();
         }
         return;
@@ -393,7 +378,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       return;
     }
 
-    if (!_menuController.isOpen) {
+    if (!widget.controller.isOpen) {
       return;
     }
 
@@ -422,7 +407,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
         final first = policy.findFirstFocus(parentScope, ignoreCurrentFocus: true);
         if (first != null) {
           policy.requestFocusCallback(first, alignmentPolicy: .keepVisibleAtStart);
-          if (_menuController.isOpen) {
+          if (widget.controller.isOpen) {
             MenuController.maybeOf(first.context!)?.open();
           }
           return;
@@ -431,7 +416,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     }
 
     Actions.maybeInvoke(context, intent);
-    if (!_menuController.isOpen) {
+    if (!widget.controller.isOpen) {
       return;
     }
 
@@ -445,6 +430,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
   void _handleClose() {
     _isScopeFocused = false;
+    widget.onClose?.call();
 
     // Let the menu close before updating the highlight state.
     SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -452,6 +438,14 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
         _updateHighlight();
       }
     });
+  }
+
+  void _handleActivate() {
+    if (widget.onActivate != null) {
+      widget.onActivate!.call();
+    } else {
+      Actions.maybeInvoke(_focusNode.context!, const BaseMenuEnterIntent.focusFirst());
+    }
   }
 
   Widget _buildHighlight(BuildContext context, Widget? child) {
@@ -462,7 +456,8 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   Widget _buildOverlayChild(BuildContext context, Widget child) {
-    final overlay = BaseHoverable<BaseSubmenu>(
+    final overlay = MouseRegion(
+      hitTestBehavior: .deferToChild,
       onEnter: _handlePointerEnterPanel,
       onExit: _handlePointerExitPanel,
       child: child,
@@ -500,7 +495,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       onOpenRequest: widget.onOpenRequest,
       onClose: _handleClose,
       onCloseRequest: widget.onCloseRequest,
-      controller: _menuController,
+      controller: widget.controller,
       consumeOutsideTaps: widget.consumeOutsideTaps,
       useRootOverlay: widget.useRootOverlay,
       menu: widget.menu,
@@ -510,70 +505,65 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       orientation: widget.orientation,
       positionDelegate: widget.positionDelegate,
       overlayChildBuilder: _buildOverlayChild,
-      child: Actions(
-        actions: _actions,
-        child: Builder(
-          builder: (context) {
-            final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
-            if (isOpen) {
-              final Type previousIntentType = switch (widget.orientation) {
-                Axis.vertical => BaseMenuHorizontalFocusPreviousIntent,
-                Axis.horizontal => BaseMenuVerticalFocusPreviousIntent,
-              };
+      builder: _buildChild,
+    );
+  }
 
-              final Type? nextIntentType = _parentOrientation != widget.orientation
-                  ? switch (widget.orientation) {
-                      Axis.vertical => BaseMenuHorizontalFocusNextIntent,
-                      Axis.horizontal => BaseMenuVerticalFocusNextIntent,
-                    }
-                  : null;
+  Widget _buildChild(BuildContext context, MenuController controller, Widget? child) {
+    if (controller.isOpen) {
+      final Type previousIntentType = switch (widget.orientation) {
+        Axis.vertical => BaseMenuHorizontalFocusPreviousIntent,
+        Axis.horizontal => BaseMenuVerticalFocusPreviousIntent,
+      };
 
-              _anchorActions = {
-                ..._actions,
-                previousIntentType: CallbackAction(onInvoke: _handleAnchorCrossAxisPrevious),
-                ?nextIntentType: CallbackAction(onInvoke: _handleCrossAxisNext),
-              };
+      final Type? nextIntentType = _parentOrientation != widget.orientation
+          ? switch (widget.orientation) {
+              Axis.vertical => BaseMenuHorizontalFocusNextIntent,
+              Axis.horizontal => BaseMenuVerticalFocusNextIntent,
             }
+          : null;
 
-            return Actions(
-              actions: _anchorActions ?? _actions,
-              child: BaseMenuItem(
-                focusNode: _focusNode,
-                autofocus: widget.autofocus,
-                onPressed: widget.onPressed,
-                onPointerEnter: _handlePointerEnterAnchor,
-                onPointerHover: widget.onPointerHover,
-                onPointerLeave: _handlePointerLeaveAnchor,
-                requestCloseOnActivate: widget.requestCloseOnActivate,
-                requestFocusOnHover: widget.requestFocusOnHover,
-                requestFocusOnTap: widget.requestFocusOnTap,
-                behavior: widget.behavior,
-                mouseCursor: widget.mouseCursor,
-                role: widget.role,
-                gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
-                gestureSemantics: widget.gestureSemantics,
-                shortcuts: {
-                  if (_parentOrientation == Axis.vertical)
-                    switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
-                      TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
-                      TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
-                    }: const BaseMenuEnterIntent.focusFirst(),
+      _anchorActions = {
+        previousIntentType: CallbackAction(onInvoke: _handleAnchorCrossAxisPrevious),
+        ?nextIntentType: CallbackAction(onInvoke: _handleCrossAxisNext),
+      };
+    }
 
-                  if (_parentOrientation == Axis.vertical && widget.orientation == Axis.horizontal)
-                    switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
-                      TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowLeft),
-                      TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowRight),
-                    }: const BaseMenuEnterIntent.focusLast(),
-                  ...?widget.shortcuts,
-                },
-                child: ListenableBuilder(
-                  listenable: _highlightNotifier,
-                  builder: _buildHighlight,
-                  child: widget.child,
-                ),
-              ),
-            );
-          },
+    return Actions(
+      actions: _anchorActions ?? const {},
+      child: BaseMenuItem(
+        focusNode: _focusNode,
+        autofocus: widget.autofocus,
+        onPressed: widget.enabled ? widget.onPressed : null,
+        onActivate: widget.enabled ? _handleActivate : null,
+        onPointerEnter: _handlePointerEnterAnchor,
+        onPointerHover: widget.onPointerHover,
+        onPointerLeave: _handlePointerLeaveAnchor,
+        requestCloseOnActivate: widget.requestCloseOnActivate,
+        requestFocusOnHover: widget.requestFocusOnHover,
+        behavior: widget.behavior,
+        mouseCursor: widget.mouseCursor,
+        role: widget.role,
+        gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
+        gestureSemantics: widget.gestureSemantics,
+        shortcuts: {
+          if (_parentOrientation == Axis.vertical)
+            switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
+              TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
+              TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
+            }: const BaseMenuEnterIntent.focusFirst(),
+
+          if (_parentOrientation == Axis.vertical && widget.orientation == Axis.horizontal)
+            switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
+              TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowLeft),
+              TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowRight),
+            }: const BaseMenuEnterIntent.focusLast(),
+          ...?widget.shortcuts,
+        },
+        child: ListenableBuilder(
+          listenable: _highlightNotifier,
+          builder: _buildHighlight,
+          child: widget.child,
         ),
       ),
     );

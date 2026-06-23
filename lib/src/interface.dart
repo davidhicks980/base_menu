@@ -143,7 +143,7 @@ abstract class BaseMenuInterface {
   Widget get menu;
 
   /// Called when focus enters or leaves the menu overlay and its descendants.
-  ValueChanged<bool>? get onFocusChange;
+  // ValueChanged<bool>? get onFocusChange;
 
   /// Properties used to annotate the menu overlay.
   SemanticsProperties get semanticProperties;
@@ -191,6 +191,15 @@ abstract interface class BaseControlInterface {
   ///
   ///  * [enabled], which is true if the button is enabled.
   VoidCallback? get onPressed;
+
+  /// Called when the button is activated by a keyboard shortcut or other
+  /// non-pointer input.
+  ///
+  /// If this callback is null, onPressed will be used instead. If both are
+  /// null, the button will be disabled.
+  ///
+  /// Defaults to null, which means that [onPressed] will be used for activation.
+  VoidCallback? get onActivate;
 
   /// Called when a pointer enters the menu item.
   PointerEnterEventListener? get onPointerEnter;
@@ -249,15 +258,6 @@ abstract interface class BaseControlInterface {
   /// meaning any ancestor [Actions] widget containing actions for these intents
   /// will take precedence over the default behavior of activating the control.
   Map<ShortcutActivator, Intent>? get shortcuts;
-
-  /// Whether tapping this control should request focus.
-  ///
-  /// This is commonly used for desktop platforms where users expect controls to
-  /// receive focus when they interact with them. On mobile platforms, this is
-  /// typically false.
-  ///
-  /// Defaults to false.
-  bool get requestFocusOnTap;
 
   /// Whether this control can be interacted with.
   ///

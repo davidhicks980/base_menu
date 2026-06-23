@@ -18,13 +18,13 @@ final lightPaint = Paint()
   ..color = FloogleColors.separatorColor
   ..style = PaintingStyle.stroke
   ..isAntiAlias = false
-  ..strokeWidth = 1.0;
+  ..strokeWidth = kIsWeb ? 1.0 : 0.0;
 
 final darkPaint = Paint()
   ..color = FloogleColors.greyOutline
   ..style = PaintingStyle.stroke
   ..isAntiAlias = false
-  ..strokeWidth = 1.0;
+  ..strokeWidth = kIsWeb ? 1.0 : 0.0;
 
 final textPainter = TextPainter(textDirection: TextDirection.ltr);
 

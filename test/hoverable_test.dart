@@ -237,85 +237,6 @@ void main() {
     expect(mouseRegion.onHover, isNull);
   });
 
-  testWidgets('Generic type scoping identifies correct ancestor', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      App(
-        BaseHoverable(
-          child: Container(
-            key: Tag.a.key,
-            color: const Color(0xFF0011FF),
-            width: 250,
-            height: 250,
-            alignment: Alignment.center,
-            child: BaseHoverable<int>(
-              child: Container(
-                key: Tag.b.key,
-                color: const Color(0xFF0011FF),
-                width: 200,
-                height: 200,
-                alignment: Alignment.center,
-                child: BaseHoverable<String>(
-                  child: Container(
-                    key: Tag.c.key,
-                    color: const Color(0xFFFF1100),
-                    width: 100,
-                    height: 100,
-                    child: Builder(
-                      builder: (BuildContext context) {
-                        return Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('Dynamic: ${BaseHoverable.isHoveredOf(context)}'),
-                            Text('Int: ${BaseHoverable.isHoveredOf<int>(context)}'),
-                            Text('String: ${BaseHoverable.isHoveredOf<String>(context)}'),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    final TestGesture gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
-    addTearDown(gesture.removePointer);
-
-    await gesture.addPointer(location: Offset.zero);
-    await tester.pump();
-
-    expect(find.text('Dynamic: false'), findsOneWidget);
-    expect(find.text('Int: false'), findsOneWidget);
-    expect(find.text('String: false'), findsOneWidget);
-
-    // Hover only outer (Int)
-    await gesture.moveTo(tester.getTopLeft(find.byKey(Tag.a.key)) + const Offset(10, 10));
-    await tester.pump();
-
-    expect(find.text('Dynamic: true'), findsOneWidget);
-    expect(find.text('Int: false'), findsOneWidget);
-    expect(find.text('String: false'), findsOneWidget);
-
-    // Hover inner (String) - since child is opaque by default, usually only inner or both depending on implementation
-    // In BaseHoverable, each wraps child in a MouseRegion.
-    await gesture.moveTo(tester.getTopLeft(find.byKey(Tag.b.key)) + const Offset(10, 10));
-    await tester.pump();
-
-    expect(find.text('Dynamic: true'), findsOneWidget);
-    expect(find.text('Int: true'), findsOneWidget);
-    expect(find.text('String: false'), findsOneWidget);
-
-    await gesture.moveTo(tester.getCenter(find.byKey(Tag.c.key)));
-    await tester.pump();
-
-    expect(find.text('Dynamic: true'), findsOneWidget);
-    expect(find.text('Int: true'), findsOneWidget);
-    expect(find.text('String: true'), findsOneWidget);
-  });
-
   testWidgets('opaque: true', (WidgetTester tester) async {
     var bottomHovered = false;
     var topHovered = false;
@@ -622,6 +543,109 @@ void main() {
       expect(BaseHoverable.isHoverHighlightShownOf<void>(element), isTrue);
     },
   );
+
+  group('Inheritance', () {
+    setUp(() {
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+    });
+
+    tearDown(() {
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
+    });
+
+    void verifyStates<T extends Object?>(WidgetTester tester, bool expected) {
+      final context = tester.element(find.byKey(Tag.c.key));
+      expect(BaseHoverable.isHoverHighlightShownOf<T>(context), expected);
+    }
+
+    Widget buildTest({bool enabled = true}) {
+      return App(
+        BaseHoverable(
+          enabled: enabled,
+          child: Container(
+            key: Tag.a.key,
+            padding: const EdgeInsets.all(50),
+            color: const Color.fromARGB(255, 0, 255, 106),
+            child: BaseHoverable<int>(
+              enabled: enabled,
+              child: Container(
+                key: Tag.b.key,
+                padding: const EdgeInsets.all(50),
+                color: const Color(0xFF0011FF),
+                child: BaseHoverable<String>(
+                  enabled: enabled,
+                  child: Container(key: Tag.c.key, height: 100, width: 100, color: Colors.red),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('hover state', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTest());
+
+      final greenOuter = tester.getTopLeft(find.byKey(Tag.a.key)) + const Offset(5, 5);
+      final blueMiddle = tester.getTopLeft(find.byKey(Tag.b.key)) + const Offset(5, 5);
+      final redInner = tester.getCenter(find.byKey(Tag.c.key));
+
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+
+      // Initial state
+      verifyStates(tester, false);
+      verifyStates<int>(tester, false);
+      verifyStates<String>(tester, false);
+
+      // Hover outer (Object?)
+      await mouse.moveTo(greenOuter);
+      await tester.pump();
+
+      verifyStates(tester, true);
+      verifyStates<int>(tester, false);
+      verifyStates<String>(tester, false);
+
+      // Hover middle (int)
+      await mouse.moveTo(blueMiddle);
+      await tester.pump();
+
+      verifyStates(tester, true);
+      verifyStates<int>(tester, true);
+      verifyStates<String>(tester, false);
+
+      // Hover inner (String)
+      await mouse.moveTo(redInner);
+      await tester.pump();
+
+      verifyStates(tester, true);
+      verifyStates<int>(tester, true);
+      verifyStates<String>(tester, true);
+    });
+
+    testWidgets('disabled state', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTest());
+
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+
+      await mouse.moveTo(tester.getCenter(find.byKey(Tag.c.key)));
+      await tester.pump();
+
+      verifyStates(tester, true);
+      verifyStates<int>(tester, true);
+      verifyStates<String>(tester, true);
+
+      await tester.pumpWidget(buildTest(enabled: false));
+      await tester.pump();
+
+      verifyStates(tester, false);
+      verifyStates<int>(tester, false);
+      verifyStates<String>(tester, false);
+    });
+  });
 
   group('BaseHoverableStateInjector', () {
     testWidgets('Injects ancestor state', (WidgetTester tester) async {

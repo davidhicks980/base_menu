@@ -54,10 +54,17 @@ class _EditorViewState extends State<EditorView> {
           children: [
             const Positioned(
               top: 24,
-              left: 0,
-              right: 0,
+              left: 16,
+              right: -1000,
               bottom: 0,
-              child: CustomPaint(painter: _TopLeftBorderPainter()),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: FloogleColors.separatorColor),
+                    left: BorderSide(color: FloogleColors.separatorColor),
+                  ),
+                ),
+              ),
             ),
             SizedBox(
               width: math.max(MediaQuery.sizeOf(context).width, 96 * 8.5 + 128),
@@ -181,8 +188,9 @@ class _TopLeftBorderPainter extends CustomPainter {
     final paint = Paint()
       ..color = FloogleColors.separatorColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
-      ..isAntiAlias = false;
+      ..isAntiAlias = false
+      ..strokeWidth = kIsWeb ? 1.0 : 0.0;
+
     canvas.drawLine(const Offset(16, 0), Offset(size.width, 0), paint);
     canvas.drawLine(const Offset(16, 0), Offset(16, size.height), paint);
   }

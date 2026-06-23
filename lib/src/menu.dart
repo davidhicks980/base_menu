@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui'
     as ui
     show Clip, DisplayFeature, DisplayFeatureState, Offset, Rect, TextDirection, clampDouble;
@@ -586,6 +585,23 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
   @override
   final BaseMenuOverlayChildBuilder? overlayChildBuilder;
 
+  TraversalEdgeBehavior get effectiveDirectionalTraversalEdgeBehavior {
+    if (directionalFocusEdgeBehavior != null) {
+      return directionalFocusEdgeBehavior!;
+    }
+
+    if (kIsWeb) {
+      return .closedLoop;
+    }
+
+    return switch (defaultTargetPlatform) {
+      .android || .fuchsia || .linux || .windows => .closedLoop,
+      .iOS || .macOS => .stop,
+    };
+  }
+
+  static const debugMenuFocusScopeLabel = 'BaseMenu FocusScope';
+
   @override
   State<BaseMenu> createState() => _BaseMenuState();
 
@@ -599,29 +615,18 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
 class _BaseMenuState extends State<BaseMenu> {
   late final _menuScopeNode = FocusScopeNode(
     skipTraversal: true,
-    directionalTraversalEdgeBehavior: directionalTraversalEdgeBehavior,
+    directionalTraversalEdgeBehavior: widget.effectiveDirectionalTraversalEdgeBehavior,
+    debugLabel: BaseMenu.debugMenuFocusScopeLabel + (widget.key != null ? ' (${widget.key})' : ''),
   );
 
   late final Map<Type, Action<Intent>> _anchorActions = <Type, Action<Intent>>{
     BaseMenuEnterIntent: CallbackAction<BaseMenuEnterIntent>(onInvoke: _handleEnterMenu),
   };
 
-  TraversalEdgeBehavior get directionalTraversalEdgeBehavior {
-    if (widget.directionalFocusEdgeBehavior != null) {
-      return widget.directionalFocusEdgeBehavior!;
-    }
-    if (kIsWeb) {
-      return TraversalEdgeBehavior.closedLoop;
-    }
-    return Platform.isMacOS || Platform.isIOS
-        ? TraversalEdgeBehavior.stop
-        : TraversalEdgeBehavior.closedLoop;
-  }
-
   TextDirection _textDirection = TextDirection.ltr;
   bool _parentIsSubmenu = false;
   Axis? _parentOrientation;
-
+  bool _isScopeFocused = false;
   MenuController? _internalMenuController;
   Map<Type, CallbackAction<Intent>>? _overlayActions;
   MenuController get _menuController {
@@ -635,8 +640,10 @@ class _BaseMenuState extends State<BaseMenu> {
       _internalMenuController = MenuController();
     }
     _menuScopeNode.addListener(() {
-      if (widget.onFocusChange != null) {
-        widget.onFocusChange!(_menuScopeNode.hasFocus);
+      assert(mounted);
+      if (_isScopeFocused != _menuScopeNode.hasFocus) {
+        _isScopeFocused = _menuScopeNode.hasFocus;
+        widget.onFocusChange?.call(_isScopeFocused);
       }
     });
   }
@@ -664,7 +671,13 @@ class _BaseMenuState extends State<BaseMenu> {
       }
     }
     if (oldWidget.directionalFocusEdgeBehavior != widget.directionalFocusEdgeBehavior) {
-      _menuScopeNode.directionalTraversalEdgeBehavior = directionalTraversalEdgeBehavior;
+      _menuScopeNode.directionalTraversalEdgeBehavior =
+          widget.effectiveDirectionalTraversalEdgeBehavior;
+    }
+
+    if (oldWidget.key != widget.key) {
+      _menuScopeNode.debugLabel =
+          BaseMenu.debugMenuFocusScopeLabel + (widget.key != null ? ' (${widget.key})' : '');
     }
   }
 
@@ -684,7 +697,7 @@ class _BaseMenuState extends State<BaseMenu> {
       _menuController.open();
       if (intent._scopeIntent != null) {
         SchedulerBinding.instance.addPostFrameCallback((_) {
-          if (_menuController.isOpen) {
+          if (mounted && _menuController.isOpen) {
             Actions.invoke(_menuScopeNode.context!, intent._scopeIntent);
           }
         });
@@ -773,32 +786,55 @@ class _BaseMenuState extends State<BaseMenu> {
     );
   }
 
+  bool _isPostFrameCallbackScheduled = false;
+  void _postFrameCallback(Duration _) {
+    assert(_isPostFrameCallbackScheduled);
+    _isPostFrameCallbackScheduled = false;
+    if (!mounted) {
+      return;
+    }
+
+    final isOpen = _menuController.isOpen;
+    if (!isOpen && _isScopeFocused) {
+      assert(!_menuScopeNode.hasFocus);
+      _isScopeFocused = _menuScopeNode.hasFocus;
+      widget.onFocusChange?.call(_isScopeFocused);
+    }
+
+    if (!kIsWeb) {
+      return;
+    }
+
+    // Prevents the root focus scope from taking focus on web.
+    final previousPrimaryFocus = FocusManager.instance.primaryFocus;
+    if (previousPrimaryFocus == null) {
+      return;
+    }
+
+    if (isOpen) {
+      previousPrimaryFocus.requestFocus();
+      return;
+    }
+
+    FocusManager.instance.applyFocusChangesIfNeeded();
+    if (FocusManager.instance.rootScope.hasPrimaryFocus) {
+      previousPrimaryFocus.requestFocus();
+    }
+  }
+
   void _handleClose() {
     widget.onClose?.call();
-
-    if (kIsWeb) {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        // Prevents the root focus scope from taking focus on web.
-        final previousPrimaryFocus = FocusManager.instance.primaryFocus;
-        if (previousPrimaryFocus == null) {
-          return;
-        }
-        FocusManager.instance.applyFocusChangesIfNeeded();
-        if (FocusManager.instance.rootScope.hasPrimaryFocus) {
-          previousPrimaryFocus.requestFocus();
-        }
-      });
+    if (!_isPostFrameCallbackScheduled) {
+      _isPostFrameCallbackScheduled = true;
+      SchedulerBinding.instance.addPostFrameCallback(_postFrameCallback);
     }
   }
 
   void _handleOpen() {
     widget.onOpen?.call();
-
-    if (kIsWeb) {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        // Prevents the root focus scope from taking focus on web.
-        FocusManager.instance.primaryFocus?.requestFocus();
-      });
+    if (kIsWeb && !_isPostFrameCallbackScheduled) {
+      _isPostFrameCallbackScheduled = true;
+      SchedulerBinding.instance.addPostFrameCallback(_postFrameCallback);
     }
   }
 
@@ -987,16 +1023,21 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Actions(
-      actions: _actions,
-      child: RawMenuAnchorGroup(
-        controller: _menuController,
-        child: _InlineMenu(
-          axis: widget.axis,
-          semanticProperties: widget.semanticProperties,
-          focusScopeNode: _menuScopeNode,
-          child: MenuScope(orientation: widget.axis, isSubmenu: false, child: widget.child),
-        ),
+    final child = _InlineMenu(
+      axis: widget.axis,
+      semanticProperties: widget.semanticProperties,
+      focusScopeNode: _menuScopeNode,
+      child: MenuScope(orientation: widget.axis, isSubmenu: false, child: widget.child),
+    );
+    return RawMenuAnchorGroup(
+      controller: _menuController,
+      child: Builder(
+        builder: (context) {
+          return Actions(
+            actions: (MenuController.maybeIsOpenOf(context) ?? false) ? _actions : {},
+            child: child,
+          );
+        },
       ),
     );
   }

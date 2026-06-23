@@ -9,7 +9,7 @@ import 'package:flutter/widgets.dart';
 ///    subtree.
 ///  * Override the value of [BaseFocusable.isFocusHighlightShownOf] for a
 ///    specific subtree using the [showFocusHighlight] property.
-class BaseFocusableStateInjector<T> extends StatelessWidget {
+class BaseFocusableStateInjector<T extends Object?> extends StatelessWidget {
   const BaseFocusableStateInjector({super.key, this.showFocusHighlight, required this.child});
 
   /// A value used to override the value of
@@ -37,7 +37,7 @@ class BaseFocusableStateInjector<T> extends StatelessWidget {
 }
 
 @optionalTypeArgs
-class BaseFocusable<T> extends StatefulWidget {
+class BaseFocusable<T extends Object?> extends StatefulWidget {
   const BaseFocusable({
     super.key,
     this.autofocus = false,
@@ -93,7 +93,7 @@ class BaseFocusable<T> extends StatefulWidget {
   /// {@macro flutter.widgets.ProxyWidget.child}
   final Widget child;
 
-  static _FocusableScope<T>? _of<T>(BuildContext context) {
+  static _FocusableScope<T>? _of<T extends Object?>(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>();
     assert(scope != null, 'No BaseFocusable of type $T found in context');
     return scope;
@@ -118,7 +118,7 @@ class BaseFocusable<T> extends StatefulWidget {
   ///
   /// {@endtemplate}
   @optionalTypeArgs
-  static bool isFocusedOf<T>(BuildContext context) {
+  static bool isFocusedOf<T extends Object?>(BuildContext context) {
     return _of<T>(context)?.focused ?? false;
   }
 
@@ -145,7 +145,7 @@ class BaseFocusable<T> extends StatefulWidget {
   ///
   /// {@endtemplate}
   @optionalTypeArgs
-  static bool isFocusHighlightShownOf<T>(BuildContext context) {
+  static bool isFocusHighlightShownOf<T extends Object?>(BuildContext context) {
     return _of<T>(context)?.showFocusHighlight ?? false;
   }
 
@@ -153,7 +153,7 @@ class BaseFocusable<T> extends StatefulWidget {
   State<BaseFocusable<T>> createState() => _BaseFocusableState<T>();
 }
 
-class _BaseFocusableState<T> extends State<BaseFocusable<T>> {
+class _BaseFocusableState<T extends Object?> extends State<BaseFocusable<T>> {
   bool _isFocused = false;
 
   @override

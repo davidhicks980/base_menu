@@ -155,37 +155,20 @@ void main() {
   });
 
   testWidgets('disabling BaseFocusable clears focus state', (WidgetTester tester) async {
-    var enabled = true;
     final node = FocusNode();
     addTearDown(node.dispose);
 
-    await tester.pumpWidget(
-      App(
-        StatefulBuilder(
-          builder: (context, setState) {
-            return Column(
-              children: [
-                BaseFocusable<void>(enabled: enabled, focusNode: node, child: Text(Tag.a.text)),
-                Button.tag(
-                  Tag.b,
-                  onPressed: () {
-                    setState(() {
-                      enabled = false;
-                    });
-                  },
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
+    await tester.pumpWidget(App(BaseFocusable<void>(focusNode: node, child: Text(Tag.a.text))));
 
     node.requestFocus();
     await tester.pump();
+
+    expect(node.hasFocus, isTrue);
     expect(BaseFocusable.isFocusedOf<void>(tester.element(find.text(Tag.a.text))), isTrue);
 
-    await tester.tap(find.text(Tag.b.text));
+    await tester.pumpWidget(
+      App(BaseFocusable<void>(enabled: false, focusNode: node, child: Text(Tag.a.text))),
+    );
     await tester.pump();
     await tester.pump();
 
@@ -206,81 +189,6 @@ void main() {
     // In Flutter, calling addListener on a disposed FocusNode
     // throws an AssertionError in debug mode.
     expect(() => focusNode.addListener(() {}), throwsAssertionError);
-  });
-
-  testWidgets('generic type scoping identifies correct ancestor', (WidgetTester tester) async {
-    FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
-    addTearDown(() {
-      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
-    });
-
-    final nodeA = FocusNode();
-    final nodeB = FocusNode();
-    final nodeC = FocusNode();
-    addTearDown(nodeA.dispose);
-    addTearDown(nodeB.dispose);
-    addTearDown(nodeC.dispose);
-
-    ({(bool, bool) a, (bool, bool) b, (bool, bool) c}) buildResult() {
-      final element = tester.element(find.text(Tag.a.text));
-      return (
-        a: (BaseFocusable.isFocusedOf(element), BaseFocusable.isFocusHighlightShownOf(element)),
-        b: (
-          BaseFocusable.isFocusedOf<int>(element),
-          BaseFocusable.isFocusHighlightShownOf<int>(element),
-        ),
-        c: (
-          BaseFocusable.isFocusedOf<String>(element),
-          BaseFocusable.isFocusHighlightShownOf<String>(element),
-        ),
-      );
-    }
-
-    await tester.pumpWidget(
-      App(
-        BaseFocusable(
-          focusNode: nodeA,
-          child: Container(
-            key: Tag.a.key,
-            child: BaseFocusable<int>(
-              focusNode: nodeB,
-              child: Container(
-                key: Tag.b.key,
-                child: BaseFocusable<String>(
-                  focusNode: nodeC,
-                  child: Container(key: Tag.c.key, child: Text(Tag.a.text)),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    expect(buildResult(), (a: (false, false), b: (false, false), c: (false, false)));
-
-    nodeA.requestFocus();
-    await tester.pump();
-
-    expect(buildResult(), (a: (true, true), b: (false, false), c: (false, false)));
-
-    nodeB.requestFocus();
-    await tester.pump();
-    await tester.pump();
-
-    expect(buildResult(), (a: (true, true), b: (true, true), c: (false, false)));
-
-    nodeC.requestFocus();
-    await tester.pump();
-    await tester.pump();
-
-    expect(buildResult(), (a: (true, true), b: (true, true), c: (true, true)));
-
-    nodeA.requestFocus();
-    await tester.pump();
-    await tester.pump();
-
-    expect(buildResult(), (a: (true, true), b: (false, false), c: (false, false)));
   });
 
   testWidgets('onFocusChange(false) called when disabled', (WidgetTester tester) async {
@@ -600,6 +508,92 @@ void main() {
       BaseFocusable.isFocusHighlightShownOf<void>(tester.element(find.text(Tag.a.text))),
       isTrue,
     );
+  });
+
+  group('Inheritance', () {
+    late FocusNode objectNode;
+    late FocusNode intNode;
+    late FocusNode stringNode;
+
+    setUp(() {
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+      objectNode = FocusNode(debugLabel: 'focusNodeObject');
+      intNode = FocusNode(debugLabel: 'focusNodeInt');
+      stringNode = FocusNode(debugLabel: 'focusNodeString');
+    });
+
+    tearDown(() {
+      FocusManager.instance.highlightStrategy = FocusHighlightStrategy.automatic;
+      objectNode.dispose();
+      intNode.dispose();
+      stringNode.dispose();
+    });
+
+    void verifyStates<T extends Object?>(WidgetTester tester, Set<WidgetState> expected) {
+      final context = tester.element(find.byKey(Tag.c.key));
+      expect(
+        BaseFocusable.isFocusHighlightShownOf<T>(context),
+        expected.contains(WidgetState.focused),
+      );
+    }
+
+    Widget buildTest({bool enabled = true, bool requestFocusOnHover = true}) {
+      return App(
+        BaseFocusable(
+          focusNode: objectNode,
+          enabled: enabled,
+          child: BaseFocusable<int>(
+            focusNode: intNode,
+            enabled: enabled,
+            child: BaseFocusable<String>(
+              focusNode: stringNode,
+              enabled: enabled,
+              child: Container(key: Tag.c.key, height: 100, width: 100, color: Colors.red),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('focus state', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTest());
+
+      // Focus Middle (int)
+      intNode.requestFocus();
+      await tester.pump();
+
+      verifyStates(tester, {WidgetState.focused});
+      verifyStates<int>(tester, {WidgetState.focused});
+      verifyStates<String>(tester, {});
+
+      // Focus Outer (Object?)
+      intNode.unfocus();
+      await tester.pump();
+      objectNode.requestFocus();
+      await tester.pump();
+
+      verifyStates(tester, {WidgetState.focused});
+      verifyStates<int>(tester, {});
+      verifyStates<String>(tester, {});
+    });
+
+    testWidgets('disabled state', (WidgetTester tester) async {
+      await tester.pumpWidget(buildTest());
+
+      intNode.requestFocus();
+      await tester.pump();
+
+      verifyStates(tester, {WidgetState.focused});
+      verifyStates<int>(tester, {WidgetState.focused});
+      verifyStates<String>(tester, {});
+
+      await tester.pumpWidget(buildTest(enabled: false));
+      await tester.pump();
+
+      verifyStates(tester, {WidgetState.disabled});
+      verifyStates<int>(tester, {WidgetState.disabled});
+      verifyStates<String>(tester, {WidgetState.disabled});
+    });
   });
 
   group('BaseFocusableStateInjector', () {

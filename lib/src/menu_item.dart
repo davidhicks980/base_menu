@@ -8,10 +8,11 @@ import '../menu_utilities.dart';
 import 'interface.dart';
 
 @optionalTypeArgs
-class BaseMenuItem<T> extends StatefulWidget implements BaseMenuItemInterface {
+class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenuItemInterface {
   const BaseMenuItem({
     super.key,
     this.onPressed,
+    this.onActivate,
     this.onPointerHover,
     this.onPointerEnter,
     this.onPointerLeave,
@@ -20,7 +21,6 @@ class BaseMenuItem<T> extends StatefulWidget implements BaseMenuItemInterface {
     this.autofocus = false,
     this.requestFocusOnHover = true,
     this.requestCloseOnActivate = true,
-    this.requestFocusOnTap = false,
     this.behavior = .deferToChild,
     this.mouseCursor,
     this.role = .menuItem,
@@ -35,6 +35,9 @@ class BaseMenuItem<T> extends StatefulWidget implements BaseMenuItemInterface {
 
   @override
   final VoidCallback? onPressed;
+
+  @override
+  final VoidCallback? onActivate;
 
   @override
   final PointerEnterEventListener? onPointerEnter;
@@ -61,9 +64,6 @@ class BaseMenuItem<T> extends StatefulWidget implements BaseMenuItemInterface {
   final bool requestCloseOnActivate;
 
   @override
-  final bool requestFocusOnTap;
-
-  @override
   final HitTestBehavior behavior;
 
   @override
@@ -85,38 +85,62 @@ class BaseMenuItem<T> extends StatefulWidget implements BaseMenuItemInterface {
   final Widget child;
 
   @override
-  bool get enabled => onPressed != null;
+  bool get enabled => onPressed != null || onActivate != null;
 
   @optionalTypeArgs
-  static Set<WidgetState> statesOf<T>(BuildContext context) {
+  static Set<WidgetState> statesOf<T extends Object?>(BuildContext context) {
     return BaseControl.statesOf<BaseMenuItem<T>>(context);
   }
 
   @optionalTypeArgs
-  static bool isHoveredOf<T>(BuildContext context) {
+  static bool isHoveredOf<T extends Object?>(BuildContext context) {
     return BaseControl.isHoveredOf<BaseMenuItem<T>>(context);
   }
 
   @optionalTypeArgs
-  static bool isPressedOf<T>(BuildContext context) {
+  static bool isPressedOf<T extends Object?>(BuildContext context) {
     return BaseControl.isPressedOf<BaseMenuItem<T>>(context);
   }
 
   @optionalTypeArgs
-  static bool isFocusedOf<T>(BuildContext context) {
+  static bool isFocusedOf<T extends Object?>(BuildContext context) {
     return BaseControl.isFocusedOf<BaseMenuItem<T>>(context);
   }
 
   @optionalTypeArgs
-  static bool isDisabledOf<T>(BuildContext context) {
+  static bool isDisabledOf<T extends Object?>(BuildContext context) {
     return BaseControl.isDisabledOf<BaseMenuItem<T>>(context);
+  }
+
+  /// Returns whether the ancestor [BaseMenuItem] nearest to the provided
+  /// `context` should show a visual focus highlight.
+  ///
+  /// {@macro BaseFocusable.isFocusHighlightShownOf}
+  ///
+  /// If true, [statesOf] will also include [WidgetState.focused].
+  ///
+  @optionalTypeArgs
+  static bool isFocusHighlightShownOf<T extends Object?>(BuildContext context) {
+    return BaseControl.isFocusHighlightShownOf<BaseMenuItem<T>>(context);
+  }
+
+  /// Returns whether the ancestor [BaseMenuItem] nearest to the provided
+  /// `context` should show a visual hover highlight.
+  ///
+  /// {@macro BaseHoverable.isHoverHighlightShownOf}
+  ///
+  /// When true, the set returned by [statesOf] will contain
+  /// [WidgetState.hovered].
+  @optionalTypeArgs
+  static bool isHoverHighlightShownOf<T extends Object?>(BuildContext context) {
+    return BaseControl.isHoverHighlightShownOf<BaseMenuItem<T>>(context);
   }
 
   @override
   State<BaseMenuItem<T>> createState() => _BaseMenuItemState<T>();
 }
 
-class _BaseMenuItemState<T> extends State<BaseMenuItem<T>> {
+class _BaseMenuItemState<T extends Object?> extends State<BaseMenuItem<T>> {
   FocusNode? _internalFocusNode;
   FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
 
@@ -135,7 +159,7 @@ class _BaseMenuItemState<T> extends State<BaseMenuItem<T>> {
       if (widget.focusNode == null) {
         _internalFocusNode = FocusNode();
       } else {
-        _internalFocusNode!.dispose();
+        _internalFocusNode?.dispose();
         _internalFocusNode = null;
       }
     }
@@ -159,10 +183,7 @@ class _BaseMenuItemState<T> extends State<BaseMenuItem<T>> {
   }
 
   void _handleHoverEnter(PointerEnterEvent event) {
-    if (widget.requestFocusOnHover && widget.enabled) {
-      _focusNode.requestFocus();
-    }
-
+    _focusNode.requestFocus();
     widget.onPointerEnter?.call(event);
   }
 
@@ -173,7 +194,10 @@ class _BaseMenuItemState<T> extends State<BaseMenuItem<T>> {
         properties: SemanticsProperties(role: widget.role, button: kIsWeb ? true : null),
         child: BaseControl<BaseMenuItem<T>>(
           onPressed: widget.enabled ? _handlePressed : null,
-          onPointerEnter: _handleHoverEnter,
+          onActivate: widget.onActivate,
+          onPointerEnter: widget.requestFocusOnHover && widget.enabled
+              ? _handleHoverEnter
+              : widget.onPointerEnter,
           onPointerHover: widget.onPointerHover,
           onPointerLeave: widget.onPointerLeave,
           focusNode: _focusNode,

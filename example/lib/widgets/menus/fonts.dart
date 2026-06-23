@@ -77,15 +77,12 @@ class _FontMenuState extends State<FontMenu> {
               scrollable: false,
               children: const [
                 MenuItem(leading: Icon(Symbols.brand_family), child: Text('More fonts')),
-                MenuDivider(
-                  padding: EdgeInsets.fromLTRB(12, 8, 12, 8),
-                  color: FloogleColors.separatorColor,
-                ),
+                MenuDivider(padding: EdgeInsets.fromLTRB(12, 8, 12, 8)),
                 MenuSectionHeader(child: Text('RECENT')),
                 _Option(FontFamily.inter, autofocusSelected: false),
                 _Option(FontFamily.lexend, autofocusSelected: false),
                 _Option(FontFamily.merriweather, autofocusSelected: false),
-                MenuDivider(padding: .fromLTRB(12, 8, 12, 8), color: FloogleColors.separatorColor),
+                MenuDivider(padding: .fromLTRB(12, 8, 12, 8)),
                 Flexible(
                   child: SingleChildScrollView(
                     child: Column(
@@ -217,6 +214,7 @@ class _SubmenuOption extends StatefulWidget {
 
 class _SubmenuOptionState extends State<_SubmenuOption> {
   final FocusNode _focusNode = FocusNode();
+  final MenuController controller = MenuController();
 
   @override
   void dispose() {
@@ -232,6 +230,7 @@ class _SubmenuOptionState extends State<_SubmenuOption> {
       child: Semantics(
         checked: checked,
         child: BaseSubmenu(
+          controller: controller,
           focusNode: _focusNode,
           positionDelegate: const DefaultBaseMenuPositioningDelegate(
             padding: EdgeInsetsDirectional.symmetric(vertical: 6),

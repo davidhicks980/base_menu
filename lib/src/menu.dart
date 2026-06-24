@@ -691,31 +691,35 @@ class _BaseMenuState extends State<BaseMenu> {
   }
 
   Widget _buildAnchor(BuildContext context, MenuController controller, Widget? child) {
+    final directionalShortcuts = switch (_textDirection) {
+      TextDirection.ltr => _kMenuLTRShortcuts,
+      TextDirection.rtl => _kMenuRTLShortcuts,
+    };
     return Actions(
       actions: _anchorActions,
       child: Shortcuts(
-        shortcuts: switch (_parentOrientation) {
-          Axis.vertical => {
-            ...switch (_textDirection) {
-              TextDirection.ltr => _kMenuLTRShortcuts,
-              TextDirection.rtl => _kMenuRTLShortcuts,
-            },
-
-            if (controller.isOpen && widget.orientation == Axis.vertical) ...{
-              const SingleActivator(LogicalKeyboardKey.arrowUp):
-                  const BaseMenuEnterIntent.focusLast(),
-              const SingleActivator(LogicalKeyboardKey.arrowDown):
-                  const BaseMenuEnterIntent.focusFirst(),
-            },
-          },
-          Axis.horizontal || null => {
-            ...switch (_textDirection) {
-              TextDirection.ltr => _kMenuLTRShortcuts,
-              TextDirection.rtl => _kMenuRTLShortcuts,
-            },
+        shortcuts: switch ((_parentOrientation, widget.orientation)) {
+          (.vertical, .horizontal) => directionalShortcuts,
+          (.vertical, .vertical) when !controller.isOpen => directionalShortcuts,
+          (.vertical, .vertical) => {
+            ...directionalShortcuts,
             const SingleActivator(LogicalKeyboardKey.arrowDown):
                 const BaseMenuEnterIntent.focusFirst(),
-            if (!_parentIsSubmenu || widget.orientation == Axis.vertical)
+            const SingleActivator(LogicalKeyboardKey.arrowUp):
+                const BaseMenuEnterIntent.focusLast(),
+          },
+          (_, .vertical) => {
+            ...directionalShortcuts,
+            const SingleActivator(LogicalKeyboardKey.arrowDown):
+                const BaseMenuEnterIntent.focusFirst(),
+            const SingleActivator(LogicalKeyboardKey.arrowUp):
+                const BaseMenuEnterIntent.focusLast(),
+          },
+          (_, .horizontal) => {
+            ...directionalShortcuts,
+            const SingleActivator(LogicalKeyboardKey.arrowDown):
+                const BaseMenuEnterIntent.focusFirst(),
+            if (!_parentIsSubmenu)
               const SingleActivator(LogicalKeyboardKey.arrowUp):
                   const BaseMenuEnterIntent.focusLast(),
           },
@@ -1110,7 +1114,7 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
         },
         child: Shortcuts(
           debugLabel: 'Menu Focus Traversal Shortcuts ${widget.child}',
-          shortcuts: switch (Directionality.of(context)) {
+          shortcuts: switch (Directionality.maybeOf(context) ?? .ltr) {
             TextDirection.ltr => _kMenuLTRShortcuts,
             TextDirection.rtl => _kMenuRTLShortcuts,
           },
@@ -1133,7 +1137,11 @@ class _FocusFirstAction extends Action<_MenuFocusFirstIntent> {
 
   @override
   void invoke(_MenuFocusFirstIntent intent) {
-    MenuFocusManager.focusFirst(focusScopeNode);
+    final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
+    final FocusNode? firstNode = policy.findFirstFocus(focusScopeNode, ignoreCurrentFocus: true);
+    if (firstNode != null) {
+      policy.requestFocusCallback(firstNode, alignmentPolicy: .keepVisibleAtStart);
+    }
   }
 }
 
@@ -1143,7 +1151,9 @@ class _FocusLastAction extends Action<_MenuFocusLastIntent> {
 
   @override
   void invoke(_MenuFocusLastIntent intent) {
-    MenuFocusManager.focusLast(focusScopeNode);
+    final FocusTraversalPolicy policy = FocusTraversalGroup.maybeOfNode(focusScopeNode)!;
+    final FocusNode lastNode = policy.findLastFocus(focusScopeNode, ignoreCurrentFocus: true);
+    policy.requestFocusCallback(lastNode, alignmentPolicy: .keepVisibleAtEnd);
   }
 }
 
@@ -1476,21 +1486,6 @@ class _MenuAimLayoutDecorator<T extends SingleChildLayoutDelegate>
 }
 
 abstract class MenuFocusManager {
-  static bool isFirstNode(FocusNode focusNode, {bool checkDescendants = false}) {
-    final policy = FocusTraversalGroup.of(focusNode.context!);
-    final nearestScope = focusNode.nearestScope;
-    final first = policy.findFirstFocus(nearestScope!, ignoreCurrentFocus: true);
-    return first == focusNode ||
-        (checkDescendants && focusNode.traversalDescendants.contains(first));
-  }
-
-  static bool isLastNode(FocusNode focusNode, {bool checkDescendants = false}) {
-    final policy = FocusTraversalGroup.of(focusNode.context!);
-    final nearestScope = focusNode.nearestScope;
-    final last = policy.findLastFocus(nearestScope!, ignoreCurrentFocus: true);
-    return last == focusNode || (checkDescendants && focusNode.traversalDescendants.contains(last));
-  }
-
   static TraversalEdgeBehavior get defaultDirectionalTraversalEdgeBehavior {
     if (kIsWeb) {
       return .closedLoop;
@@ -1500,41 +1495,6 @@ abstract class MenuFocusManager {
       .android || .fuchsia || .linux || .windows => .closedLoop,
       .iOS || .macOS => .stop,
     };
-  }
-
-  static FocusNode? traverseForwardEdge(
-    FocusNode focusNode, {
-    TraversalEdgeBehavior? edgeBehavior,
-  }) {
-    switch (edgeBehavior ?? focusNode.nearestScope!.directionalTraversalEdgeBehavior) {
-      case .stop:
-        break;
-      case .parentScope:
-        focusNode.enclosingScope?.nextFocus();
-      case .closedLoop:
-        return focusFirst(focusNode);
-      case .leaveFlutterView:
-        primaryFocus?.unfocus();
-    }
-    return null;
-  }
-
-  static FocusNode? traverseReverseEdge(
-    FocusNode focusNode, {
-    TraversalEdgeBehavior? edgeBehavior,
-  }) {
-    switch (edgeBehavior ?? focusNode.nearestScope!.directionalTraversalEdgeBehavior) {
-      case .stop:
-        break;
-      case .parentScope:
-        focusNode.enclosingScope?.previousFocus();
-      case .closedLoop:
-        return focusLast(focusNode);
-      case .leaveFlutterView:
-        primaryFocus?.unfocus();
-    }
-
-    return null;
   }
 
   static FocusNode focusFirst(FocusNode focusNode) {

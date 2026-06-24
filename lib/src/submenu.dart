@@ -331,6 +331,10 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   void _handleCrossAxisPrevious(Intent intent) {
+    // Move focus to the anchor, which is within the parent menu's cross-axis
+    // focus scope. Then, invoke the action to move focus to the previous item
+    // in that scope. The parent's edge behavior will determine whether focus moves to
+    // the next item or wraps to the first item.
     _focusNode.requestFocus();
     Actions.maybeInvoke(context, intent);
     FocusManager.instance.applyFocusChangesIfNeeded();
@@ -340,6 +344,10 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   void _handleCrossAxisNext(Intent intent) {
+    // Move focus to the anchor, which is within the parent menu's cross-axis
+    // focus scope. Bubbling the intent will move focus to the next item in that
+    // scope. The parent's edge behavior will determine whether focus moves to
+    // the next item or wraps to the first item.
     _focusNode.requestFocus();
     Actions.maybeInvoke(context, intent);
     FocusManager.instance.applyFocusChangesIfNeeded();
@@ -460,6 +468,14 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       };
     }
 
+    final (
+      horizontalArrowNext,
+      horizontalArrowPrevious,
+    ) = switch (Directionality.maybeOf(context) ?? .ltr) {
+      .ltr => (const SingleActivator(.arrowRight), const SingleActivator(.arrowLeft)),
+      .rtl => (const SingleActivator(.arrowLeft), const SingleActivator(.arrowRight)),
+    };
+
     return Actions(
       actions: controller.isOpen ? _anchorActions! : const {},
       child: BaseMenuItem(
@@ -477,20 +493,14 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
         role: widget.role,
         gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
         gestureSemantics: widget.gestureSemantics,
-        shortcuts: {
-          if (_parentOrientation == Axis.vertical)
-            switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
-              TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
-              TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
-            }: const BaseMenuEnterIntent.focusFirst(),
-
-          if (_parentOrientation == Axis.vertical && widget.orientation == Axis.horizontal)
-            switch (Directionality.maybeOf(context) ?? TextDirection.ltr) {
-              TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowLeft),
-              TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowRight),
-            }: const BaseMenuEnterIntent.focusLast(),
-          ...?widget.shortcuts,
-        },
+        shortcuts: _parentOrientation == .vertical
+            ? {
+                horizontalArrowNext: const BaseMenuEnterIntent.focusFirst(),
+                if (widget.orientation == .horizontal)
+                  horizontalArrowPrevious: const BaseMenuEnterIntent.focusLast(),
+                ...?widget.shortcuts,
+              }
+            : widget.shortcuts ?? {},
         child: ListenableBuilder(
           listenable: _highlightNotifier,
           builder: _buildHighlight,

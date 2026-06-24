@@ -143,7 +143,7 @@ abstract mixin class BaseMenuInterface {
   Widget get menu;
 
   /// Called when focus enters or leaves the menu overlay and its descendants.
-  // ValueChanged<bool>? get onFocusChange;
+  ValueChanged<bool>? get onFocusChange;
 
   /// Properties used to annotate the menu overlay.
   SemanticsProperties get semanticProperties;

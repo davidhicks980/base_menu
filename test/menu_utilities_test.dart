@@ -2213,16 +2213,16 @@ void main() {
       const menu = BaseMenu(menu: SizedBox(), child: SizedBox());
 
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      expect(menu.effectiveDirectionalTraversalEdgeBehavior, TraversalEdgeBehavior.closedLoop);
+      expect(menu.effectiveTraversalEdgeBehavior, TraversalEdgeBehavior.closedLoop);
 
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-      expect(menu.effectiveDirectionalTraversalEdgeBehavior, TraversalEdgeBehavior.stop);
+      expect(menu.effectiveTraversalEdgeBehavior, TraversalEdgeBehavior.stop);
 
       debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
-      expect(menu.effectiveDirectionalTraversalEdgeBehavior, TraversalEdgeBehavior.stop);
+      expect(menu.effectiveTraversalEdgeBehavior, TraversalEdgeBehavior.stop);
 
       debugDefaultTargetPlatformOverride = TargetPlatform.windows;
-      expect(menu.effectiveDirectionalTraversalEdgeBehavior, TraversalEdgeBehavior.closedLoop);
+      expect(menu.effectiveTraversalEdgeBehavior, TraversalEdgeBehavior.closedLoop);
 
       debugDefaultTargetPlatformOverride = null;
     });

@@ -599,7 +599,8 @@ class BaseMenu extends StatefulWidget with BaseMenuInterface {
 class _BaseMenuState extends State<BaseMenu> {
   late final _menuScopeNode = FocusScopeNode(
     skipTraversal: true,
-    directionalTraversalEdgeBehavior: widget.effectiveDirectionalTraversalEdgeBehavior,
+    traversalEdgeBehavior: widget.effectiveTraversalEdgeBehavior,
+    directionalTraversalEdgeBehavior: widget.effectiveTraversalEdgeBehavior,
     debugLabel: BaseMenu.debugMenuFocusScopeLabel + (widget.key != null ? ' (${widget.key})' : ''),
   );
 
@@ -655,8 +656,8 @@ class _BaseMenuState extends State<BaseMenu> {
       }
     }
     if (oldWidget.directionalFocusEdgeBehavior != widget.directionalFocusEdgeBehavior) {
-      _menuScopeNode.directionalTraversalEdgeBehavior =
-          widget.effectiveDirectionalTraversalEdgeBehavior;
+      _menuScopeNode.traversalEdgeBehavior = widget.effectiveTraversalEdgeBehavior;
+      _menuScopeNode.directionalTraversalEdgeBehavior = widget.effectiveTraversalEdgeBehavior;
     }
 
     if (oldWidget.key != widget.key) {
@@ -967,7 +968,6 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
     if (widget.focusScopeNode == null) {
       _internalFocusScopeNode = FocusScopeNode(
         debugLabel: 'BaseMenuBar.focusScopeNode ${widget.axis}',
-        traversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
         directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
       );
     }
@@ -988,7 +988,6 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
       if (widget.focusScopeNode == null) {
         _internalFocusScopeNode = FocusScopeNode(
           debugLabel: 'BaseMenuBar.focusScopeNode ${widget.axis}',
-          traversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
           directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
         );
       } else {
@@ -1071,13 +1070,13 @@ class _MenuFocusTraversal extends StatefulWidget {
 
 class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
   final policy = OrderedTraversalPolicy(secondary: WidgetOrderTraversalPolicy());
-  Map<Type, Action<Intent>>? actions;
+  Map<Type, Action<Intent>>? _actions;
 
   @override
   void didUpdateWidget(_MenuFocusTraversal oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.axis != widget.axis || oldWidget.focusScopeNode != widget.focusScopeNode) {
-      actions = null;
+      _actions = null;
     }
   }
 
@@ -1086,7 +1085,7 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
     return FocusTraversalGroup(
       policy: policy,
       child: Actions(
-        actions: actions ??= {
+        actions: _actions ??= {
           _MenuFocusFirstIntent: _FocusFirstAction(widget.focusScopeNode),
           _MenuFocusLastIntent: _FocusLastAction(widget.focusScopeNode),
           ...switch (widget.axis) {
@@ -1153,15 +1152,6 @@ class _TraverseNextAction<T extends _TraversalIntent> extends Action<T> {
   final FocusScopeNode focusScopeNode;
   @override
   void invoke(T intent) {
-    print('TraverseNextAction invoked with intent: $intent');
-    if (MenuFocusManager.isLastNode(focusScopeNode)) {
-      MenuFocusManager.traverseForwardEdge(
-        focusScopeNode,
-        edgeBehavior: focusScopeNode.directionalTraversalEdgeBehavior,
-      );
-      return;
-    }
-
     // Find the next node in the traversal order
     if (focusScopeNode.nextFocus()) {
       FocusManager.instance.applyFocusChangesIfNeeded();
@@ -1181,14 +1171,6 @@ class _TraversePreviousAction<T extends _TraversalIntent> extends Action<T> {
   final FocusScopeNode focusScopeNode;
   @override
   void invoke(T intent) {
-    if (MenuFocusManager.isFirstNode(focusScopeNode)) {
-      MenuFocusManager.traverseReverseEdge(
-        focusScopeNode,
-        edgeBehavior: focusScopeNode.directionalTraversalEdgeBehavior,
-      );
-      return;
-    }
-
     final isFocusRequested = focusScopeNode.previousFocus();
     if (isFocusRequested) {
       FocusManager.instance.applyFocusChangesIfNeeded();

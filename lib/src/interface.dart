@@ -167,7 +167,7 @@ abstract mixin class BaseMenuInterface {
   /// of the menu panel, such as a barrier that dismisses the menu when tapped.
   BaseMenuOverlayChildBuilder? get overlayChildBuilder;
 
-  TraversalEdgeBehavior get effectiveDirectionalTraversalEdgeBehavior {
+  TraversalEdgeBehavior get effectiveTraversalEdgeBehavior {
     return directionalFocusEdgeBehavior ?? MenuFocusManager.defaultDirectionalTraversalEdgeBehavior;
   }
 

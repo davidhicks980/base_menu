@@ -198,6 +198,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       _parentOrientation = scope?.orientation;
       _parentIsSubmenu = scope?.isSubmenu ?? false;
       _overlayActions = null;
+      _anchorActions = null;
     }
   }
 
@@ -218,6 +219,11 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
         _internalFocusNode = null;
       }
       _focusNode.addListener(_handleFocusChange);
+    }
+
+    if (oldWidget.orientation != widget.orientation) {
+      _overlayActions = null;
+      _anchorActions = null;
     }
   }
 
@@ -316,31 +322,17 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     widget.onFocusChange?.call(focused);
   }
 
-  void _handleAnchorCrossAxisPrevious(Intent intent) {
-    _handleCrossAxisPrevious(intent, isRoot: !_parentIsSubmenu);
+  void _handleSameAxisSubmenuPrevious(Intent intent) {
+    if (widget.controller.isOpen) {
+      widget.controller.close();
+    } else {
+      Actions.maybeInvoke(context, intent);
+    }
   }
 
-  void _handleCrossAxisPrevious(Intent intent, {bool isRoot = false}) {
-    if (!isRoot && _parentOrientation == widget.orientation) {
-      if (widget.controller.isOpen) {
-        widget.controller.close();
-      } else {
-        Actions.maybeInvoke(context, intent);
-      }
-      return;
-    }
-
-    if (MenuFocusManager.isFirstNode(_focusNode, checkDescendants: true)) {
-      MenuFocusManager.traverseReverseEdge(
-        _focusNode,
-        edgeBehavior: widget.effectiveDirectionalTraversalEdgeBehavior,
-      );
-    } else {
-      _focusNode
-        ..requestFocus()
-        ..previousFocus();
-    }
-
+  void _handleCrossAxisPrevious(Intent intent) {
+    _focusNode.requestFocus();
+    Actions.maybeInvoke(context, intent);
     FocusManager.instance.applyFocusChangesIfNeeded();
     if (widget.controller.isOpen && primaryFocus?.context?.mounted == true) {
       MenuController.maybeOf(primaryFocus!.context!)?.open();
@@ -348,24 +340,8 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   void _handleCrossAxisNext(Intent intent) {
-    // In a HVV menu, pressing right on a leaf submenu item should move to the
-    // next horizontal item in the parent menu.
-    if (_parentOrientation == widget.orientation) {
-      Actions.maybeInvoke(context, intent);
-      return;
-    }
-
-    if (MenuFocusManager.isLastNode(_focusNode, checkDescendants: true)) {
-      MenuFocusManager.traverseForwardEdge(
-        _focusNode,
-        edgeBehavior: widget.effectiveDirectionalTraversalEdgeBehavior,
-      );
-    } else {
-      _focusNode
-        ..requestFocus()
-        ..nextFocus();
-    }
-
+    _focusNode.requestFocus();
+    Actions.maybeInvoke(context, intent);
     FocusManager.instance.applyFocusChangesIfNeeded();
     if (widget.controller.isOpen && primaryFocus?.context?.mounted == true) {
       MenuController.maybeOf(primaryFocus!.context!)?.open();
@@ -407,29 +383,38 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       child: child,
     );
 
+    return widget.overlayChildBuilder?.call(context, overlay) ?? overlay;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // When _parentOrientation == null, there is no parent menu bar or menu
     // anchor. In this case, overlay actions are not set.
     if (_parentOrientation != null) {
-      _overlayActions ??= switch (widget.orientation) {
-        Axis.vertical => {
+      final inSameAxisSubmenu = _parentOrientation == widget.orientation;
+      _overlayActions ??= switch ((widget.orientation, inSameAxisSubmenu)) {
+        (Axis.horizontal, true) => {
+          VPreviousIntent: CallbackAction<VPreviousIntent>(
+            onInvoke: _handleSameAxisSubmenuPrevious,
+          ),
+        },
+        (Axis.vertical, true) => {
+          HPreviousIntent: CallbackAction<HPreviousIntent>(
+            onInvoke: _handleSameAxisSubmenuPrevious,
+          ),
+        },
+        (Axis.vertical, false) => {
           HPreviousIntent: CallbackAction<HPreviousIntent>(onInvoke: _handleCrossAxisPrevious),
           HNextIntent: CallbackAction<HNextIntent>(onInvoke: _handleCrossAxisNext),
         },
-        Axis.horizontal => {
+
+        (Axis.horizontal, false) => {
           VPreviousIntent: CallbackAction<VPreviousIntent>(onInvoke: _handleCrossAxisPrevious),
           VNextIntent: CallbackAction<VNextIntent>(onInvoke: _handleCrossAxisNext),
         },
       };
     }
 
-    return Actions(
-      actions: _overlayActions ?? const {},
-      child: widget.overlayChildBuilder?.call(context, overlay) ?? overlay,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return BaseMenu(
       onOpen: widget.onOpen,
       onOpenRequest: widget.onOpenRequest,
@@ -438,7 +423,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       controller: widget.controller,
       consumeOutsideTaps: widget.consumeOutsideTaps,
       useRootOverlay: widget.useRootOverlay,
-      menu: widget.menu,
+      menu: Actions(actions: _overlayActions ?? const {}, child: widget.menu),
       onFocusChange: _handleScopeFocusChange,
       directionalFocusEdgeBehavior: widget.directionalFocusEdgeBehavior,
       semanticProperties: widget.semanticProperties,
@@ -451,20 +436,26 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
   Widget _buildChild(BuildContext context, MenuController controller, Widget? child) {
     if (controller.isOpen) {
-      _anchorActions ??= switch (widget.orientation) {
-        Axis.vertical => {
-          HPreviousIntent: CallbackAction<HPreviousIntent>(
-            onInvoke: _handleAnchorCrossAxisPrevious,
-          ),
-          if (_parentOrientation != widget.orientation)
-            HNextIntent: CallbackAction<HNextIntent>(onInvoke: _handleCrossAxisNext),
-        },
-        Axis.horizontal => {
+      final bool inSameAxisSubmenu = _parentOrientation == widget.orientation && _parentIsSubmenu;
+      _anchorActions ??= switch ((widget.orientation, inSameAxisSubmenu)) {
+        (Axis.horizontal, true) => {
           VPreviousIntent: CallbackAction<VPreviousIntent>(
-            onInvoke: _handleAnchorCrossAxisPrevious,
+            onInvoke: _handleSameAxisSubmenuPrevious,
           ),
-          if (_parentOrientation != widget.orientation)
-            VNextIntent: CallbackAction<VNextIntent>(onInvoke: _handleCrossAxisNext),
+        },
+        (Axis.vertical, true) => {
+          HPreviousIntent: CallbackAction<HPreviousIntent>(
+            onInvoke: _handleSameAxisSubmenuPrevious,
+          ),
+        },
+        (Axis.vertical, false) => {
+          HPreviousIntent: CallbackAction<HPreviousIntent>(onInvoke: _handleCrossAxisPrevious),
+          HNextIntent: CallbackAction<HNextIntent>(onInvoke: _handleCrossAxisNext),
+        },
+
+        (Axis.horizontal, false) => {
+          VPreviousIntent: CallbackAction<VPreviousIntent>(onInvoke: _handleCrossAxisPrevious),
+          VNextIntent: CallbackAction<VNextIntent>(onInvoke: _handleCrossAxisNext),
         },
       };
     }

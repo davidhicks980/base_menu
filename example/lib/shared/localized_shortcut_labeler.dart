@@ -235,8 +235,8 @@ class LocalizedShortcutLabeler {
         .iOS || .macOS => '⌃',
       },
       .shift || .shiftLeft || .shiftRight => switch (defaultTargetPlatform) {
-        .android || .fuchsia || .linux || .windows => localizations.keyboardKeyShift,
-        .iOS || .macOS => localizations.keyboardKeyShift,
+        .android || .fuchsia || .linux || .windows => '⇧',
+        .iOS || .macOS => '⇧',
       },
       _ => throw ArgumentError('Keyboard key ${modifier.keyLabel} is not a modifier.'),
     };

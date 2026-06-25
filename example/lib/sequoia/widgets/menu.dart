@@ -111,13 +111,16 @@ class _SequoiaMenuState extends State<SequoiaMenu> with SingleTickerProviderStat
               focusScopeNode.requestScopeFocus();
             }
           },
-          child: BaseMenuBar(
-            controller: controller,
-            focusScopeNode: focusScopeNode,
-            child: BaseMenuPanel(
-              orientation: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              children: widget.items.map((item) => SequoiaMenu._buildItem(item, true)).toList(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: BaseMenuBar(
+              controller: controller,
+              focusScopeNode: focusScopeNode,
+              child: BaseMenuPanel(
+                orientation: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                children: widget.items.map((item) => SequoiaMenu._buildItem(item, true)).toList(),
+              ),
             ),
           ),
         ),
@@ -196,7 +199,7 @@ class _SequoiaModelBarSubmenuState extends State<_SequoiaModelBarSubmenu>
         // Top level opens down, nested submenus open to the side
         positionDelegate: DefaultBaseMenuPositioningDelegate(
           padding: const EdgeInsets.symmetric(vertical: 4),
-          offset: widget.isTopLevel ? const Offset(1, 0) : const Offset(0, -1.5),
+          offset: widget.isTopLevel ? const Offset(-4, 0) : const Offset(0, -1.5),
         ),
         onCloseRequest: _handleCloseRequest,
         hoverOpenDelay: widget.isTopLevel ? Duration.zero : const Duration(milliseconds: 250),
@@ -260,9 +263,110 @@ class _SequoiaModelBarSubmenuState extends State<_SequoiaModelBarSubmenu>
           ),
         ),
         child: widget.isTopLevel
-            ? SequoiaMenuBarActionLabel(child: Text(widget.item.label))
+            ? switch (widget.item.label) {
+                'System' => SequoiaMenuBarActionLabel(
+                  radius: const BorderRadiusGeometry.directional(
+                    topStart: Radius.circular(12),
+                    bottomStart: Radius.circular(5),
+                    bottomEnd: Radius.circular(5),
+                    topEnd: Radius.circular(5),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 5.0),
+                  child: SequoiaTreeIcon(
+                    color: const Color(0xFFFFFFFF),
+                    size: MediaQuery.textScalerOf(context).scale(16),
+                  ),
+                ),
+                'Code' => SequoiaMenuBarActionLabel(
+                  child: Text(
+                    widget.item.label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.05,
+                      fontVariations: [FontVariation.weight(700)],
+                    ),
+                  ),
+                ),
+                _ => SequoiaMenuBarActionLabel(child: Text(widget.item.label)),
+              }
             : SequoiaSubmenuActionLabel(child: Text(widget.item.label)),
       ),
     );
+  }
+}
+
+/// A widget that draws a stylized Sequoia tree icon, intended for use
+/// in the main menu bar as a replacement for the system logo.
+class SequoiaTreeIcon extends StatelessWidget {
+  const SequoiaTreeIcon({super.key, this.size = 18.0, this.color});
+
+  final double size;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: Size(size, size),
+      painter: _SequoiaTreePainter(
+        color: IconTheme.of(context).color ?? color ?? const Color(0xFFFFFFFF),
+      ),
+    );
+  }
+}
+
+class _SequoiaTreePainter extends CustomPainter {
+  _SequoiaTreePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    final double w = size.width;
+    final double h = size.height;
+
+    final path = Path();
+
+    // Start at bottom of the trunk (thicker base)
+    path.moveTo(w * 0.38, h * 0.95);
+    path.lineTo(w * 0.62, h * 0.95);
+    // Taper slightly up to the first tier
+    path.lineTo(w * 0.58, h * 0.80);
+
+    // Bottom branch tier (widest and lowest)
+    path.lineTo(w * 0.92, h * 0.80);
+    // The control points are adjusted to make the bottom of the tier "fuller"
+    path.quadraticBezierTo(w * 0.70, h * 0.72, w * 0.56, h * 0.62);
+
+    // Middle branch tier
+    path.lineTo(w * 0.85, h * 0.62);
+    path.quadraticBezierTo(w * 0.65, h * 0.52, w * 0.54, h * 0.36);
+
+    // Top branch tier and apex
+    path.lineTo(w * 0.74, h * 0.36);
+    path.quadraticBezierTo(w * 0.50, h * 0.25, w * 0.50, h * 0.05);
+
+    // Left side - mirroring the right for symmetry
+    path.quadraticBezierTo(w * 0.50, h * 0.25, w * 0.26, h * 0.36);
+    path.lineTo(w * 0.46, h * 0.36);
+
+    path.quadraticBezierTo(w * 0.35, h * 0.52, w * 0.15, h * 0.62);
+    path.lineTo(w * 0.44, h * 0.62);
+
+    path.quadraticBezierTo(w * 0.30, h * 0.72, w * 0.08, h * 0.80);
+    path.lineTo(w * 0.42, h * 0.80);
+
+    path.close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SequoiaTreePainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }

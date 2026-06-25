@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -167,10 +168,6 @@ abstract mixin class BaseMenuInterface {
   /// of the menu panel, such as a barrier that dismisses the menu when tapped.
   BaseMenuOverlayChildBuilder? get overlayChildBuilder;
 
-  TraversalEdgeBehavior get effectiveTraversalEdgeBehavior {
-    return directionalFocusEdgeBehavior ?? MenuFocusManager.defaultDirectionalTraversalEdgeBehavior;
-  }
-
   /// The fallback [onOpenRequest] if one is not supplied to the menu.
   ///
   /// By default, the menu will open immediately without any delay or animation.
@@ -288,6 +285,10 @@ abstract interface class BaseMenuItemInterface extends BaseControlInterface {
   /// Defaults to true.
   bool get requestCloseOnActivate;
 
-  /// The semantic role to assign to this menu item.
+  /// The semantic role assigned to this menu item.
+  ///
+  /// To disable semantics for this menu item, set [role] to null.
+  ///
+  /// Defaults to [SemanticsRole.menuItem].
   SemanticsRole? get role;
 }

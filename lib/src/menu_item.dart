@@ -118,7 +118,6 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
   /// {@macro BaseFocusable.isFocusHighlightShownOf}
   ///
   /// If true, [statesOf] will also include [WidgetState.focused].
-  ///
   @optionalTypeArgs
   static bool isFocusHighlightShownOf<T extends Object?>(BuildContext context) {
     return BaseControl.isFocusHighlightShownOf<BaseMenuItem<T>>(context);

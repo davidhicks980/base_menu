@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_utilities/menu_utilities.dart';
+import 'package:menu_utilities/src/focusable.dart';
 
 void main() {
   testWidgets('initial state is not focused', (WidgetTester tester) async {

@@ -586,6 +586,21 @@ class BaseMenu extends StatefulWidget with BaseMenuInterface {
 
   static const debugMenuFocusScopeLabel = 'BaseMenu FocusScope';
 
+  TraversalEdgeBehavior get effectiveTraversalEdgeBehavior {
+    if (directionalFocusEdgeBehavior != null) {
+      return directionalFocusEdgeBehavior!;
+    }
+
+    if (kIsWeb) {
+      return .closedLoop;
+    }
+
+    return switch (defaultTargetPlatform) {
+      .android || .fuchsia || .linux || .windows => .closedLoop,
+      .iOS || .macOS => .stop,
+    };
+  }
+
   @override
   State<BaseMenu> createState() => _BaseMenuState();
 
@@ -1476,34 +1491,5 @@ class _MenuAimLayoutDecorator<T extends SingleChildLayoutDelegate>
   @override
   bool shouldRelayout(covariant _MenuAimLayoutDecorator<T> oldDelegate) {
     return geometry != oldDelegate.geometry || delegate.shouldRelayout(oldDelegate.delegate);
-  }
-}
-
-abstract class MenuFocusManager {
-  static TraversalEdgeBehavior get defaultDirectionalTraversalEdgeBehavior {
-    if (kIsWeb) {
-      return .closedLoop;
-    }
-
-    return switch (defaultTargetPlatform) {
-      .android || .fuchsia || .linux || .windows => .closedLoop,
-      .iOS || .macOS => .stop,
-    };
-  }
-
-  static FocusNode focusFirst(FocusNode focusNode) {
-    final policy = FocusTraversalGroup.of(focusNode.context!);
-    final nearestScope = focusNode.nearestScope;
-    final first = policy.findFirstFocus(nearestScope!, ignoreCurrentFocus: true) ?? focusNode;
-    policy.requestFocusCallback(first, alignmentPolicy: .keepVisibleAtStart);
-    return first;
-  }
-
-  static FocusNode focusLast(FocusNode focusNode) {
-    final policy = FocusTraversalGroup.of(focusNode.context!);
-    final nearestScope = focusNode.nearestScope;
-    final last = policy.findLastFocus(nearestScope!, ignoreCurrentFocus: true);
-    policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
-    return last;
   }
 }

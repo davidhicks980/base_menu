@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
@@ -15,39 +14,24 @@ import 'widgets/title_field.dart';
 import 'widgets/title_icon.dart';
 import 'widgets/toolbar.dart';
 
-class App extends StatefulWidget {
-  const App({super.key});
+class FloogleDocsApp extends StatefulWidget {
+  const FloogleDocsApp({super.key});
   @override
-  State<App> createState() => _AppState();
+  State<FloogleDocsApp> createState() => _FloogleDocsAppState();
 }
 
-class _AppState extends State<App> {
+class _FloogleDocsAppState extends State<FloogleDocsApp> {
   @override
   Widget build(BuildContext context) {
-    return WidgetsApp(
-      localizationsDelegates: const [
-        DefaultWidgetsLocalizations.delegate,
-        DefaultMaterialLocalizations.delegate,
-      ],
-      textStyle: const TextStyle(
+    return const DefaultTextStyle(
+      style: TextStyle(
         fontFamily: 'RobotoFlex',
         fontFamilyFallback: ['InterVariable'],
         color: FloogleColors.grey,
         fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
       ),
-      onGenerateRoute: (settings) {
-        return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
-      },
-      color: FloogleColors.surfaceColor,
+      child: ActionReflector(child: AppStateManager(child: Main())),
     );
-  }
-
-  Widget _buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    return const ActionReflector(child: AppStateManager(child: Main()));
   }
 }
 

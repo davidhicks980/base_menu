@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 ///    subtree.
 ///  * Override the value of [BaseFocusable.isFocusHighlightShownOf] for a
 ///    specific subtree using the [showFocusHighlight] property.
+@internal
 class BaseFocusableStateInjector<T extends Object?> extends StatelessWidget {
   const BaseFocusableStateInjector({super.key, this.showFocusHighlight, required this.child});
 

@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_utilities/menu_utilities.dart';
+import 'package:menu_utilities/src/hoverable.dart';
 
 void main() {
   testWidgets('Initial state is not hovered', (WidgetTester tester) async {

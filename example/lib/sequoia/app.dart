@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
-import 'menu.dart';
-import 'model.dart';
+import 'widgets/menu.dart';
+import 'widgets/model.dart';
 
 class SequoiaApp extends StatefulWidget {
   const SequoiaApp({super.key});
@@ -14,13 +13,9 @@ class SequoiaApp extends StatefulWidget {
 class _SequoiaAppState extends State<SequoiaApp> {
   @override
   Widget build(BuildContext context) {
-    return const App(
-      backgroundColor: Color(0xff0f00ff),
-      localizationsDelegates: [
-        DefaultWidgetsLocalizations.delegate,
-        DefaultMaterialLocalizations.delegate,
-      ],
-      SequoiaMenu(items: sequoiaMenu),
+    return const Align(
+      alignment: .topLeft,
+      child: SequoiaMenu(items: sequoiaMenu),
     );
   }
 }

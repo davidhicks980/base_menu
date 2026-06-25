@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import '../shared/localized_shortcut_labeler.dart';
+import '../../shared/localized_shortcut_labeler.dart';
 
 // Sequoia 15 Style Constants
 const double _kSequoiaMenuFontSize = 13.0;
@@ -11,7 +11,7 @@ const EdgeInsets _kSequoiaMenuItemPadding = EdgeInsets.symmetric(horizontal: 6.0
 const BorderRadius _kSequoiaMenuBorderRadius = BorderRadius.all(Radius.circular(4.0));
 
 // Colors
-const Color _kSequoiaHighlightBackground = Color(0xFF0063E1); // Sequoia Accent Blue
+const Color _kSequoiaHighlightBackground = Color.fromRGBO(21, 99, 185, 1); // Sequoia Accent Blue
 const Color _kSequoiaForegroundHighlighted = Colors.white;
 
 const Color _kSequoiaTextDark = Color(0xFFFFFFFF);
@@ -19,6 +19,7 @@ const Color _kSequoiaShortcutDark = Color.fromARGB(90, 255, 255, 255);
 
 const _webFontStyle = TextStyle(
   fontFamily: 'Main',
+  decoration: .none,
   fontVariations: [FontVariation.opticalSize(16), FontVariation.weight(450)],
 );
 
@@ -186,10 +187,17 @@ class _SequoiaSubmenuChevron extends StatelessWidget {
   Widget build(BuildContext context) {
     const color = _kSequoiaTextDark;
 
+    final flipX = Directionality.of(context) == TextDirection.rtl;
+    final scaleFactor = MediaQuery.textScalerOf(context).scale(1);
     return Padding(
       padding: const EdgeInsets.only(top: 1.0),
-      child: Transform.flip(
-        flipX: Directionality.of(context) == TextDirection.rtl,
+      child: Transform(
+        alignment: .center,
+        transform: Matrix4.diagonal3Values(
+          flipX ? -scaleFactor : scaleFactor,
+          scaleFactor,
+          scaleFactor,
+        ),
         child: const CustomPaint(
           size: Size(6, 10), // Precise geometry for Sequoia SF Symbol chevron
           painter: _SequoiaChevronPainter(color: color),
@@ -229,8 +237,15 @@ class _SequoiaChevronPainter extends CustomPainter {
 }
 
 class SequoiaMenuBarActionLabel extends StatelessWidget {
-  const SequoiaMenuBarActionLabel({super.key, required this.child});
+  const SequoiaMenuBarActionLabel({
+    super.key,
+    required this.child,
+    this.radius = const BorderRadius.all(Radius.circular(5.0)),
+    this.padding = const EdgeInsets.fromLTRB(12.0, 4.0, 12.0, 5.0),
+  });
   final Widget child;
+  final EdgeInsetsGeometry padding;
+  final BorderRadiusGeometry radius;
 
   @override
   Widget build(BuildContext context) {
@@ -238,15 +253,14 @@ class SequoiaMenuBarActionLabel extends StatelessWidget {
 
     // Sequoia Menu Bar Specific Colors
     const textColor = Color(0xFFFFFFFF);
-    final backgroundColor = isFocused ? Colors.white.withOpacity(0.1) : Colors.transparent;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(5.0), // Slightly rounder for the bar
+    return CustomPaint(
+      painter: MenuBarHighlightPainter(
+        enabled: isFocused,
+        radius: radius.resolve(Directionality.of(context)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 5.0),
+        padding: padding,
         child: DefaultTextStyle.merge(
           style: textStyle.copyWith(fontSize: 13.5, color: textColor, fontWeight: FontWeight.w400),
           child: child,
@@ -254,4 +268,40 @@ class SequoiaMenuBarActionLabel extends StatelessWidget {
       ),
     );
   }
+}
+
+class MenuBarHighlightPainter extends CustomPainter {
+  const MenuBarHighlightPainter({required this.enabled, required this.radius});
+
+  final bool enabled;
+  final BorderRadius radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (!enabled) {
+      return;
+    }
+
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    final rect = Rect.fromLTWH(-4, 0, size.width + 8, size.height);
+    final rrect = RSuperellipse.fromRectAndCorners(
+      rect,
+      bottomLeft: radius.bottomLeft,
+      bottomRight: radius.bottomRight,
+      topLeft: radius.topLeft,
+      topRight: radius.topRight,
+    );
+    canvas.drawRSuperellipse(rrect, paint);
+  }
+
+  @override
+  bool shouldRepaint(MenuBarHighlightPainter oldDelegate) =>
+      enabled != oldDelegate.enabled || radius != oldDelegate.radius;
+
+  @override
+  bool shouldRebuildSemantics(MenuBarHighlightPainter oldDelegate) => false;
 }

@@ -53,6 +53,8 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
     this.gestureSemantics,
     this.shortcuts = BaseControl.defaultShortcuts,
     this.enabled = true,
+    this.anchorActions,
+    this.requestFocusOnHover = true,
   });
 
   @override
@@ -155,8 +157,10 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
   @override
   final bool enabled;
 
+  final Map<Type, Action<Intent>>? anchorActions;
+
   @override
-  bool get requestFocusOnHover => true;
+  final bool requestFocusOnHover;
 
   @override
   bool get requestCloseOnActivate => false;
@@ -279,6 +283,10 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   void _handlePointerEnterAnchor(PointerEnterEvent event) {
+    if (!widget.requestFocusOnHover) {
+      return;
+    }
+
     if (!widget.controller.isOpen) {
       _scheduleHoverOpen();
     }
@@ -477,7 +485,9 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     };
 
     return Actions(
-      actions: controller.isOpen ? _anchorActions! : const {},
+      actions: controller.isOpen
+          ? {...?_anchorActions, ...?widget.anchorActions}
+          : widget.anchorActions ?? const {},
       child: BaseMenuItem(
         focusNode: _focusNode,
         autofocus: widget.autofocus,

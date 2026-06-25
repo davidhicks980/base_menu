@@ -258,7 +258,7 @@ class BaseMenuPanel extends StatelessWidget {
     Widget child = Flex(
       direction: orientation,
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: spacing,
       children: children,
     );
@@ -698,28 +698,21 @@ class _BaseMenuState extends State<BaseMenu> {
     return Actions(
       actions: _anchorActions,
       child: Shortcuts(
-        shortcuts: switch ((_parentOrientation, widget.orientation)) {
-          (.vertical, .horizontal) => directionalShortcuts,
-          (.vertical, .vertical) when !controller.isOpen => directionalShortcuts,
-          (.vertical, .vertical) => {
+        shortcuts: switch (_parentOrientation) {
+          Axis.vertical => {
             ...directionalShortcuts,
-            const SingleActivator(LogicalKeyboardKey.arrowDown):
-                const BaseMenuEnterIntent.focusFirst(),
-            const SingleActivator(LogicalKeyboardKey.arrowUp):
-                const BaseMenuEnterIntent.focusLast(),
+            if (controller.isOpen && widget.orientation == Axis.vertical) ...{
+              const SingleActivator(LogicalKeyboardKey.arrowUp):
+                  const BaseMenuEnterIntent.focusLast(),
+              const SingleActivator(LogicalKeyboardKey.arrowDown):
+                  const BaseMenuEnterIntent.focusFirst(),
+            },
           },
-          (_, .vertical) => {
+          Axis.horizontal || null => {
             ...directionalShortcuts,
             const SingleActivator(LogicalKeyboardKey.arrowDown):
                 const BaseMenuEnterIntent.focusFirst(),
-            const SingleActivator(LogicalKeyboardKey.arrowUp):
-                const BaseMenuEnterIntent.focusLast(),
-          },
-          (_, .horizontal) => {
-            ...directionalShortcuts,
-            const SingleActivator(LogicalKeyboardKey.arrowDown):
-                const BaseMenuEnterIntent.focusFirst(),
-            if (!_parentIsSubmenu)
+            if (!_parentIsSubmenu || widget.orientation == Axis.vertical)
               const SingleActivator(LogicalKeyboardKey.arrowUp):
                   const BaseMenuEnterIntent.focusLast(),
           },
@@ -1163,6 +1156,7 @@ class _TraverseNextAction<T extends _TraversalIntent> extends Action<T> {
   @override
   void invoke(T intent) {
     // Find the next node in the traversal order
+    focusScopeNode.requestFocus();
     if (focusScopeNode.nextFocus()) {
       FocusManager.instance.applyFocusChangesIfNeeded();
       if (primaryFocus == focusScopeNode.focusedChild &&

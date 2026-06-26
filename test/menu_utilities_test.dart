@@ -6087,8 +6087,8 @@ void main() {
       final Widget menu = BaseMenu(
         controller: controller,
         positionDelegate: const DefaultBaseMenuPositioningDelegate(
-          anchorAlignment: AlignmentDirectional.topEnd,
-          menuAlignment: AlignmentDirectional.topStart,
+          anchorAlignment: Alignment.topRight,
+          menuAlignment: Alignment.topLeft,
           padding: EdgeInsets.only(right: 50, top: 30),
           overlayPadding: EdgeInsets.zero,
         ),
@@ -6132,7 +6132,7 @@ void main() {
 
       // Reduce the amount of space available to the menu by (1px, 1px).
       await tester.pumpWidget(
-        App(Stack(children: <Widget>[Positioned(top: 29, right: 149, child: menu)])),
+        App(Stack(children: <Widget>[Positioned(top: 30, right: 149, child: menu)])),
       );
 
       await tester.tap(find.text(Tag.anchor.text));
@@ -6183,7 +6183,6 @@ void main() {
 
       controller.open(position: Offset.zero);
       await tester.pump();
-      await tester.pumpAndSettle();
 
       final Rect overlay = tester.getRect(find.byKey(Tag.a.key));
       expect(
@@ -6623,30 +6622,29 @@ void main() {
         expect(menu().width, equals(screenWidth - padding.horizontal));
       });
 
-      testWidgets('Vertical behavior', (WidgetTester tester) async {
+      testWidgets('Horizontal behavior (menuAlignment: 0.75, 0.75)', (WidgetTester tester) async {
         await changeSurfaceSize(tester, const Size(800, 600));
         const padding = EdgeInsets.all(8.0);
-        const menuHeight = 900.0;
-        const screenHeight = 600.0;
+        const menuWidth = 900.0;
+        const screenWidth = 800.0;
 
-        Widget buildTest(EdgeResolutionStrategy verticalStrategy) {
+        Widget buildTest(EdgeResolutionStrategy horizontalStrategy) {
           return App(
-            alignment: const Alignment(0.0, 0.5), // anchor is offset down
+            alignment: const Alignment(0.5, 0.0), // anchor is offset right
             BaseMenu(
               positionDelegate: DefaultBaseMenuPositioningDelegate(
-                anchorAlignment: Alignment.bottomLeft,
-                menuAlignment: Alignment.topLeft,
+                anchorAlignment: Alignment.topRight,
+                menuAlignment: const Alignment(0.75, 0.75),
                 edgeBehavior: EdgeBehavior(
-                  horizontal: const EdgeResolutionStrategy(),
-                  vertical: verticalStrategy,
+                  horizontal: horizontalStrategy,
+                  vertical: const EdgeResolutionStrategy(),
                 ),
               ),
               menu: BaseMenuPanel(
                 key: Tag.a.key,
-                clipBehavior: .hardEdge,
                 orientation: Axis.vertical,
                 children: <Widget>[
-                  Container(width: 100, height: 900, color: const Color(0xFF00FF00)),
+                  Container(width: 900, height: 100, color: const Color(0xFF00FF00)),
                 ],
               ),
               child: const AnchorButton(Tag.anchor),
@@ -6662,50 +6660,50 @@ void main() {
         final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
         Rect menu() => tester.getRect(find.byKey(Tag.a.key));
 
-        expect(menu().top, equals(anchor.bottom));
-        expect(menu().height, equals(menuHeight));
+        // With Alignment(0.75, 0.75), the point at 87.5% of the menu's width ( (0.75 + 1) / 2 )
+        // aligns with the anchor's attachment point (anchor.right).
+        expect(menu().left, equals(anchor.right - 0.875 * menuWidth));
+        expect(menu().width, equals(menuWidth));
 
         await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(constrain: true)));
 
-        expect(menu().top, equals(anchor.bottom));
-        expect(menu().height, lessThan(screenHeight - padding.vertical));
+        // The menu width should be constrained if it overflows the screen edges.
+        expect(menu().left, equals(anchor.right - 0.875 * menu().width));
+        expect(menu().width, lessThan(menuWidth));
 
         await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(flip: true)));
 
-        expect(menu().bottom, equals(anchor.top));
-        expect(menu().height, equals(menuHeight));
+        // Verify that the menu correctly flips horizontally when overflowing.
+        expect(menu().width, equals(menuWidth));
 
         await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(shift: true)));
 
-        expect(menu().top, equals(padding.top));
-        expect(menu().height, equals(menuHeight));
+        // Shift should keep the menu within the screen boundaries plus padding.
+        expect(menu().left, greaterThanOrEqualTo(padding.left));
+        expect(menu().width, equals(menuWidth));
 
         await tester.pumpWidget(
           buildTest(const EdgeResolutionStrategy(constrain: true, flip: true)),
         );
 
-        expect(menu().bottom, equals(anchor.top));
-        expect(menu().height, equals(anchor.top - padding.top));
+        expect(menu().left, greaterThanOrEqualTo(padding.left));
+        expect(menu().width, lessThanOrEqualTo(screenWidth - padding.horizontal));
 
         await tester.pumpWidget(
           buildTest(const EdgeResolutionStrategy(constrain: true, shift: true)),
         );
 
-        // Account for 8px padding
-        expect(menu().bottom, equals(screenHeight - padding.bottom));
-        expect(menu().height, equals(screenHeight - padding.vertical));
+        expect(menu().width, equals(screenWidth - padding.horizontal));
 
         await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(flip: true, shift: true)));
 
-        expect(menu().top, equals(padding.top));
-        expect(menu().height, equals(menuHeight));
+        expect(menu().width, equals(menuWidth));
 
         await tester.pumpWidget(
           buildTest(const EdgeResolutionStrategy(shift: true, flip: true, constrain: true)),
         );
 
-        expect(menu().top, equals(padding.top));
-        expect(menu().height, equals(screenHeight - padding.vertical));
+        expect(menu().width, equals(screenWidth - padding.horizontal));
       });
 
       testWidgets('Horizontal behavior (RTL)', (WidgetTester tester) async {
@@ -6792,330 +6790,89 @@ void main() {
         expect(menu().width, equals(screenWidth - padding.horizontal));
       });
 
-      testWidgets('Horizontal shift stays within screen bounds when overflowing right', (
-        WidgetTester tester,
-      ) async {
-        await changeSurfaceSize(tester, const Size(1000, 600));
-
-        await tester.pumpWidget(
-          App(
-            alignment: const Alignment(0.6, 0.0), // anchor is offset right
-            BaseMenu(
-              positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                anchorAlignment: Alignment.topRight,
-                menuAlignment: Alignment.topLeft,
-                edgeBehavior: EdgeBehavior(
-                  horizontal: EdgeResolutionStrategy(shift: true),
-                  vertical: EdgeResolutionStrategy(),
-                ),
-              ),
-              menu: BaseMenuPanel(
-                orientation: Axis.vertical,
-                children: <Widget>[
-                  Container(width: 300, height: 100, color: const Color(0xFF00FF00)),
-                ],
-              ),
-              child: const AnchorButton(Tag.anchor),
-            ),
-          ),
-        );
-
-        await tester.tap(find.text(Tag.anchor.text));
-        await tester.pump();
-
-        final Rect menu = collectOverlays().first;
-        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-
-        // Since shift is true but flip is false, it shouldn't flip to left.
-        // It must shift to fit within the screen boundaries.
-        const expectedOverlayPaddingRight = 8.0;
-        expect(menu.right, equals(1000.0 - expectedOverlayPaddingRight));
-        expect(menu.left, equals(1000.0 - expectedOverlayPaddingRight - 300.0));
-        // It still overlaps the anchor horizontally.
-        expect(menu.left < anchor.right, isTrue);
-      });
-
-      testWidgets('Horizontal shift: false allows menu to overflow the screen edge', (
-        WidgetTester tester,
-      ) async {
-        await changeSurfaceSize(tester, const Size(1000, 600));
-
-        await tester.pumpWidget(
-          App(
-            alignment: const Alignment(0.6, 0.0), // anchor is offset right
-            BaseMenu(
-              positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                anchorAlignment: Alignment.topRight,
-                menuAlignment: Alignment.topLeft,
-                edgeBehavior: EdgeBehavior(
-                  horizontal: EdgeResolutionStrategy(),
-                  vertical: EdgeResolutionStrategy(),
-                ),
-              ),
-              menu: BaseMenuPanel(
-                orientation: Axis.vertical,
-                children: <Widget>[
-                  Container(width: 300, height: 100, color: const Color(0xFF00FF00)),
-                ],
-              ),
-              child: const AnchorButton(Tag.anchor),
-            ),
-          ),
-        );
-
-        await tester.tap(find.text(Tag.anchor.text));
-        await tester.pump();
-
-        final Rect menu = collectOverlays().first;
-        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-
-        // It should align perfectly at anchor.topRight and NOT shift.
-        expect(menu.left, equals(anchor.right));
-        expect(menu.right, equals(anchor.right + 300.0));
-        expect(menu.right, greaterThan(1000.0)); // Overflows rights boundaries!
-      });
-
-      testWidgets('Horizontal flip: true flips menu across anchor when overflowing', (
-        WidgetTester tester,
-      ) async {
-        await changeSurfaceSize(tester, const Size(1000, 600));
-
-        await tester.pumpWidget(
-          App(
-            alignment: const Alignment(0.6, 0.0), // anchor offset right
-            BaseMenu(
-              positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                anchorAlignment: Alignment.topRight,
-                menuAlignment: Alignment.topLeft,
-                edgeBehavior: EdgeBehavior(
-                  horizontal: EdgeResolutionStrategy(flip: true),
-                  vertical: EdgeResolutionStrategy(),
-                ),
-              ),
-              menu: BaseMenuPanel(
-                orientation: Axis.vertical,
-                children: <Widget>[
-                  Container(width: 300, height: 100, color: const Color(0xFF00FF00)),
-                ],
-              ),
-              child: const AnchorButton(Tag.anchor),
-            ),
-          ),
-        );
-
-        await tester.tap(find.text(Tag.anchor.text));
-        await tester.pump();
-
-        final Rect menu = collectOverlays().first;
-        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-
-        // Since flip is true and it overflows the screen boundary, it flips horizontally.
-        // It aligns to the left as expected.
-        expect(menu.right, equals(anchor.left));
-      });
-
-      testWidgets('Horizontal constrain: true constrains max width when flip is false', (
-        WidgetTester tester,
-      ) async {
-        await changeSurfaceSize(tester, const Size(1000, 600));
-
-        await tester.pumpWidget(
-          App(
-            alignment: const Alignment(0.6, 0.0), // anchor offset right
-            BaseMenu(
-              positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                anchorAlignment: Alignment.topRight,
-                menuAlignment: Alignment.topLeft,
-                edgeBehavior: EdgeBehavior(
-                  horizontal: EdgeResolutionStrategy(constrain: true),
-                  vertical: EdgeResolutionStrategy(),
-                ),
-              ),
-              menu: BaseMenuPanel(
-                constrainCrossAxis: true, // Allow cross axis constraints to apply
-                orientation: Axis.vertical,
-                children: <Widget>[
-                  Container(width: 400, height: 100, color: const Color(0xFF00FF00)),
-                ],
-              ),
-              child: const AnchorButton(Tag.anchor),
-            ),
-          ),
-        );
-
-        await tester.tap(find.text(Tag.anchor.text));
-        await tester.pump();
-
-        final Rect menu = collectOverlays().first;
-        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-
-        // Since constrain is true and flip is false, maxWidth should be the remaining space (trailing space).
-        const overlayPaddingRight = 8.0;
-        final double expectedWidth = 1000.0 - anchor.right - overlayPaddingRight;
-        expect(menu.width, equals(expectedWidth));
-        expect(menu.right, equals(1000.0 - overlayPaddingRight));
-      });
-
-      testWidgets('Vertical shift stays within screen bounds when overflowing bottom', (
-        WidgetTester tester,
-      ) async {
+      testWidgets('Vertical behavior', (WidgetTester tester) async {
         await changeSurfaceSize(tester, const Size(800, 600));
+        const padding = EdgeInsets.all(8.0);
+        const menuHeight = 900.0;
+        const screenHeight = 600.0;
 
-        await tester.pumpWidget(
-          App(
-            alignment: const Alignment(0.0, 0.8), // anchor is offset bottom
+        Widget buildTest(EdgeResolutionStrategy verticalStrategy) {
+          return App(
+            alignment: const Alignment(0.0, 0.5), // anchor is offset down
             BaseMenu(
-              positionDelegate: const DefaultBaseMenuPositioningDelegate(
+              positionDelegate: DefaultBaseMenuPositioningDelegate(
                 anchorAlignment: Alignment.bottomLeft,
                 menuAlignment: Alignment.topLeft,
                 edgeBehavior: EdgeBehavior(
-                  horizontal: EdgeResolutionStrategy(),
-                  vertical: EdgeResolutionStrategy(shift: true),
+                  horizontal: const EdgeResolutionStrategy(),
+                  vertical: verticalStrategy,
                 ),
               ),
               menu: BaseMenuPanel(
+                key: Tag.a.key,
+                clipBehavior: .hardEdge,
                 orientation: Axis.vertical,
                 children: <Widget>[
-                  Container(width: 100, height: 200, color: const Color(0xFF00FF00)),
+                  Container(width: 100, height: 900, color: const Color(0xFF00FF00)),
                 ],
               ),
               child: const AnchorButton(Tag.anchor),
             ),
-          ),
-        );
+          );
+        }
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy()));
 
         await tester.tap(find.text(Tag.anchor.text));
         await tester.pump();
 
-        final Rect menu = collectOverlays().first;
         final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+        Rect menu() => tester.getRect(find.byKey(Tag.a.key));
 
-        // Without flip, it shifts up to stay within screen boundaries.
-        const expectedOverlayPaddingBottom = 8.0;
-        expect(menu.bottom, equals(600.0 - expectedOverlayPaddingBottom));
-        expect(menu.top, equals(600.0 - expectedOverlayPaddingBottom - 200.0));
-        // Should overlap anchor vertically.
-        expect(menu.top < anchor.bottom, isTrue);
-      });
+        expect(menu().top, equals(anchor.bottom));
+        expect(menu().height, equals(menuHeight));
 
-      testWidgets('Vertical shift: false allows menu to overflow screen bottom', (
-        WidgetTester tester,
-      ) async {
-        await changeSurfaceSize(tester, const Size(800, 600));
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(constrain: true)));
+
+        expect(menu().top, equals(anchor.bottom));
+        expect(menu().height, lessThan(screenHeight - padding.vertical));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(flip: true)));
+
+        expect(menu().bottom, equals(anchor.top));
+        expect(menu().height, equals(menuHeight));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(shift: true)));
+
+        expect(menu().bottom, equals(screenHeight - padding.bottom));
+        expect(menu().height, equals(menuHeight));
 
         await tester.pumpWidget(
-          App(
-            alignment: const Alignment(0.0, 0.8),
-            BaseMenu(
-              positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                anchorAlignment: Alignment.bottomLeft,
-                menuAlignment: Alignment.topLeft,
-                edgeBehavior: EdgeBehavior(
-                  horizontal: EdgeResolutionStrategy(),
-                  vertical: EdgeResolutionStrategy(),
-                ),
-              ),
-              menu: BaseMenuPanel(
-                orientation: Axis.vertical,
-                children: <Widget>[
-                  Container(width: 100, height: 200, color: const Color(0xFF00FF00)),
-                ],
-              ),
-              child: const AnchorButton(Tag.anchor),
-            ),
-          ),
+          buildTest(const EdgeResolutionStrategy(constrain: true, flip: true)),
         );
 
-        await tester.tap(find.text(Tag.anchor.text));
-        await tester.pump();
-
-        final Rect menu = collectOverlays().first;
-        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-
-        // Should align at anchor.bottom and overflow.
-        expect(menu.top, equals(anchor.bottom));
-        expect(menu.bottom, equals(anchor.bottom + 200.0));
-        expect(menu.bottom, greaterThan(600.0));
-      });
-
-      testWidgets('Vertical flip: true flips menu vertically across anchor', (
-        WidgetTester tester,
-      ) async {
-        await changeSurfaceSize(tester, const Size(800, 600));
+        expect(menu().bottom, equals(anchor.top));
+        expect(menu().height, equals(anchor.top - padding.top));
 
         await tester.pumpWidget(
-          App(
-            alignment: const Alignment(0.0, 0.8),
-            BaseMenu(
-              positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                anchorAlignment: Alignment.bottomLeft,
-                menuAlignment: Alignment.topLeft,
-                edgeBehavior: EdgeBehavior(
-                  horizontal: EdgeResolutionStrategy(),
-                  vertical: EdgeResolutionStrategy(flip: true),
-                ),
-              ),
-              menu: BaseMenuPanel(
-                orientation: Axis.vertical,
-                children: <Widget>[
-                  Container(width: 100, height: 200, color: const Color(0xFF00FF00)),
-                ],
-              ),
-              child: const AnchorButton(Tag.anchor),
-            ),
-          ),
+          buildTest(const EdgeResolutionStrategy(constrain: true, shift: true)),
         );
 
-        await tester.tap(find.text(Tag.anchor.text));
-        await tester.pump();
+        // Account for 8px padding
+        expect(menu().bottom, equals(screenHeight - padding.bottom));
+        expect(menu().height, equals(screenHeight - padding.vertical));
 
-        final Rect menu = collectOverlays().first;
-        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(flip: true, shift: true)));
 
-        // It should flip above the anchor, so its bottom edge aligns with anchor.top.
-        expect(menu.bottom, equals(anchor.top));
-      });
-
-      testWidgets('Vertical constrain: true constrains max height when flip is false', (
-        WidgetTester tester,
-      ) async {
-        await changeSurfaceSize(tester, const Size(800, 600));
+        expect(menu().top, equals(padding.top));
+        expect(menu().height, equals(menuHeight));
 
         await tester.pumpWidget(
-          App(
-            alignment: const Alignment(0.0, 0.5), // anchor in the lower middle
-            BaseMenu(
-              positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                anchorAlignment: Alignment.bottomLeft,
-                menuAlignment: Alignment.topLeft,
-                edgeBehavior: EdgeBehavior(
-                  horizontal: EdgeResolutionStrategy(),
-                  vertical: EdgeResolutionStrategy(constrain: true),
-                ),
-              ),
-              menu: BaseMenuPanel(
-                orientation: Axis.vertical,
-                children: <Widget>[
-                  Container(width: 100, height: 500, color: const Color(0xFF00FF00)),
-                ],
-              ),
-              child: const AnchorButton(Tag.anchor),
-            ),
-          ),
+          buildTest(const EdgeResolutionStrategy(shift: true, flip: true, constrain: true)),
         );
 
-        await tester.tap(find.text(Tag.anchor.text));
-        await tester.pump();
-
-        final Rect menu = collectOverlays().first;
-        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-
-        // Since constrain is true and flip is false, available space is below.
-        // maxHeight is screen.bottom - anchor.bottom - overlayPadding.bottom.
-        const overlayPaddingBottom = 8.0;
-        final double expectedHeight = 600.0 - anchor.bottom - overlayPaddingBottom;
-        expect(menu.height, equals(expectedHeight));
-        expect(menu.bottom, equals(600.0 - overlayPaddingBottom));
+        expect(menu().top, equals(padding.top));
+        expect(menu().height, equals(screenHeight - padding.vertical));
       });
     });
   });

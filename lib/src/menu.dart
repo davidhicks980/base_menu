@@ -442,8 +442,8 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
     this.padding = EdgeInsets.zero,
     this.overlayPadding = const EdgeInsets.all(8),
     this.edgeBehavior = const EdgeBehavior(
-      horizontal: EdgeResolutionStrategy(flip: true, shift: true),
-      vertical: EdgeResolutionStrategy(flip: true, shift: true),
+      horizontal: EdgeResolutionStrategy(flip: true, shift: true, constrain: true),
+      vertical: EdgeResolutionStrategy(flip: true, shift: true, constrain: true),
     ),
   });
 
@@ -1366,7 +1366,8 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
     bool overBottomEdge(double y) => y > screen.bottom - childSize.height - overlayInsets.bottom;
     bool hasHorizontalAnchorOverlap = childSize.width >= screen.width - overlayInsets.horizontal;
     // If the menu is wider than the screen, shift if allowed.
-    if (edgeBehavior.horizontal.shift && hasHorizontalAnchorOverlap) {
+    if ((edgeBehavior.horizontal.shift || edgeBehavior.horizontal.constrain) &&
+        hasHorizontalAnchorOverlap) {
       x = switch (textDirection) {
         .ltr => screen.left + overlayInsets.left,
         .rtl => screen.right - childSize.width - overlayInsets.right,
@@ -1408,7 +1409,7 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
           } else {
             x = flipX;
           }
-        } else if (edgeBehavior.horizontal.shift) {
+        } else if (edgeBehavior.horizontal.shift || edgeBehavior.horizontal.constrain) {
           x = screen.left + overlayInsets.left;
         }
       } else if (overRightEdge(x)) {
@@ -1436,98 +1437,117 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
           } else {
             x = flipX;
           }
-        } else if (edgeBehavior.horizontal.shift) {
+        } else if (edgeBehavior.horizontal.shift || edgeBehavior.horizontal.constrain) {
+          // If constrain is true, we ALLOW shifting to avoid overflow/dramatic shrinkage
           x = screen.right - childSize.width - overlayInsets.right;
         }
       }
     }
 
-    if (edgeBehavior.vertical.shift) {
+    if (edgeBehavior.vertical.shift || edgeBehavior.vertical.constrain) {
       if (childSize.height >= screen.height - overlayInsets.vertical) {
         y = screen.top + overlayInsets.top;
-      } else {
-        if (hasHorizontalAnchorOverlap && !anchor.isEmpty) {
-          final double below = anchor.bottom - y;
-          final double above = y + childSize.height - anchor.top;
-          if (below > 0 && above > 0) {
-            if (below > above) {
-              y = anchor.top - childSize.height;
-            } else {
-              y = anchor.bottom;
-            }
-          }
-        }
       }
-
-      double? shiftY;
-      if (padding != null && padding.vertical > 0) {
-        double ratio = (y - anchorPosition.dy) / childSize.height;
-        ratio = ui.clampDouble(ratio, -1, 0);
-        shiftY = padding.bottom * ratio + padding.top * (ratio + 1);
-        y -= shiftY;
-      }
-
-      if (overTopEdge(y)) {
-        if (edgeBehavior.vertical.flip) {
-          double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
-          if (shiftY != null) {
-            flipY -= padding!.vertical + shiftY;
-          }
-          if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-            // If the flipped position also overflows, choose the side with the
-            // most space available and shift if allowed.
-            final double availableTop = anchor.top - screen.top - overlayInsets.top;
-            final double availableBottom = screen.bottom - anchor.bottom - overlayInsets.bottom;
-            if (availableTop >= availableBottom) {
-              if (edgeBehavior.vertical.shift) {
-                y = screen.top + overlayInsets.top;
-              }
-            } else {
-              if (edgeBehavior.vertical.shift) {
-                y = screen.bottom - childSize.height - overlayInsets.bottom;
-              } else {
-                y = flipY;
-              }
-            }
+    }
+    if (edgeBehavior.vertical.shift) {
+      if (hasHorizontalAnchorOverlap && !anchor.isEmpty) {
+        final double below = anchor.bottom - y;
+        final double above = y + childSize.height - anchor.top;
+        if (below > 0 && above > 0) {
+          if (below > above) {
+            y = anchor.top - childSize.height;
           } else {
-            y = flipY;
+            y = anchor.bottom;
           }
-        } else if (edgeBehavior.vertical.shift) {
-          y = screen.top + overlayInsets.top;
-        }
-      } else if (overBottomEdge(y)) {
-        if (edgeBehavior.vertical.flip) {
-          double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
-          if (shiftY != null) {
-            flipY += padding!.vertical - shiftY;
-          }
-
-          if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-            // If the flipped position also overflows, choose the side with the
-            // most space available and shift if allowed.
-            final double availableTop = anchor.top - screen.top - overlayInsets.top;
-            final double availableBottom = screen.bottom - anchor.bottom - overlayInsets.bottom;
-            if (availableBottom >= availableTop) {
-              if (edgeBehavior.vertical.shift) {
-                y = screen.bottom - childSize.height - overlayInsets.bottom;
-              }
-            } else {
-              if (edgeBehavior.vertical.shift) {
-                y = screen.top + overlayInsets.top;
-              } else {
-                y = flipY;
-              }
-            }
-          } else {
-            y = flipY;
-          }
-        } else if (edgeBehavior.vertical.shift) {
-          y = screen.bottom - childSize.height - overlayInsets.bottom;
         }
       }
     }
 
+    double? shiftY;
+    if (padding != null && padding.vertical > 0) {
+      double ratio = (y - anchorPosition.dy) / childSize.height;
+      ratio = ui.clampDouble(ratio, -1, 0);
+      shiftY = padding.bottom * ratio + padding.top * (ratio + 1);
+      y -= shiftY;
+    }
+
+    if (overTopEdge(y)) {
+      if (edgeBehavior.vertical.flip) {
+        double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
+        if (shiftY != null) {
+          flipY -= padding!.vertical + shiftY;
+        }
+        if (overTopEdge(flipY) || overBottomEdge(flipY)) {
+          // If the flipped position also overflows, choose the side with the
+          // most space available and shift if allowed.
+          final double availableTop = anchor.top - screen.top - overlayInsets.top;
+          final double availableBottom = screen.bottom - anchor.bottom - overlayInsets.bottom;
+          if (availableTop >= availableBottom) {
+            if (edgeBehavior.vertical.shift) {
+              y = screen.top + overlayInsets.top;
+            }
+          } else {
+            if (edgeBehavior.vertical.shift) {
+              y = screen.bottom - childSize.height - overlayInsets.bottom;
+            } else {
+              y = flipY;
+            }
+          }
+        } else {
+          y = flipY;
+        }
+      } else if (edgeBehavior.vertical.shift) {
+        y = screen.top + overlayInsets.top;
+      }
+    } else if (overBottomEdge(y)) {
+      if (edgeBehavior.vertical.flip) {
+        double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
+        if (shiftY != null) {
+          flipY += padding!.vertical - shiftY;
+        }
+
+        if (overTopEdge(flipY) || overBottomEdge(flipY)) {
+          // If the flipped position also overflows, choose the side with the
+          // most space available and shift if allowed.
+          final double availableTop = anchor.top - screen.top - overlayInsets.top;
+          final double availableBottom = screen.bottom - anchor.bottom - overlayInsets.bottom;
+          if (availableBottom >= availableTop) {
+            if (edgeBehavior.vertical.shift) {
+              y = screen.bottom - childSize.height - overlayInsets.bottom;
+            }
+          } else {
+            if (edgeBehavior.vertical.shift) {
+              y = screen.top + overlayInsets.top;
+            } else {
+              y = flipY;
+            }
+          }
+        } else {
+          y = flipY;
+        }
+      } else if (edgeBehavior.vertical.shift) {
+        y = screen.bottom - childSize.height - overlayInsets.bottom;
+      }
+    }
+
     return Offset(x, y);
+  }
+
+  static double computeMaxDimension(
+    double leading,
+    double trailing,
+    double leadingRatio,
+    double trailingRatio,
+    double axisSize,
+  ) {
+    final double limitBefore = leadingRatio > 0 ? leading / leadingRatio : double.infinity;
+    final double limitAfter = trailingRatio > 0 ? trailing / trailingRatio : double.infinity;
+
+    if ((limitBefore + limitAfter) * 0.5 <= axisSize) {
+      return axisSize;
+    }
+
+    return math.min(limitBefore, limitAfter);
   }
 
   @override
@@ -1544,33 +1564,56 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
     final Rect screen = _findClosestScreen(parentSize, anchorRect.center, avoidBounds);
     final EdgeInsets overlayInsets = overlayPadding.resolve(textDirection);
     const childConstraints = BoxConstraints();
-    
 
     double maxWidth = childConstraints.maxWidth;
     if (edgeBehavior.horizontal.constrain) {
       if (edgeBehavior.horizontal.shift) {
-        // If we can shift, the menu can slide to occupy the entire horizontal viewport width.
         maxWidth = screen.width - overlayInsets.horizontal;
       } else {
-        // Space on the primary side (Trailing)
-        final double trailing = switch (textDirection) {
-          TextDirection.ltr => screen.right - anchorOffset.dx - overlayInsets.right,
-          TextDirection.rtl => anchorOffset.dx - screen.left - overlayInsets.left,
-        };
+        // This block handles the case where the menu is constrained to the
+        // space between the anchor and the screen edge, but is not allowed to
+        // shift. The menu must be constrained relative to the point on the
+        // anchor where it is attached, which is determined by the
+        // menuAlignment.
+        //
+        // If the menu is flippable, the flipped position must also be
+        // considered. The maximum width is the largest width that can be used
+        // without overflowing the screen in either position.
+        //
+        // The menu will shift if the average of the left and right fractions of
+        // the anchor, when pinned, exceeds the available axis space. This
+        // prevents the menu width from dramatically shrinking when the anchor
+        // is near the edge of the screen.
+        //
+        // Ideally, this logic shouldn't be necessary, but it may be useful in
+        // esoteric cases.
+        final resolvedMenuAlignment = menuAlignment.resolve(textDirection);
+        final xRatioLeading = resolvedMenuAlignment.x * 0.5 + 0.5;
+        final xRatioTrailing = 1 - xRatioLeading;
+        final double left = anchorOffset.dx - screen.left - overlayInsets.left;
+        final double right = screen.right - anchorOffset.dx - overlayInsets.right;
+        maxWidth = computeMaxDimension(
+          left,
+          right,
+          xRatioLeading,
+          xRatioTrailing,
+          screen.width - overlayInsets.horizontal,
+        );
 
         if (edgeBehavior.horizontal.flip) {
           final Offset anchorMidpoint = menuPosition == null ? anchorRect.center : anchorOffset;
-          // Flip the attachment point across the anchor's horizontal midpoint
           final double flippedAnchorX = anchorMidpoint.dx * 2 - anchorOffset.dx;
-          // Calculate space on the opposite side (Leading) relative to the flipped point
-          final double leading = switch (textDirection) {
-            TextDirection.ltr => flippedAnchorX - screen.left - overlayInsets.left,
-            TextDirection.rtl => screen.right - flippedAnchorX - overlayInsets.right,
-          };
+          final double flippedLeft = flippedAnchorX - screen.left - overlayInsets.left;
+          final double flippedRight = screen.right - flippedAnchorX - overlayInsets.right;
+          final double flippedWidth = computeMaxDimension(
+            flippedRight,
+            flippedLeft,
+            xRatioLeading,
+            xRatioTrailing,
+            screen.width - overlayInsets.horizontal,
+          );
 
-          maxWidth = math.max(trailing, leading);
-        } else {
-          maxWidth = trailing;
+          maxWidth = math.max(maxWidth, flippedWidth);
         }
       }
     }
@@ -1578,21 +1621,33 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
     double maxHeight = childConstraints.maxHeight;
     if (edgeBehavior.vertical.constrain) {
       if (edgeBehavior.vertical.shift) {
-        // If we can shift, the menu can slide to occupy the entire vertical viewport height.
         maxHeight = screen.height - overlayInsets.vertical;
       } else {
-        // Space on the primary side (Below)
-        final double availableBelow = screen.bottom - anchorOffset.dy - overlayInsets.bottom;
-
+        final resolvedMenuAlignment = menuAlignment.resolve(textDirection);
+        final yRatioLeading = resolvedMenuAlignment.y * 0.5 + 0.5;
+        final yRatioTrailing = 1 - yRatioLeading;
+        final double top = anchorOffset.dy - screen.top - overlayInsets.top;
+        final double bottom = screen.bottom - anchorOffset.dy - overlayInsets.bottom;
+        maxHeight = computeMaxDimension(
+          top,
+          bottom,
+          yRatioLeading,
+          yRatioTrailing,
+          screen.height - overlayInsets.vertical,
+        );
         if (edgeBehavior.vertical.flip) {
           final Offset anchorMidpoint = menuPosition == null ? anchorRect.center : anchorOffset;
-          // Flip the attachment point across the anchor's vertical midpoint
           final double flippedAnchorY = anchorMidpoint.dy * 2 - anchorOffset.dy;
-          // Calculate space on the opposite side (Above) relative to the flipped point
-          final double availableAbove = flippedAnchorY - screen.top - overlayInsets.top;
-          maxHeight = math.max(availableBelow, availableAbove);
-        } else {
-          maxHeight = availableBelow;
+          final double flippedTop = flippedAnchorY - screen.top - overlayInsets.top;
+          final double flippedBottom = screen.bottom - flippedAnchorY - overlayInsets.bottom;
+          final double flippedHeight = computeMaxDimension(
+            flippedBottom,
+            flippedTop,
+            yRatioLeading,
+            yRatioTrailing,
+            screen.height - overlayInsets.vertical,
+          );
+          maxHeight = math.max(maxHeight, flippedHeight);
         }
       }
     }

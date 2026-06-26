@@ -3,41 +3,22 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import 'dismiss.dart';
 import 'menu_action_label.dart';
 import 'menu_divider.dart';
 import 'menu_item.dart';
 import 'model.dart';
 import 'surface.dart';
 
-class _MenuSystemDismissHandler extends InheritedWidget {
-  const _MenuSystemDismissHandler({
-    required this.state,
-    required super.child,
-    required this.isInteractive,
-  });
-
-  final _SequoiaMenuState state;
-  final bool isInteractive;
-
-  static _MenuSystemDismissHandler of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_MenuSystemDismissHandler>()!;
-  }
-
-  @override
-  bool updateShouldNotify(_MenuSystemDismissHandler oldWidget) {
-    return state != oldWidget.state || isInteractive != oldWidget.isInteractive;
-  }
-}
-
-class SequoiaMenu extends StatefulWidget {
-  const SequoiaMenu({super.key, required this.items});
+class SequoiaMenuBar extends StatefulWidget {
+  const SequoiaMenuBar({super.key, required this.items});
 
   final List<MenuItem> items;
 
   @override
-  State<SequoiaMenu> createState() => _SequoiaMenuState();
+  State<SequoiaMenuBar> createState() => _SequoiaMenuBarState();
 
-  static Widget _buildItem(MenuItem item, bool isTopLevel) {
+  static Widget buildItem(MenuItem item, bool isTopLevel) {
     if (item case MenuDividerItem()) {
       return const SequoiaMenuDivider();
     }
@@ -46,109 +27,81 @@ class SequoiaMenu extends StatefulWidget {
       return SequoiaMenuItem(shortcut: item.shortcut, child: Text(item.label));
     }
 
-    return _SequoiaModelBarSubmenu(item: item, isTopLevel: isTopLevel);
+    return SequoiaSubmenu(item: item, isTopLevel: isTopLevel);
   }
 }
 
-class _SequoiaMenuState extends State<SequoiaMenu> with SingleTickerProviderStateMixin {
+class _SequoiaMenuBarState extends State<SequoiaMenuBar> {
   final controller = MenuController();
-  bool isAnimating = false;
-  bool isInteractive = false;
   final FocusScopeNode focusScopeNode = FocusScopeNode();
-
-  late final AnimationController animation = AnimationController(
-    duration: Duration.zero,
-    value: 1,
-    vsync: this,
-  );
-
-  void enableInteractivity() {
-    if (!isInteractive) {
-      setState(() {
-        isInteractive = true;
-      });
-    }
-  }
-
-  void fadeMenuOut() {
-    if (isAnimating) {
-      return;
-    }
-    focusScopeNode.requestScopeFocus();
-    isAnimating = true;
-    animation.duration = const Duration(milliseconds: 125);
-    animation.reverse().whenComplete(() {
-      controller.close();
-      animation.duration = Duration.zero;
-      animation.value = 1;
-      isAnimating = false;
-      setState(() {
-        isInteractive = false;
-      });
-    });
-  }
 
   @override
   void dispose() {
     focusScopeNode.dispose();
-    animation.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return _MenuSystemDismissHandler(
-      isInteractive: isInteractive,
-      state: this,
-      child: TapRegion(
-        groupId: 'menu_system',
-        onTapOutside: (event) {
-          fadeMenuOut();
-        },
-        child: MouseRegion(
-          onExit: (event) {
-            if (!controller.isOpen) {
-              focusScopeNode.requestScopeFocus();
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: BaseMenuBar(
-              controller: controller,
-              focusScopeNode: focusScopeNode,
-              child: BaseMenuPanel(
-                orientation: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                children: widget.items.map((item) => SequoiaMenu._buildItem(item, true)).toList(),
+    return SequoiaMenuDismissCoordinator(
+      controller: controller,
+      onFadeOutBegin: () {
+        focusScopeNode.requestScopeFocus();
+      },
+      child: Builder(
+        builder: (context) {
+          return TapRegion(
+            groupId: 'menu_system',
+            onTapOutside: (event) {
+              SequoiaMenuDismissHandler.of(context).fadeMenuOut();
+            },
+            child: MouseRegion(
+              onExit: (event) {
+                if (!controller.isOpen) {
+                  focusScopeNode.requestScopeFocus();
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: BaseMenuBar(
+                  controller: controller,
+                  focusScopeNode: focusScopeNode,
+                  child: BaseMenuPanel(
+                    orientation: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    children: widget.items
+                        .map((item) => SequoiaMenuBar.buildItem(item, true))
+                        .toList(),
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 }
 
-class _SequoiaModelBarSubmenu extends StatefulWidget {
-  const _SequoiaModelBarSubmenu({required this.item, required this.isTopLevel});
+class SequoiaSubmenu extends StatefulWidget {
+  const SequoiaSubmenu({super.key, required this.item, required this.isTopLevel});
 
   final MenuItem item;
   final bool isTopLevel;
 
   @override
-  State<_SequoiaModelBarSubmenu> createState() => _SequoiaModelBarSubmenuState();
+  State<SequoiaSubmenu> createState() => _SequoiaSubmenuState();
 }
 
-class _SequoiaModelBarSubmenuState extends State<_SequoiaModelBarSubmenu>
-    with SingleTickerProviderStateMixin {
+class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
   final controller = MenuController();
   final focusNode = FocusNode();
-  late _SequoiaMenuState _menuState;
+  late SequoiaMenuDismissCoordinatorState _dismissHandler;
   bool _isClosing = false;
   late final Map<Type, Action<Intent>> actions = {
     DismissIntent: CallbackAction<DismissIntent>(
       onInvoke: (intent) {
-        _menuState.fadeMenuOut();
+        _dismissHandler.fadeMenuOut();
         return null;
       },
     ),
@@ -157,7 +110,7 @@ class _SequoiaModelBarSubmenuState extends State<_SequoiaModelBarSubmenu>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _menuState = _MenuSystemDismissHandler.of(context).state;
+    _dismissHandler = SequoiaMenuDismissHandler.of(context);
   }
 
   @override
@@ -168,7 +121,7 @@ class _SequoiaModelBarSubmenuState extends State<_SequoiaModelBarSubmenu>
 
   void _handleCloseRequest(VoidCallback hideOverlay) {
     scheduleMicrotask(() {
-      if (!_menuState.isAnimating) {
+      if (!_dismissHandler.isAnimating) {
         hideOverlay();
       } else {
         setState(() {
@@ -176,7 +129,7 @@ class _SequoiaModelBarSubmenuState extends State<_SequoiaModelBarSubmenu>
         });
         void listener(AnimationStatus status) {
           if (status == AnimationStatus.dismissed) {
-            _menuState.animation.removeStatusListener(listener);
+            _dismissHandler.animation.removeStatusListener(listener);
             hideOverlay();
             if (mounted) {
               setState(() {
@@ -186,7 +139,7 @@ class _SequoiaModelBarSubmenuState extends State<_SequoiaModelBarSubmenu>
           }
         }
 
-        _menuState.animation.addStatusListener(listener);
+        _dismissHandler.animation.addStatusListener(listener);
       }
     });
   }
@@ -205,17 +158,17 @@ class _SequoiaModelBarSubmenuState extends State<_SequoiaModelBarSubmenu>
         hoverOpenDelay: widget.isTopLevel ? Duration.zero : const Duration(milliseconds: 250),
         anchorActions: actions,
         focusNode: focusNode,
-        requestFocusOnHover: _menuState.isInteractive,
+        requestFocusOnHover: _dismissHandler.isInteractive,
         onPressed: () {
           if (controller.isOpen) {
             if (widget.isTopLevel) {
-              _menuState.fadeMenuOut();
+              _dismissHandler.fadeMenuOut();
               focusNode.unfocus();
             }
           } else {
             controller.open();
             focusNode.requestFocus();
-            _menuState.enableInteractivity();
+            _dismissHandler.enableInteractivity();
           }
         },
         menu: Actions(
@@ -229,10 +182,10 @@ class _SequoiaModelBarSubmenuState extends State<_SequoiaModelBarSubmenu>
                 child: TapRegion(
                   groupId: 'menu_system',
                   onTapOutside: (event) {
-                    _menuState.fadeMenuOut();
+                    _dismissHandler.fadeMenuOut();
                   },
                   child: FadeTransition(
-                    opacity: _menuState.animation,
+                    opacity: _dismissHandler.animation,
                     child: ColoredBox(
                       color: const Color(0x00000000),
                       child: Padding(
@@ -250,7 +203,7 @@ class _SequoiaModelBarSubmenuState extends State<_SequoiaModelBarSubmenu>
                             padding: const EdgeInsets.all(4),
                             children: [
                               for (final child in widget.item.children)
-                                SequoiaMenu._buildItem(child, false),
+                                SequoiaMenuBar.buildItem(child, false),
                             ],
                           ),
                         ),

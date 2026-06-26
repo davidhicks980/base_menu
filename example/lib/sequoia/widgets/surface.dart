@@ -5,9 +5,7 @@ class SequoiaMenuSurface extends StatelessWidget {
   const SequoiaMenuSurface({
     super.key,
     required this.child,
-    this.borderRadius = const BorderRadius.all(
-      Radius.circular(6.0),
-    ), // Reduced from 11.0 to match actual strict menu radius
+    this.borderRadius = const BorderRadius.all(Radius.circular(6.0)),
   });
 
   final Widget child;
@@ -15,7 +13,7 @@ class SequoiaMenuSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const backgroundColor = Color.fromARGB(120, 50, 50, 50);
+    const backgroundColor = Color.fromARGB(191, 50, 50, 50);
     const borderColor = Color(0x38FFFFFF);
     final physicalPixel = 1.0 / View.of(context).devicePixelRatio;
 
@@ -31,7 +29,7 @@ class SequoiaMenuSurface extends StatelessWidget {
             // clipped
             padding: EdgeInsets.all(3.0 * physicalPixel),
             child: CustomPaint(
-              painter: BorderPainter(
+              painter: _BorderPainter(
                 physicalPixel: physicalPixel,
                 borderRadius: borderRadius,
                 backgroundColor: backgroundColor,
@@ -47,8 +45,8 @@ class SequoiaMenuSurface extends StatelessWidget {
   }
 }
 
-class BorderPainter extends CustomPainter {
-  const BorderPainter({
+class _BorderPainter extends CustomPainter {
+  const _BorderPainter({
     required this.physicalPixel,
     required this.borderRadius,
     required this.outerColor,
@@ -63,10 +61,7 @@ class BorderPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final physicalPixel = 1.0 / PlatformDispatcher.instance.views.first.devicePixelRatio;
-
     final padding = 3.0 * physicalPixel;
-
     final outerRRect = borderRadius.toRRect(
       Rect.fromLTWH(-padding, -padding, size.width + 2 * padding, size.height + 2 * padding),
     );
@@ -92,7 +87,7 @@ class BorderPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant BorderPainter oldDelegate) =>
+  bool shouldRepaint(covariant _BorderPainter oldDelegate) =>
       oldDelegate.borderRadius != borderRadius ||
       oldDelegate.color != color ||
       oldDelegate.outerColor != outerColor ||

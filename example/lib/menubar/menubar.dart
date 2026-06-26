@@ -48,9 +48,9 @@ class _MenuBarState extends State<_MenuBar> {
         style: const TextStyle(fontFamily: 'InterVariable', fontSize: 14, color: Color(0xff000000)),
         child: BaseMenuBar(
           axis: widget.orientation,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: StyledMenuPanel(
+          child: StyledMenuPanel(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.all(Radius.circular(4)),
               child: BaseMenuPanel(
                 constraints: const BoxConstraints(minWidth: 150),
                 orientation: widget.orientation,
@@ -149,7 +149,10 @@ class _SubmenuState extends State<_Submenu> with SingleTickerProviderStateMixin 
         controller: controller,
         focusNode: focusNode,
         positionDelegate: const DefaultBaseMenuPositioningDelegate(
-          flipEdges: {AxisDirection.left, AxisDirection.right},
+          edgeBehavior: EdgeBehavior(
+            horizontal: EdgeResolutionStrategy(flip: true),
+            vertical: EdgeResolutionStrategy(constrain: true),
+          ),
           padding: EdgeInsets.all(4.0),
         ),
         onPressed: () {
@@ -161,7 +164,13 @@ class _SubmenuState extends State<_Submenu> with SingleTickerProviderStateMixin 
           }
         },
         menu: StyledMenuPanel(
+          borderRadius: const BorderRadiusDirectional.only(
+            topEnd: Radius.circular(4),
+            bottomEnd: Radius.circular(4),
+            bottomStart: Radius.circular(4),
+          ),
           child: BaseMenuPanel(
+            clipBehavior: .hardEdge,
             padding: const EdgeInsets.all(4.0),
             onEnter: (event) {
               if (!focusNode.hasFocus) {

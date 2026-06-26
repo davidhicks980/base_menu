@@ -4572,11 +4572,11 @@ void main() {
       await tester.tap(find.text(Tag.anchor.text));
       await tester.pump();
 
-      final Offset anchorBottomLeft = tester.getBottomLeft(
+      final Offset anchorBottomLeft = tester.getBottomRight(
         find.widgetWithText(Button, Tag.anchor.text),
       );
 
-      expect(anchorBottomLeft, equals(collectOverlays().first.topLeft));
+      expect(anchorBottomLeft, equals(collectOverlays().first.topRight));
     });
 
     testWidgets('LTR submenu top-start attaches to anchor top-end by default', (
@@ -4652,9 +4652,8 @@ void main() {
       await tester.tap(find.text(Tag.a.text));
       await tester.pump();
 
-      final [ui.Rect menu, ui.Rect submenu] = collectOverlays();
-      expect(submenu.topRight, equals(menu.topLeft));
-      expect(submenu.bottomRight - menu.topRight, equals(const Offset(-100, 100)));
+      final [_, ui.Rect submenu] = collectOverlays();
+      expect(submenu.topRight, equals(tester.getTopLeft(find.byKey(Tag.a.key))));
     });
 
     testWidgets('alignmentOffset is directional by default', (WidgetTester tester) async {
@@ -4667,13 +4666,17 @@ void main() {
         return App(
           textDirection: textDirection,
           BaseMenu(
-            positionDelegate: DefaultBaseMenuPositioningDelegate(offset: alignmentOffset),
+            positionDelegate: DefaultBaseMenuPositioningDelegate(
+              offset: alignmentOffset,
+              anchorAlignment: Alignment.center,
+              menuAlignment: Alignment.center,
+            ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
               children: <Widget>[
                 Container(
-                  width: 250,
-                  height: 66,
+                  width: 100,
+                  height: 100,
                   alignment: Alignment.center,
                   color: const Color(0xFF0000FF),
                   child: Text(Tag.a.text),
@@ -4707,7 +4710,7 @@ void main() {
 
       final Rect rtlPositionTwo = collectOverlays().first;
 
-      expect(rtlPositionTwo, equals(rtlPosition.shift(offset)));
+      expect(rtlPositionTwo, equals(rtlPosition.shift(Offset(-offset.dx, offset.dy))));
     });
 
     testWidgets('LTR alignmentOffset', (WidgetTester tester) async {
@@ -4719,13 +4722,61 @@ void main() {
       }) {
         return App(
           BaseMenu(
-            // alignment: anchorAlignment,
-            // menuAlignment: Alignment.center,
-            // alignmentOffset: alignmentOffset,
             positionDelegate: DefaultBaseMenuPositioningDelegate(
               anchorAlignment: anchorAlignment,
               menuAlignment: Alignment.center,
               offset: alignmentOffset,
+            ),
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              children: <Widget>[
+                Container(
+                  width: 125,
+                  height: 66,
+                  alignment: Alignment.center,
+                  color: const Color(0xFF0000FF),
+                  child: Text(Tag.a.text),
+                ),
+              ],
+            ),
+            child: AnchorButton.small(Tag.anchor),
+          ),
+        );
+      }
+
+      await tester.pumpWidget(buildApp());
+
+      await tester.tap(find.text(Tag.anchor.text));
+      await tester.pump();
+
+      final Rect center = collectOverlays().first;
+
+      await tester.pumpWidget(buildApp(alignmentOffset: offset));
+
+      expect(center.shift(offset), equals(collectOverlays().first));
+
+      await tester.pumpWidget(buildApp(alignmentOffset: -offset));
+
+      expect(center.shift(-offset), equals(collectOverlays().first));
+    });
+
+    testWidgets('RTL alignmentOffset with useDirectionalOffset set to false', (
+      WidgetTester tester,
+    ) async {
+      const offset = Offset(24, 33);
+
+      Widget buildApp({
+        Offset alignmentOffset = Offset.zero,
+        AlignmentGeometry anchorAlignment = Alignment.center,
+      }) {
+        return App(
+          textDirection: ui.TextDirection.rtl,
+          BaseMenu(
+            positionDelegate: DefaultBaseMenuPositioningDelegate(
+              anchorAlignment: anchorAlignment,
+              menuAlignment: Alignment.center,
+              offset: alignmentOffset,
+              useDirectionalOffset: false,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -4761,18 +4812,14 @@ void main() {
     });
 
     testWidgets('RTL alignmentOffset', (WidgetTester tester) async {
-      // Should be the same as LTR alignmentOffset test.
       const offset = Offset(24, 33);
 
-      Widget buildApp({
-        Offset alignmentOffset = Offset.zero,
-        AlignmentGeometry anchorAlignment = Alignment.center,
-      }) {
+      Widget buildApp({Offset alignmentOffset = Offset.zero}) {
         return App(
           textDirection: ui.TextDirection.rtl,
           BaseMenu(
             positionDelegate: DefaultBaseMenuPositioningDelegate(
-              anchorAlignment: anchorAlignment,
+              anchorAlignment: Alignment.center,
               menuAlignment: Alignment.center,
               offset: alignmentOffset,
             ),
@@ -4802,192 +4849,12 @@ void main() {
 
       await tester.pumpWidget(buildApp(alignmentOffset: offset));
 
-      expect(center.shift(offset), equals(collectOverlays().first));
+      expect(center.shift(Offset(-offset.dx, offset.dy)), equals(collectOverlays().first));
 
       await tester.pumpWidget(buildApp(alignmentOffset: -offset));
 
-      expect(center.shift(-offset), equals(collectOverlays().first));
+      expect(center.shift(Offset(offset.dx, -offset.dy)), equals(collectOverlays().first));
     });
-
-    testWidgets(
-      'LTR alignmentOffset.dx does not change when menuAlignment is an AlignmentDirectional',
-      (WidgetTester tester) async {
-        const offset = Offset(24, 33);
-
-        Widget buildApp({
-          AlignmentGeometry alignment = Alignment.center,
-          Offset alignmentOffset = Offset.zero,
-        }) {
-          return App(
-            BaseMenu(
-              positionDelegate: DefaultBaseMenuPositioningDelegate(
-                anchorAlignment: alignment,
-                menuAlignment: Alignment.center,
-                offset: alignmentOffset,
-              ),
-              menu: BaseMenuPanel(
-                orientation: Axis.vertical,
-                children: <Widget>[
-                  Container(
-                    width: 50,
-                    height: 66,
-                    color: const Color(0xFF0000FF),
-                    child: Text(Tag.a.text),
-                  ),
-                ],
-              ),
-              child: const AnchorButton(
-                Tag.anchor,
-                constraints: BoxConstraints.tightFor(width: 125, height: 66),
-              ),
-            ),
-          );
-        }
-
-        await tester.pumpWidget(buildApp());
-
-        await tester.tap(find.text(Tag.anchor.text));
-        await tester.pump();
-
-        final Rect center = collectOverlays().first;
-
-        await tester.pumpWidget(buildApp(alignmentOffset: offset));
-
-        final Rect centerOffset = collectOverlays().first;
-
-        // Switching from Alignment.center to AlignmentDirectional.center won't
-        // relayout the menu, so pump an empty offset to trigger a relayout.
-        await tester.pumpWidget(buildApp());
-
-        await tester.pumpWidget(
-          buildApp(alignmentOffset: offset, alignment: AlignmentDirectional.center),
-        );
-
-        final Rect centerDirectionalOffset = collectOverlays().first;
-
-        expect(centerOffset, equals(center.shift(offset)));
-        expect(centerDirectionalOffset, equals(centerOffset));
-      },
-    );
-
-    testWidgets('RTL alignmentOffset.dx is negated when alignment is an AlignmentDirectional', (
-      WidgetTester tester,
-    ) async {
-      const offset = Offset(24, 33);
-
-      Widget buildApp({
-        AlignmentGeometry alignment = Alignment.center,
-        Offset alignmentOffset = Offset.zero,
-      }) {
-        return App(
-          textDirection: ui.TextDirection.rtl,
-          BaseMenu(
-            controller: controller,
-            positionDelegate: DefaultBaseMenuPositioningDelegate(
-              anchorAlignment: alignment,
-              menuAlignment: Alignment.center,
-              offset: alignmentOffset,
-              overlayPadding: EdgeInsets.zero,
-            ),
-            menu: BaseMenuPanel(
-              orientation: Axis.vertical,
-              children: <Widget>[
-                Container(
-                  width: 50,
-                  height: 66,
-                  color: const Color(0xFF0000FF),
-                  child: Text(Tag.a.text),
-                ),
-              ],
-            ),
-            child: AnchorButton.small(Tag.anchor),
-          ),
-        );
-      }
-
-      await tester.pumpWidget(buildApp());
-      await tester.tap(find.text(Tag.anchor.text));
-      await tester.pump();
-
-      final Rect center = collectOverlays().first;
-
-      await tester.pumpWidget(buildApp(alignmentOffset: offset));
-
-      final Rect centerOffset = collectOverlays().first;
-
-      // Switching from Alignment.center to AlignmentDirectional.center won't
-      // relayout the menu, so pump an empty offset to trigger a relayout.
-      await tester.pumpWidget(buildApp());
-
-      await tester.pumpWidget(
-        buildApp(alignmentOffset: offset, alignment: AlignmentDirectional.center),
-      );
-
-      final Rect centerDirectionalOffset = collectOverlays().first;
-
-      expect(centerOffset, equals(center.shift(offset)));
-      expect(centerDirectionalOffset, equals(center.shift(Offset(-offset.dx, offset.dy))));
-    });
-
-    testWidgets(
-      'RTL alignmentOffset.dx is not negated when menuAlignment is an AlignmentDirectional',
-      (WidgetTester tester) async {
-        const offset = Offset(24, 33);
-
-        Widget buildApp({
-          AlignmentGeometry alignment = Alignment.center,
-          Offset alignmentOffset = Offset.zero,
-        }) {
-          return App(
-            textDirection: ui.TextDirection.rtl,
-            BaseMenu(
-              positionDelegate: DefaultBaseMenuPositioningDelegate(
-                anchorAlignment: Alignment.center,
-                menuAlignment: alignment,
-                offset: alignmentOffset,
-                overlayPadding: EdgeInsets.zero,
-              ),
-              menu: BaseMenuPanel(
-                orientation: Axis.vertical,
-                children: <Widget>[
-                  Container(
-                    width: 50,
-                    height: 66,
-                    color: const Color(0xFF0000FF),
-                    child: Text(Tag.a.text),
-                  ),
-                ],
-              ),
-              child: AnchorButton.small(Tag.anchor),
-            ),
-          );
-        }
-
-        await tester.pumpWidget(buildApp());
-
-        await tester.tap(find.text(Tag.anchor.text));
-        await tester.pump();
-
-        final Rect center = collectOverlays().first;
-
-        await tester.pumpWidget(buildApp(alignmentOffset: offset));
-
-        final Rect centerOffset = collectOverlays().first;
-
-        // Switching from Alignment.center to AlignmentDirectional.center won't
-        // relayout the menu, so pump an empty offset to trigger a relayout.
-        await tester.pumpWidget(buildApp());
-
-        await tester.pumpWidget(
-          buildApp(alignmentOffset: offset, alignment: AlignmentDirectional.center),
-        );
-
-        final Rect centerDirectionalOffset = collectOverlays().first;
-
-        expect(centerOffset, equals(center.shift(offset)));
-        expect(centerDirectionalOffset, equals(centerOffset));
-      },
-    );
 
     testWidgets('LTR constrained and offset menu placement', (WidgetTester tester) async {
       await changeSurfaceSize(tester, const Size(200, 200));
@@ -5047,6 +4914,7 @@ void main() {
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
               offset: Offset(-100, 100),
               overlayPadding: EdgeInsets.zero,
+              useDirectionalOffset: false,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -5056,6 +4924,7 @@ void main() {
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
                     offset: Offset(100, -100),
                     overlayPadding: EdgeInsets.zero,
+                    useDirectionalOffset: false,
                   ),
                   menu: BaseMenuPanel(
                     orientation: Axis.vertical,
@@ -5142,6 +5011,7 @@ void main() {
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
               overlayPadding: EdgeInsets.zero,
+              useDirectionalOffset: false,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -5149,6 +5019,7 @@ void main() {
                 BaseMenu(
                   positionDelegate: const DefaultBaseMenuPositioningDelegate(
                     overlayPadding: EdgeInsets.zero,
+                    useDirectionalOffset: false,
                   ),
                   menu: BaseMenuPanel(
                     orientation: Axis.vertical,
@@ -5297,14 +5168,17 @@ void main() {
     testWidgets('LTR menu position flips to left when overflowing screen right', (
       WidgetTester tester,
     ) async {
+      await changeSurfaceSize(tester, const Size(1200, 600));
+
       await tester.pumpWidget(
         App(
           alignment: const Alignment(0.5, 0),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              anchorAlignment: Alignment.topLeft,
-              menuAlignment: Alignment(-0.75, -0.75),
+              anchorAlignment: Alignment.center,
+              menuAlignment: Alignment(-0.9, -0.9),
             ),
+            onCloseRequest: (hideOverlay) {},
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
               children: <Widget>[
@@ -5318,25 +5192,34 @@ void main() {
 
       await tester.tap(find.text(Tag.anchor.text));
       await tester.pump();
-      await tester.pump();
 
       final [ui.Rect menu] = collectOverlays();
-      final ui.Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-      expect(const Alignment(0.75, -0.75).withinRect(menu), equals(anchor.topRight));
+      ui.Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+      expect(const Alignment(-0.9, -0.9).withinRect(menu), equals(anchor.center));
+
+      await changeSurfaceSize(tester, const Size(600, 600));
+      await tester.pump();
+
+      final [ui.Rect flippedMenu] = collectOverlays();
+      anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+      expect(const Alignment(0.9, -0.9).withinRect(flippedMenu), equals(anchor.center));
     });
 
     testWidgets('RTL menu position flips to left when overflowing screen right', (
       WidgetTester tester,
     ) async {
+      await changeSurfaceSize(tester, const Size(1200, 600));
+
       await tester.pumpWidget(
         App(
-          textDirection: TextDirection.rtl,
+          textDirection: .rtl,
           alignment: const Alignment(0.5, 0),
           BaseMenu(
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              anchorAlignment: Alignment.topLeft,
-              menuAlignment: Alignment(-0.75, -0.75),
+              anchorAlignment: Alignment.center,
+              menuAlignment: Alignment(-0.9, -0.9),
             ),
+            onCloseRequest: (hideOverlay) {},
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
               children: <Widget>[
@@ -5350,13 +5233,17 @@ void main() {
 
       await tester.tap(find.text(Tag.anchor.text));
       await tester.pump();
-      await tester.pump();
 
       final [ui.Rect menu] = collectOverlays();
-      final Offset anchorTopRight = tester.getTopRight(
-        find.widgetWithText(Button, Tag.anchor.text),
-      );
-      expect(const Alignment(0.75, -0.75).withinRect(menu), equals(anchorTopRight));
+      ui.Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+      expect(const Alignment(-0.9, -0.9).withinRect(menu), equals(anchor.center));
+
+      await changeSurfaceSize(tester, const Size(600, 600));
+      await tester.pump();
+
+      final [ui.Rect flippedMenu] = collectOverlays();
+      anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+      expect(const Alignment(0.9, -0.9).withinRect(flippedMenu), equals(anchor.center));
     });
 
     testWidgets('LTR menu position flips to right when overflowing screen left', (
@@ -5801,6 +5688,8 @@ void main() {
     testWidgets('Menus opened with a position respect the menuAlignment property', (
       WidgetTester tester,
     ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+
       await tester.pumpWidget(
         App(
           BaseMenu(
@@ -5840,12 +5729,15 @@ void main() {
     testWidgets('Menus opened with a position flip relative to an empty rect at `position`', (
       WidgetTester tester,
     ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 600));
+
       await tester.pumpWidget(
         App(
           BaseMenu(
             controller: controller,
             positionDelegate: const DefaultBaseMenuPositioningDelegate(
               menuAlignment: Alignment.topLeft,
+              overlayPadding: EdgeInsets.zero,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -6254,252 +6146,6 @@ void main() {
       expect(menuTopRight - const Offset(0, 1), equals(anchorTopLeft));
     });
 
-    testWidgets('LTR app and anchor padding', (WidgetTester tester) async {
-      // Out of App:
-      //    - overlay position affected
-      //    - anchor position affected
-      // In App:
-      //    - anchor position affected
-      //
-      // Padding inside App DOES NOT affect the overlay position but
-      // DOES affect the anchor position.
-      await changeSurfaceSize(tester, const Size(400, 400));
-
-      Widget buildApp({
-        required EdgeInsetsGeometry appPadding,
-        required EdgeInsetsGeometry anchorPadding,
-      }) {
-        return Directionality(
-          textDirection: TextDirection.ltr,
-          child: Padding(
-            padding: appPadding,
-            child: App(
-              alignment: AlignmentDirectional.topStart,
-              Padding(
-                padding: anchorPadding,
-                child: BaseMenu(
-                  positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                    anchorAlignment: AlignmentDirectional.topStart,
-                    menuAlignment: AlignmentDirectional.bottomEnd,
-                  ),
-                  menu: BaseMenuPanel(
-                    orientation: Axis.vertical,
-                    children: <Widget>[
-                      BaseMenu(
-                        menu: BaseMenuPanel(
-                          orientation: Axis.vertical,
-                          children: <Widget>[Button.tag(Tag.a.a)],
-                        ),
-                        child: AnchorButton.small(Tag.a),
-                      ),
-                    ],
-                  ),
-                  child: AnchorButton.small(Tag.anchor),
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-
-      // First, collect measurements without padding.
-      await tester.pumpWidget(
-        buildApp(appPadding: EdgeInsets.zero, anchorPadding: EdgeInsets.zero),
-      );
-
-      await tester.tap(find.text(Tag.anchor.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.a.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.a.a.text));
-      await tester.pump();
-
-      final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-      final [Rect first, Rect second] = collectOverlays();
-
-      await tester.pumpWidget(
-        buildApp(
-          appPadding: const EdgeInsetsDirectional.fromSTEB(31, 7, 43, 0),
-          anchorPadding: const EdgeInsetsDirectional.fromSTEB(64, 50, 17, 0),
-        ),
-      );
-
-      final [Rect firstPadded, Rect secondPadded] = collectOverlays();
-      final Rect paddedAnchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-
-      expect(paddedAnchor, equals(anchor.shift(const Offset(31 + 64, 7 + 50))));
-
-      // Hits padding on top/left
-      expect(firstPadded, equals(first.shift(const Offset(31, 7))));
-
-      // Hits padding on top/right
-      expect(secondPadded, equals(second.shift(const Offset(-43, 7))));
-    });
-
-    testWidgets('RTL app and anchor padding', (WidgetTester tester) async {
-      // Out of App:
-      //    - overlay position affected
-      //    - anchor position affected
-      // In App:
-      //    - anchor position affected
-      //
-      // Padding inside App DOES NOT affect the overlay position but
-      // DOES affect the anchor position.
-
-      // First, collect measurements without padding.
-      Widget buildApp({
-        required EdgeInsetsGeometry appPadding,
-        required EdgeInsetsGeometry anchorPadding,
-      }) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: Padding(
-            padding: appPadding,
-            child: App(
-              alignment: AlignmentDirectional.topStart,
-              Padding(
-                padding: anchorPadding,
-                child: BaseMenu(
-                  positionDelegate: const DefaultBaseMenuPositioningDelegate(
-                    anchorAlignment: AlignmentDirectional.topStart,
-                    menuAlignment: AlignmentDirectional.bottomEnd,
-                  ),
-                  menu: BaseMenuPanel(
-                    orientation: Axis.vertical,
-                    children: <Widget>[
-                      BaseMenu(
-                        menu: BaseMenuPanel(
-                          orientation: Axis.vertical,
-                          children: <Widget>[Button.tag(Tag.a.a)],
-                        ),
-                        child: AnchorButton.small(Tag.a),
-                      ),
-                    ],
-                  ),
-                  child: AnchorButton.small(Tag.anchor),
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-
-      // First, collect measurements without padding.
-      await tester.pumpWidget(
-        buildApp(appPadding: EdgeInsets.zero, anchorPadding: EdgeInsets.zero),
-      );
-
-      await tester.tap(find.text(Tag.anchor.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.a.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.a.a.text));
-      await tester.pump();
-
-      final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-      final [Rect first, Rect second] = collectOverlays();
-
-      // Next, collect measurements with padding.
-      await tester.pumpWidget(
-        buildApp(
-          appPadding: const EdgeInsetsDirectional.fromSTEB(31, 7, 43, 0),
-          anchorPadding: const EdgeInsetsDirectional.fromSTEB(64, 50, 17, 0),
-        ),
-      );
-
-      final [Rect menuPadded, Rect subPadded] = collectOverlays();
-      final Rect anchorPadded = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
-
-      expect(anchorPadded, equals(anchor.shift(const Offset(-31 - 64, 7 + 50))));
-      expect(menuPadded, equals(first.shift(const Offset(43, 7))));
-      expect(subPadded, equals(second.shift(const Offset(43, 7))));
-    });
-
-    testWidgets('LTR overlay padding', (WidgetTester tester) async {
-      await changeSurfaceSize(tester, const Size(800, 600));
-      const overlayPadding = EdgeInsetsDirectional.fromSTEB(21, 11, 650, 400);
-
-      // Padding should stack
-      await tester.pumpWidget(
-        App(
-          textDirection: TextDirection.ltr,
-          BaseMenu(
-            controller: controller,
-            positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              overlayPadding: overlayPadding,
-            ),
-            menu: Container(
-              key: Tag.a.key,
-              constraints: BoxConstraints.tight(const Size(200, 200)),
-              color: const ui.Color(0xFF007AFF),
-            ),
-            child: Container(
-              padding: overlayPadding - const EdgeInsetsDirectional.all(2),
-              color: const ui.Color(0xFFFF9500),
-              child: const SizedBox.expand(),
-            ),
-          ),
-        ),
-      );
-
-      controller.open(position: Offset.zero);
-      await tester.pump();
-      await tester.pumpAndSettle();
-
-      final Rect overlay = tester.getRect(find.byKey(Tag.a.key));
-
-      expect(
-        overlay.topLeft,
-        offsetMoreOrLessEquals(Offset(overlayPadding.start, overlayPadding.top), epsilon: 0.01),
-      );
-
-      expect(overlay.size, sizeCloseTo(const Size(129, 189), 0.01));
-    });
-
-    testWidgets('RTL overlay padding', (WidgetTester tester) async {
-      await changeSurfaceSize(tester, const Size(800, 600));
-      const overlayPadding = EdgeInsetsDirectional.fromSTEB(21, 11, 650, 400);
-
-      // Padding should stack
-      await tester.pumpWidget(
-        App(
-          textDirection: TextDirection.rtl,
-          BaseMenu(
-            controller: controller,
-            positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              overlayPadding: overlayPadding,
-            ),
-            menu: Container(
-              key: Tag.a.key,
-              constraints: BoxConstraints.tight(const Size(200, 200)),
-              color: const ui.Color(0xFF007AFF),
-            ),
-            child: Container(
-              padding: overlayPadding - const EdgeInsetsDirectional.all(2),
-              color: const ui.Color(0xFFFF9500),
-              child: const SizedBox.expand(),
-            ),
-          ),
-        ),
-      );
-
-      controller.open(position: Offset.zero);
-      await tester.pump();
-      await tester.pumpAndSettle();
-
-      final Rect overlay = tester.getRect(find.byKey(Tag.a.key));
-
-      expect(
-        overlay.topLeft,
-        offsetMoreOrLessEquals(
-          Offset(800 - (overlayPadding.start + 129), overlayPadding.top),
-          epsilon: 0.1,
-        ),
-      );
-
-      expect(overlay.size, sizeCloseTo(const Size(129, 189), 0.01));
-    });
-
     testWidgets('App and overlay padding', (WidgetTester tester) async {
       await changeSurfaceSize(tester, const Size(800, 600));
       const appPadding = EdgeInsetsDirectional.fromSTEB(31, 7, 27, 50);
@@ -6604,145 +6250,15 @@ void main() {
       expect(overlay, offsetMoreOrLessEquals(const Offset(31, 7 + 11 + 50), epsilon: 0.01));
     });
 
-    testWidgets('LTR nested menu placement', (WidgetTester tester) async {
-      var children = <Widget>[Container(height: 600, width: 50, color: const Color(0xFF0000FF))];
-      var layers = 5;
-      while (layers-- > 0) {
-        children = <Widget>[
-          for (int index = 0; index < 4; index++)
-            Button.text(
-              "${'Sub' * layers}menu $index",
-              constraints: const BoxConstraints(maxHeight: 30),
-            ),
-          BaseMenu(
-            positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              anchorAlignment: AlignmentDirectional.topEnd,
-              menuAlignment: AlignmentDirectional.topStart,
-              padding: EdgeInsetsDirectional.fromSTEB(0.5, 4, 1, 6),
-              offset: Offset(-1, 0),
-            ),
-            menu: BaseMenuPanel(
-              orientation: Axis.vertical,
-              constraints: BoxConstraints(minWidth: 125 + 75.0 * layers),
-              children: children,
-            ),
-            child: AnchorButton(
-              Tag.values[layers % Tag.values.length],
-              constraints: const BoxConstraints(maxHeight: 30),
-            ),
-          ),
-        ];
-      }
-      await tester.pumpWidget(
-        App(
-          alignment: AlignmentDirectional.topStart,
-          BaseMenu(
-            menu: BaseMenuPanel(
-              orientation: Axis.vertical,
-              constraints: const BoxConstraints(maxWidth: 150),
-              children: children,
-            ),
-            child: AnchorButton.small(Tag.anchor),
-          ),
-        ),
-      );
-
-      await tester.tap(find.text(Tag.anchor.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.a.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.b.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.c.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.d.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.e.text));
-      await tester.pump();
-
-      expect(collectOverlays(), const <Rect>[
-        Rect.fromLTRB(0.0, 30.0, 109.0, 181.0),
-        Rect.fromLTRB(107.0, 146.5, 259.5, 307.5),
-        Rect.fromLTRB(256.5, 267.0, 456.5, 428.0),
-        Rect.fromLTRB(453.5, 387.5, 728.5, 548.5),
-        Rect.fromLTRB(106.5, 387.0, 456.5, 548.0),
-        Rect.fromLTRB(375.0, 0.0, 800.0, 600.0),
-      ]);
-    });
-
-    testWidgets('RTL nested menu placement', (WidgetTester tester) async {
-      var children = <Widget>[Container(height: 600, width: 50, color: const Color(0xFF0000FF))];
-      var layers = 5;
-      while (layers-- > 0) {
-        children = <Widget>[
-          for (int index = 0; index < 4; index++)
-            Button.text(
-              "${'Sub' * layers}menu $index",
-              constraints: const BoxConstraints(maxHeight: 30),
-            ),
-          BaseMenu(
-            positionDelegate: const DefaultBaseMenuPositioningDelegate(
-              anchorAlignment: AlignmentDirectional.topEnd,
-              padding: EdgeInsetsDirectional.fromSTEB(0.5, 4, 1, 6),
-              offset: Offset(-1, 0),
-            ),
-            menu: BaseMenuPanel(
-              orientation: Axis.vertical,
-              constraints: BoxConstraints(minWidth: 125 + 75.0 * layers),
-              children: children,
-            ),
-            child: AnchorButton(
-              Tag.values[layers % Tag.values.length],
-              constraints: const BoxConstraints(maxHeight: 30),
-            ),
-          ),
-        ];
-      }
-      await tester.pumpWidget(
-        App(
-          textDirection: TextDirection.rtl,
-          alignment: AlignmentDirectional.topStart,
-          BaseMenu(
-            menu: BaseMenuPanel(
-              orientation: Axis.vertical,
-              constraints: const BoxConstraints(maxWidth: 150),
-              children: children,
-            ),
-            child: AnchorButton.small(Tag.anchor),
-          ),
-        ),
-      );
-
-      await tester.tap(find.text(Tag.anchor.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.a.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.b.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.c.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.d.text));
-      await tester.pump();
-      await tester.tap(find.text(Tag.e.text));
-      await tester.pump();
-
-      expect(collectOverlays(), const <Rect>[
-        Rect.fromLTRB(691.0, 30.0, 800.0, 181.0),
-        Rect.fromLTRB(540.5, 146.5, 693.0, 307.5),
-        Rect.fromLTRB(343.5, 267.0, 543.5, 428.0),
-        Rect.fromLTRB(71.5, 387.5, 346.5, 548.5),
-        Rect.fromLTRB(343.5, 387.0, 693.5, 548.0),
-        Rect.fromLTRB(0.0, 0.0, 425.0, 600.0),
-      ]);
-    });
-
     testWidgets('Menu is positioned around display features', (WidgetTester tester) async {
+      await changeSurfaceSize(tester, const Size(1200, 600));
+
       await tester.pumpWidget(
         App(
           MediaQuery(
             data: const MediaQueryData(
               platformBrightness: Brightness.dark,
-              size: Size(800, 600),
+
               displayFeatures: <ui.DisplayFeature>[
                 // A 20-pixel wide vertical display feature, similar to a
                 // foldable with a visible hinge. Splits the display into two
@@ -6770,10 +6286,13 @@ void main() {
                       positionDelegate: const DefaultBaseMenuPositioningDelegate(
                         anchorAlignment: Alignment.topLeft,
                         menuAlignment: Alignment.topRight,
+                        overlayPadding: .zero,
                       ),
-                      menu: const BaseMenuPanel(
+                      menu: BaseMenuPanel(
                         orientation: Axis.vertical,
-                        children: <Widget>[SizedBox(width: 150, height: 50)],
+                        children: <Widget>[
+                          Container(color: const Color(0xFF00FF00), width: 150, height: 50),
+                        ],
                       ),
                       child: AnchorButton.small(Tag.anchor),
                     ),
@@ -6818,6 +6337,24 @@ void main() {
       expect(collectOverlays().first.size, equals(const Size(75, 100)));
 
       // Height will remain 150 since it's located inside a scrollable.
+      expect(tester.getSize(find.byKey(Tag.a.key)), equals(const Size(75, 150)));
+
+      await tester.pumpWidget(
+        App(
+          BaseMenu(
+            menu: BaseMenuPanel(
+              orientation: Axis.vertical,
+              constraints: const BoxConstraints(minWidth: 75, maxHeight: 100),
+              crossAxisAlignment: .start,
+              children: <Widget>[
+                Container(key: Tag.a.key, color: const Color(0xFFFF0000), height: 150, width: 50),
+              ],
+            ),
+            child: const AnchorButton(Tag.anchor),
+          ),
+        ),
+      );
+
       expect(tester.getSize(find.byKey(Tag.a.key)), equals(const Size(50, 150)));
     });
 
@@ -7002,5 +6539,584 @@ void main() {
         expect(subMenu.bottomLeft, equals(subAnchor.topLeft));
       },
     );
+
+    group('EdgeBehavior', () {
+      testWidgets('Horizontal behavior', (WidgetTester tester) async {
+        await changeSurfaceSize(tester, const Size(800, 600));
+        const padding = EdgeInsets.all(8.0);
+        const menuWidth = 900.0;
+        const screenWidth = 800.0;
+
+        Widget buildTest(EdgeResolutionStrategy horizontalStrategy) {
+          return App(
+            alignment: const Alignment(0.5, 0.0), // anchor is offset right
+            BaseMenu(
+              positionDelegate: DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: Alignment.topRight,
+                menuAlignment: Alignment.topLeft,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: horizontalStrategy,
+                  vertical: const EdgeResolutionStrategy(),
+                ),
+              ),
+              menu: BaseMenuPanel(
+                key: Tag.a.key,
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 900, height: 100, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          );
+        }
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy()));
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+        Rect menu() => tester.getRect(find.byKey(Tag.a.key));
+
+        expect(menu().left, equals(anchor.right));
+        expect(menu().width, equals(menuWidth));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(constrain: true)));
+
+        expect(menu().left, equals(anchor.right));
+        expect(menu().width, lessThan(screenWidth - padding.horizontal));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(flip: true)));
+
+        expect(menu().right, equals(anchor.left));
+        expect(menu().width, equals(menuWidth));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(shift: true)));
+
+        expect(menu().right, equals(menuWidth + padding.right));
+        expect(menu().width, equals(menuWidth));
+
+        await tester.pumpWidget(
+          buildTest(const EdgeResolutionStrategy(constrain: true, flip: true)),
+        );
+
+        expect(menu().right, equals(anchor.left));
+        expect(menu().width, equals(anchor.left - padding.left));
+
+        await tester.pumpWidget(
+          buildTest(const EdgeResolutionStrategy(constrain: true, shift: true)),
+        );
+
+        expect(menu().right, equals(screenWidth - padding.right));
+        expect(menu().width, equals(screenWidth - padding.horizontal));
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(flip: true, shift: true)));
+
+        expect(menu().left, equals(padding.left));
+        expect(menu().width, equals(menuWidth));
+
+        await tester.pumpWidget(
+          buildTest(const EdgeResolutionStrategy(shift: true, flip: true, constrain: true)),
+        );
+
+        expect(menu().left, equals(padding.left));
+        expect(menu().width, equals(screenWidth - padding.horizontal));
+      });
+
+      testWidgets('Vertical behavior', (WidgetTester tester) async {
+        await changeSurfaceSize(tester, const Size(800, 600));
+        const padding = EdgeInsets.all(8.0);
+        const menuHeight = 900.0;
+        const screenHeight = 600.0;
+
+        Widget buildTest(EdgeResolutionStrategy verticalStrategy) {
+          return App(
+            alignment: const Alignment(0.0, 0.5), // anchor is offset down
+            BaseMenu(
+              positionDelegate: DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: Alignment.bottomLeft,
+                menuAlignment: Alignment.topLeft,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: const EdgeResolutionStrategy(),
+                  vertical: verticalStrategy,
+                ),
+              ),
+              menu: BaseMenuPanel(
+                key: Tag.a.key,
+                clipBehavior: .hardEdge,
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 100, height: 900, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          );
+        }
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy()));
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+        Rect menu() => tester.getRect(find.byKey(Tag.a.key));
+
+        expect(menu().top, equals(anchor.bottom));
+        expect(menu().height, equals(menuHeight));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(constrain: true)));
+
+        expect(menu().top, equals(anchor.bottom));
+        expect(menu().height, lessThan(screenHeight - padding.vertical));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(flip: true)));
+
+        expect(menu().bottom, equals(anchor.top));
+        expect(menu().height, equals(menuHeight));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(shift: true)));
+
+        expect(menu().top, equals(padding.top));
+        expect(menu().height, equals(menuHeight));
+
+        await tester.pumpWidget(
+          buildTest(const EdgeResolutionStrategy(constrain: true, flip: true)),
+        );
+
+        expect(menu().bottom, equals(anchor.top));
+        expect(menu().height, equals(anchor.top - padding.top));
+
+        await tester.pumpWidget(
+          buildTest(const EdgeResolutionStrategy(constrain: true, shift: true)),
+        );
+
+        // Account for 8px padding
+        expect(menu().bottom, equals(screenHeight - padding.bottom));
+        expect(menu().height, equals(screenHeight - padding.vertical));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(flip: true, shift: true)));
+
+        expect(menu().top, equals(padding.top));
+        expect(menu().height, equals(menuHeight));
+
+        await tester.pumpWidget(
+          buildTest(const EdgeResolutionStrategy(shift: true, flip: true, constrain: true)),
+        );
+
+        expect(menu().top, equals(padding.top));
+        expect(menu().height, equals(screenHeight - padding.vertical));
+      });
+
+      testWidgets('Horizontal behavior (RTL)', (WidgetTester tester) async {
+        await changeSurfaceSize(tester, const Size(800, 600));
+        const padding = EdgeInsets.all(8.0);
+        const menuWidth = 900.0;
+        const screenWidth = 800.0;
+
+        Widget buildTest(EdgeResolutionStrategy horizontalStrategy) {
+          return App(
+            textDirection: ui.TextDirection.rtl,
+            alignment: const Alignment(-0.5, 0.0), // anchor is offset left
+            BaseMenu(
+              positionDelegate: DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: AlignmentDirectional.topEnd,
+                menuAlignment: AlignmentDirectional.topStart,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: horizontalStrategy,
+                  vertical: const EdgeResolutionStrategy(),
+                ),
+              ),
+              menu: BaseMenuPanel(
+                key: Tag.a.key,
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 900, height: 100, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          );
+        }
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy()));
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+        Rect menu() => tester.getRect(find.byKey(Tag.a.key));
+
+        expect(menu().right, equals(anchor.left));
+        expect(menu().width, equals(menuWidth));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(constrain: true)));
+
+        expect(menu().right, equals(anchor.left));
+        expect(menu().width, equals(anchor.left - padding.left));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(flip: true)));
+
+        expect(menu().left, equals(anchor.right));
+        expect(menu().width, equals(menuWidth));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(shift: true)));
+
+        expect(menu().right, equals(screenWidth - padding.right));
+        expect(menu().width, equals(menuWidth));
+
+        await tester.pumpWidget(
+          buildTest(const EdgeResolutionStrategy(constrain: true, flip: true)),
+        );
+
+        expect(menu().left, equals(anchor.right));
+        expect(menu().width, equals(screenWidth - padding.left - anchor.right));
+
+        await tester.pumpWidget(
+          buildTest(const EdgeResolutionStrategy(constrain: true, shift: true)),
+        );
+
+        expect(menu().right, equals(screenWidth - padding.right));
+        expect(menu().width, equals(screenWidth - padding.horizontal));
+
+        await tester.pumpWidget(buildTest(const EdgeResolutionStrategy(flip: true, shift: true)));
+
+        expect(menu().right, equals(screenWidth - padding.right));
+        expect(menu().width, equals(menuWidth));
+
+        await tester.pumpWidget(
+          buildTest(const EdgeResolutionStrategy(shift: true, flip: true, constrain: true)),
+        );
+
+        expect(menu().right, equals(screenWidth - padding.right));
+        expect(menu().width, equals(screenWidth - padding.horizontal));
+      });
+
+      testWidgets('Horizontal shift stays within screen bounds when overflowing right', (
+        WidgetTester tester,
+      ) async {
+        await changeSurfaceSize(tester, const Size(1000, 600));
+
+        await tester.pumpWidget(
+          App(
+            alignment: const Alignment(0.6, 0.0), // anchor is offset right
+            BaseMenu(
+              positionDelegate: const DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: Alignment.topRight,
+                menuAlignment: Alignment.topLeft,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: EdgeResolutionStrategy(shift: true),
+                  vertical: EdgeResolutionStrategy(),
+                ),
+              ),
+              menu: BaseMenuPanel(
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 300, height: 100, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect menu = collectOverlays().first;
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+
+        // Since shift is true but flip is false, it shouldn't flip to left.
+        // It must shift to fit within the screen boundaries.
+        const expectedOverlayPaddingRight = 8.0;
+        expect(menu.right, equals(1000.0 - expectedOverlayPaddingRight));
+        expect(menu.left, equals(1000.0 - expectedOverlayPaddingRight - 300.0));
+        // It still overlaps the anchor horizontally.
+        expect(menu.left < anchor.right, isTrue);
+      });
+
+      testWidgets('Horizontal shift: false allows menu to overflow the screen edge', (
+        WidgetTester tester,
+      ) async {
+        await changeSurfaceSize(tester, const Size(1000, 600));
+
+        await tester.pumpWidget(
+          App(
+            alignment: const Alignment(0.6, 0.0), // anchor is offset right
+            BaseMenu(
+              positionDelegate: const DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: Alignment.topRight,
+                menuAlignment: Alignment.topLeft,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: EdgeResolutionStrategy(),
+                  vertical: EdgeResolutionStrategy(),
+                ),
+              ),
+              menu: BaseMenuPanel(
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 300, height: 100, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect menu = collectOverlays().first;
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+
+        // It should align perfectly at anchor.topRight and NOT shift.
+        expect(menu.left, equals(anchor.right));
+        expect(menu.right, equals(anchor.right + 300.0));
+        expect(menu.right, greaterThan(1000.0)); // Overflows rights boundaries!
+      });
+
+      testWidgets('Horizontal flip: true flips menu across anchor when overflowing', (
+        WidgetTester tester,
+      ) async {
+        await changeSurfaceSize(tester, const Size(1000, 600));
+
+        await tester.pumpWidget(
+          App(
+            alignment: const Alignment(0.6, 0.0), // anchor offset right
+            BaseMenu(
+              positionDelegate: const DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: Alignment.topRight,
+                menuAlignment: Alignment.topLeft,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: EdgeResolutionStrategy(flip: true),
+                  vertical: EdgeResolutionStrategy(),
+                ),
+              ),
+              menu: BaseMenuPanel(
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 300, height: 100, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect menu = collectOverlays().first;
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+
+        // Since flip is true and it overflows the screen boundary, it flips horizontally.
+        // It aligns to the left as expected.
+        expect(menu.right, equals(anchor.left));
+      });
+
+      testWidgets('Horizontal constrain: true constrains max width when flip is false', (
+        WidgetTester tester,
+      ) async {
+        await changeSurfaceSize(tester, const Size(1000, 600));
+
+        await tester.pumpWidget(
+          App(
+            alignment: const Alignment(0.6, 0.0), // anchor offset right
+            BaseMenu(
+              positionDelegate: const DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: Alignment.topRight,
+                menuAlignment: Alignment.topLeft,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: EdgeResolutionStrategy(constrain: true),
+                  vertical: EdgeResolutionStrategy(),
+                ),
+              ),
+              menu: BaseMenuPanel(
+                constrainCrossAxis: true, // Allow cross axis constraints to apply
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 400, height: 100, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect menu = collectOverlays().first;
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+
+        // Since constrain is true and flip is false, maxWidth should be the remaining space (trailing space).
+        const overlayPaddingRight = 8.0;
+        final double expectedWidth = 1000.0 - anchor.right - overlayPaddingRight;
+        expect(menu.width, equals(expectedWidth));
+        expect(menu.right, equals(1000.0 - overlayPaddingRight));
+      });
+
+      testWidgets('Vertical shift stays within screen bounds when overflowing bottom', (
+        WidgetTester tester,
+      ) async {
+        await changeSurfaceSize(tester, const Size(800, 600));
+
+        await tester.pumpWidget(
+          App(
+            alignment: const Alignment(0.0, 0.8), // anchor is offset bottom
+            BaseMenu(
+              positionDelegate: const DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: Alignment.bottomLeft,
+                menuAlignment: Alignment.topLeft,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: EdgeResolutionStrategy(),
+                  vertical: EdgeResolutionStrategy(shift: true),
+                ),
+              ),
+              menu: BaseMenuPanel(
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 100, height: 200, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect menu = collectOverlays().first;
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+
+        // Without flip, it shifts up to stay within screen boundaries.
+        const expectedOverlayPaddingBottom = 8.0;
+        expect(menu.bottom, equals(600.0 - expectedOverlayPaddingBottom));
+        expect(menu.top, equals(600.0 - expectedOverlayPaddingBottom - 200.0));
+        // Should overlap anchor vertically.
+        expect(menu.top < anchor.bottom, isTrue);
+      });
+
+      testWidgets('Vertical shift: false allows menu to overflow screen bottom', (
+        WidgetTester tester,
+      ) async {
+        await changeSurfaceSize(tester, const Size(800, 600));
+
+        await tester.pumpWidget(
+          App(
+            alignment: const Alignment(0.0, 0.8),
+            BaseMenu(
+              positionDelegate: const DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: Alignment.bottomLeft,
+                menuAlignment: Alignment.topLeft,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: EdgeResolutionStrategy(),
+                  vertical: EdgeResolutionStrategy(),
+                ),
+              ),
+              menu: BaseMenuPanel(
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 100, height: 200, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect menu = collectOverlays().first;
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+
+        // Should align at anchor.bottom and overflow.
+        expect(menu.top, equals(anchor.bottom));
+        expect(menu.bottom, equals(anchor.bottom + 200.0));
+        expect(menu.bottom, greaterThan(600.0));
+      });
+
+      testWidgets('Vertical flip: true flips menu vertically across anchor', (
+        WidgetTester tester,
+      ) async {
+        await changeSurfaceSize(tester, const Size(800, 600));
+
+        await tester.pumpWidget(
+          App(
+            alignment: const Alignment(0.0, 0.8),
+            BaseMenu(
+              positionDelegate: const DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: Alignment.bottomLeft,
+                menuAlignment: Alignment.topLeft,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: EdgeResolutionStrategy(),
+                  vertical: EdgeResolutionStrategy(flip: true),
+                ),
+              ),
+              menu: BaseMenuPanel(
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 100, height: 200, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect menu = collectOverlays().first;
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+
+        // It should flip above the anchor, so its bottom edge aligns with anchor.top.
+        expect(menu.bottom, equals(anchor.top));
+      });
+
+      testWidgets('Vertical constrain: true constrains max height when flip is false', (
+        WidgetTester tester,
+      ) async {
+        await changeSurfaceSize(tester, const Size(800, 600));
+
+        await tester.pumpWidget(
+          App(
+            alignment: const Alignment(0.0, 0.5), // anchor in the lower middle
+            BaseMenu(
+              positionDelegate: const DefaultBaseMenuPositioningDelegate(
+                anchorAlignment: Alignment.bottomLeft,
+                menuAlignment: Alignment.topLeft,
+                edgeBehavior: EdgeBehavior(
+                  horizontal: EdgeResolutionStrategy(),
+                  vertical: EdgeResolutionStrategy(constrain: true),
+                ),
+              ),
+              menu: BaseMenuPanel(
+                orientation: Axis.vertical,
+                children: <Widget>[
+                  Container(width: 100, height: 500, color: const Color(0xFF00FF00)),
+                ],
+              ),
+              child: const AnchorButton(Tag.anchor),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text(Tag.anchor.text));
+        await tester.pump();
+
+        final Rect menu = collectOverlays().first;
+        final Rect anchor = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
+
+        // Since constrain is true and flip is false, available space is below.
+        // maxHeight is screen.bottom - anchor.bottom - overlayPadding.bottom.
+        const overlayPaddingBottom = 8.0;
+        final double expectedHeight = 600.0 - anchor.bottom - overlayPaddingBottom;
+        expect(menu.height, equals(expectedHeight));
+        expect(menu.bottom, equals(600.0 - overlayPaddingBottom));
+      });
+    });
   });
 }

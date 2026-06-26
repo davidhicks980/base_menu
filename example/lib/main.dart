@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 
 import 'app/app.dart';
 import 'firebase_options.dart';
+import 'testapp.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,5 +16,5 @@ void main() async {
       return true;
     }());
   }
-  runApp(const App());
+  runApp(const TestApp());
 }

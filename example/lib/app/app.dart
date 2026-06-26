@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../floogle_docs/app.dart';
+import '../floogle_docs/floogle_docs.dart';
 import '../floogle_docs/utilities/colors.dart';
-import '../menubar/app.dart';
-import '../popup/app.dart';
-import '../sequoia/app.dart';
+import '../menubar/menubar.dart';
+import '../popup/popup.dart';
+import '../sequoia/sequoia.dart';
 import 'aliased_border.dart';
 
 const _kLightBorderColor = Color.fromARGB(255, 121, 121, 121);
@@ -254,9 +254,12 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
                 builder: (context) {
                   final size = MediaQuery.sizeOf(context);
                   final offset = showNavigationDrawer ? 250.0 : 50.0;
-                  return Positioned(
-                    left: offset,
+                  return AnimatedPositioned(
+                    duration: const Duration(milliseconds: 800),
+                    left: offset + 4,
+
                     width: size.width - offset,
+                    curve: Curves.easeOutQuint,
                     top: 0,
                     bottom: 0,
                     child: MediaQuery(

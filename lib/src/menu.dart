@@ -1,6 +1,8 @@
+import 'dart:math' as math;
 import 'dart:ui'
     as ui
     show Clip, DisplayFeature, DisplayFeatureState, Offset, Rect, TextDirection, clampDouble;
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
@@ -133,7 +135,6 @@ typedef BaseMenuOverlayChildBuilder = Widget Function(BuildContext context, Widg
 
 class _BaseMenuPanelMouseRegion extends StatelessWidget {
   const _BaseMenuPanelMouseRegion({
-    super.key,
     required this.child,
     this.cursor = MouseCursor.defer,
     this.onEnter,
@@ -176,6 +177,7 @@ class BaseMenuPanel extends StatelessWidget {
     super.key,
     this.constraints,
     this.constrainCrossAxis = false,
+    this.crossAxisAlignment = CrossAxisAlignment.stretch,
     this.padding = EdgeInsets.zero,
     this.scrollable = true,
     this.spacing = 0,
@@ -208,6 +210,12 @@ class BaseMenuPanel extends StatelessWidget {
   ///
   /// Defaults to false.
   final bool constrainCrossAxis;
+
+  /// The alignment of the menu items along the cross axis.
+  ///
+  /// Defaults to [CrossAxisAlignment.stretch], which stretches the menu items
+  /// to fill the cross axis.
+  final CrossAxisAlignment crossAxisAlignment;
 
   /// The [EdgeInsetsGeometry] applied to the menu surface.
   ///
@@ -258,7 +266,7 @@ class BaseMenuPanel extends StatelessWidget {
     Widget child = Flex(
       direction: orientation,
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment: crossAxisAlignment,
       spacing: spacing,
       children: children,
     );
@@ -279,12 +287,11 @@ class BaseMenuPanel extends StatelessWidget {
     if (scrollable) {
       child = SingleChildScrollView(
         scrollDirection: orientation,
-        clipBehavior: clipBehavior,
+        clipBehavior: .none,
+        padding: padding,
         child: child,
       );
-    }
-
-    if (padding != EdgeInsets.zero) {
+    } else if (padding != EdgeInsets.zero) {
       child = Padding(padding: padding, child: child);
     }
 
@@ -348,6 +355,7 @@ class BaseMenuPanel extends StatelessWidget {
 
 /// A delegate responsible for building a widget that positions a [BaseMenu]'s
 /// menu panel.
+@immutable
 abstract class BaseMenuPositioningDelegate {
   /// Creates a [BaseMenuPositioningDelegate].
   const BaseMenuPositioningDelegate();
@@ -357,6 +365,7 @@ abstract class BaseMenuPositioningDelegate {
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child);
 }
 
+@immutable
 class EdgeResolutionStrategy {
   const EdgeResolutionStrategy({this.shift = false, this.flip = false, this.constrain = false});
 
@@ -370,51 +379,46 @@ class EdgeResolutionStrategy {
   /// The menu will be resized to fit within the available space between
   /// the anchor and the screen edge. Ideal for scrollable menus.
   final bool constrain;
-}
-
-abstract class EdgeBehaviorGeometry {
-  const EdgeBehaviorGeometry();
-  EdgeBehavior resolve(TextDirection textDirection);
-}
-
-class EdgeBehavior extends EdgeBehaviorGeometry {
-  const EdgeBehavior({
-    this.left = const EdgeResolutionStrategy(flip: true),
-    this.right = const EdgeResolutionStrategy(flip: true),
-    this.top = const EdgeResolutionStrategy(flip: true),
-    this.bottom = const EdgeResolutionStrategy(flip: true),
-  });
-
-  final EdgeResolutionStrategy left;
-  final EdgeResolutionStrategy right;
-  final EdgeResolutionStrategy top;
-  final EdgeResolutionStrategy bottom;
 
   @override
-  EdgeBehavior resolve(TextDirection textDirection) {
-    return EdgeBehavior(left: left, right: right, top: top, bottom: bottom);
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    return other is EdgeResolutionStrategy &&
+        other.shift == shift &&
+        other.flip == flip &&
+        other.constrain == constrain;
   }
-}
-
-class EdgeBehaviorDirectional extends EdgeBehaviorGeometry {
-  const EdgeBehaviorDirectional({
-    this.start = const EdgeResolutionStrategy(flip: true),
-    this.end = const EdgeResolutionStrategy(flip: true),
-    this.top = const EdgeResolutionStrategy(flip: true),
-    this.bottom = const EdgeResolutionStrategy(flip: true),
-  });
-
-  final EdgeResolutionStrategy start;
-  final EdgeResolutionStrategy end;
-  final EdgeResolutionStrategy top;
-  final EdgeResolutionStrategy bottom;
 
   @override
-  EdgeBehavior resolve(TextDirection textDirection) {
-    return switch (textDirection) {
-      TextDirection.ltr => EdgeBehavior(left: start, right: end, top: top, bottom: bottom),
-      TextDirection.rtl => EdgeBehavior(left: end, right: start, top: top, bottom: bottom),
-    };
+  int get hashCode => shift.hashCode ^ flip.hashCode ^ constrain.hashCode;
+}
+
+@immutable
+class EdgeBehavior {
+  const EdgeBehavior({required this.horizontal, required this.vertical});
+
+  final EdgeResolutionStrategy horizontal;
+  final EdgeResolutionStrategy vertical;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+
+    return other is EdgeBehavior && other.horizontal == horizontal && other.vertical == vertical;
+  }
+
+  @override
+  int get hashCode {
+    return horizontal.hashCode ^ vertical.hashCode;
   }
 }
 
@@ -437,7 +441,10 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
     this.menuAlignment,
     this.padding = EdgeInsets.zero,
     this.overlayPadding = const EdgeInsets.all(8),
-    this.edgeBehavior = const EdgeBehavior(),
+    this.edgeBehavior = const EdgeBehavior(
+      horizontal: EdgeResolutionStrategy(flip: true, shift: true),
+      vertical: EdgeResolutionStrategy(flip: true, shift: true),
+    ),
   });
 
   /// The point on the menu surface that attaches to the anchor.
@@ -482,9 +489,8 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
   /// applied in the reading direction of the ambient [Directionality].
   final bool useDirectionalOffset;
 
-  /// The edges of the screen that, when overflowed by the menu, should trigger
-  /// the menu to flip across the anchor's midpoint on the axis of overflow.
-  final EdgeBehaviorGeometry edgeBehavior;
+  /// The behavior to apply when the menu overflows the edge of the screen.
+  final EdgeBehavior edgeBehavior;
 
   /// The [EdgeInsetsGeometry] applied to the menu surface but ignored during
   /// menu positioning.
@@ -506,8 +512,8 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child) {
     final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
     final TextDirection textDirection = Directionality.of(context);
-    final anchorAlignment =
-        this.anchorAlignment ??
+    final resolvedAnchorAlignment =
+        anchorAlignment ??
         // Only resolve the default alignment
         (switch (MenuScope.maybeOf(context)?.orientation) {
           Axis.vertical => AlignmentDirectional.topEnd,
@@ -526,7 +532,7 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
       offset: resolvedOffset,
       menuPosition: position.position,
       menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
-      alignment: anchorAlignment,
+      alignment: resolvedAnchorAlignment,
       edgeBehavior: edgeBehavior,
     );
 
@@ -1306,7 +1312,7 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
 
   // The axis or axes on which the menu should be flipped across the anchor's
   // midpoint if it overflows the edge of the screen.
-  final Set<AxisDirection> edgeBehavior;
+  final EdgeBehavior edgeBehavior;
 
   // Finds the closest screen to the anchor position.
   //
@@ -1358,14 +1364,15 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
     bool overRightEdge(double x) => x > screen.right - childSize.width - overlayInsets.right;
     bool overTopEdge(double y) => y < screen.top + overlayInsets.top;
     bool overBottomEdge(double y) => y > screen.bottom - childSize.height - overlayInsets.bottom;
-
-    // Layout horizontally first to determine if the menu can be placed on
-    // either side of the anchor without overlapping.
-    bool hasHorizontalAnchorOverlap = childSize.width >= screen.width;
-    if (hasHorizontalAnchorOverlap) {
-      x = screen.left + overlayInsets.left;
+    bool hasHorizontalAnchorOverlap = childSize.width >= screen.width - overlayInsets.horizontal;
+    // If the menu is wider than the screen, shift if allowed.
+    if (edgeBehavior.horizontal.shift && hasHorizontalAnchorOverlap) {
+      x = switch (textDirection) {
+        .ltr => screen.left + overlayInsets.left,
+        .rtl => screen.right - childSize.width - overlayInsets.right,
+      };
     } else {
-      // Shift the menu left or right to adjust for padding.
+      // Adjust for padding applied to the menu panel
       double? shiftX;
       if (padding != null && padding.horizontal > 0) {
         double ratio = (x - anchorPosition.dx) / childSize.width;
@@ -1375,8 +1382,7 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
       }
 
       if (overLeftEdge(x)) {
-        if (edgeBehavior.contains(AxisDirection.left)) {
-          // Flip the X position across the horizontal midpoint of the anchor so that the menu is to the right of the anchor.
+        if (edgeBehavior.horizontal.flip) {
           double flipX = anchor.center.dx * 2 - position.dx - childSize.width;
           if (shiftX != null) {
             flipX -= padding!.horizontal + shiftX;
@@ -1384,16 +1390,29 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
 
           hasHorizontalAnchorOverlap = overRightEdge(flipX);
           if (hasHorizontalAnchorOverlap || overLeftEdge(flipX)) {
-            x = screen.left + overlayInsets.left;
+            // If the flipped position also overflows, choose the side with the
+            // most space available and shift if allowed.
+            final double availableLeft = anchor.left - screen.left - overlayInsets.left;
+            final double availableRight = screen.right - anchor.right - overlayInsets.right;
+            if (availableLeft >= availableRight) {
+              if (edgeBehavior.horizontal.shift) {
+                x = screen.left + overlayInsets.left;
+              }
+            } else {
+              if (edgeBehavior.horizontal.shift) {
+                x = screen.right - childSize.width - overlayInsets.right;
+              } else {
+                x = flipX;
+              }
+            }
           } else {
             x = flipX;
           }
-        } else {
+        } else if (edgeBehavior.horizontal.shift) {
           x = screen.left + overlayInsets.left;
         }
       } else if (overRightEdge(x)) {
-        if (edgeBehavior.contains(AxisDirection.right)) {
-          // Flip the X position across the horizontal midpoint of the anchor so that the menu is to the left of the anchor.
+        if (edgeBehavior.horizontal.flip) {
           double flipX = anchor.center.dx * 2 - position.dx - childSize.width;
           if (shiftX != null) {
             flipX += padding!.horizontal - shiftX;
@@ -1401,79 +1420,110 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
 
           hasHorizontalAnchorOverlap = overLeftEdge(flipX);
           if (hasHorizontalAnchorOverlap || overRightEdge(flipX)) {
-            x = screen.right - childSize.width - overlayInsets.right;
+            final double availableLeft = anchor.left - screen.left - overlayInsets.left;
+            final double availableRight = screen.right - anchor.right - overlayInsets.right;
+            if (availableRight >= availableLeft) {
+              if (edgeBehavior.horizontal.shift) {
+                x = screen.right - childSize.width - overlayInsets.right;
+              }
+            } else {
+              if (edgeBehavior.horizontal.shift) {
+                x = screen.left + overlayInsets.left;
+              } else {
+                x = flipX;
+              }
+            }
           } else {
             x = flipX;
           }
-        } else {
+        } else if (edgeBehavior.horizontal.shift) {
           x = screen.right - childSize.width - overlayInsets.right;
         }
       }
     }
 
-    if (childSize.height >= screen.height) {
-      // Menu is too big to fit on screen. Fit as much as possible.
-      return Offset(x, overlayInsets.top);
-    }
-
-    if (hasHorizontalAnchorOverlap && !anchor.isEmpty) {
-      // If both horizontal screen edges overlap, shift the menu upwards or
-      // downwards by the minimum amount needed to avoid overlapping the anchor.
-      //
-      // NOTE: Menus that are deliberately overlapping the anchor will stop
-      // overlapping the anchor, but only when the screen is very small.
-      final double below = anchor.bottom - y;
-      final double above = y + childSize.height - anchor.top;
-      if (below > 0 && above > 0) {
-        if (below > above) {
-          y = anchor.top - childSize.height;
-        } else {
-          y = anchor.bottom;
-        }
-      }
-    }
-
-    // Remove vertical padding from the y component.
-    double? shiftY;
-    if (padding != null && padding.vertical > 0) {
-      double ratio = (y - anchorPosition.dy) / childSize.height;
-      ratio = ui.clampDouble(ratio, -1, 0);
-      shiftY = padding.bottom * ratio + padding.top * (ratio + 1);
-      y -= shiftY;
-    }
-
-    if (overTopEdge(y)) {
-      if (edgeBehavior.contains(AxisDirection.up)) {
-        // Flip the Y position across the vertical midpoint of the anchor so that the menu is below the anchor.
-        double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
-        if (shiftY != null) {
-          flipY -= padding!.vertical + shiftY;
-        }
-
-        if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-          y = screen.top + overlayInsets.top;
-        } else {
-          y = flipY;
-        }
-      } else {
+    if (edgeBehavior.vertical.shift) {
+      if (childSize.height >= screen.height - overlayInsets.vertical) {
         y = screen.top + overlayInsets.top;
-      }
-    } else if (overBottomEdge(y)) {
-      if (edgeBehavior.contains(AxisDirection.down)) {
-        // Flip the Y position across the vertical midpoint of the anchor so that
-        // the menu is above the anchor.
-        double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
-        if (shiftY != null) {
-          flipY += padding!.vertical - shiftY;
-        }
-
-        if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-          y = screen.bottom - childSize.height - overlayInsets.bottom;
-        } else {
-          y = flipY;
-        }
       } else {
-        y = screen.bottom - childSize.height - overlayInsets.bottom;
+        if (hasHorizontalAnchorOverlap && !anchor.isEmpty) {
+          final double below = anchor.bottom - y;
+          final double above = y + childSize.height - anchor.top;
+          if (below > 0 && above > 0) {
+            if (below > above) {
+              y = anchor.top - childSize.height;
+            } else {
+              y = anchor.bottom;
+            }
+          }
+        }
+      }
+
+      double? shiftY;
+      if (padding != null && padding.vertical > 0) {
+        double ratio = (y - anchorPosition.dy) / childSize.height;
+        ratio = ui.clampDouble(ratio, -1, 0);
+        shiftY = padding.bottom * ratio + padding.top * (ratio + 1);
+        y -= shiftY;
+      }
+
+      if (overTopEdge(y)) {
+        if (edgeBehavior.vertical.flip) {
+          double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
+          if (shiftY != null) {
+            flipY -= padding!.vertical + shiftY;
+          }
+          if (overTopEdge(flipY) || overBottomEdge(flipY)) {
+            // If the flipped position also overflows, choose the side with the
+            // most space available and shift if allowed.
+            final double availableTop = anchor.top - screen.top - overlayInsets.top;
+            final double availableBottom = screen.bottom - anchor.bottom - overlayInsets.bottom;
+            if (availableTop >= availableBottom) {
+              if (edgeBehavior.vertical.shift) {
+                y = screen.top + overlayInsets.top;
+              }
+            } else {
+              if (edgeBehavior.vertical.shift) {
+                y = screen.bottom - childSize.height - overlayInsets.bottom;
+              } else {
+                y = flipY;
+              }
+            }
+          } else {
+            y = flipY;
+          }
+        } else if (edgeBehavior.vertical.shift) {
+          y = screen.top + overlayInsets.top;
+        }
+      } else if (overBottomEdge(y)) {
+        if (edgeBehavior.vertical.flip) {
+          double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
+          if (shiftY != null) {
+            flipY += padding!.vertical - shiftY;
+          }
+
+          if (overTopEdge(flipY) || overBottomEdge(flipY)) {
+            // If the flipped position also overflows, choose the side with the
+            // most space available and shift if allowed.
+            final double availableTop = anchor.top - screen.top - overlayInsets.top;
+            final double availableBottom = screen.bottom - anchor.bottom - overlayInsets.bottom;
+            if (availableBottom >= availableTop) {
+              if (edgeBehavior.vertical.shift) {
+                y = screen.bottom - childSize.height - overlayInsets.bottom;
+              }
+            } else {
+              if (edgeBehavior.vertical.shift) {
+                y = screen.top + overlayInsets.top;
+              } else {
+                y = flipY;
+              }
+            }
+          } else {
+            y = flipY;
+          }
+        } else if (edgeBehavior.vertical.shift) {
+          y = screen.bottom - childSize.height - overlayInsets.bottom;
+        }
       }
     }
 
@@ -1482,8 +1532,75 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
 
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
-    // The menu can be at most the size of the overlay minus totalPadding.
-    return BoxConstraints.loose(constraints.biggest).deflate(overlayPadding);
+    final Size parentSize = constraints.biggest;
+    Offset anchorOffset;
+    if (menuPosition == null) {
+      anchorOffset = alignment.resolve(textDirection).withinRect(anchorRect);
+      anchorOffset += offset;
+    } else {
+      anchorOffset = anchorRect.topLeft + menuPosition!;
+    }
+
+    final Rect screen = _findClosestScreen(parentSize, anchorRect.center, avoidBounds);
+    final EdgeInsets overlayInsets = overlayPadding.resolve(textDirection);
+    const childConstraints = BoxConstraints();
+    
+
+    double maxWidth = childConstraints.maxWidth;
+    if (edgeBehavior.horizontal.constrain) {
+      if (edgeBehavior.horizontal.shift) {
+        // If we can shift, the menu can slide to occupy the entire horizontal viewport width.
+        maxWidth = screen.width - overlayInsets.horizontal;
+      } else {
+        // Space on the primary side (Trailing)
+        final double trailing = switch (textDirection) {
+          TextDirection.ltr => screen.right - anchorOffset.dx - overlayInsets.right,
+          TextDirection.rtl => anchorOffset.dx - screen.left - overlayInsets.left,
+        };
+
+        if (edgeBehavior.horizontal.flip) {
+          final Offset anchorMidpoint = menuPosition == null ? anchorRect.center : anchorOffset;
+          // Flip the attachment point across the anchor's horizontal midpoint
+          final double flippedAnchorX = anchorMidpoint.dx * 2 - anchorOffset.dx;
+          // Calculate space on the opposite side (Leading) relative to the flipped point
+          final double leading = switch (textDirection) {
+            TextDirection.ltr => flippedAnchorX - screen.left - overlayInsets.left,
+            TextDirection.rtl => screen.right - flippedAnchorX - overlayInsets.right,
+          };
+
+          maxWidth = math.max(trailing, leading);
+        } else {
+          maxWidth = trailing;
+        }
+      }
+    }
+
+    double maxHeight = childConstraints.maxHeight;
+    if (edgeBehavior.vertical.constrain) {
+      if (edgeBehavior.vertical.shift) {
+        // If we can shift, the menu can slide to occupy the entire vertical viewport height.
+        maxHeight = screen.height - overlayInsets.vertical;
+      } else {
+        // Space on the primary side (Below)
+        final double availableBelow = screen.bottom - anchorOffset.dy - overlayInsets.bottom;
+
+        if (edgeBehavior.vertical.flip) {
+          final Offset anchorMidpoint = menuPosition == null ? anchorRect.center : anchorOffset;
+          // Flip the attachment point across the anchor's vertical midpoint
+          final double flippedAnchorY = anchorMidpoint.dy * 2 - anchorOffset.dy;
+          // Calculate space on the opposite side (Above) relative to the flipped point
+          final double availableAbove = flippedAnchorY - screen.top - overlayInsets.top;
+          maxHeight = math.max(availableBelow, availableAbove);
+        } else {
+          maxHeight = availableBelow;
+        }
+      }
+    }
+
+    return childConstraints.copyWith(
+      maxWidth: ui.clampDouble(maxWidth, 0, childConstraints.maxWidth),
+      maxHeight: ui.clampDouble(maxHeight, 0, childConstraints.maxHeight),
+    );
   }
 
   @override
@@ -1514,7 +1631,7 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
         menuPadding != oldDelegate.menuPadding ||
         overlayPadding != oldDelegate.overlayPadding ||
         textDirection != oldDelegate.textDirection ||
-        !setEquals(edgeBehavior, oldDelegate.edgeBehavior) ||
+        edgeBehavior != oldDelegate.edgeBehavior ||
         !setEquals(avoidBounds, oldDelegate.avoidBounds);
   }
 }

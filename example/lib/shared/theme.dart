@@ -230,8 +230,13 @@ class MenuDivider extends StatelessWidget {
 }
 
 class StyledMenuPanel extends StatelessWidget {
-  const StyledMenuPanel({super.key, required this.child});
+  const StyledMenuPanel({
+    super.key,
+    required this.child,
+    this.borderRadius = const BorderRadius.all(Radius.circular(4)),
+  });
   final Widget child;
+  final BorderRadiusGeometry borderRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -239,6 +244,7 @@ class StyledMenuPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xffffffff),
         border: Border.all(color: const Color(0xFFE0E0E0)),
+        borderRadius: borderRadius.resolve(Directionality.of(context)),
       ),
       child: child,
     );

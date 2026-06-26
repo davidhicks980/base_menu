@@ -48,6 +48,7 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
     this.onPointerHover,
     this.onPointerLeave,
     this.behavior = HitTestBehavior.deferToChild,
+    this.opaque = true,
     this.mouseCursor,
     this.role = SemanticsRole.menuItem,
     this.gestureSemanticsEnabled = true,
@@ -133,6 +134,9 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
 
   @override
   final HitTestBehavior behavior;
+
+  @override
+  final bool opaque;
 
   @override
   final WidgetStateProperty<MouseCursor>? mouseCursor;
@@ -500,6 +504,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
         requestCloseOnActivate: widget.requestCloseOnActivate,
         requestFocusOnHover: widget.requestFocusOnHover,
         behavior: widget.behavior,
+        opaque: widget.opaque,
         mouseCursor: widget.mouseCursor,
         role: widget.role,
         gestureSemanticsEnabled: widget.gestureSemanticsEnabled,

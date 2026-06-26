@@ -231,6 +231,9 @@ abstract interface class BaseControlInterface {
   /// See [HitTestBehavior] for the allowed values and their meanings.
   HitTestBehavior get behavior;
 
+  /// Whether this control obstructs hit testing for widgets behind it.
+  bool get opaque;
+
   /// The mouse cursor to show when hovering over this menu item.
   WidgetStateProperty<MouseCursor>? get mouseCursor;
 

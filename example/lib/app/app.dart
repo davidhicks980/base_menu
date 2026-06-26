@@ -4,6 +4,8 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../floogle_docs/app.dart';
 import '../floogle_docs/utilities/colors.dart';
+import '../menubar/app.dart';
+import '../popup/app.dart';
 import '../sequoia/app.dart';
 import 'aliased_border.dart';
 
@@ -11,12 +13,15 @@ const _kLightBorderColor = Color.fromARGB(255, 121, 121, 121);
 const _kDarkBorderColor = Color.fromARGB(255, 76, 76, 76);
 
 enum Destination {
-  simpleMenu(
-    'Simple Menu',
-    '/',
+  popup('Popup', '/', icon: Icon(Symbols.list_alt), selectedIcon: Icon(Symbols.list_alt, fill: 1)),
+  menuBar(
+    'Menu Bar',
+    '/menu-bar',
     icon: Icon(Symbols.list_alt),
     selectedIcon: Icon(Symbols.list_alt, fill: 1),
   ),
+  aim('Aim', '/aim', icon: Icon(Symbols.list_alt), selectedIcon: Icon(Symbols.list_alt, fill: 1)),
+
   floogleDocs(
     'Floogle Docs',
     '/floogle-docs',
@@ -36,7 +41,6 @@ enum Destination {
     this.route, {
     required this.icon,
     required this.selectedIcon,
-    this.isDevelopment = false,
     this.brightness = Brightness.light,
   });
 
@@ -44,15 +48,11 @@ enum Destination {
   final String route;
   final Widget icon;
   final Widget selectedIcon;
-  final bool isDevelopment;
   final Brightness brightness;
 
   /// Helper to find a destination based on the current route name.
   static Destination fromRoute(String? route) {
-    return Destination.values.firstWhere(
-      (d) => d.route == route,
-      orElse: () => Destination.simpleMenu,
-    );
+    return Destination.values.firstWhere((d) => d.route == route, orElse: () => Destination.popup);
   }
 }
 
@@ -64,9 +64,9 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  bool _isRTL = false;
+  final bool _isRTL = false;
   final bool _isDarkMode = false;
-  double _textScaleFactor = 1.0;
+  final double _textScaleFactor = 1.0;
   TextDirection get _textDirection => _isRTL ? TextDirection.rtl : TextDirection.ltr;
   Brightness get _brightness => _isDarkMode ? Brightness.dark : Brightness.light;
 
@@ -84,7 +84,7 @@ class _AppState extends State<App> {
             },
           ),
         ),
-        initialRoute: Destination.simpleMenu.route,
+        initialRoute: Destination.popup.route,
         routes: {
           for (final destination in Destination.values)
             destination.route: (context) => Builder(
@@ -121,12 +121,45 @@ class _AppState extends State<App> {
                           onSecondaryContainer: FloogleColors.selectedButton,
                         ),
                   splashFactory: InkSparkle.splashFactory,
-                  navigationDrawerTheme: const NavigationDrawerThemeData(tileHeight: 36),
+                  navigationDrawerTheme: NavigationDrawerThemeData(
+                    tileHeight: 36,
+                    indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+                    indicatorColor: destination.brightness == Brightness.dark
+                        ? Colors.white.withOpacity(0.12)
+                        : Colors.black.withOpacity(0.08),
+                    labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                      final isSelected = states.contains(WidgetState.selected);
+                      return TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'GoogleSans',
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: isSelected
+                            ? (destination.brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black)
+                            : (destination.brightness == Brightness.dark
+                                  ? Colors.white.withOpacity(0.7)
+                                  : Colors.black.withOpacity(0.7)),
+                      );
+                    }),
+                    iconTheme: WidgetStateProperty.resolveWith((states) {
+                      final isSelected = states.contains(WidgetState.selected);
+                      return IconThemeData(
+                        size: 24,
+                        color: isSelected
+                            ? (destination.brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black)
+                            : (destination.brightness == Brightness.dark
+                                  ? Colors.white.withOpacity(0.7)
+                                  : Colors.black.withOpacity(0.7)),
+                      );
+                    }),
+                  ),
                 );
                 return Theme(
                   data: theme,
-
-                  child: _AppRouteWrapper(destination: destination, settings: _buildSettings()),
+                  child: _AppRouteWrapper(destination: destination),
                 );
               },
             ),
@@ -142,29 +175,20 @@ class _AppState extends State<App> {
       },
     );
   }
-
-  Settings _buildSettings() {
-    return Settings(
-      isRTL: _isRTL,
-      setRTL: (value) => setState(() => _isRTL = value),
-
-      textScaleFactor: _textScaleFactor,
-      setTextScaleFactor: (value) => setState(() => _textScaleFactor = value),
-    );
-  }
 }
 
 /// A wrapper widget that applies the persistent [AppScaffold] to every route.
 class _AppRouteWrapper extends StatelessWidget {
-  const _AppRouteWrapper({required this.destination, required this.settings});
+  const _AppRouteWrapper({required this.destination});
 
   final Destination destination;
-  final Settings settings;
 
   @override
   Widget build(BuildContext context) {
     final Widget child = switch (destination) {
-      Destination.simpleMenu => const SizedBox.expand(),
+      Destination.popup => const PopupApp(),
+      Destination.menuBar => const MenuBarApp(),
+      Destination.aim => const SizedBox(),
       Destination.floogleDocs => const FloogleDocsApp(),
       Destination.sequoia => const SequoiaApp(),
     };
@@ -180,7 +204,7 @@ class _AppRouteWrapper extends StatelessWidget {
               child: Title(
                 title: 'Menu Utilities Example',
                 color: Colors.black,
-                child: AppScaffold(settings: settings, child: child),
+                child: AppScaffold(child: child),
               ),
             ),
           );
@@ -191,10 +215,9 @@ class _AppRouteWrapper extends StatelessWidget {
 }
 
 class AppScaffold extends StatefulWidget {
-  const AppScaffold({super.key, required this.child, required this.settings});
+  const AppScaffold({super.key, required this.child});
 
   final Widget child;
-  final Widget settings;
 
   @override
   State<AppScaffold> createState() => _AppScaffoldState();
@@ -231,13 +254,11 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
                 builder: (context) {
                   final size = MediaQuery.sizeOf(context);
                   final offset = showNavigationDrawer ? 250.0 : 50.0;
-                  return AnimatedPositioned(
-                    duration: const Duration(milliseconds: 800),
-                    left: offset + 4,
+                  return Positioned(
+                    left: offset,
                     width: size.width - offset,
                     top: 0,
                     bottom: 0,
-                    curve: Curves.easeOutQuint,
                     child: MediaQuery(
                       data: MediaQuery.of(
                         context,
@@ -283,7 +304,6 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
                                 child: _Drawer(
                                   onDestinationSelected: handleScreenChanged,
                                   selectedIndex: _selectedIndex,
-                                  settings: widget.settings,
                                 ),
                               ),
                             ),
@@ -315,14 +335,12 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
 }
 
 class _Drawer extends StatelessWidget {
-  const _Drawer({required this.onDestinationSelected, required this.selectedIndex, this.settings});
+  const _Drawer({required this.onDestinationSelected, required this.selectedIndex});
   final void Function(int) onDestinationSelected;
   final int selectedIndex;
-  final Widget? settings;
 
   @override
   Widget build(BuildContext context) {
-    final dividerTheme = DividerTheme.of(context);
     return MediaQuery.withNoTextScaling(
       child: DefaultTextStyle.merge(
         child: ColoredBox(
@@ -331,26 +349,20 @@ class _Drawer extends StatelessWidget {
             onDestinationSelected: onDestinationSelected,
             selectedIndex: selectedIndex,
             backgroundColor: Colors.transparent,
-
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.fromLTRB(64, 16, 16, 10),
+                padding: const EdgeInsets.fromLTRB(64, 12, 16, 0),
                 child: Text(
                   'Menu Utilities',
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 24,
-                    letterSpacing: -0.25,
+                  style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(64, 16, 16, 10),
-                child: Text('Documentation', style: TextTheme.of(context).titleMedium),
-              ),
-              for (final destination in Destination.values.where(
-                (destination) => !destination.isDevelopment,
-              ))
+
+              const _DrawerHeader(title: 'EXAMPLES'),
+              for (final destination in Destination.values)
                 NavigationDrawerDestination(
                   backgroundColor: Colors.transparent,
                   label: Text(destination.label),
@@ -360,33 +372,6 @@ class _Drawer extends StatelessWidget {
                     child: destination.selectedIcon,
                   ),
                 ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(64, 16, 16, 10),
-                child: Text('Development', style: TextTheme.of(context).titleMedium),
-              ),
-              for (final destination in Destination.values.where(
-                (destination) => destination.isDevelopment,
-              ))
-                NavigationDrawerDestination(
-                  backgroundColor: Colors.transparent,
-                  label: Text(destination.label, style: TextTheme.of(context).bodyMedium),
-                  icon: Padding(padding: const EdgeInsets.only(left: 36), child: destination.icon),
-                  selectedIcon: Padding(
-                    padding: const EdgeInsets.only(left: 36),
-                    child: destination.selectedIcon,
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(70, 16, 28, 10),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    border: AliasedBorder(
-                      bottom: BorderSide(color: ColorScheme.of(context).outlineVariant),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(padding: const EdgeInsets.fromLTRB(68, 16, 28, 10), child: settings),
             ],
           ),
         ),
@@ -437,62 +422,19 @@ class _DisabledPageTransition extends PageTransitionsBuilder {
   }
 }
 
-class Settings extends StatelessWidget {
-  const Settings({
-    super.key,
-    required this.isRTL,
-    required this.setRTL,
-    required this.textScaleFactor,
-    required this.setTextScaleFactor,
-  });
-  final bool isRTL;
-  final ValueSetter<bool> setRTL;
-
-  final double textScaleFactor;
-  final ValueSetter<double> setTextScaleFactor;
+class _DrawerHeader extends StatelessWidget {
+  const _DrawerHeader({required this.title});
+  final String title;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-      ),
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 12),
-      child: DefaultTextStyle.merge(
-        style: const TextStyle(fontWeight: FontWeight.w500),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            GestureDetector(
-              onTap: () {
-                setRTL(!isRTL);
-              },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Right-to-left'),
-                  Switch(value: isRTL, onChanged: setRTL),
-                ],
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Flexible(child: Text('Text scale')),
-                Flexible(
-                  child: Slider(value: textScaleFactor, onChanged: setTextScaleFactor, max: 3),
-                ),
-              ],
-            ),
-            Text(
-              'Text scale: ${textScaleFactor.toStringAsFixed(2)}',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall!.copyWith(letterSpacing: -0.21, color: Colors.grey.shade600),
-            ),
-          ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(64, 24, 16, 8),
+      child: Text(
+        title.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall!.copyWith(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
         ),
       ),
     );

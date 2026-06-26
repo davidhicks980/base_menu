@@ -27,6 +27,7 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
     this.gestureSemanticsEnabled = true,
     this.gestureSemantics,
     this.shortcuts = BaseControl.defaultShortcuts,
+    this.opaque = true,
     required this.child,
   }) : assert(
          gestureSemanticsEnabled || gestureSemantics == null,
@@ -65,6 +66,9 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
 
   @override
   final HitTestBehavior behavior;
+
+  @override
+  final bool opaque;
 
   @override
   final WidgetStateProperty<MouseCursor>? mouseCursor;
@@ -207,6 +211,7 @@ class _BaseMenuItemState<T extends Object?> extends State<BaseMenuItem<T>> {
           gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
           gestureSemantics: widget.gestureSemantics,
           shortcuts: widget.shortcuts,
+          opaque: widget.opaque,
           child: widget.child,
         ),
       ),

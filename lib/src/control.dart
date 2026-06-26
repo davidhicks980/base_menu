@@ -56,6 +56,7 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
   @override
   final HitTestBehavior behavior;
 
+  @override
   final bool opaque;
 
   @override

@@ -55,7 +55,7 @@ class _MenuTooltipState extends State<MenuTooltip> {
       menuAlignment: Alignment.topCenter,
       textDirection: TextDirection.ltr,
       padding: EdgeInsets.zero,
-      flipEdges: const {AxisDirection.up, AxisDirection.down},
+      edgeBehavior: const {AxisDirection.up, AxisDirection.down},
     ).getPositionForChild(positionContext.overlaySize, positionContext.tooltipSize);
   }
 

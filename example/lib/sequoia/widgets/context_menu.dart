@@ -25,7 +25,6 @@ class SequoiaContextMenuRegion extends StatefulWidget {
 class _SequoiaContextMenuRegionState extends State<SequoiaContextMenuRegion> {
   final _focusNode = FocusNode();
   bool _wasBrowserContextMenuEnabled = false;
-  bool block = false;
   final MenuController _menuController = MenuController();
 
   @override
@@ -97,15 +96,6 @@ class _SequoiaContextMenuRegionState extends State<SequoiaContextMenuRegion> {
   }
 
   void _handlePointerDown(PointerDownEvent event) {
-    final ancestorState = context.findAncestorStateOfType<_SequoiaContextMenuRegionState>();
-    if (ancestorState != null) {
-      ancestorState.block = true;
-    }
-    if (block) {
-      block = false;
-      return;
-    }
-
     if (event.buttons == kSecondaryMouseButton) {
       if (kIsWeb && BrowserContextMenu.enabled) {
         return;
@@ -273,6 +263,9 @@ class _SequoiaContextSubmenuState extends State<SequoiaContextSubmenu> {
                 child: TapRegion(
                   groupId: 'menu_system',
                   onTapOutside: (event) {
+                    if (event.buttons == kSecondaryMouseButton) {
+                      return;
+                    }
                     _dismissHandler.fadeMenuOut();
                   },
                   child: FadeTransition(

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
@@ -182,6 +183,9 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
                 child: TapRegion(
                   groupId: 'menu_system',
                   onTapOutside: (event) {
+                    if (event.buttons == kSecondaryMouseButton) {
+                      return;
+                    }
                     _dismissHandler.fadeMenuOut();
                   },
                   child: FadeTransition(

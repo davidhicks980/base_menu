@@ -2,11 +2,10 @@ import 'dart:math' as math;
 import 'dart:ui'
     as ui
     show Clip, DisplayFeature, DisplayFeatureState, Offset, Rect, TextDirection, clampDouble;
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -376,8 +375,11 @@ class EdgeResolutionStrategy {
   /// The menu will be flipped across the anchor point if it overflows.
   final bool flip;
 
-  /// The menu will be resized to fit within the available space between
-  /// the anchor and the screen edge. Ideal for scrollable menus.
+  /// The menu will be resized to fit within the available space between the
+  /// anchor and the screen edge. Ideal for scrollable menus.
+  ///
+  /// Note that, due to Flutter performing a single-pass layout system enabling
+  /// [constrain] without [shift]
   final bool constrain;
 
   @override
@@ -523,28 +525,53 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
         ? Offset(-offset.dx, offset.dy)
         : offset;
 
-    final delegate = DefaultMenuLayoutDelegate(
-      overlayPadding: overlayPadding.resolve(textDirection),
-      padding: padding,
-      avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
-      textDirection: textDirection,
-      anchorRect: position.anchorRect,
-      offset: resolvedOffset,
-      menuPosition: position.position,
-      menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
-      alignment: resolvedAnchorAlignment,
-      edgeBehavior: edgeBehavior,
-    );
+    // final delegate = DefaultMenuLayoutDelegate(
+    //   overlayPadding: overlayPadding.resolve(textDirection),
+    //   padding: padding,
+    //   avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
+    //   textDirection: textDirection,
+    //   anchorRect: position.anchorRect,
+    //   offset: resolvedOffset,
+    //   menuPosition: position.position,
+    //   menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+    //   alignment: resolvedAnchorAlignment,
+    //   edgeBehavior: edgeBehavior,
+    // );
 
     if (!MenuAimScope.isEnabledOf(context) || MenuScope.maybeOf(context)?.isSubmenu != true) {
-      return CustomSingleChildLayout(delegate: delegate, child: child);
+      return MenuTwoPassLayoutWidget(
+        overlayPadding: overlayPadding.resolve(textDirection),
+        padding: padding,
+        avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
+        textDirection: textDirection,
+        anchorRect: position.anchorRect,
+        offset: resolvedOffset,
+        menuPosition: position.position,
+        menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+        alignment: resolvedAnchorAlignment,
+        edgeBehavior: edgeBehavior,
+        child: child,
+      );
     } else {
       final geometry = MenuAimGeometry()..anchorRect = position.anchorRect;
       return Stack(
         textDirection: .ltr,
         children: [
-          CustomSingleChildLayout(
-            delegate: _MenuAimLayoutDecorator(delegate: delegate, geometry: geometry),
+          // CustomSingleChildLayout(
+          //   delegate: _MenuAimLayoutDecorator(delegate: delegate, geometry: geometry),
+          //   child: child,
+          // ),
+          MenuTwoPassLayoutWidget(
+            overlayPadding: overlayPadding.resolve(textDirection),
+            padding: padding,
+            avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
+            textDirection: textDirection,
+            anchorRect: position.anchorRect,
+            offset: resolvedOffset,
+            menuPosition: position.position,
+            menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+            alignment: resolvedAnchorAlignment,
+            edgeBehavior: edgeBehavior,
             child: child,
           ),
           MenuAimInterceptor(geometry: geometry),
@@ -1364,10 +1391,9 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
     bool overRightEdge(double x) => x > screen.right - childSize.width - overlayInsets.right;
     bool overTopEdge(double y) => y < screen.top + overlayInsets.top;
     bool overBottomEdge(double y) => y > screen.bottom - childSize.height - overlayInsets.bottom;
-    bool hasHorizontalAnchorOverlap = childSize.width >= screen.width - overlayInsets.horizontal;
     // If the menu is wider than the screen, shift if allowed.
     if ((edgeBehavior.horizontal.shift || edgeBehavior.horizontal.constrain) &&
-        hasHorizontalAnchorOverlap) {
+        childSize.width >= screen.width - overlayInsets.horizontal) {
       x = switch (textDirection) {
         .ltr => screen.left + overlayInsets.left,
         .rtl => screen.right - childSize.width - overlayInsets.right,
@@ -1389,22 +1415,16 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
             flipX -= padding!.horizontal + shiftX;
           }
 
-          hasHorizontalAnchorOverlap = overRightEdge(flipX);
-          if (hasHorizontalAnchorOverlap || overLeftEdge(flipX)) {
-            // If the flipped position also overflows, choose the side with the
-            // most space available and shift if allowed.
+          if (overRightEdge(flipX) || overLeftEdge(flipX)) {
             final double availableLeft = anchor.left - screen.left - overlayInsets.left;
             final double availableRight = screen.right - anchor.right - overlayInsets.right;
-            if (availableLeft >= availableRight) {
-              if (edgeBehavior.horizontal.shift) {
-                x = screen.left + overlayInsets.left;
-              }
-            } else {
-              if (edgeBehavior.horizontal.shift) {
-                x = screen.right - childSize.width - overlayInsets.right;
-              } else {
-                x = flipX;
-              }
+            x = availableLeft > availableRight ? x : flipX;
+            if (edgeBehavior.horizontal.shift) {
+              x = ui.clampDouble(
+                x,
+                screen.left + overlayInsets.left,
+                screen.right - childSize.width - overlayInsets.right,
+              );
             }
           } else {
             x = flipX;
@@ -1419,26 +1439,21 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
             flipX += padding!.horizontal - shiftX;
           }
 
-          hasHorizontalAnchorOverlap = overLeftEdge(flipX);
-          if (hasHorizontalAnchorOverlap || overRightEdge(flipX)) {
+          if (overLeftEdge(flipX) || overRightEdge(flipX)) {
             final double availableLeft = anchor.left - screen.left - overlayInsets.left;
             final double availableRight = screen.right - anchor.right - overlayInsets.right;
-            if (availableRight >= availableLeft) {
-              if (edgeBehavior.horizontal.shift) {
-                x = screen.right - childSize.width - overlayInsets.right;
-              }
-            } else {
-              if (edgeBehavior.horizontal.shift) {
-                x = screen.left + overlayInsets.left;
-              } else {
-                x = flipX;
-              }
+            x = availableLeft < availableRight ? x : flipX;
+            if (edgeBehavior.horizontal.shift) {
+              x = ui.clampDouble(
+                x,
+                screen.left + overlayInsets.left,
+                screen.right - childSize.width - overlayInsets.right,
+              );
             }
           } else {
             x = flipX;
           }
         } else if (edgeBehavior.horizontal.shift || edgeBehavior.horizontal.constrain) {
-          // If constrain is true, we ALLOW shifting to avoid overflow/dramatic shrinkage
           x = screen.right - childSize.width - overlayInsets.right;
         }
       }
@@ -1446,20 +1461,7 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
 
     if (edgeBehavior.vertical.shift || edgeBehavior.vertical.constrain) {
       if (childSize.height >= screen.height - overlayInsets.vertical) {
-        y = screen.top + overlayInsets.top;
-      }
-    }
-    if (edgeBehavior.vertical.shift) {
-      if (hasHorizontalAnchorOverlap && !anchor.isEmpty) {
-        final double below = anchor.bottom - y;
-        final double above = y + childSize.height - anchor.top;
-        if (below > 0 && above > 0) {
-          if (below > above) {
-            y = anchor.top - childSize.height;
-          } else {
-            y = anchor.bottom;
-          }
-        }
+        return Offset(x, screen.top + overlayInsets.top);
       }
     }
 
@@ -1478,25 +1480,22 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
           flipY -= padding!.vertical + shiftY;
         }
         if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-          // If the flipped position also overflows, choose the side with the
-          // most space available and shift if allowed.
           final double availableTop = anchor.top - screen.top - overlayInsets.top;
           final double availableBottom = screen.bottom - anchor.bottom - overlayInsets.bottom;
-          if (availableTop >= availableBottom) {
-            if (edgeBehavior.vertical.shift) {
-              y = screen.top + overlayInsets.top;
-            }
-          } else {
-            if (edgeBehavior.vertical.shift) {
-              y = screen.bottom - childSize.height - overlayInsets.bottom;
-            } else {
-              y = flipY;
-            }
+          // If the flipped position also overflows, choose the side with the
+          // most space available and shift if allowed.
+          y = availableBottom > availableTop ? flipY : y;
+          if (edgeBehavior.vertical.shift) {
+            y = ui.clampDouble(
+              y,
+              screen.top + overlayInsets.top,
+              screen.bottom - childSize.height - overlayInsets.bottom,
+            );
           }
         } else {
           y = flipY;
         }
-      } else if (edgeBehavior.vertical.shift) {
+      } else if (edgeBehavior.vertical.shift || edgeBehavior.vertical.constrain) {
         y = screen.top + overlayInsets.top;
       }
     } else if (overBottomEdge(y)) {
@@ -1507,25 +1506,22 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
         }
 
         if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-          // If the flipped position also overflows, choose the side with the
-          // most space available and shift if allowed.
           final double availableTop = anchor.top - screen.top - overlayInsets.top;
           final double availableBottom = screen.bottom - anchor.bottom - overlayInsets.bottom;
-          if (availableBottom >= availableTop) {
-            if (edgeBehavior.vertical.shift) {
-              y = screen.bottom - childSize.height - overlayInsets.bottom;
-            }
-          } else {
-            if (edgeBehavior.vertical.shift) {
-              y = screen.top + overlayInsets.top;
-            } else {
-              y = flipY;
-            }
+          // If the flipped position also overflows, choose the side with the
+          // most space available and shift if allowed.
+          y = availableBottom < availableTop ? flipY : y;
+          if (edgeBehavior.vertical.shift) {
+            y = ui.clampDouble(
+              y,
+              screen.top + overlayInsets.top,
+              screen.bottom - childSize.height - overlayInsets.bottom,
+            );
           }
         } else {
           y = flipY;
         }
-      } else if (edgeBehavior.vertical.shift) {
+      } else if (edgeBehavior.vertical.shift || edgeBehavior.vertical.constrain) {
         y = screen.bottom - childSize.height - overlayInsets.bottom;
       }
     }
@@ -1584,9 +1580,6 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
         // the anchor, when pinned, exceeds the available axis space. This
         // prevents the menu width from dramatically shrinking when the anchor
         // is near the edge of the screen.
-        //
-        // Ideally, this logic shouldn't be necessary, but it may be useful in
-        // esoteric cases.
         final resolvedMenuAlignment = menuAlignment.resolve(textDirection);
         final xRatioLeading = resolvedMenuAlignment.x * 0.5 + 0.5;
         final xRatioTrailing = 1 - xRatioLeading;
@@ -1718,5 +1711,577 @@ class _MenuAimLayoutDecorator<T extends SingleChildLayoutDelegate>
   @override
   bool shouldRelayout(covariant _MenuAimLayoutDecorator<T> oldDelegate) {
     return geometry != oldDelegate.geometry || delegate.shouldRelayout(oldDelegate.delegate);
+  }
+}
+
+class MenuTwoPassLayoutWidget extends SingleChildRenderObjectWidget {
+  const MenuTwoPassLayoutWidget({
+    super.key,
+    required super.child,
+    required this.offset,
+    required this.anchorRect,
+    required this.overlayPadding,
+    required this.avoidBounds,
+    required this.alignment,
+    required this.menuAlignment,
+    required this.textDirection,
+    required EdgeInsetsGeometry? padding,
+    required this.edgeBehavior,
+    this.menuPosition,
+  }) : menuPadding = padding;
+
+  // Rectangle of the button anchoring the menu overlay.
+  final ui.Rect anchorRect;
+
+  // The offset applied to the menu position after aligning the menu and anchor
+  // based on [alignment] and [menuAlignment].
+  final ui.Offset offset;
+
+  // The offset of the menu relative to the top-left corner of the anchor.
+  final ui.Offset? menuPosition;
+
+  // The padding obtained from calling [MediaQuery.paddingOf].
+  //
+  // Used to prevent the menu from being obstructed by system UI.
+  final EdgeInsetsGeometry overlayPadding;
+
+  // Padding applied to the menu surface.
+  final EdgeInsetsGeometry? menuPadding;
+
+  // List of rectangles that the menu should not overlap. Unusable screen area.
+  final Set<Rect> avoidBounds;
+
+  // The alignment of the menu attachment point relative to the anchor button.
+  final AlignmentGeometry alignment;
+
+  // The alignment of the menu attachment point relative to the menu surface.
+  final AlignmentGeometry menuAlignment;
+
+  // The direction in which the text flows within the menu.
+  final ui.TextDirection textDirection;
+
+  // The axis or axes on which the menu should be flipped across the anchor's
+  // midpoint if it overflows the edge of the screen.
+  final EdgeBehavior edgeBehavior;
+
+  @override
+  RenderMenuTwoPassLayout createRenderObject(BuildContext context) {
+    return RenderMenuTwoPassLayout(
+      anchorRect: anchorRect,
+      offset: offset,
+      menuPosition: menuPosition,
+      overlayPadding: overlayPadding,
+      avoidBounds: avoidBounds,
+      alignment: alignment,
+      menuAlignment: menuAlignment,
+      textDirection: textDirection,
+      menuPadding: menuPadding,
+      edgeBehavior: edgeBehavior,
+    );
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderMenuTwoPassLayout renderObject) {
+    renderObject
+      ..anchorRect = anchorRect
+      ..offset = offset
+      ..menuPosition = menuPosition
+      ..overlayPadding = overlayPadding
+      ..avoidBounds = avoidBounds
+      ..alignment = alignment
+      ..menuAlignment = menuAlignment
+      ..textDirection = textDirection
+      ..menuPadding = menuPadding
+      ..edgeBehavior = edgeBehavior;
+  }
+}
+
+class RenderMenuTwoPassLayout extends RenderShiftedBox {
+  RenderMenuTwoPassLayout({
+    RenderBox? child,
+    required this._anchorRect,
+    required this._offset,
+    required this._menuPosition,
+    required this._overlayPadding,
+    required this._avoidBounds,
+    required this._alignment,
+    required this._menuAlignment,
+    required this._textDirection,
+    required this._menuPadding,
+    required this._edgeBehavior,
+  }) : super(child);
+
+  // Property Boilerplate
+  Rect _anchorRect;
+  Rect get anchorRect => _anchorRect;
+  set anchorRect(Rect value) {
+    if (_anchorRect == value) {
+      return;
+    }
+    _anchorRect = value;
+    markNeedsLayout();
+  }
+
+  Offset _offset;
+  Offset get offset => _offset;
+  set offset(Offset value) {
+    if (_offset == value) {
+      return;
+    }
+    _offset = value;
+    markNeedsLayout();
+  }
+
+  Offset? _menuPosition;
+  Offset? get menuPosition => _menuPosition;
+  set menuPosition(Offset? value) {
+    if (_menuPosition == value) {
+      return;
+    }
+    _menuPosition = value;
+    markNeedsLayout();
+  }
+
+  EdgeInsetsGeometry _overlayPadding;
+  EdgeInsetsGeometry get overlayPadding => _overlayPadding;
+  set overlayPadding(EdgeInsetsGeometry value) {
+    if (_overlayPadding == value) {
+      return;
+    }
+    _overlayPadding = value;
+    _resolvedOverlayPadding = null;
+    markNeedsLayout();
+  }
+
+  Set<Rect> _avoidBounds;
+  Set<Rect> get avoidBounds => _avoidBounds;
+  set avoidBounds(Set<Rect> value) {
+    if (_avoidBounds == value) {
+      return;
+    }
+    _avoidBounds = value;
+    markNeedsLayout();
+  }
+
+  AlignmentGeometry _alignment;
+  AlignmentGeometry get alignment => _alignment;
+  set alignment(AlignmentGeometry value) {
+    if (_alignment == value) {
+      return;
+    }
+    _alignment = value;
+    _resolvedAlignment = null;
+    markNeedsLayout();
+  }
+
+  AlignmentGeometry _menuAlignment;
+  AlignmentGeometry get menuAlignment => _menuAlignment;
+  set menuAlignment(AlignmentGeometry value) {
+    if (_menuAlignment == value) {
+      return;
+    }
+    _menuAlignment = value;
+    _resolvedMenuAlignment = null;
+    markNeedsLayout();
+  }
+
+  TextDirection _textDirection;
+  TextDirection get textDirection => _textDirection;
+  set textDirection(TextDirection value) {
+    if (_textDirection == value) {
+      return;
+    }
+    _textDirection = value;
+    _resolvedAlignment = _resolvedMenuAlignment = _resolvedMenuPadding = _resolvedOverlayPadding =
+        null;
+    markNeedsLayout();
+  }
+
+  EdgeInsetsGeometry? _menuPadding;
+  EdgeInsetsGeometry? get menuPadding => _menuPadding;
+  set menuPadding(EdgeInsetsGeometry? value) {
+    if (_menuPadding == value) {
+      return;
+    }
+    _menuPadding = value;
+    _resolvedMenuPadding = null;
+    markNeedsLayout();
+  }
+
+  EdgeBehavior _edgeBehavior;
+  EdgeBehavior get edgeBehavior => _edgeBehavior;
+  set edgeBehavior(EdgeBehavior v) {
+    if (_edgeBehavior == v) {
+      return;
+    }
+    _edgeBehavior = v;
+    markNeedsLayout();
+  }
+
+  Alignment? _resolvedAlignment;
+  Alignment? _resolvedMenuAlignment;
+  EdgeInsets? _resolvedMenuPadding;
+  EdgeInsets? _resolvedOverlayPadding;
+
+  @override
+  void performLayout() {
+    if (child == null) {
+      size = constraints.smallest;
+      return;
+    }
+
+    _resolvedAlignment ??= alignment.resolve(textDirection);
+    _resolvedMenuAlignment ??= menuAlignment.resolve(textDirection);
+    _resolvedMenuPadding ??= menuPadding?.resolve(textDirection);
+    _resolvedOverlayPadding ??= overlayPadding.resolve(textDirection);
+    final parentSize = constraints.biggest;
+    final screen = _findClosestScreen(parentSize, anchorRect.center, avoidBounds);
+    final screenBounds = Offset.zero & constraints.biggest;
+    var maxWidth = double.infinity;
+    var maxHeight = double.infinity;
+    var mayNeedHorizontalConstraintAdjustment = false;
+    var mayNeedVerticalConstraintAdjustment = false;
+
+    if (edgeBehavior.horizontal.constrain) {
+      if (edgeBehavior.horizontal.shift) {
+        maxWidth = screen.width - _resolvedOverlayPadding!.horizontal;
+      } else {
+        mayNeedHorizontalConstraintAdjustment = true;
+      }
+    }
+
+    if (edgeBehavior.vertical.constrain) {
+      if (edgeBehavior.vertical.shift) {
+        maxHeight = screen.height - _resolvedOverlayPadding!.vertical;
+      } else {
+        mayNeedVerticalConstraintAdjustment = true;
+      }
+    }
+
+    child!.layout(BoxConstraints(maxWidth: maxWidth, maxHeight: maxHeight), parentUsesSize: true);
+    final childSize = child!.size;
+
+    Offset anchorOffset;
+    if (menuPosition == null) {
+      anchorOffset = alignment.resolve(textDirection).withinRect(anchorRect);
+      anchorOffset += offset;
+    } else {
+      anchorOffset = anchorRect.topLeft + menuPosition!;
+    }
+
+    final ui.Offset position =
+        anchorOffset - menuAlignment.resolve(textDirection).alongSize(childSize);
+    var desiredPosition = getPositionForChild(screen, childSize, position, anchorOffset);
+
+    if (mayNeedHorizontalConstraintAdjustment || mayNeedVerticalConstraintAdjustment) {
+      double? newMaxHeight;
+      double? newMaxWidth;
+      if (mayNeedVerticalConstraintAdjustment) {
+        // Get the amount of overflow on the vertical axis.
+        double overflowTop = screenBounds.top - desiredPosition.dy + _resolvedOverlayPadding!.top;
+        double overflowBottom =
+            desiredPosition.dy +
+            child!.size.height -
+            screenBounds.bottom +
+            _resolvedOverlayPadding!.bottom;
+        if (overflowTop > 0 || overflowBottom > 0) {
+          if (overflowTop < 0) {
+            overflowTop = 0;
+          } else if (overflowBottom < 0) {
+            overflowBottom = 0;
+          }
+          newMaxHeight = math.max(0, child!.size.height - (overflowTop + overflowBottom));
+          desiredPosition += Offset(0, overflowTop);
+        }
+      }
+
+      if (mayNeedHorizontalConstraintAdjustment) {
+        // Get the amount of overflow on the horizontal axis.
+        double overflowLeft =
+            screenBounds.left - desiredPosition.dx + _resolvedOverlayPadding!.left;
+        double overflowRight =
+            desiredPosition.dx +
+            child!.size.width -
+            screenBounds.right +
+            _resolvedOverlayPadding!.right;
+        if (overflowLeft > 0 || overflowRight > 0) {
+          if (overflowLeft < 0) {
+            overflowLeft = 0;
+          } else if (overflowRight < 0) {
+            overflowRight = 0;
+          }
+
+          newMaxWidth = math.max(0, child!.size.width - (overflowLeft + overflowRight));
+          desiredPosition += Offset(overflowLeft, 0);
+        }
+      }
+
+      if (newMaxWidth != null || newMaxHeight != null) {
+        child!.layout(
+          BoxConstraints(maxWidth: newMaxWidth ?? maxWidth, maxHeight: newMaxHeight ?? maxHeight),
+          parentUsesSize: true,
+        );
+      }
+    }
+
+    (child!.parentData! as BoxParentData).offset = desiredPosition;
+    size = constraints.biggest;
+  }
+
+  // Finds the closest screen to the anchor position.
+  //
+  // The closest screen is defined as the screen whose center is closest to the
+  // anchor position.
+  // Finds the closest screen to the anchor point.
+  //
+  // This algorithm is different than the algorithms for PopupMenuButton and MenuAnchor,
+  // since those widgets calculate the closest screen based on the center of the
+  // overlay.
+  Rect _findClosestScreen(Size parentSize, Offset point, Set<Rect> avoidBounds) {
+    final Iterable<ui.Rect> screens = DisplayFeatureSubScreen.subScreensInBounds(
+      Offset.zero & parentSize,
+      avoidBounds,
+    );
+
+    Rect? closest;
+    double closestSquaredDistance = 0;
+    for (final screen in screens) {
+      if (screen.contains(point)) {
+        return screen;
+      }
+
+      if (closest == null) {
+        closest = screen;
+        closestSquaredDistance = _computeSquaredDistanceToRect(point, closest);
+        continue;
+      }
+
+      final double squaredDistance = _computeSquaredDistanceToRect(point, screen);
+      if (squaredDistance < closestSquaredDistance) {
+        closest = screen;
+        closestSquaredDistance = squaredDistance;
+      }
+    }
+
+    return closest!;
+  }
+
+  Offset getPositionForChild(Rect screen, Size childSize, Offset position, Offset anchorPosition) {
+    final EdgeInsets? padding = menuPadding?.resolve(textDirection);
+    final EdgeInsets overlayInsets = overlayPadding.resolve(textDirection);
+    final Rect anchor = menuPosition == null ? anchorRect : anchorPosition & Size.zero;
+
+    double x = position.dx;
+    double y = position.dy;
+
+    bool overLeftEdge(double x) => x < screen.left + overlayInsets.left;
+    bool overRightEdge(double x) => x > screen.right - childSize.width - overlayInsets.right;
+    bool overTopEdge(double y) => y < screen.top + overlayInsets.top;
+    bool overBottomEdge(double y) => y > screen.bottom - childSize.height - overlayInsets.bottom;
+
+    double? shiftX;
+    if (padding != null && padding.horizontal > 0) {
+      double ratio = (x - anchorPosition.dx) / childSize.width;
+      ratio = ui.clampDouble(ratio, -1, 0);
+      shiftX = padding.right * ratio + padding.left * (ratio + 1);
+      x -= shiftX;
+    }
+
+    double? shiftY;
+    if (padding != null && padding.vertical > 0) {
+      double ratio = (y - anchorPosition.dy) / childSize.height;
+      ratio = ui.clampDouble(ratio, -1, 0);
+      shiftY = padding.bottom * ratio + padding.top * (ratio + 1);
+      y -= shiftY;
+    }
+
+    final bool leftOverflow = overLeftEdge(x);
+    final bool rightOverflow = overRightEdge(x);
+    final bool topOverflow = overTopEdge(y);
+    final bool bottomOverflow = overBottomEdge(y);
+
+    if (leftOverflow && edgeBehavior.horizontal.flip) {
+      // Flip the X position across the horizontal midpoint of the anchor so that the menu is to the right of the anchor.
+      double flipX = anchor.center.dx * 2 - position.dx - childSize.width;
+      if (shiftX != null) {
+        flipX -= padding!.horizontal + shiftX;
+      }
+
+      if (overRightEdge(flipX) || overLeftEdge(flipX)) {
+        if (edgeBehavior.horizontal.shift || edgeBehavior.horizontal.constrain) {
+          final double availableLeft = anchor.left - screen.left - overlayInsets.left;
+          final double availableRight = screen.right - anchor.right - overlayInsets.right;
+          if (availableLeft >= availableRight) {
+            x = math.min(x, flipX);
+          } else {
+            x = math.max(x, flipX);
+          }
+
+          if (edgeBehavior.horizontal.shift) {
+            // Make sure the reading edge of the menu is visible.
+            final leftBoundary = screen.left + overlayInsets.left;
+            final rightBoundary = screen.right - childSize.width - overlayInsets.right;
+            if (rightBoundary < leftBoundary) {
+              x = switch (textDirection) {
+                TextDirection.ltr => leftBoundary,
+                TextDirection.rtl => rightBoundary,
+              };
+            } else {
+              x = ui.clampDouble(x, leftBoundary, rightBoundary);
+            }
+          }
+        } else {
+          // If neither shift nor constrain is enabled, choose the position that
+          // keeps the leading edge (reading edge) visible.
+          x = switch (textDirection) {
+            TextDirection.ltr => math.max(x, flipX),
+            TextDirection.rtl => math.min(x, flipX),
+          };
+        }
+      } else {
+        x = flipX;
+      }
+    } else if (rightOverflow && edgeBehavior.horizontal.flip) {
+      // Flip the X position across the horizontal midpoint of the anchor so that the menu is to the left of the anchor.
+      double flipX = anchor.center.dx * 2 - position.dx - childSize.width;
+      if (shiftX != null) {
+        flipX += padding!.horizontal - shiftX;
+      }
+
+      if (overLeftEdge(flipX) || overRightEdge(flipX)) {
+        if (edgeBehavior.horizontal.shift || edgeBehavior.horizontal.constrain) {
+          final double availableLeft = anchor.left - screen.left - overlayInsets.left;
+          final double availableRight = screen.right - anchor.right - overlayInsets.right;
+          if (availableLeft >= availableRight) {
+            x = math.min(x, flipX);
+          } else {
+            x = math.max(x, flipX);
+          }
+
+          if (edgeBehavior.horizontal.shift) {
+            // Make sure the reading edge of the menu is visible.
+            final leftBoundary = screen.left + overlayInsets.left;
+            final rightBoundary = screen.right - childSize.width - overlayInsets.right;
+            if (rightBoundary < leftBoundary) {
+              x = switch (textDirection) {
+                TextDirection.ltr => leftBoundary,
+                TextDirection.rtl => rightBoundary,
+              };
+            } else {
+              x = ui.clampDouble(x, leftBoundary, rightBoundary);
+            }
+          }
+        } else {
+          // If neither shift nor constrain is enabled, choose the position that
+          // keeps the leading edge (reading edge) visible.
+          x = switch (textDirection) {
+            TextDirection.ltr => math.max(x, flipX),
+            TextDirection.rtl => math.min(x, flipX),
+          };
+        }
+      } else {
+        x = flipX;
+      }
+    } else if (leftOverflow && rightOverflow) {
+      x = switch (textDirection) {
+        .ltr => screen.left + overlayInsets.left,
+        .rtl => screen.right - childSize.width - overlayInsets.right,
+      };
+    } else if (edgeBehavior.horizontal.shift) {
+      final bool oversizedWidth = childSize.width > screen.width - overlayInsets.horizontal;
+      if (oversizedWidth) {
+        x = switch (textDirection) {
+          .ltr => screen.left + overlayInsets.left,
+          .rtl => screen.right - childSize.width - overlayInsets.right,
+        };
+      } else if (leftOverflow) {
+        x = screen.left + overlayInsets.left;
+      } else if (rightOverflow) {
+        x = screen.right - childSize.width - overlayInsets.right;
+      }
+    }
+
+    if (topOverflow && edgeBehavior.vertical.flip) {
+      // Flip the Y position across the vertical midpoint of the anchor so that the menu is below the anchor.
+      double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
+      if (shiftY != null) {
+        flipY -= padding!.vertical + shiftY;
+      }
+
+      if (overTopEdge(flipY) || overBottomEdge(flipY)) {
+        if (edgeBehavior.vertical.shift || edgeBehavior.vertical.constrain) {
+          final double availableTop = anchor.top - screen.top - overlayInsets.top;
+          final double availableBottom = screen.bottom - anchor.bottom - overlayInsets.bottom;
+          if (availableTop >= availableBottom) {
+            y = math.min(y, flipY);
+          } else {
+            y = math.max(y, flipY);
+          }
+
+          if (edgeBehavior.vertical.shift) {
+            final topBoundary = screen.top + overlayInsets.top;
+            final bottomBoundary = screen.bottom - childSize.height - overlayInsets.bottom;
+            if (bottomBoundary < topBoundary) {
+              y = topBoundary;
+            } else {
+              y = ui.clampDouble(y, topBoundary, bottomBoundary);
+            }
+          }
+        } else {
+          // If neither shift nor constrain is enabled, choose the position that
+          // keeps the top edge visible.
+          y = math.max(y, flipY);
+        }
+      } else {
+        y = flipY;
+      }
+    } else if (bottomOverflow && edgeBehavior.vertical.flip) {
+      // Flip the Y position across the vertical midpoint of the anchor so that the menu is above the anchor.
+      double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
+      if (shiftY != null) {
+        flipY += padding!.vertical - shiftY;
+      }
+
+      if (overTopEdge(flipY) || overBottomEdge(flipY)) {
+        if (edgeBehavior.vertical.shift || edgeBehavior.vertical.constrain) {
+          final double availableTop = anchor.top - screen.top - overlayInsets.top;
+          final double availableBottom = screen.bottom - anchor.bottom - overlayInsets.bottom;
+          if (availableTop >= availableBottom) {
+            y = math.min(y, flipY);
+          } else {
+            y = math.max(y, flipY);
+          }
+
+          if (edgeBehavior.vertical.shift) {
+            final topBoundary = screen.top + overlayInsets.top;
+            final bottomBoundary = screen.bottom - childSize.height - overlayInsets.bottom;
+            if (bottomBoundary < topBoundary) {
+              y = topBoundary;
+            } else {
+              y = ui.clampDouble(y, topBoundary, bottomBoundary);
+            }
+          }
+        } else {
+          // If neither shift nor constrain is enabled, choose the position that
+          // keeps the top edge visible.
+          y = math.max(y, flipY);
+        }
+      } else {
+        y = flipY;
+      }
+    } else if (topOverflow && bottomOverflow) {
+      y = screen.top + overlayInsets.top;
+    } else if (edgeBehavior.vertical.shift) {
+      final bool oversizedHeight = childSize.height > screen.height - overlayInsets.vertical;
+      if (oversizedHeight) {
+        y = screen.top + overlayInsets.top;
+      } else if (topOverflow) {
+        y = screen.top + overlayInsets.top;
+      } else if (bottomOverflow) {
+        y = screen.bottom - childSize.height - overlayInsets.bottom;
+      }
+    }
+
+    return Offset(x, y);
   }
 }

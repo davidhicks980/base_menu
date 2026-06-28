@@ -105,12 +105,16 @@ final WidgetStateProperty<TextStyle> demoTextStyle = WidgetStateProperty.fromMap
   WidgetState.any: const TextStyle(color: kDefaultText, fontFamily: 'InterVariable'),
 });
 
-const WidgetStateProperty<TextStyle> demoButtonTextStyle = WidgetStateProperty.fromMap({
-  WidgetState.disabled: TextStyle(color: kDisabledText, fontFamily: 'InterVariable'),
-  WidgetState.pressed: TextStyle(color: kWhite, fontFamily: 'InterVariable'),
-  WidgetState.hovered: TextStyle(color: kDefaultText, fontFamily: 'InterVariable'),
-  WidgetState.focused: TextStyle(color: kDefaultText, fontFamily: 'InterVariable'),
-  WidgetState.any: TextStyle(color: kDefaultText, fontFamily: 'InterVariable'),
+final WidgetStateProperty<TextStyle> demoButtonTextStyle = WidgetStateProperty.fromMap({
+  WidgetState.disabled: const TextStyle(color: kDisabledText, fontFamily: 'InterVariable'),
+  WidgetState.pressed: const TextStyle(color: kWhite, fontFamily: 'InterVariable'),
+  (WidgetState.hovered & WidgetState.focused): const TextStyle(
+    color: kDefaultText,
+    fontFamily: 'InterVariable',
+  ),
+  WidgetState.hovered: const TextStyle(color: kWhite, fontFamily: 'InterVariable'),
+  WidgetState.focused: const TextStyle(color: kDefaultText, fontFamily: 'InterVariable'),
+  WidgetState.any: const TextStyle(color: kDefaultText, fontFamily: 'InterVariable'),
 });
 
 class StyledMenuButtonChild extends StatelessWidget {

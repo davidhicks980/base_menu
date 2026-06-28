@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'app/app.dart';
 import 'firebase_options.dart';
 import 'testapp.dart';
 

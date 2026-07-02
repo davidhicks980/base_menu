@@ -2,9 +2,31 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-class BaseHoverableStateInjector<T> extends StatelessWidget {
+import 'interface.dart';
+
+/// Injects [BaseHoverable] state for type [T] into the widget tree.
+///
+/// Use this widget to:
+///  * Propagate the hover state of a specific [BaseHoverable] type to a
+///    subtree.
+///  * Override the value of [BaseHoverable.isHoverHighlightShownOf] for a
+///    specific subtree using the [showHoverHighlight] property.
+@internal
+class BaseHoverableStateInjector<T extends Object?> extends StatelessWidget {
   const BaseHoverableStateInjector({super.key, this.showHoverHighlight, required this.child});
+
+  /// A value used to override the value of
+  /// [BaseFocusable.isFocusHighlightShownOf] for descendant widgets.
+  ///
+  /// To stop overriding the value and revert to the default behavior, set
+  /// [showFocusHighlight] to null.
+  ///
+  /// Defaults to null.
   final bool? showHoverHighlight;
+
+  /// The child widget of this [BaseHoverableStateInjector].
+  ///
+  /// {@macro flutter.widgets.ProxyWidget.child}
   final Widget child;
 
   @override
@@ -17,42 +39,107 @@ class BaseHoverableStateInjector<T> extends StatelessWidget {
   }
 }
 
+/// A widget that manages hover state for type [T] and propagates it
+/// to descendants in the widget tree.
+///
+/// Descendants can subscribe to changes in hover or hover highlight visibility
+/// using [BaseHoverable.isHoveredOf] and [BaseHoverable.isHoverHighlightShownOf].
 @optionalTypeArgs
-class BaseHoverable<T> extends StatefulWidget {
+class BaseHoverable<T extends Object?> extends StatefulWidget implements BaseHoverableInterface {
+  /// Creates a widget that forwards mouse events to callbacks.
+  ///
+  /// By default, all callbacks are empty, [mouseCursor] is [MouseCursor.defer], and
+  /// [opaque] is true.
   const BaseHoverable({
     super.key,
-    this.onHover,
-    this.onEnter,
-    this.onExit,
+    this.onPointerHover,
+    this.onPointerEnter,
+    this.onPointerExit,
     this.behavior = HitTestBehavior.deferToChild,
-    this.cursor = MouseCursor.defer,
+    this.mouseCursor = MouseCursor.defer,
     this.opaque = true,
     this.enabled = true,
     required this.child,
   });
 
-  final PointerEnterEventListener? onEnter;
-  final PointerHoverEventListener? onHover;
-  final PointerExitEventListener? onExit;
-  final MouseCursor cursor;
+  @override
+  final PointerEnterEventListener? onPointerEnter;
+
+  @override
+  final PointerHoverEventListener? onPointerHover;
+
+  @override
+  final PointerExitEventListener? onPointerExit;
+
+  /// The mouse cursor to display when a pointer is hovering over this region.
+  ///
+  /// Defaults to [MouseCursor.defer], which defers the choice of cursor to the
+  /// nearest underlying region that specifies a cursor.
+  final MouseCursor mouseCursor;
+
+  @override
   final HitTestBehavior behavior;
-  final bool enabled;
+
+  @override
   final bool opaque;
+
+  /// Whether this widget should trigger hover callbacks and show hover highlights.
+  ///
+  /// If false, this widget will not trigger hover callbacks, but it will still
+  /// communicate its hover state to descendants.
+  final bool enabled;
+
+  /// The widget below this widget in the tree.
+  ///
+  /// {@macro flutter.widgets.ProxyWidget.child}
   final Widget child;
 
-  static _HoverableScope<T>? _of<T>(BuildContext context) {
+  static _HoverableScope<T>? _of<T extends Object?>(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<_HoverableScope<T>>();
     assert(scope != null, 'No BaseHoverable of type $T found in context. \n');
     return scope;
   }
 
+  /// Returns whether the ancestor [BaseHoverable] nearest to the provided
+  /// `context` is being hovered by a pointer.
+  ///
+  /// {@template BaseHoverable.isHoveredOf}
+  /// Calling this method establishes a dependency that will cause the provided
+  /// [BuildContext] to rebuild whenever the ancestor gains or loses hover.
+  ///
+  /// Unlike [isHoverHighlightShownOf], this method is not affected by whether
+  /// the widget is [enabled] or the [FocusHighlightMode]. As a result,
+  /// [isHoverHighlightShownOf] should be used instead of [isHoveredOf] to
+  /// determine the visual appearance of downstream widgets.
+  /// {@endtemplate}
   @optionalTypeArgs
-  static bool isHoveredOf<T>(BuildContext context) {
+  static bool isHoveredOf<T extends Object?>(BuildContext context) {
     return _of<T>(context)?.hovered ?? false;
   }
 
+  /// Returns whether the ancestor [BaseHoverable] nearest to the provided
+  /// `context` should show a visual hover highlight.
+  ///
+  /// {@template BaseHoverable.isHoverHighlightShownOf}
+  /// Calling this method establishes a dependency that will cause the provided
+  /// [BuildContext] to rebuild whenever the ancestor gains or loses highlight
+  /// hover.
+  ///
+  /// On most platforms, hover highlights are only shown when using a mouse
+  /// ([FocusHighlightMode.traditional]). The exception is web, where Flutter
+  /// often defaults to ([FocusHighlightMode.touch]) mode on first interaction,
+  /// even when a mouse is being used. To account for this, web platforms always
+  /// use [FocusHighlightMode.traditional] when determining whether to show a
+  /// hover highlight.
+  ///
+  /// This method will always return true when [isHoveredOf] is true, but
+  /// [isHoveredOf] may return true when this method returns false. In this
+  /// case, the widget is hovered but the platform has indicated that a hover
+  /// highlight is not appropriate for the current input method.
+  ///
+  /// {@endtemplate}
   @optionalTypeArgs
-  static bool isHoverHighlightShownOf<T>(BuildContext context) {
+  static bool isHoverHighlightShownOf<T extends Object?>(BuildContext context) {
     return _of<T>(context)?.showHoverHighlight ?? false;
   }
 
@@ -60,21 +147,13 @@ class BaseHoverable<T> extends StatefulWidget {
   State<BaseHoverable<T>> createState() => _BaseHoverableState<T>();
 }
 
-class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
-  bool isHovered = false;
+class _BaseHoverableState<T extends Object?> extends State<BaseHoverable<T>> {
+  bool _isHovered = false;
 
   @override
   void initState() {
     super.initState();
     FocusManager.instance.addHighlightModeListener(_handleHighlightModeChange);
-  }
-
-  @override
-  void didUpdateWidget(BaseHoverable<T> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!widget.enabled && isHovered) {
-      isHovered = false;
-    }
   }
 
   @override
@@ -92,33 +171,32 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
 
   void _handleEnter(PointerEnterEvent event) {
     setState(() {
-      isHovered = true;
+      _isHovered = true;
     });
-    widget.onEnter?.call(event);
-  }
 
-  void _handleHover(PointerHoverEvent event) {
-    if (!isHovered) {
-      setState(() {
-        isHovered = true;
-      });
+    if (widget.enabled) {
+      widget.onPointerEnter?.call(event);
     }
-    widget.onHover?.call(event);
   }
 
   void _handleLeave(PointerExitEvent event) {
-    if (isHovered) {
-      setState(() {
-        isHovered = false;
-      });
-      widget.onExit?.call(event);
+    setState(() {
+      _isHovered = false;
+    });
+
+    if (widget.enabled) {
+      widget.onPointerExit?.call(event);
     }
   }
 
+  /// Most platforms only show hover highlights when using a mouse, which
+  /// corresponds to [FocusHighlightMode.traditional]. The exception is web,
+  /// where Flutter often defaults to [FocusHighlightMode.touch] on first
+  /// interaction, even when the user is using a mouse. To account for this, web
+  /// platforms always use [FocusHighlightMode.traditional] when determining
+  /// whether to show a hover highlight.
   bool get _showHoverHighlight {
-    // Hover highlights are only shown in traditional highlight modes (e.g. mouse),
-    // and not in touch modes. However, on web we want to show hover highlights regardless of the highlight mode, since web apps are often used with a mouse even on touch devices.
-    return isHovered &&
+    return _isHovered &&
         widget.enabled &&
         (FocusManager.instance.highlightMode == FocusHighlightMode.traditional || kIsWeb);
   }
@@ -127,13 +205,13 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
   Widget build(BuildContext context) {
     return MouseRegion(
       opaque: widget.opaque,
-      onEnter: widget.enabled ? _handleEnter : null,
-      onHover: widget.enabled || !isHovered ? _handleHover : null,
-      onExit: widget.enabled ? _handleLeave : null,
+      onEnter: _handleEnter,
+      onHover: widget.enabled ? widget.onPointerHover : null,
+      onExit: _handleLeave,
       hitTestBehavior: widget.behavior,
-      cursor: widget.cursor,
+      cursor: widget.mouseCursor,
       child: _HoverableScope<T>(
-        hovered: isHovered,
+        hovered: _isHovered,
         showHoverHighlight: _showHoverHighlight,
         child: widget.child,
       ),
@@ -141,7 +219,7 @@ class _BaseHoverableState<T> extends State<BaseHoverable<T>> {
   }
 }
 
-class _HoverableScope<T> extends InheritedWidget {
+class _HoverableScope<T extends Object?> extends InheritedWidget {
   const _HoverableScope({
     required this.hovered,
     required super.child,

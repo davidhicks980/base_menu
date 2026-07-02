@@ -1,22 +1,14 @@
-import 'dart:io';
-import 'dart:ui'
-    as ui
-    show Clip, DisplayFeature, DisplayFeatureState, Offset, Rect, TextDirection, clampDouble;
+import 'dart:math' as math;
+import 'dart:ui' as ui show DisplayFeature, DisplayFeatureState, Offset, Rect, clampDouble;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
 import 'interface.dart';
-
-// Examples can assume:
-// late BuildContext context;
-// late StateSetter setState;
-// late List<Widget> menuItems;
-// late RawMenuAnchorOverlayPosition position;
 
 double _computeSquaredDistanceToRect(Offset point, Rect rect) {
   final double dx = point.dx - ui.clampDouble(point.dx, rect.left, rect.right);
@@ -24,25 +16,27 @@ double _computeSquaredDistanceToRect(Offset point, Rect rect) {
   return dx * dx + dy * dy;
 }
 
-const Map<ShortcutActivator, Intent> _kMenuShortcuts = <ShortcutActivator, Intent>{
+const Map<SingleActivator, Intent> _kMenuShortcuts = <SingleActivator, Intent>{
   SingleActivator(LogicalKeyboardKey.gameButtonA): ActivateIntent(),
   SingleActivator(LogicalKeyboardKey.escape): DismissIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowUp): BaseMenuVerticalFocusPreviousIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowDown): BaseMenuVerticalFocusNextIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowUp): VerticalMenuFocusPreviousIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowDown): VerticalMenuFocusNextIntent(),
   SingleActivator(LogicalKeyboardKey.tab): NextFocusIntent(),
   SingleActivator(LogicalKeyboardKey.tab, shift: true): PreviousFocusIntent(),
   SingleActivator(LogicalKeyboardKey.home): _MenuFocusFirstIntent(),
   SingleActivator(LogicalKeyboardKey.end): _MenuFocusLastIntent(),
 };
 
-const Map<SingleActivator, _TraversalIntent> _kMenuLTRShortcuts = {
-  SingleActivator(LogicalKeyboardKey.arrowLeft): BaseMenuHorizontalFocusPreviousIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowRight): BaseMenuHorizontalFocusNextIntent(),
+const Map<SingleActivator, Intent> _kMenuLTRShortcuts = {
+  ..._kMenuShortcuts,
+  SingleActivator(LogicalKeyboardKey.arrowLeft): HorizontalMenuFocusPreviousIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowRight): HorizontalMenuFocusNextIntent(),
 };
 
-const Map<SingleActivator, _TraversalIntent> _kMenuRTLShortcuts = {
-  SingleActivator(LogicalKeyboardKey.arrowLeft): BaseMenuHorizontalFocusNextIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowRight): BaseMenuHorizontalFocusPreviousIntent(),
+const Map<SingleActivator, Intent> _kMenuRTLShortcuts = {
+  ..._kMenuShortcuts,
+  SingleActivator(LogicalKeyboardKey.arrowLeft): HorizontalMenuFocusNextIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowRight): HorizontalMenuFocusPreviousIntent(),
 };
 
 const Map<ShortcutActivator, Intent> _kStopDirectionalPropagationShortcuts =
@@ -58,24 +52,28 @@ sealed class _TraversalIntent extends Intent {
   const _TraversalIntent();
 }
 
-/// An intent that moves focus to the next item within a horizontal menu or menubar.
-final class BaseMenuHorizontalFocusNextIntent extends _TraversalIntent {
-  const BaseMenuHorizontalFocusNextIntent();
+/// An intent that moves focus to the next item within a horizontal [BaseMenu] or [BaseMenuBar].
+final class HorizontalMenuFocusNextIntent extends _TraversalIntent {
+  /// Creates a [HorizontalMenuFocusNextIntent].
+  const HorizontalMenuFocusNextIntent();
 }
 
-/// An intent that moves focus to the previous item within a horizontal menu or menubar.
-final class BaseMenuHorizontalFocusPreviousIntent extends _TraversalIntent {
-  const BaseMenuHorizontalFocusPreviousIntent();
+/// An intent that moves focus to the previous item within a horizontal [BaseMenu] or [BaseMenuBar].
+final class HorizontalMenuFocusPreviousIntent extends _TraversalIntent {
+  /// Creates a [HorizontalMenuFocusPreviousIntent].
+  const HorizontalMenuFocusPreviousIntent();
 }
 
-/// An intent that moves focus down to the next item within a vertical menu.
-final class BaseMenuVerticalFocusNextIntent extends _TraversalIntent {
-  const BaseMenuVerticalFocusNextIntent();
+/// An intent that moves focus to the next item in a vertical [BaseMenu] or [BaseMenuBar].
+final class VerticalMenuFocusNextIntent extends _TraversalIntent {
+  /// Creates a [VerticalMenuFocusNextIntent].
+  const VerticalMenuFocusNextIntent();
 }
 
-/// An intent that moves focus up to the previous item within a vertical menu.
-final class BaseMenuVerticalFocusPreviousIntent extends _TraversalIntent {
-  const BaseMenuVerticalFocusPreviousIntent();
+/// An intent that moves focus to the previous item in a vertical [BaseMenu] or [BaseMenuBar].
+final class VerticalMenuFocusPreviousIntent extends _TraversalIntent {
+  /// Creates a [VerticalMenuFocusPreviousIntent].
+  const VerticalMenuFocusPreviousIntent();
 }
 
 class _MenuFocusFirstIntent extends Intent {
@@ -86,35 +84,50 @@ class _MenuFocusLastIntent extends Intent {
   const _MenuFocusLastIntent();
 }
 
-/// An intent that signals the menu should be opened and an item should be focused.
-class BaseMenuEnterIntent extends Intent {
-  /// Opens the menu if it is not already open and requests focus on the first menu item.
-  const BaseMenuEnterIntent.focusFirst() : _scopeIntent = const _MenuFocusFirstIntent();
+/// An [Intent] that signals the nearest ancestor [BaseMenu] should be opened
+/// and focused.
+///
+/// Use [EnterMenuIntent.focusFirst] to open and focus the first menu item, and
+/// [EnterMenuIntent.focusLast] to open and focus the last menu item.
+class EnterMenuIntent extends Intent {
+  /// An intent that opens a [BaseMenu] and requests focus on the first menu item.
+  const EnterMenuIntent.focusFirst() : _scopeIntent = const _MenuFocusFirstIntent();
 
-  /// Opens the menu if it is not already open and requests focus on the last menu item.
-  const BaseMenuEnterIntent.focusLast() : _scopeIntent = const _MenuFocusLastIntent();
+  /// An intent that opens a [BaseMenu] and requests focus on the last menu item.
+  const EnterMenuIntent.focusLast() : _scopeIntent = const _MenuFocusLastIntent();
 
-  /// An intent to fire on the menu's focus scope after it is opened
-  /// and focused.
-  ///
-  /// Defaults to null, which does not fire any additional intents after opening
-  /// and focusing the menu.
   final Intent _scopeIntent;
 }
 
-class _MenuScope extends InheritedWidget {
-  const _MenuScope({required super.child, required this.orientation, required this.isSubmenu});
+/// An [InheritedWidget] that provides the [axis] and [isSubmenu] status
+/// of a menu to its descendants.
+///
+/// This is used by [BaseMenu], [BaseMenuBar], and [BaseSubmenu] to determine
+/// the appropriate keyboard navigation behavior for their menu items.
+class MenuScope extends InheritedWidget {
+  /// Creates a [MenuScope] that provides the [axis] and [isSubmenu] status of a
+  /// menu to its descendants.
+  @visibleForTesting
+  const MenuScope({super.key, required super.child, required this.axis, required this.isSubmenu});
 
-  final Axis orientation;
+  /// The direction of keyboard navigation for the menu items in this menu.
+  final Axis axis;
+
+  /// Whether the current menu is a submenu of another menu.
+  ///
+  /// Root menus (like a [BaseMenuBar] or a top-level context menu) have this set
+  /// to false.
   final bool isSubmenu;
 
-  static _MenuScope? _maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<_MenuScope>();
+  /// Returns the nearest widget of the given type [MenuScope] and creates a
+  /// dependency on it, or null if no appropriate widget is found.
+  static MenuScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<MenuScope>();
   }
 
   @override
-  bool updateShouldNotify(_MenuScope oldWidget) {
-    return orientation != oldWidget.orientation || isSubmenu != oldWidget.isSubmenu;
+  bool updateShouldNotify(MenuScope oldWidget) {
+    return axis != oldWidget.axis || isSubmenu != oldWidget.isSubmenu;
   }
 }
 
@@ -122,257 +135,139 @@ class _MenuScope extends InheritedWidget {
 /// a [BaseMenu].
 typedef BaseMenuOverlayChildBuilder = Widget Function(BuildContext context, Widget child);
 
-class BaseMenuPanelMouseRegion extends StatelessWidget {
-  const BaseMenuPanelMouseRegion({
-    super.key,
-    required this.child,
-    this.cursor = MouseCursor.defer,
-    this.onEnter,
-    this.onHover,
-    this.onExit,
-  });
+/// A delegate that builds a widget that positions the menu panel of a [BaseMenu].
+abstract interface class MenuPositioningDelegate {
+  /// Creates a [MenuPositioningDelegate].
+  const MenuPositioningDelegate();
 
-  final Widget child;
-  final MouseCursor cursor;
-  final PointerEnterEventListener? onEnter;
-  final PointerHoverEventListener? onHover;
-  final PointerExitEventListener? onExit;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.passthrough,
-      clipBehavior: .none,
-      children: [
-        Positioned.fill(
-          child: MouseRegion(
-            cursor: cursor,
-            hitTestBehavior: HitTestBehavior.translucent,
-            onEnter: onEnter,
-            onHover: onHover,
-            onExit: onExit,
-          ),
-        ),
-        child,
-      ],
-    );
-  }
-}
-
-class BaseMenuPanel extends StatelessWidget {
-  /// Creates a [BaseMenuPanel].
-  ///
-  /// The [children] argument is required.
-  const BaseMenuPanel({
-    super.key,
-    this.constraints,
-    this.constrainCrossAxis = false,
-    this.padding = EdgeInsets.zero,
-    this.scrollable = true,
-    this.spacing = 0,
-    this.clipBehavior = Clip.none,
-    this.onEnter,
-    this.onExit,
-    this.onHover,
-    this.cursor,
-    required this.orientation,
-    required this.children,
-  });
-
-  /// The constraints to apply to the menu surface.
-  ///
-  /// If null, the menu will be allowed to expand to the intrinsic size of its
-  /// children.
-  final BoxConstraints? constraints;
-
-  /// The menu items that should be displayed by this [BaseMenuPanel].
-  final List<Widget> children;
-
-  /// Whether the menu's cross axis should be laid out with regard to the bounds
-  /// of the overlay.
-  ///
-  /// When true, the width of the menu will be constrained by the width of the
-  /// overlay. This can cause the menu contents to wrap.
-  ///
-  /// When false, the menu will be allowed to expand to the intrinsic size of
-  /// its children, and menu items that overflow will be visually clipped.
-  ///
-  /// Defaults to false.
-  final bool constrainCrossAxis;
-
-  /// The [EdgeInsetsGeometry] applied to the menu surface.
-  ///
-  /// When a [BaseMenuPanel] is used with a [BaseMenu], [padding] applied to
-  /// the menu surface can be ignored during layout by supplying an equivalent
-  /// amount of [padding] to the [BaseMenu] constructor. This is useful
-  /// when aligning a submenu with its anchor.
-  ///
-  /// Defaults to null, which applies no padding.
-  final EdgeInsetsGeometry padding;
-
-  /// The amount of padding to apply to the menu panel's scrollable.
-  // final EdgeInsetsGeometry scrollPadding;
-
-  /// The spacing to apply between menu items.
-  ///
-  /// Defaults to 0, which applies no spacing.
-  final double spacing;
-
-  /// The orientation in which the menu items are displayed.
-  final Axis orientation;
-
-  /// The [ui.Clip] applied to the panel's scrollable.
-  final ui.Clip clipBehavior;
-
-  /// Called when a pointer enters the menu surface without hitting any of the
-  /// menu items.
-  ///
-  /// This callback is intended to be used to focus the menu anchor button when
-  /// the pointer enters the menu surface, which is a common behavior in desktop
-  /// menus.
-  final PointerEnterEventListener? onEnter;
-
-  /// Called when a pointer leaves the menu surface after entering.
-  final PointerExitEventListener? onExit;
-
-  /// Called when a pointer moves within the menu surface after entering.
-  final PointerHoverEventListener? onHover;
-
-  /// The mouse cursor to use when a pointer is hovering over the menu surface.
-  final MouseCursor? cursor;
-
-  /// Whether the menu panel should be scrollable when its contents exceed the available space within the overlay.
-  final bool scrollable;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget child = Flex(
-      direction: orientation,
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: spacing,
-      children: children,
-    );
-
-    final bool applyMouseRegion =
-        onEnter != null || onExit != null || onHover != null || cursor != null;
-
-    if (applyMouseRegion) {
-      child = BaseMenuPanelMouseRegion(
-        onEnter: onEnter,
-        onExit: onExit,
-        cursor: cursor ?? MouseCursor.defer,
-        onHover: onHover,
-        child: child,
-      );
-    }
-
-    if (scrollable) {
-      child = SingleChildScrollView(
-        scrollDirection: orientation,
-        clipBehavior: clipBehavior,
-        child: child,
-      );
-    }
-
-    if (padding != EdgeInsets.zero) {
-      child = Padding(padding: padding, child: child);
-    }
-
-    if (clipBehavior != ui.Clip.none) {
-      child = ClipRect(clipBehavior: clipBehavior, child: child);
-    }
-
-    var applyIntrinsics = true;
-    if (constraints != null) {
-      child = ConstrainedBox(constraints: constraints!, child: child);
-      applyIntrinsics = switch (orientation) {
-        Axis.vertical => !constraints!.hasTightWidth,
-        Axis.horizontal => !constraints!.hasTightHeight,
-      };
-    }
-
-    if (applyMouseRegion) {
-      child = BaseMenuPanelMouseRegion(
-        onEnter: onEnter,
-        onExit: onExit,
-        cursor: cursor ?? MouseCursor.defer,
-        onHover: onHover,
-        child: child,
-      );
-    }
-
-    if (applyIntrinsics) {
-      child = switch (orientation) {
-        Axis.vertical => IntrinsicWidth(child: child),
-        Axis.horizontal => IntrinsicHeight(child: child),
-      };
-    }
-
-    if (constrainCrossAxis) {
-      return child;
-    }
-
-    return UnconstrainedBox(
-      clipBehavior: Clip.hardEdge,
-      alignment: AlignmentDirectional.centerStart,
-      constrainedAxis: orientation,
-      child: child,
-    );
-  }
-
-  @override
-  List<DiagnosticsNode> debugDescribeChildren() {
-    return <DiagnosticsNode>[for (final Widget child in children) child.toDiagnosticsNode()];
-  }
-
-  @override
-  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-    super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<bool>('constrainCrossAxis', constrainCrossAxis));
-    properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('padding override', padding));
-    properties.add(DoubleProperty('spacing', spacing, defaultValue: 0));
-    properties.add(EnumProperty<Axis>('direction', orientation));
-    properties.add(EnumProperty<ui.Clip>('clipBehavior', clipBehavior, defaultValue: ui.Clip.none));
-  }
-}
-
-/// A delegate responsible for building a widget that positions a [BaseMenu]'s
-/// menu panel.
-abstract class BaseMenuPositioningDelegate {
-  /// Creates a [BaseMenuPositioningDelegate].
-  const BaseMenuPositioningDelegate();
-
-  /// Builds a widget that positions the menu panel [child] using the provided
-  /// [RawMenuOverlayInfo] coordinate information.
+  /// Builds a widget that positions the menu panel `child` using the provided
+  /// `position` information.
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child);
+}
+
+/// Defines the positioning behavior of a [BaseMenu] when it overflows the edge
+/// of the screen.
+///
+/// These strategies can be combined. For example, a menu might first attempt to
+/// [flip] to the other side of an anchor, and then [shift] if it still doesn't
+/// fit.
+///
+/// If [shift] and [constrain] are false, the menu may be positioned such that
+/// it is partially or fully off-screen.
+@immutable
+class EdgeBehaviorStrategy {
+  /// Creates an [EdgeBehaviorStrategy].
+  const EdgeBehaviorStrategy({this.shift = false, this.flip = false, this.constrain = false});
+
+  /// The menu will be shifted to stay within the screen boundaries,
+  /// potentially covering the anchor.
+  final bool shift;
+
+  /// The menu will be flipped across the anchor midpoint point if it overflows.
+  final bool flip;
+
+  /// The menu will be resized to fit within the available space between the
+  /// anchor and the screen edge. This is ideal for scrollable menus.
+  ///
+  /// Note that if [constrain] is true while [shift] is false, a two-pass layout
+  /// will occur. The first pass measures the menu based on its unconstrained
+  /// size and calculates a position, and the second pass constrains the menu to
+  /// fit within the available space. The menu is not repositioned after the
+  /// second pass, so the menu will be pinned to its natural position based on
+  /// its unconstrained size.
+  final bool constrain;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    return other is EdgeBehaviorStrategy &&
+        other.shift == shift &&
+        other.flip == flip &&
+        other.constrain == constrain;
+  }
+
+  @override
+  int get hashCode => shift.hashCode ^ flip.hashCode ^ constrain.hashCode;
+}
+
+/// Describes how a [BaseMenu.menu] should be positioned when it overflows the
+/// edge of the screen.
+///
+/// Used by [DefaultMenuPositioningDelegate].
+@immutable
+class EdgeBehavior {
+  /// Creates an [EdgeBehavior] widget.
+  const EdgeBehavior({required this.horizontal, required this.vertical});
+
+  /// The strategy to apply when the menu overflows the left or right edges of
+  /// the screen.
+  final EdgeBehaviorStrategy horizontal;
+
+  /// The strategy to apply when the menu overflows the top or bottom edges of
+  /// the screen.
+  final EdgeBehaviorStrategy vertical;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+
+    return other is EdgeBehavior && other.horizontal == horizontal && other.vertical == vertical;
+  }
+
+  @override
+  int get hashCode {
+    return horizontal.hashCode ^ vertical.hashCode;
+  }
 }
 
 /// A delegate whose [build] method builds a widget that positions the menu
 /// panel of a [BaseMenu].
 ///
 /// The position is determined relative to the menu's anchor using the provided
-/// [anchorAlignment], [menuAlignment], and [offset]. If the menu overflows
-/// the edge of the screen, it will be flipped across the anchor's midpoint on
-/// the axis of overflow if that edge is included in [flipEdges].
+/// [anchorAlignment], [menuAlignment], and [offset].
 ///
-/// The [padding] is applied to the menu surface but ignored during menu
-/// positioning, which is useful for ensuring a submenu's items align with their
-/// parent menu's items when the submenu applies padding to its surface.
-class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
-  const DefaultBaseMenuPositioningDelegate({
+/// If [useDirectionalOffset] is true, the horizontal component of the [offset]
+/// is applied in the reading direction of the ambient [Directionality].
+/// Otherwise, the offset is applied as-is, regardless of the ambient
+/// [Directionality].
+///
+/// When the menu is opened with a `position` argument, the [anchorAlignment],
+/// and [offset] are ignored, and the menu is positioned at the provided
+/// [RawMenuOverlayInfo.position].
+///
+/// If the menu panel has padding applied, the [padding] parameter can be used
+/// to ensure that the menu panel is offset from the anchor by the same amount
+/// of padding, which is useful for aligning submenus with their parent menu
+/// items.
+///
+/// The [overlayPadding] defines a minimum distance to apply between the menu
+/// overlay and the edges of the screen when the menu is open.
+///
+/// The [edgeBehavior] defines how the menu panel should be positioned when it
+/// overflows the edge of the screen.
+class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
+  /// Creates a [DefaultMenuPositioningDelegate].
+  const DefaultMenuPositioningDelegate({
     this.anchorAlignment,
     this.offset = ui.Offset.zero,
     this.useDirectionalOffset = true,
     this.menuAlignment,
     this.padding = EdgeInsets.zero,
     this.overlayPadding = const EdgeInsets.all(8),
-    this.flipEdges = const {
-      AxisDirection.up,
-      AxisDirection.down,
-      AxisDirection.left,
-      AxisDirection.right,
-    },
+    this.edgeBehavior = const EdgeBehavior(
+      horizontal: EdgeBehaviorStrategy(flip: true, shift: true, constrain: true),
+      vertical: EdgeBehaviorStrategy(flip: true, shift: true, constrain: true),
+    ),
+    this.enableAimAssist,
   });
 
   /// The point on the menu surface that attaches to the anchor.
@@ -390,14 +285,12 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
   /// The [anchorAlignment] is ignored if a `position` argument is provided to
   /// [MenuController.open].
   ///
-  /// If the menu overflows an edge of the screen included in [flipEdges], the
-  /// menu will be flipped across the anchor's midpoint on the axis of overflow.
-  /// For example, if the menu on the right side of the anchor overflows the
-  /// right edge of the screen, the menu will be flipped to the left side of the
-  /// anchor.
-  ///
   /// Defaults to [AlignmentDirectional.bottomStart] if this is a root menu, and
   /// [AlignmentDirectional.topEnd] if this is a submenu.
+  ///
+  /// If [edgeBehavior] has [EdgeBehaviorStrategy.flip] enabled on an axis, the
+  /// [anchorAlignment] will be flipped over the midpoint of the anchor on that
+  /// axis.
   final AlignmentGeometry? anchorAlignment;
 
   /// The offset applied to the menu relative to the anchor attachment point.
@@ -417,9 +310,8 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
   /// applied in the reading direction of the ambient [Directionality].
   final bool useDirectionalOffset;
 
-  /// The edges of the screen that, when overflowed by the menu, should trigger
-  /// the menu to flip across the anchor's midpoint on the axis of overflow.
-  final Set<AxisDirection> flipEdges;
+  /// The behavior to apply when the menu overflows the edge of the screen.
+  final EdgeBehavior edgeBehavior;
 
   /// The [EdgeInsetsGeometry] applied to the menu surface but ignored during
   /// menu positioning.
@@ -435,89 +327,138 @@ class DefaultBaseMenuPositioningDelegate extends BaseMenuPositioningDelegate {
 
   /// A minimum distance to apply between the menu overlay and the edges of the
   /// screen when the menu is open.
+  ///
+  /// Defaults to 8 pixels on all sides.
   final EdgeInsetsGeometry overlayPadding;
+
+  /// Whether to enable the aim assist feature for this menu.
+  ///
+  /// To enable aim assist for all menus in a subtree, place a [MenuAimScope]
+  /// above the [BaseMenu] in the widget tree and set its [MenuAimScope.enable]
+  /// property to true.
+  ///
+  /// Defaults to null, which means the menu will inherit the aim assist setting
+  /// from the nearest [MenuAimScope] ancestor. If there is no [MenuAimScope]
+  /// ancestor, aim assist will be disabled.
+  final bool? enableAimAssist;
 
   @override
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child) {
-    final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
-    final TextDirection textDirection = Directionality.of(context);
-    final anchorAlignment =
-        this.anchorAlignment ??
-        // Only resolve the default alignment
-        (switch (_MenuScope._maybeOf(context)?.orientation) {
+    final alignment =
+        anchorAlignment ??
+        switch (MenuScope.maybeOf(context)?.axis) {
           Axis.vertical => AlignmentDirectional.topEnd,
           _ => AlignmentDirectional.bottomStart,
-        }).resolve(textDirection);
-    final resolvedOffset = useDirectionalOffset && textDirection == TextDirection.rtl
+        };
+    final resolvedOffset =
+        useDirectionalOffset && Directionality.maybeOf(context) == TextDirection.rtl
         ? Offset(-offset.dx, offset.dy)
         : offset;
 
-    final delegate = DefaultMenuLayoutDelegate(
-      overlayPadding: overlayPadding.resolve(textDirection),
-      padding: padding,
-      avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
-      textDirection: textDirection,
-      anchorRect: position.anchorRect,
-      offset: resolvedOffset,
-      menuPosition: position.position,
-      menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
-      alignment: anchorAlignment,
-      flipEdges: flipEdges,
-    );
-
-    if (!MenuAimScope.isEnabledOf(context) || _MenuScope._maybeOf(context)?.isSubmenu != true) {
-      return CustomSingleChildLayout(delegate: delegate, child: child);
-    } else {
+    final enableAim = enableAimAssist ?? MenuAimScope.isEnabledOf(context);
+    if (enableAim) {
       final geometry = MenuAimGeometry()..anchorRect = position.anchorRect;
       return Stack(
         textDirection: .ltr,
         children: [
-          CustomSingleChildLayout(
-            delegate: _MenuAimLayoutDecorator(delegate: delegate, geometry: geometry),
+          _MenuPositioner(
+            overlayPadding: overlayPadding,
+            menuPadding: padding,
+            anchorRect: position.anchorRect,
+            offset: resolvedOffset,
+            menuPosition: position.position,
+            menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+            alignment: alignment,
+            edgeBehavior: edgeBehavior,
+            onPositioned: (targetRect) {
+              geometry.targetRect = targetRect;
+            },
             child: child,
           ),
           MenuAimInterceptor(geometry: geometry),
         ],
       );
+    } else {
+      return _MenuPositioner(
+        overlayPadding: overlayPadding,
+        menuPadding: padding,
+        anchorRect: position.anchorRect,
+        offset: resolvedOffset,
+        menuPosition: position.position,
+        menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+        alignment: alignment,
+        edgeBehavior: edgeBehavior,
+        child: child,
+      );
     }
-  }
-
-  static Set<ui.Rect> _avoidBounds(List<ui.DisplayFeature> displayFeatures) {
-    final bounds = <ui.Rect>{};
-    for (final feature in displayFeatures) {
-      if (feature.bounds.shortestSide > 0 ||
-          feature.state == ui.DisplayFeatureState.postureHalfOpened) {
-        bounds.add(feature.bounds);
-      }
-    }
-    return bounds;
   }
 }
 
-/// A widget that displays a popup menu positioned relative to its [child].
+/// A widget that anchors a popup menu to a child widget and manages its
+/// visibility.
+///
+/// [BaseMenu] is a foundational widget for creating context menus, dropdowns,
+/// and submenus. It manages an [OverlayPortal] containing the [menu] content,
+/// which is typically a [BaseMenuPanel] containing a list of menu items.
+///
+/// [BaseMenu] uses [RawMenuAnchor] and [MenuController] to control the
+/// open/close state of the menu. As such, [BaseMenu] shares a similar API:
+/// * The menu is opened by calling [MenuController.open] and closed by calling
+///   [MenuController.close].
+/// * The menu can be opened with a specific position by passing a `position`
+///   argument to [MenuController.open].
+/// * The nearest ancestor [BaseMenu] open/close state can be observed using
+///   [MenuController.maybeIsOpenOf].
+/// * The nearest ancestor [MenuController] can be read using
+///   [MenuController.maybeOf].
+/// * Tapping outside the menu/anchor or pressing [LogicalKeyboardKey.escape]
+///   will emit a [DismissIntent] that closes the menu.
+/// * The [consumeOutsideTaps] property can be set to true to prevent tap events
+///   from propagating to underlying widgets when the menu is open.
+///
+/// In addition to the [RawMenuAnchor] API, the following properties can be used
+/// to customize the behavior of the menu:
+/// * **[orientation]**: Sets the traversal axis. Vertical menus use up/down
+///   arrows; horizontal menus use left/right.
+/// * **[positionDelegate]**: Controls how the menu is positioned.
+/// * **[semanticProperties]**: The [SemanticsProperties] applied to the menu's
+///   [Semantics] node.
+/// * **[onFocusChange]**: Notifies when the menu surface gains or loses focus.
+/// * **[directionalFocusEdgeBehavior]**: Controls how focus traversal behaves
+///   when focus moves beyond the first or last item in the menu. Defaults to
+///   [TraversalEdgeBehavior.stop] on iOS and macOS, and
+///   [TraversalEdgeBehavior.closedLoop] on other platforms (including web).
+///
+/// See also:
+/// * [BaseSubmenu], a [BaseMenu] that adds hover and focus behavior for nested
+///   submenus.
+/// * [BaseMenuBar], for horizontal groupings of [BaseMenu]s.
+/// * [BaseMenuPanel], a default menu panel that can be used by [BaseMenu].
+/// * [DefaultMenuPositioningDelegate], for customizing how the menu is placed.
 class BaseMenu extends StatefulWidget implements BaseMenuInterface {
+  /// Creates a [BaseMenu].
+  ///
+  /// The [menu] parameter is required and must not be null.
   const BaseMenu({
     super.key,
-    this.onOpen,
-    this.onClose,
-    this.onOpenRequest = BaseMenuInterface.defaultOnOpenRequested,
-    this.onCloseRequest = BaseMenuInterface.defaultOnCloseRequested,
-    this.useRootOverlay = false,
     this.controller,
     this.consumeOutsideTaps = false,
+    this.onOpen,
+    this.onClose,
+    this.onOpenRequest = BaseMenu.defaultOnOpenRequested,
+    this.onCloseRequest = BaseMenu.defaultOnCloseRequested,
     this.onFocusChange,
     this.directionalFocusEdgeBehavior,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
-      namesRoute: true,
-      label: 'Menu',
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
-    required this.menu,
-    this.positionDelegate = const DefaultBaseMenuPositioningDelegate(),
-    this.builder,
+    this.positionDelegate = const DefaultMenuPositioningDelegate(),
+    this.useRootOverlay = false,
     this.overlayChildBuilder,
+    required this.menu,
+    this.builder,
     this.child,
   });
 
@@ -531,31 +472,13 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
   final VoidCallback? onOpen;
 
   @override
-  final RawMenuAnchorOpenRequestedCallback onOpenRequest;
-
-  @override
   final VoidCallback? onClose;
 
   @override
+  final RawMenuAnchorOpenRequestedCallback onOpenRequest;
+
+  @override
   final RawMenuAnchorCloseRequestedCallback onCloseRequest;
-
-  /// The widget that this [BaseMenu] surrounds.
-  ///
-  /// Typically, this is a button used to open the menu by calling
-  /// [MenuController.open] on the `controller` passed to the builder.
-  ///
-  /// If not supplied, then the [BaseMenu] will be the size that its parent
-  /// allocates for it.
-  final RawMenuAnchorChildBuilder? builder;
-
-  @override
-  final Widget? child;
-
-  @override
-  final bool useRootOverlay;
-
-  @override
-  final Widget menu;
 
   @override
   final ValueChanged<bool>? onFocusChange;
@@ -570,14 +493,61 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
   final Axis orientation;
 
   @override
-  final BaseMenuPositioningDelegate positionDelegate;
+  final MenuPositioningDelegate positionDelegate;
+
+  @override
+  final bool useRootOverlay;
 
   @override
   final BaseMenuOverlayChildBuilder? overlayChildBuilder;
 
-  /// Returns whether the given context is within a submenu.
-  static bool isNestedSubmenu(BuildContext context) {
-    return _MenuScope._maybeOf(context)?.isSubmenu ?? false;
+  @override
+  final Widget menu;
+
+  /// The widget that this [BaseMenu] surrounds.
+  ///
+  /// Typically, this is a button used to open the menu by calling
+  /// [MenuController.open] on the `controller` passed to the builder.
+  ///
+  /// If not supplied, then the [BaseMenu] will be the size that its parent
+  /// allocates for it.
+  final RawMenuAnchorChildBuilder? builder;
+
+  @override
+  final Widget? child;
+
+  @visibleForTesting
+  // ignore: public_member_api_docs
+  TraversalEdgeBehavior get effectiveTraversalEdgeBehavior {
+    if (directionalFocusEdgeBehavior != null) {
+      return directionalFocusEdgeBehavior!;
+    }
+
+    if (kIsWeb) {
+      return .closedLoop;
+    }
+
+    return switch (defaultTargetPlatform) {
+      .android || .fuchsia || .linux || .windows => .closedLoop,
+      .iOS || .macOS => .stop,
+    };
+  }
+
+  // ignore: public_member_api_docs
+  String get debugMenuFocusScopeLabel => 'BaseMenu FocusScopeNode${key != null ? ' ($key)' : ''}';
+
+  /// The fallback [onOpenRequest] if one is not supplied to the menu.
+  ///
+  /// By default, the menu will open immediately without any delay or animation.
+  static void defaultOnOpenRequested(Offset? position, VoidCallback showOverlay) {
+    showOverlay();
+  }
+
+  /// The fallback `onCloseRequest` if one is not supplied to the menu.
+  ///
+  /// By default, the menu will close immediately without any delay or animation.
+  static void defaultOnCloseRequested(VoidCallback hideOverlay) {
+    hideOverlay();
   }
 
   @override
@@ -593,28 +563,21 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
 class _BaseMenuState extends State<BaseMenu> {
   late final _menuScopeNode = FocusScopeNode(
     skipTraversal: true,
-    directionalTraversalEdgeBehavior: directionalTraversalEdgeBehavior,
+    traversalEdgeBehavior: widget.effectiveTraversalEdgeBehavior,
+    directionalTraversalEdgeBehavior: widget.effectiveTraversalEdgeBehavior,
+    debugLabel: widget.debugMenuFocusScopeLabel,
   );
 
   late final Map<Type, Action<Intent>> _anchorActions = <Type, Action<Intent>>{
-    BaseMenuEnterIntent: CallbackAction<BaseMenuEnterIntent>(onInvoke: _handleEnterMenu),
+    EnterMenuIntent: CallbackAction<EnterMenuIntent>(onInvoke: _handleEnterMenu),
   };
 
-  TraversalEdgeBehavior get directionalTraversalEdgeBehavior {
-    if (widget.directionalFocusEdgeBehavior != null) {
-      return widget.directionalFocusEdgeBehavior!;
-    }
-    return Platform.isMacOS || Platform.isIOS
-        ? TraversalEdgeBehavior.stop
-        : TraversalEdgeBehavior.closedLoop;
-  }
-
-  Map<Type, Action<Intent>>? _overlayActions;
   TextDirection _textDirection = TextDirection.ltr;
   bool _parentIsSubmenu = false;
   Axis? _parentOrientation;
-
+  bool _isScopeFocused = false;
   MenuController? _internalMenuController;
+  Map<Type, CallbackAction<Intent>>? _overlayActions;
   MenuController get _menuController {
     return widget.controller ?? _internalMenuController!;
   }
@@ -626,8 +589,10 @@ class _BaseMenuState extends State<BaseMenu> {
       _internalMenuController = MenuController();
     }
     _menuScopeNode.addListener(() {
-      if (widget.onFocusChange != null) {
-        widget.onFocusChange!(_menuScopeNode.hasFocus);
+      assert(mounted);
+      if (_isScopeFocused != _menuScopeNode.hasFocus) {
+        _isScopeFocused = _menuScopeNode.hasFocus;
+        widget.onFocusChange?.call(_isScopeFocused);
       }
     });
   }
@@ -636,11 +601,10 @@ class _BaseMenuState extends State<BaseMenu> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
-    final scope = _MenuScope._maybeOf(context);
-    if (scope?.orientation != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
-      _parentOrientation = scope?.orientation;
+    final scope = MenuScope.maybeOf(context);
+    if (scope?.axis != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
+      _parentOrientation = scope?.axis;
       _parentIsSubmenu = scope?.isSubmenu ?? false;
-      _overlayActions = null;
     }
   }
 
@@ -655,9 +619,16 @@ class _BaseMenuState extends State<BaseMenu> {
         _internalMenuController = null;
       }
     }
+
     if (oldWidget.directionalFocusEdgeBehavior != widget.directionalFocusEdgeBehavior) {
-      _menuScopeNode.directionalTraversalEdgeBehavior = directionalTraversalEdgeBehavior;
+      _menuScopeNode.traversalEdgeBehavior = widget.effectiveTraversalEdgeBehavior;
+      _menuScopeNode.directionalTraversalEdgeBehavior = widget.effectiveTraversalEdgeBehavior;
     }
+
+    assert(() {
+      _menuScopeNode.debugLabel = widget.debugMenuFocusScopeLabel;
+      return true;
+    }());
   }
 
   @override
@@ -667,7 +638,7 @@ class _BaseMenuState extends State<BaseMenu> {
     super.dispose();
   }
 
-  void _handleEnterMenu(BaseMenuEnterIntent intent) {
+  void _handleEnterMenu(EnterMenuIntent intent) {
     if (_menuController.isOpen) {
       if (_menuScopeNode.context != null) {
         Actions.maybeInvoke(_menuScopeNode.context!, intent._scopeIntent);
@@ -675,57 +646,35 @@ class _BaseMenuState extends State<BaseMenu> {
     } else {
       _menuController.open();
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (_menuController.isOpen) {
+        if (mounted && _menuController.isOpen) {
           Actions.invoke(_menuScopeNode.context!, intent._scopeIntent);
         }
       });
     }
   }
 
-  void _handleMenuExit(Intent intent) {
-    if (_parentIsSubmenu && _parentOrientation == widget.orientation) {
-      _menuController.close();
-      return;
-    }
-
-    FocusScope.of(context).previousFocus();
-    FocusManager.instance.applyFocusChangesIfNeeded();
-    Actions.maybeInvoke(context, intent);
-  }
-
   Widget _buildAnchor(BuildContext context, MenuController controller, Widget? child) {
+    final directionalShortcuts = switch (_textDirection) {
+      TextDirection.ltr => _kMenuLTRShortcuts,
+      TextDirection.rtl => _kMenuRTLShortcuts,
+    };
     return Actions(
       actions: _anchorActions,
       child: Shortcuts(
         shortcuts: switch (_parentOrientation) {
           Axis.vertical => {
-            ..._kMenuShortcuts,
-            ...switch (_textDirection) {
-              TextDirection.ltr => _kMenuLTRShortcuts,
-              TextDirection.rtl => _kMenuRTLShortcuts,
-            },
-            switch (_textDirection) {
-              TextDirection.ltr => const SingleActivator(LogicalKeyboardKey.arrowRight),
-              TextDirection.rtl => const SingleActivator(LogicalKeyboardKey.arrowLeft),
-            }: const BaseMenuEnterIntent.focusFirst(),
+            ...directionalShortcuts,
             if (controller.isOpen && widget.orientation == Axis.vertical) ...{
-              const SingleActivator(LogicalKeyboardKey.arrowUp):
-                  const BaseMenuEnterIntent.focusLast(),
+              const SingleActivator(LogicalKeyboardKey.arrowUp): const EnterMenuIntent.focusLast(),
               const SingleActivator(LogicalKeyboardKey.arrowDown):
-                  const BaseMenuEnterIntent.focusFirst(),
+                  const EnterMenuIntent.focusFirst(),
             },
           },
           Axis.horizontal || null => {
-            ..._kMenuShortcuts,
-            ...switch (_textDirection) {
-              TextDirection.ltr => _kMenuLTRShortcuts,
-              TextDirection.rtl => _kMenuRTLShortcuts,
-            },
-            const SingleActivator(LogicalKeyboardKey.arrowDown):
-                const BaseMenuEnterIntent.focusFirst(),
+            ...directionalShortcuts,
+            const SingleActivator(LogicalKeyboardKey.arrowDown): const EnterMenuIntent.focusFirst(),
             if (!_parentIsSubmenu || widget.orientation == Axis.vertical)
-              const SingleActivator(LogicalKeyboardKey.arrowUp):
-                  const BaseMenuEnterIntent.focusLast(),
+              const SingleActivator(LogicalKeyboardKey.arrowUp): const EnterMenuIntent.focusLast(),
           },
         },
         child:
@@ -737,67 +686,97 @@ class _BaseMenuState extends State<BaseMenu> {
   }
 
   Widget _buildOverlay(BuildContext context, RawMenuOverlayInfo position) {
-    // When _parentOrientation == null, there is no parent menu bar or menu
-    // anchor. In this case, overlay actions are not set.
-    if (_overlayActions == null && _parentOrientation != null) {
-      final Type intentType = switch (widget.orientation) {
-        Axis.vertical => BaseMenuHorizontalFocusPreviousIntent,
-        Axis.horizontal => BaseMenuVerticalFocusPreviousIntent,
-      };
-      _overlayActions = {intentType: CallbackAction(onInvoke: _handleMenuExit)};
-    }
-
-    final overlay = Actions(
-      actions: _overlayActions ?? const {},
-      child: _MenuOverlay(
-        submenuAxis: widget.orientation,
-        position: position,
-        consumeOutsideTaps: widget.consumeOutsideTaps,
-        semanticProperties: widget.semanticProperties,
-        menuController: _menuController,
-        focusScopeNode: _menuScopeNode,
-        positioningDelegate: widget.positionDelegate,
-        child: widget.menu,
-      ),
+    final overlay = _MenuOverlay(
+      submenuAxis: widget.orientation,
+      position: position,
+      consumeOutsideTaps: widget.consumeOutsideTaps,
+      semanticProperties: widget.semanticProperties,
+      menuController: _menuController,
+      focusScopeNode: _menuScopeNode,
+      positioningDelegate: widget.positionDelegate,
+      child: widget.menu,
     );
 
-    if (widget.overlayChildBuilder == null) {
-      return overlay;
+    final Widget child = widget.overlayChildBuilder != null
+        ? Builder(
+            builder: (context) {
+              return widget.overlayChildBuilder!.call(context, overlay);
+            },
+          )
+        : overlay;
+
+    if (_parentOrientation != null) {
+      return child;
     }
 
-    return Builder(
-      builder: (context) {
-        return widget.overlayChildBuilder!.call(context, overlay);
+    return Actions(
+      actions: _overlayActions ??= {
+        NextFocusIntent: CallbackAction<NextFocusIntent>(
+          onInvoke: (intent) {
+            _menuController.close();
+            return _menuScopeNode.enclosingScope?.nextFocus();
+          },
+        ),
+        PreviousFocusIntent: CallbackAction<PreviousFocusIntent>(
+          onInvoke: (intent) {
+            _menuController.close();
+            return _menuScopeNode.enclosingScope?.previousFocus();
+          },
+        ),
       },
+      child: child,
     );
+  }
+
+  bool _isPostFrameCallbackScheduled = false;
+  void _postFrameCallback(Duration _) {
+    assert(_isPostFrameCallbackScheduled);
+    _isPostFrameCallbackScheduled = false;
+    if (!mounted) {
+      return;
+    }
+
+    final isOpen = _menuController.isOpen;
+    if (!isOpen && _isScopeFocused) {
+      assert(!_menuScopeNode.hasFocus);
+      _isScopeFocused = _menuScopeNode.hasFocus;
+      widget.onFocusChange?.call(_isScopeFocused);
+    }
+
+    if (!kIsWeb) {
+      return;
+    }
+
+    // Prevents the root focus scope from taking focus on web.
+    final previousPrimaryFocus = FocusManager.instance.primaryFocus;
+    if (previousPrimaryFocus == null) {
+      return;
+    }
+
+    if (isOpen) {
+      previousPrimaryFocus.requestFocus();
+      return;
+    }
+
+    FocusManager.instance.applyFocusChangesIfNeeded();
+    if (FocusManager.instance.rootScope.hasPrimaryFocus) {
+      previousPrimaryFocus.requestFocus();
+    }
   }
 
   void _handleClose() {
     widget.onClose?.call();
-
-    if (kIsWeb) {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        // Prevents the root focus scope from taking focus on web.
-        final previousPrimaryFocus = FocusManager.instance.primaryFocus;
-        if (previousPrimaryFocus == null) {
-          return;
-        }
-        FocusManager.instance.applyFocusChangesIfNeeded();
-        if (FocusManager.instance.rootScope.hasPrimaryFocus) {
-          previousPrimaryFocus.requestFocus();
-        }
-      });
+    if (!_isPostFrameCallbackScheduled) {
+      _isPostFrameCallbackScheduled = true;
+      SchedulerBinding.instance.addPostFrameCallback(_postFrameCallback);
     }
   }
 
   void _handleOpen() {
     widget.onOpen?.call();
-
-    if (kIsWeb) {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        // Prevents the root focus scope from taking focus on web.
-        FocusManager.instance.primaryFocus?.requestFocus();
-      });
+    if (kIsWeb && !_isPostFrameCallbackScheduled) {
+      _isPostFrameCallbackScheduled = true;
+      SchedulerBinding.instance.addPostFrameCallback(_postFrameCallback);
     }
   }
 
@@ -845,7 +824,7 @@ class _MenuOverlay extends StatelessWidget {
   final FocusScopeNode focusScopeNode;
   final Axis submenuAxis;
   final SemanticsProperties semanticProperties;
-  final BaseMenuPositioningDelegate positioningDelegate;
+  final MenuPositioningDelegate positioningDelegate;
 
   Widget _buildConditionalTraversal(BuildContext context, Widget? child) {
     return Focus(
@@ -874,7 +853,7 @@ class _MenuOverlay extends StatelessWidget {
           axis: submenuAxis,
           focusScopeNode: focusScopeNode,
           semanticProperties: semanticProperties,
-          child: _MenuScope(orientation: submenuAxis, isSubmenu: true, child: child),
+          child: MenuScope(axis: submenuAxis, isSubmenu: true, child: child),
         ),
       ),
     );
@@ -890,23 +869,150 @@ class _MenuOverlay extends StatelessWidget {
   }
 }
 
+/// A widget that groups a collection of [BaseMenu]s into an accessible menu
+/// bar.
+///
+/// [BaseMenuBar] coordinates a series of hierarchical menus, typically
+/// presented as a horizontal row atop an application window (such as "File",
+/// "Edit", "View"). When one menu in the bar is opened, any other open menu in
+/// that same bar is automatically closed.
+///
+/// [BaseMenuBar] can be managed using the [MenuController] API:
+/// * The nearest ancestor [BaseMenuBar] open/close state can be observed using
+///   [MenuController.maybeIsOpenOf].
+/// * The nearest ancestor [MenuController] can be read using
+///   [MenuController.maybeOf].
+/// * Tapping outside of the [BaseMenuBar] or pressing
+///   [LogicalKeyboardKey.escape] will emit a [DismissIntent] that closes the
+///   menu.
+///
+/// The [orientation] property controls the keyboard navigation layout. By
+/// default, the menu bar is horizontal, meaning [LogicalKeyboardKey.arrowLeft]
+/// and [LogicalKeyboardKey.arrowRight] keys traverse the top-level menu items.
+/// If the menu bar is vertical, the [LogicalKeyboardKey.arrowUp] and
+/// [LogicalKeyboardKey.arrowDown] keys traverse the top-level menu items.
+///
+/// ### Basic Usage Pattern
+///
+/// ```dart
+/// BaseMenuBar(
+///   child: BaseMenuPanel(
+///     constraints: const BoxConstraints(height: 30),
+///     children: <Widget>[
+///       BaseSubmenu(
+///         controller: controller,
+///         menu: ColoredBox(
+///           color: const Color(0xFFFFFFFF),
+///           child: BaseMenuPanel(
+///             padding: const EdgeInsets.all(10),
+///             children: <Widget>[
+///               BaseMenuItem(
+///                 onPressed: () {
+///                   print('New');
+///                 },
+///                 child: const Text('New'),
+///               ),
+///               BaseMenuItem(
+///                 onPressed: () {
+///                   print('Open');
+///                 },
+///                 child: const Text('Open...'),
+///               ),
+///             ],
+///           ),
+///         ),
+///         child: Container(
+///           padding: const EdgeInsets.symmetric(horizontal: 30),
+///           color: const Color(0xFF61FF71),
+///           alignment: .center,
+///           child: const Text('File'),
+///         ),
+///       ),
+///       BaseSubmenu(
+///         controller: nestedController,
+///         menu: ColoredBox(
+///           color: const Color(0xFFFFFFFF),
+///           child: BaseMenuPanel(
+///             padding: const EdgeInsets.all(10),
+///             children: <Widget>[
+///               BaseMenuItem(
+///                 onPressed: () {
+///                   print('Undo');
+///                 },
+///                 child: const Text('Undo'),
+///               ),
+///               BaseMenuItem(
+///                 onPressed: () {
+///                   print('Redo');
+///                 },
+///                 child: const Text('Redo'),
+///               ),
+///             ],
+///           ),
+///         ),
+///         child: Container(
+///           padding: const EdgeInsets.symmetric(horizontal: 30),
+///           color: const Color(0xFF619BFF),
+///           alignment: .center,
+///           child: const Text('Edit'),
+///          ),
+///        ),
+///      ],
+///    ),
+///  ),
+///);
+/// ```
+///
+///See also:
+/// * [BaseMenu], for individual dropdown menus and context menus.
+/// * [BaseSubmenu], for nested submenus within a menu panel.
+/// * [BaseMenuPanel], the standard companion panel for laying out menu items
 class BaseMenuBar extends StatefulWidget {
+  /// Creates a [BaseMenuBar].
+  ///
+  /// The [child] parameter is required and must not be null.
   const BaseMenuBar({
     super.key,
     this.controller,
-    required this.child,
-    this.axis = Axis.horizontal,
+    this.orientation = Axis.horizontal,
     this.focusScopeNode,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
       role: SemanticsRole.menuBar,
     ),
+    required this.child,
   });
+
+  /// The [MenuController] that controls the global open/close state of the
+  /// [BaseMenuBar]'s submenus.
+  ///
+  /// If provided, this controller can be used to query whether any children are
+  /// open via [MenuController.isOpen], or to close all children at once using
+  /// [MenuController.close].
   final MenuController? controller;
-  final Widget child;
-  final Axis axis;
+
+  /// The keyboard navigation layout and axis direction for the [BaseMenuBar].
+  ///
+  /// Defaults to [Axis.horizontal] (meaning left and right arrow keys traverse the top-level items).
+  final Axis orientation;
+
+  /// An optional [FocusScopeNode] to manage focus events within the
+  /// [BaseMenuBar].
+  ///
+  /// If not provided, an internal [FocusScopeNode] is instantiated and
+  /// maintained automatically.
   final FocusScopeNode? focusScopeNode;
+
+  /// The [SemanticsProperties] applied to the [BaseMenuBar]'s semantic node.
+  ///
+  /// Defaults to describing a [SemanticsRole.menuBar] route scope.
   final SemanticsProperties semanticProperties;
+
+  /// The content of the [BaseMenuBar].
+  ///
+  /// While the [BaseMenuPanel] provides a simple default layout, the [child]
+  /// can be any widget.
+  final Widget child;
 
   @override
   State<BaseMenuBar> createState() => _BaseMenuBarState();
@@ -915,26 +1021,32 @@ class BaseMenuBar extends StatefulWidget {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(ObjectFlagProperty<MenuController>.has('controller', controller));
-    properties.add(EnumProperty<Axis>('axis', axis));
+    properties.add(EnumProperty<Axis>('axis', orientation));
     properties.add(ObjectFlagProperty<FocusScopeNode>.has('focusScopeNode', focusScopeNode));
   }
 }
 
 class _BaseMenuBarState extends State<BaseMenuBar> {
-  late final _actions = {
-    NextFocusIntent: CallbackAction(
-      onInvoke: (intent) => _menuScopeNode.enclosingScope?.nextFocus(),
+  late final _actions = <Type, Action<Intent>>{
+    NextFocusIntent: CallbackAction<NextFocusIntent>(
+      onInvoke: (intent) {
+        _menuController.close();
+        return _menuScopeNode.enclosingScope?.nextFocus();
+      },
     ),
-    PreviousFocusIntent: CallbackAction(
-      onInvoke: (intent) => _menuScopeNode.enclosingScope?.previousFocus(),
+    PreviousFocusIntent: CallbackAction<PreviousFocusIntent>(
+      onInvoke: (intent) {
+        _menuController.close();
+        return _menuScopeNode.enclosingScope?.previousFocus();
+      },
     ),
   };
 
-  MenuController? _internalMenuController;
   MenuController get _menuController => widget.controller ?? _internalMenuController!;
+  MenuController? _internalMenuController;
 
-  FocusScopeNode? _internalFocusScopeNode;
   FocusScopeNode get _menuScopeNode => widget.focusScopeNode ?? _internalFocusScopeNode!;
+  FocusScopeNode? _internalFocusScopeNode;
 
   @override
   void initState() {
@@ -945,8 +1057,7 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
 
     if (widget.focusScopeNode == null) {
       _internalFocusScopeNode = FocusScopeNode(
-        debugLabel: 'BaseMenuBar.focusScopeNode ${widget.axis}',
-        traversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
+        debugLabel: 'BaseMenuBar.focusScopeNode ${widget.orientation}',
         directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
       );
     }
@@ -958,7 +1069,7 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
     if (oldWidget.controller != widget.controller) {
       if (widget.controller == null) {
         _internalMenuController = MenuController();
-      } else {
+      } else if (oldWidget.controller == null) {
         _internalMenuController = null;
       }
     }
@@ -966,8 +1077,7 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
     if (oldWidget.focusScopeNode != widget.focusScopeNode) {
       if (widget.focusScopeNode == null) {
         _internalFocusScopeNode = FocusScopeNode(
-          debugLabel: 'BaseMenuBar.focusScopeNode ${widget.axis}',
-          traversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
+          debugLabel: 'BaseMenuBar.focusScopeNode ${widget.orientation} ${widget.key}',
           directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
         );
       } else {
@@ -986,16 +1096,19 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Actions(
-      actions: _actions,
-      child: RawMenuAnchorGroup(
-        controller: _menuController,
-        child: _InlineMenu(
-          axis: widget.axis,
-          semanticProperties: widget.semanticProperties,
-          focusScopeNode: _menuScopeNode,
-          child: _MenuScope(orientation: widget.axis, isSubmenu: false, child: widget.child),
-        ),
+    final child = _InlineMenu(
+      axis: widget.orientation,
+      semanticProperties: widget.semanticProperties,
+      focusScopeNode: _menuScopeNode,
+      child: MenuScope(axis: widget.orientation, isSubmenu: false, child: widget.child),
+    );
+
+    return RawMenuAnchorGroup(
+      controller: _menuController,
+      child: Builder(
+        builder: (context) {
+          return Actions(actions: _actions, child: child);
+        },
       ),
     );
   }
@@ -1045,13 +1158,13 @@ class _MenuFocusTraversal extends StatefulWidget {
 
 class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
   final policy = OrderedTraversalPolicy(secondary: WidgetOrderTraversalPolicy());
-  Map<Type, Action<Intent>>? actions;
+  Map<Type, Action<Intent>>? _actions;
 
   @override
   void didUpdateWidget(_MenuFocusTraversal oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.axis != widget.axis || oldWidget.focusScopeNode != widget.focusScopeNode) {
-      actions = null;
+      _actions = null;
     }
   }
 
@@ -1059,31 +1172,32 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
   Widget build(BuildContext context) {
     return FocusTraversalGroup(
       policy: policy,
-      child: Shortcuts(
-        debugLabel: 'Menu Focus Traversal Shortcuts ${widget.child}',
-        shortcuts: {
-          ..._kMenuShortcuts,
-          ...switch (Directionality.of(context)) {
-            TextDirection.ltr => _kMenuLTRShortcuts,
-            TextDirection.rtl => _kMenuRTLShortcuts,
+      child: Actions(
+        actions: _actions ??= {
+          _MenuFocusFirstIntent: _FocusFirstAction(widget.focusScopeNode),
+          _MenuFocusLastIntent: _FocusLastAction(widget.focusScopeNode),
+          ...switch (widget.axis) {
+            Axis.vertical => {
+              VerticalMenuFocusNextIntent: _TraverseNextAction<VerticalMenuFocusNextIntent>(
+                widget.focusScopeNode,
+              ),
+              VerticalMenuFocusPreviousIntent:
+                  _TraversePreviousAction<VerticalMenuFocusPreviousIntent>(widget.focusScopeNode),
+            },
+            Axis.horizontal => {
+              HorizontalMenuFocusNextIntent: _TraverseNextAction<HorizontalMenuFocusNextIntent>(
+                widget.focusScopeNode,
+              ),
+              HorizontalMenuFocusPreviousIntent:
+                  _TraversePreviousAction<HorizontalMenuFocusPreviousIntent>(widget.focusScopeNode),
+            },
           },
         },
-        child: Actions(
-          actions: actions ??= {
-            _MenuFocusFirstIntent: _FocusFirstAction(widget.focusScopeNode),
-            _MenuFocusLastIntent: _FocusLastAction(widget.focusScopeNode),
-            ...switch (widget.axis) {
-              Axis.vertical => {
-                BaseMenuVerticalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
-                BaseMenuVerticalFocusPreviousIntent: _TraversePreviousAction(widget.focusScopeNode),
-              },
-              Axis.horizontal => {
-                BaseMenuHorizontalFocusNextIntent: _TraverseNextAction(widget.focusScopeNode),
-                BaseMenuHorizontalFocusPreviousIntent: _TraversePreviousAction(
-                  widget.focusScopeNode,
-                ),
-              },
-            },
+        child: Shortcuts(
+          debugLabel: 'Menu Focus Traversal Shortcuts ${widget.child}',
+          shortcuts: switch (Directionality.maybeOf(context) ?? .ltr) {
+            TextDirection.ltr => _kMenuLTRShortcuts,
+            TextDirection.rtl => _kMenuRTLShortcuts,
           },
           child: FocusScope(
             node: widget.focusScopeNode,
@@ -1124,116 +1238,58 @@ class _FocusLastAction extends Action<_MenuFocusLastIntent> {
   }
 }
 
-class _TraverseNextAction extends Action<_TraversalIntent> {
+class _TraverseNextAction<T extends _TraversalIntent> extends Action<T> {
   _TraverseNextAction(this.focusScopeNode);
   final FocusScopeNode focusScopeNode;
   @override
-  void invoke(_TraversalIntent intent) {
-    final policy = FocusTraversalGroup.maybeOf(focusScopeNode.context!);
-    if (policy == null) {
-      primaryFocus?.nextFocus();
-      return;
-    }
-
-    final last = policy.findLastFocus(focusScopeNode, ignoreCurrentFocus: true);
-    if (!last.hasFocus) {
-      // Find the next node in the traversal order
-      final success = focusScopeNode.nextFocus();
-      if (success) {
-        FocusManager.instance.applyFocusChangesIfNeeded();
-        if (primaryFocus == focusScopeNode.focusedChild &&
-            focusScopeNode.focusedChild!.context != null) {
-          Scrollable.ensureVisible(
-            focusScopeNode.focusedChild!.context!,
-            alignmentPolicy: .keepVisibleAtStart,
-          );
-        }
+  void invoke(T intent) {
+    // Find the next node in the traversal order
+    focusScopeNode.requestFocus();
+    if (focusScopeNode.nextFocus()) {
+      FocusManager.instance.applyFocusChangesIfNeeded();
+      if (primaryFocus == focusScopeNode.focusedChild &&
+          focusScopeNode.focusedChild!.context != null) {
+        Scrollable.ensureVisible(
+          focusScopeNode.focusedChild!.context!,
+          alignmentPolicy: .keepVisibleAtStart,
+        );
       }
-      return;
-    }
-
-    switch (focusScopeNode.directionalTraversalEdgeBehavior) {
-      case .stop:
-        return;
-      case .parentScope:
-        focusScopeNode.enclosingScope?.nextFocus();
-      case .closedLoop:
-        final first = policy.findFirstFocus(focusScopeNode, ignoreCurrentFocus: true);
-        if (first == null || first == primaryFocus) {
-          return;
-        }
-
-        policy.requestFocusCallback(first, alignmentPolicy: .keepVisibleAtStart);
-      case .leaveFlutterView:
-        primaryFocus?.unfocus();
     }
   }
 }
 
-class _TraversePreviousAction extends Action<_TraversalIntent> {
+class _TraversePreviousAction<T extends _TraversalIntent> extends Action<T> {
   _TraversePreviousAction(this.focusScopeNode);
   final FocusScopeNode focusScopeNode;
   @override
-  void invoke(_TraversalIntent intent) {
-    final policy = FocusTraversalGroup.maybeOf(focusScopeNode.context!);
-
-    if (policy == null) {
-      primaryFocus?.previousFocus();
-      return;
-    }
-
-    final first = policy.findFirstFocus(focusScopeNode, ignoreCurrentFocus: true);
-    if (first == null) {
-      return;
-    }
-
-    if (!first.hasFocus) {
-      final success = focusScopeNode.previousFocus();
-      if (success) {
-        FocusManager.instance.applyFocusChangesIfNeeded();
-        if (primaryFocus == focusScopeNode.focusedChild &&
-            focusScopeNode.focusedChild!.context != null) {
-          Scrollable.ensureVisible(
-            focusScopeNode.focusedChild!.context!,
-            alignmentPolicy: .keepVisibleAtEnd,
-          );
-        }
+  void invoke(T intent) {
+    final isFocusRequested = focusScopeNode.previousFocus();
+    if (isFocusRequested) {
+      FocusManager.instance.applyFocusChangesIfNeeded();
+      if (primaryFocus == focusScopeNode.focusedChild &&
+          focusScopeNode.focusedChild!.context != null) {
+        Scrollable.ensureVisible(
+          focusScopeNode.focusedChild!.context!,
+          alignmentPolicy: .keepVisibleAtEnd,
+        );
       }
-      return;
-    }
-
-    switch (focusScopeNode.directionalTraversalEdgeBehavior) {
-      case .stop:
-        return;
-      case .parentScope:
-        focusScopeNode.enclosingScope?.previousFocus();
-      case .closedLoop:
-        final last = policy.findLastFocus(focusScopeNode, ignoreCurrentFocus: true);
-        if (last == primaryFocus) {
-          return;
-        }
-
-        policy.requestFocusCallback(last, alignmentPolicy: .keepVisibleAtEnd);
-      case .leaveFlutterView:
-        primaryFocus?.unfocus();
     }
   }
 }
 
-// A layout delegate that positions the menu relative to its anchor.
-class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
-  const DefaultMenuLayoutDelegate({
+class _MenuPositioner extends SingleChildRenderObjectWidget {
+  const _MenuPositioner({
+    required Widget super.child,
     required this.offset,
     required this.anchorRect,
     required this.overlayPadding,
-    required this.avoidBounds,
     required this.alignment,
     required this.menuAlignment,
-    required this.textDirection,
-    required EdgeInsetsGeometry? padding,
-    required this.flipEdges,
+    required this.menuPadding,
+    required this.edgeBehavior,
     this.menuPosition,
-  }) : menuPadding = padding;
+    this.onPositioned,
+  });
 
   // Rectangle of the button anchoring the menu overlay.
   final ui.Rect anchorRect;
@@ -1253,21 +1309,280 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
   // Padding applied to the menu surface.
   final EdgeInsetsGeometry? menuPadding;
 
-  // List of rectangles that the menu should not overlap. Unusable screen area.
-  final Set<Rect> avoidBounds;
-
   // The alignment of the menu attachment point relative to the anchor button.
   final AlignmentGeometry alignment;
 
   // The alignment of the menu attachment point relative to the menu surface.
   final AlignmentGeometry menuAlignment;
 
-  // The direction in which the text flows within the menu.
-  final ui.TextDirection textDirection;
-
   // The axis or axes on which the menu should be flipped across the anchor's
   // midpoint if it overflows the edge of the screen.
-  final Set<AxisDirection> flipEdges;
+  final EdgeBehavior edgeBehavior;
+
+  final ValueChanged<Rect>? onPositioned;
+
+  static Set<ui.Rect> _avoidBounds(List<ui.DisplayFeature> displayFeatures) {
+    final bounds = <ui.Rect>{};
+    for (final feature in displayFeatures) {
+      if (feature.bounds.shortestSide > 0 ||
+          feature.state == ui.DisplayFeatureState.postureHalfOpened) {
+        bounds.add(feature.bounds);
+      }
+    }
+    return bounds;
+  }
+
+  @override
+  _RenderMenuPositioner createRenderObject(BuildContext context) {
+    final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
+    final textDirection = Directionality.maybeOf(context) ?? .ltr;
+    return _RenderMenuPositioner(
+      anchorRect: anchorRect,
+      offset: offset,
+      menuPosition: menuPosition,
+      overlayPadding: overlayPadding,
+      avoidBounds: displayFeatures != null ? _avoidBounds(displayFeatures) : const {},
+      alignment: alignment,
+      menuAlignment: menuAlignment,
+      textDirection: textDirection,
+      menuPadding: menuPadding,
+      edgeBehavior: edgeBehavior,
+      onPositioned: onPositioned,
+    );
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderMenuPositioner renderObject) {
+    final displayFeatures = MediaQuery.maybeDisplayFeaturesOf(context);
+    final textDirection = Directionality.maybeOf(context) ?? .ltr;
+    renderObject
+      ..anchorRect = anchorRect
+      ..offset = offset
+      ..menuPosition = menuPosition
+      ..overlayPadding = overlayPadding
+      ..avoidBounds = displayFeatures != null ? _avoidBounds(displayFeatures) : const {}
+      ..alignment = alignment
+      ..menuAlignment = menuAlignment
+      ..textDirection = textDirection
+      ..menuPadding = menuPadding
+      ..edgeBehavior = edgeBehavior
+      ..onPositioned = onPositioned;
+  }
+}
+
+class _RenderMenuPositioner extends RenderShiftedBox {
+  _RenderMenuPositioner({
+    RenderBox? child,
+    required this._anchorRect,
+    required this._offset,
+    required this._menuPosition,
+    required this._overlayPadding,
+    required this._avoidBounds,
+    required this._alignment,
+    required this._menuAlignment,
+    required this._textDirection,
+    required this._menuPadding,
+    required this._edgeBehavior,
+    required this._onPositioned,
+  }) : super(child);
+
+  Rect get anchorRect => _anchorRect;
+  Rect _anchorRect;
+  set anchorRect(Rect value) {
+    if (_anchorRect != value) {
+      _anchorRect = value;
+      markNeedsLayout();
+    }
+  }
+
+  Offset get offset => _offset;
+  Offset _offset;
+  set offset(Offset value) {
+    if (_offset != value) {
+      _offset = value;
+      markNeedsLayout();
+    }
+  }
+
+  Offset? get menuPosition => _menuPosition;
+  Offset? _menuPosition;
+  set menuPosition(Offset? value) {
+    if (_menuPosition != value) {
+      _menuPosition = value;
+      markNeedsLayout();
+    }
+  }
+
+  EdgeInsetsGeometry get overlayPadding => _overlayPadding;
+  EdgeInsetsGeometry _overlayPadding;
+  set overlayPadding(EdgeInsetsGeometry value) {
+    if (_overlayPadding != value) {
+      _overlayPadding = value;
+      _resolvedOverlayPadding = null;
+      markNeedsLayout();
+    }
+  }
+
+  Set<Rect> get avoidBounds => _avoidBounds;
+  Set<Rect> _avoidBounds;
+  set avoidBounds(Set<Rect> value) {
+    if (_avoidBounds != value) {
+      _avoidBounds = value;
+      markNeedsLayout();
+    }
+  }
+
+  AlignmentGeometry get alignment => _alignment;
+  AlignmentGeometry _alignment;
+  set alignment(AlignmentGeometry value) {
+    if (_alignment != value) {
+      _alignment = value;
+      _resolvedAlignment = null;
+      markNeedsLayout();
+    }
+  }
+
+  AlignmentGeometry _menuAlignment;
+  AlignmentGeometry get menuAlignment => _menuAlignment;
+  set menuAlignment(AlignmentGeometry value) {
+    if (_menuAlignment != value) {
+      _menuAlignment = value;
+      _resolvedMenuAlignment = null;
+      markNeedsLayout();
+    }
+  }
+
+  TextDirection _textDirection;
+  TextDirection get textDirection => _textDirection;
+  set textDirection(TextDirection value) {
+    if (_textDirection != value) {
+      _textDirection = value;
+      _resolvedAlignment = _resolvedMenuAlignment = _resolvedMenuPadding = _resolvedOverlayPadding =
+          null;
+      markNeedsLayout();
+    }
+  }
+
+  EdgeInsetsGeometry? _menuPadding;
+  EdgeInsetsGeometry? get menuPadding => _menuPadding;
+  set menuPadding(EdgeInsetsGeometry? value) {
+    if (_menuPadding != value) {
+      _menuPadding = value;
+      _resolvedMenuPadding = null;
+      markNeedsLayout();
+    }
+  }
+
+  EdgeBehavior _edgeBehavior;
+  EdgeBehavior get edgeBehavior => _edgeBehavior;
+  set edgeBehavior(EdgeBehavior v) {
+    if (_edgeBehavior != v) {
+      _edgeBehavior = v;
+      markNeedsLayout();
+    }
+  }
+
+  ValueChanged<Rect>? get onPositioned => _onPositioned;
+  ValueChanged<Rect>? _onPositioned;
+  set onPositioned(ValueChanged<Rect>? value) {
+    if (_onPositioned != value) {
+      _onPositioned = value;
+      markNeedsLayout();
+    }
+  }
+
+  Alignment? _resolvedAlignment;
+  Alignment get resolvedAlignment => _resolvedAlignment ??= alignment.resolve(textDirection);
+
+  Alignment? _resolvedMenuAlignment;
+  Alignment get resolvedMenuAlignment =>
+      _resolvedMenuAlignment ??= menuAlignment.resolve(textDirection);
+
+  EdgeInsets? _resolvedMenuPadding;
+  EdgeInsets get resolvedMenuPadding =>
+      _resolvedMenuPadding ??= menuPadding?.resolve(textDirection) ?? EdgeInsets.zero;
+
+  EdgeInsets? _resolvedOverlayPadding;
+  EdgeInsets get resolvedOverlayPadding =>
+      _resolvedOverlayPadding ??= overlayPadding.resolve(textDirection);
+
+  @override
+  void performLayout() {
+    assert(child != null);
+
+    final parentSize = constraints.biggest;
+    final screen = _findClosestScreen(parentSize, anchorRect.center, avoidBounds);
+
+    var maxWidth = double.infinity;
+    var maxHeight = double.infinity;
+    var maybeAdjustHorizontalConstraint = false;
+    var maybeAdjustVerticalConstraint = false;
+
+    if (edgeBehavior.horizontal.constrain) {
+      if (edgeBehavior.horizontal.shift) {
+        maxWidth = screen.width - resolvedOverlayPadding.horizontal;
+      } else {
+        maybeAdjustHorizontalConstraint = true;
+      }
+    }
+
+    if (edgeBehavior.vertical.constrain) {
+      if (edgeBehavior.vertical.shift) {
+        maxHeight = screen.height - resolvedOverlayPadding.vertical;
+      } else {
+        maybeAdjustVerticalConstraint = true;
+      }
+    }
+
+    child!.layout(BoxConstraints(maxWidth: maxWidth, maxHeight: maxHeight), parentUsesSize: true);
+    final childSize = child!.size;
+
+    Offset anchorOffset;
+    if (menuPosition == null) {
+      anchorOffset = resolvedAlignment.withinRect(anchorRect);
+      anchorOffset += offset;
+    } else {
+      anchorOffset = anchorRect.topLeft + menuPosition!;
+    }
+
+    final ui.Offset desiredPosition = anchorOffset - resolvedMenuAlignment.alongSize(childSize);
+    var position = getPositionForChild(screen, childSize, desiredPosition, anchorOffset);
+
+    if (maybeAdjustHorizontalConstraint || maybeAdjustVerticalConstraint) {
+      double? boundedHeight;
+      double? boundedWidth;
+      final Rect(:left, :top, :right, :bottom) = resolvedOverlayPadding.deflateRect(screen);
+      if (maybeAdjustVerticalConstraint) {
+        final double overflowTop = math.max(top - position.dy, 0);
+        final double overflowBottom = math.max(position.dy + child!.size.height - bottom, 0);
+        if (overflowTop > 0 || overflowBottom > 0) {
+          boundedHeight = math.max(0, child!.size.height - (overflowTop + overflowBottom));
+          position += Offset(0, overflowTop);
+        }
+      }
+
+      if (maybeAdjustHorizontalConstraint) {
+        final double overflowLeft = math.max(left - position.dx, 0);
+        final double overflowRight = math.max(position.dx + child!.size.width - right, 0);
+        if (overflowLeft > 0 || overflowRight > 0) {
+          boundedWidth = math.max(0, child!.size.width - (overflowLeft + overflowRight));
+          position += Offset(overflowLeft, 0);
+        }
+      }
+
+      if (boundedWidth != null || boundedHeight != null) {
+        child!.layout(
+          BoxConstraints(maxWidth: boundedWidth ?? maxWidth, maxHeight: boundedHeight ?? maxHeight),
+          parentUsesSize: true,
+        );
+      }
+    }
+
+    final parentData = child!.parentData! as BoxParentData;
+    parentData.offset = position;
+    onPositioned?.call(position & childSize);
+    size = constraints.biggest;
+  }
 
   // Finds the closest screen to the anchor position.
   //
@@ -1307,206 +1622,157 @@ class DefaultMenuLayoutDelegate extends SingleChildLayoutDelegate {
     return closest!;
   }
 
-  Offset _fitInsideScreen(Rect screen, Size childSize, Offset position, Offset anchorPosition) {
-    final EdgeInsets? padding = menuPadding?.resolve(textDirection);
-    final EdgeInsets overlayInsets = overlayPadding.resolve(textDirection);
+  Offset getPositionForChild(Rect screen, Size childSize, Offset position, Offset anchorPosition) {
+    final EdgeInsets padding = resolvedMenuPadding;
+    final EdgeInsets overlayInsets = resolvedOverlayPadding;
     final Rect anchor = menuPosition == null ? anchorRect : anchorPosition & Size.zero;
 
     double x = position.dx;
     double y = position.dy;
 
-    bool overLeftEdge(double x) => x < screen.left + overlayInsets.left;
-    bool overRightEdge(double x) => x > screen.right - childSize.width - overlayInsets.right;
-    bool overTopEdge(double y) => y < screen.top + overlayInsets.top;
-    bool overBottomEdge(double y) => y > screen.bottom - childSize.height - overlayInsets.bottom;
-
-    // Layout horizontally first to determine if the menu can be placed on
-    // either side of the anchor without overlapping.
-    bool hasHorizontalAnchorOverlap = childSize.width >= screen.width;
-    if (hasHorizontalAnchorOverlap) {
-      x = screen.left + overlayInsets.left;
-    } else {
-      // Shift the menu left or right to adjust for padding.
-      double? shiftX;
-      if (padding != null && padding.horizontal > 0) {
-        double ratio = (x - anchorPosition.dx) / childSize.width;
-        ratio = ui.clampDouble(ratio, -1, 0);
-        shiftX = padding.right * ratio + padding.left * (ratio + 1);
-        x -= shiftX;
-      }
-
-      if (overLeftEdge(x)) {
-        if (flipEdges.contains(AxisDirection.left)) {
-          // Flip the X position across the horizontal midpoint of the anchor so that the menu is to the right of the anchor.
-          double flipX = anchor.center.dx * 2 - position.dx - childSize.width;
-          if (shiftX != null) {
-            flipX -= padding!.horizontal + shiftX;
-          }
-
-          hasHorizontalAnchorOverlap = overRightEdge(flipX);
-          if (hasHorizontalAnchorOverlap || overLeftEdge(flipX)) {
-            x = screen.left + overlayInsets.left;
-          } else {
-            x = flipX;
-          }
-        } else {
-          x = screen.left + overlayInsets.left;
-        }
-      } else if (overRightEdge(x)) {
-        if (flipEdges.contains(AxisDirection.right)) {
-          // Flip the X position across the horizontal midpoint of the anchor so that the menu is to the left of the anchor.
-          double flipX = anchor.center.dx * 2 - position.dx - childSize.width;
-          if (shiftX != null) {
-            flipX += padding!.horizontal - shiftX;
-          }
-
-          hasHorizontalAnchorOverlap = overLeftEdge(flipX);
-          if (hasHorizontalAnchorOverlap || overRightEdge(flipX)) {
-            x = screen.right - childSize.width - overlayInsets.right;
-          } else {
-            x = flipX;
-          }
-        } else {
-          x = screen.right - childSize.width - overlayInsets.right;
-        }
-      }
+    double? shiftX;
+    if (padding.horizontal > 0) {
+      double ratio = (x - anchorPosition.dx) / childSize.width;
+      ratio = ui.clampDouble(ratio, -1, 0);
+      shiftX = padding.right * ratio + padding.left * (ratio + 1);
+      x -= shiftX;
     }
 
-    if (childSize.height >= screen.height) {
-      // Menu is too big to fit on screen. Fit as much as possible.
-      return Offset(x, overlayInsets.top);
-    }
-
-    if (hasHorizontalAnchorOverlap && !anchor.isEmpty) {
-      // If both horizontal screen edges overlap, shift the menu upwards or
-      // downwards by the minimum amount needed to avoid overlapping the anchor.
-      //
-      // NOTE: Menus that are deliberately overlapping the anchor will stop
-      // overlapping the anchor, but only when the screen is very small.
-      final double below = anchor.bottom - y;
-      final double above = y + childSize.height - anchor.top;
-      if (below > 0 && above > 0) {
-        if (below > above) {
-          y = anchor.top - childSize.height;
-        } else {
-          y = anchor.bottom;
-        }
-      }
-    }
-
-    // Remove vertical padding from the y component.
     double? shiftY;
-    if (padding != null && padding.vertical > 0) {
+    if (padding.vertical > 0) {
       double ratio = (y - anchorPosition.dy) / childSize.height;
       ratio = ui.clampDouble(ratio, -1, 0);
       shiftY = padding.bottom * ratio + padding.top * (ratio + 1);
       y -= shiftY;
     }
 
-    if (overTopEdge(y)) {
-      if (flipEdges.contains(AxisDirection.up)) {
-        // Flip the Y position across the vertical midpoint of the anchor so that the menu is below the anchor.
-        double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
-        if (shiftY != null) {
-          flipY -= padding!.vertical + shiftY;
-        }
+    x = _resolveAxisComponent(
+      component: x,
+      originalPosition: position.dx,
+      childSize: childSize.width,
+      overlayStart: screen.left + overlayInsets.left,
+      overlayEnd: screen.right - overlayInsets.right,
+      anchorMidpoint: anchor.center.dx,
+      anchorStart: anchor.left,
+      anchorEnd: anchor.right,
+      paddingShift: shiftX,
+      paddingTotal: padding.horizontal,
+      strategy: edgeBehavior.horizontal,
+      prioritizeStartEdge: textDirection == TextDirection.ltr,
+    );
 
-        if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-          y = screen.top + overlayInsets.top;
-        } else {
-          y = flipY;
-        }
-      } else {
-        y = screen.top + overlayInsets.top;
-      }
-    } else if (overBottomEdge(y)) {
-      if (flipEdges.contains(AxisDirection.down)) {
-        // Flip the Y position across the vertical midpoint of the anchor so that
-        // the menu is above the anchor.
-        double flipY = anchor.center.dy * 2 - position.dy - childSize.height;
-        if (shiftY != null) {
-          flipY += padding!.vertical - shiftY;
-        }
-
-        if (overTopEdge(flipY) || overBottomEdge(flipY)) {
-          y = screen.bottom - childSize.height - overlayInsets.bottom;
-        } else {
-          y = flipY;
-        }
-      } else {
-        y = screen.bottom - childSize.height - overlayInsets.bottom;
-      }
-    }
+    y = _resolveAxisComponent(
+      component: y,
+      originalPosition: position.dy,
+      childSize: childSize.height,
+      overlayStart: screen.top + overlayInsets.top,
+      overlayEnd: screen.bottom - overlayInsets.bottom,
+      anchorMidpoint: anchor.center.dy,
+      anchorStart: anchor.top,
+      anchorEnd: anchor.bottom,
+      paddingShift: shiftY,
+      paddingTotal: padding.vertical,
+      strategy: edgeBehavior.vertical,
+      prioritizeStartEdge: true,
+    );
 
     return Offset(x, y);
   }
 
-  @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
-    // The menu can be at most the size of the overlay minus totalPadding.
-    return BoxConstraints.loose(constraints.biggest).deflate(overlayPadding);
-  }
+  double _resolveAxisComponent({
+    required double component,
+    required double originalPosition,
+    required double childSize,
+    required double overlayStart,
+    required double overlayEnd,
+    required double anchorMidpoint,
+    required double anchorStart,
+    required double anchorEnd,
+    required double? paddingShift,
+    required double paddingTotal,
+    required EdgeBehaviorStrategy strategy,
+    required bool prioritizeStartEdge,
+  }) {
+    var position = component;
+    final boundaryStart = overlayStart;
+    final boundaryEnd = overlayEnd - childSize;
 
-  @override
-  Offset getPositionForChild(Size size, Size childSize) {
-    // Point on the anchor where the menu is attached.
-    Offset anchorOffset;
-    if (menuPosition == null) {
-      anchorOffset = alignment.resolve(textDirection).withinRect(anchorRect);
-      anchorOffset += offset;
-    } else {
-      anchorOffset = anchorRect.topLeft + menuPosition!;
+    bool overStartEdge(double position) => position < boundaryStart;
+    bool overEndEdge(double position) => position > boundaryEnd;
+
+    final overflowStart = overStartEdge(position);
+    final overflowEnd = overEndEdge(position);
+
+    if ((overflowStart || overflowEnd) && strategy.flip) {
+      double positionFlipped = anchorMidpoint * 2 - originalPosition - childSize;
+
+      if (paddingShift != null) {
+        if (overflowStart) {
+          positionFlipped -= paddingTotal + paddingShift;
+        } else {
+          positionFlipped += paddingTotal - paddingShift;
+        }
+      }
+
+      if (overStartEdge(positionFlipped) || overEndEdge(positionFlipped)) {
+        if (!strategy.shift && !strategy.constrain) {
+          // If neither shift nor constrain is enabled, choose the position that
+          // keeps the reading/top edge visible.
+          return prioritizeStartEdge
+              ? math.max(position, positionFlipped)
+              : math.min(position, positionFlipped);
+        }
+
+        final double availableStart = anchorStart - overlayStart;
+        final double availableEnd = overlayEnd - anchorEnd;
+
+        if (availableEnd == availableStart) {
+          position = prioritizeStartEdge
+              ? math.min(position, positionFlipped)
+              : math.max(position, positionFlipped);
+        } else {
+          position = availableEnd > availableStart
+              ? math.max(position, positionFlipped)
+              : math.min(position, positionFlipped);
+        }
+
+        if (!strategy.shift) {
+          return position;
+        }
+
+        if (boundaryEnd >= boundaryStart) {
+          return ui.clampDouble(position, boundaryStart, boundaryEnd);
+        }
+
+        if (prioritizeStartEdge) {
+          return boundaryStart;
+        }
+
+        return boundaryEnd;
+      }
+
+      return positionFlipped;
     }
 
-    final ui.Offset position =
-        anchorOffset - menuAlignment.resolve(textDirection).alongSize(childSize);
+    if (overflowStart && overflowEnd) {
+      return prioritizeStartEdge ? boundaryStart : boundaryEnd;
+    }
 
-    final Rect screen = _findClosestScreen(size, anchorRect.center, avoidBounds);
+    if (strategy.shift) {
+      final double availableSpace = overlayEnd - overlayStart;
+      if (childSize > availableSpace) {
+        return prioritizeStartEdge ? boundaryStart : boundaryEnd;
+      }
 
-    return _fitInsideScreen(screen, childSize, position, anchorOffset);
-  }
+      if (overflowStart) {
+        return boundaryStart;
+      }
 
-  @override
-  bool shouldRelayout(DefaultMenuLayoutDelegate oldDelegate) {
-    return anchorRect != oldDelegate.anchorRect ||
-        alignment != oldDelegate.alignment ||
-        offset != oldDelegate.offset ||
-        menuAlignment != oldDelegate.menuAlignment ||
-        menuPosition != oldDelegate.menuPosition ||
-        menuPadding != oldDelegate.menuPadding ||
-        overlayPadding != oldDelegate.overlayPadding ||
-        textDirection != oldDelegate.textDirection ||
-        !setEquals(flipEdges, oldDelegate.flipEdges) ||
-        !setEquals(avoidBounds, oldDelegate.avoidBounds);
-  }
-}
+      if (overflowEnd) {
+        return boundaryEnd;
+      }
+    }
 
-class _MenuAimLayoutDecorator<T extends SingleChildLayoutDelegate>
-    extends SingleChildLayoutDelegate {
-  const _MenuAimLayoutDecorator({required this.delegate, required this.geometry});
-
-  final T delegate;
-  final MenuAimGeometry geometry;
-
-  @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
-    return delegate.getConstraintsForChild(constraints);
-  }
-
-  @override
-  ui.Offset getPositionForChild(Size size, Size childSize) {
-    final position = delegate.getPositionForChild(size, childSize);
-    geometry.targetRect = position & childSize;
     return position;
-  }
-
-  @override
-  Size getSize(BoxConstraints constraints) {
-    return delegate.getSize(constraints);
-  }
-
-  @override
-  bool shouldRelayout(covariant _MenuAimLayoutDecorator<T> oldDelegate) {
-    return geometry != oldDelegate.geometry || delegate.shouldRelayout(oldDelegate.delegate);
   }
 }

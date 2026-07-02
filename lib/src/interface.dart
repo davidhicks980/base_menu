@@ -1,14 +1,174 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
 
-// These interfaces are used to limit duplicate documentation.
+// These interfaces exist to standardize documentation and nomenclature.
 
-abstract class BaseMenuInterface {
+@internal
+abstract interface class BaseHoverableInterface {
+  /// Called when a pointer enters this widget.
+  ///
+  /// This callback is not called when [enabled] is false.
+  ///
+  /// See [MouseRegion.onEnter] for more details.
+  PointerEnterEventListener? get onPointerEnter;
+
+  /// Called when a pointer moves within the bounds of this widget.
+  ///
+  /// This callback is not called when [enabled] is false.
+  ///
+  /// See [MouseRegion.onHover] for more details.
+  PointerHoverEventListener? get onPointerHover;
+
+  /// Called when a pointer exits this widget.
+  ///
+  /// This callback is not called when [enabled] is false.
+  ///
+  /// See [MouseRegion.onExit] for more details.
+  PointerExitEventListener? get onPointerExit;
+
+  /// How to behave during hit testing when deciding how the hit test propagates
+  /// to children and whether to consider targets behind this one.
+  ///
+  /// Defaults to [HitTestBehavior.deferToChild].
+  ///
+  /// See [HitTestBehavior] for the allowed values and their meanings.
+  HitTestBehavior get behavior;
+
+  /// Whether this widget should prevent other [MouseRegion]s visually behind it
+  /// from detecting the pointer.
+  ///
+  /// See [MouseRegion.opaque] for more details.
+  bool get opaque;
+}
+
+@internal
+abstract interface class BaseFocusableInterface {
+  /// An optional focus node to use as the focus node for this widget.
+  ///
+  /// If a focus node is provided, it is the responsibility of the parent widget
+  /// to manage the lifecycle of the focus node, including disposing it when it
+  /// is no longer needed.
+  FocusNode? get focusNode;
+
+  /// {@macro flutter.widgets.Focus.autofocus}
+  bool get autofocus;
+
+  /// Handler called when the focus changes.
+  ///
+  /// Called with true if this widget's node gains focus, and false if it loses
+  /// focus.
+  ///
+  /// See also:
+  ///
+  ///  * [isFocusedOf], which will rebuild the provided [BuildContext] whenever
+  ///    the focus state of the nearest ancestor [BaseFocusable] changes.
+  ///  * [isFocusHighlightShownOf], which will rebuild the provided
+  ///    [BuildContext] whenever the focus highlight state of the nearest
+  ///    ancestor [BaseFocusable] changes.
+  ValueChanged<bool>? get onFocusChange;
+}
+
+@internal
+abstract interface class BaseControlInterface
+    implements BaseHoverableInterface, BaseFocusableInterface {
+  /// Called when the button is tapped or otherwise activated.
+  ///
+  /// If [onPressed] and [onActivate] are null, then the button will be
+  /// disabled.
+  ///
+  /// Defaults to null.
+  ///
+  /// **See also:**
+  ///
+  ///  * [enabled], which is false if both [onPressed] and [onActivate] are null.
+  VoidCallback? get onPressed;
+
+  /// Called when the button is activated by a keyboard shortcut or other
+  /// non-pointer input.
+  ///
+  /// If this callback is null, [onPressed] will be used instead. If both are
+  /// null, the button will be disabled.
+  ///
+  /// Defaults to null.
+  ///
+  /// **See also:**
+  ///
+  ///  * [enabled], which is false if both [onPressed] and [onActivate] are null.
+  VoidCallback? get onActivate;
+
+  /// The mouse cursor to show when hovering over this menu item.
+  WidgetStateProperty<MouseCursor>? get mouseCursor;
+
+  /// Whether to exclude this widget's tap gestures from the semantics tree.
+  bool get gestureSemanticsEnabled;
+
+  /// The delegate that controls how this widget adds gestures to the
+  /// semantics tree.
+  SemanticsGestureDelegate? get gestureSemantics;
+
+  /// The shortcuts that this control should respond to.
+  ///
+  /// This map allows overriding the default keyboard shortcuts for the control.
+  ///
+  /// By default, this control handles:
+  ///  * [LogicalKeyboardKey.space]:
+  ///    * Triggers [DoNothingAndStopPropagationIntent] on **key down**.
+  ///    * Triggers [ActivateIntent] on **key up**
+  ///  * [LogicalKeyboardKey.enter]:
+  ///    * KeyDown triggers [ButtonActivateIntent] on web.
+  ///    * KeyDown triggers [ActivateIntent] on all other platforms.
+  ///
+  /// If [shortcuts] is supplied, it will override the default shortcuts.
+  ///
+  /// The [ActivateIntent] and [ButtonActivateIntent] actions are overrideable,
+  /// meaning any ancestor [Actions] widget containing actions for these intents
+  /// will take precedence over the default behavior of activating the control.
+  Map<ShortcutActivator, Intent>? get shortcuts;
+
+  /// Whether this control can be interacted with.
+  ///
+  /// Returns false if both [onPressed] and [onActivate] are null, and true otherwise.
+  bool get enabled;
+
+  /// The visual content of this control.
+  ///
+  /// This widget doesn't specify any visual styling or layout, so it is up to
+  /// the implementer to provide a [child] that is visually appropriate for the
+  /// control. This widget will match the size of the [child] and will not
+  /// impose any additional constraints.
+  ///
+  /// {@macro flutter.widgets.ProxyWidget.child}
+  Widget get child;
+}
+
+@internal
+abstract interface class BaseMenuItemInterface implements BaseControlInterface {
+  /// Whether hovering over this menu item should request focus.
+  ///
+  /// Defaults to true.
+  bool get requestFocusOnHover;
+
+  /// Whether activating this menu item should request to close the menu.
+  ///
+  /// Defaults to true.
+  bool get requestCloseOnActivate;
+
+  /// The semantic role assigned to this menu item.
+  ///
+  /// To disable semantics for this menu item, set [role] to null.
+  ///
+  /// Defaults to [SemanticsRole.menuItem].
+  SemanticsRole? get role;
+}
+
+@internal
+abstract interface class BaseMenuInterface {
   /// The behavior to use when focus reaches the edge of the menu overlay while
   /// using directional focus traversal.
   ///
@@ -158,7 +318,7 @@ abstract class BaseMenuInterface {
   Axis get orientation;
 
   /// A delegate that controls how the menu is positioned.
-  BaseMenuPositioningDelegate get positionDelegate;
+  MenuPositioningDelegate get positionDelegate;
 
   /// An optional builder that wraps the menu overlay.
   ///
@@ -166,94 +326,4 @@ abstract class BaseMenuInterface {
   /// panel. As a result, it can be used to add widgets that should be outside
   /// of the menu panel, such as a barrier that dismisses the menu when tapped.
   BaseMenuOverlayChildBuilder? get overlayChildBuilder;
-
-  /// The fallback [onOpenRequest] if one is not supplied to the menu.
-  ///
-  /// By default, the menu will open immediately without any delay or animation.
-  static void defaultOnOpenRequested(Offset? position, VoidCallback showOverlay) {
-    showOverlay();
-  }
-
-  /// The fallback `onCloseRequest` if one is not supplied to the menu.
-  ///
-  /// By default, the menu will close immediately without any delay or animation.
-  static void defaultOnCloseRequested(VoidCallback hideOverlay) {
-    hideOverlay();
-  }
-}
-
-abstract interface class BaseControlInterface {
-  /// Called when the button is tapped or otherwise activated.
-  ///
-  /// If this callback is null, then the button will be disabled.
-  ///
-  /// See also:
-  ///
-  ///  * [enabled], which is true if the button is enabled.
-  VoidCallback? get onPressed;
-
-  /// Called when a pointer enters the menu item.
-  PointerEnterEventListener? get onPointerEnter;
-
-  /// Called when a pointer hovers over the menu item.
-  PointerHoverEventListener? get onPointerHover;
-
-  /// Called when a pointer exits the menu item.
-  PointerExitEventListener? get onPointerLeave;
-
-  /// Handler called when the [FocusNode] of this menu item gains or loses focus.
-  ///
-  /// Called with true if this widget's node gains focus, and false if it loses
-  /// focus.
-  ValueChanged<bool>? get onFocusChange;
-
-  /// {@macro flutter.widgets.Focus.focusNode}
-  FocusNode? get focusNode;
-
-  /// {@macro flutter.widgets.Focus.autofocus}
-  bool get autofocus;
-
-  /// How to behave during hit testing when deciding how the hit test propagates
-  /// to children and whether to consider targets behind this one.
-  ///
-  /// Defaults to [HitTestBehavior.deferToChild].
-  ///
-  /// See [HitTestBehavior] for the allowed values and their meanings.
-  HitTestBehavior get behavior;
-
-  /// The mouse cursor to show when hovering over this menu item.
-  WidgetStateProperty<MouseCursor>? get mouseCursor;
-
-  /// Whether to exclude this menu item's tap gestures from the semantics tree.
-  bool get gestureSemanticsEnabled;
-
-  /// The delegate that controls how this menu item adds gestures to the
-  /// semantics tree.
-  SemanticsGestureDelegate? get gestureSemantics;
-
-  /// Whether this control can be interacted with.
-  bool get enabled;
-
-  /// The visual content of this menu item.
-  ///
-  /// [BaseMenuItem] doesn't specify how the menu item is visually styled, so
-  /// the menu item content is fully customizable.
-  ///
-  /// {@macro flutter.widgets.ProxyWidget.child}
-  Widget get child;
-}
-
-abstract interface class BaseMenuItemInterface extends BaseControlInterface {
-  /// Whether hovering over this menu item should request focus.
-  ///
-  /// Defaults to true.
-  bool get requestFocusOnHover;
-
-  /// Whether activating this menu item should request to close the menu.
-  ///
-  /// Defaults to true.
-  bool get requestCloseOnActivate;
-
-  /// The semantic role to assign to this menu item.
-  SemanticsRole? get role;
 }

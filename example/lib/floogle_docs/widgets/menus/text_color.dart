@@ -62,7 +62,7 @@ class _TextColorButtonState extends State<TextColorButton> {
           enableTooltipSemantics: false,
           tooltip: const TextSpan(text: 'Text color'),
           panel: MenuPanel(
-            onSurfaceEnter: (event) {
+            onSurfaceExit: (event) {
               if (!_focusNode.hasFocus) {
                 _focusNode.requestFocus();
               }

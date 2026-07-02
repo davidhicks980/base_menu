@@ -10,8 +10,8 @@ import '../menu_panel.dart';
 import '../selectable_menu_item.dart';
 
 class ViewModePanel extends StatelessWidget {
-  const ViewModePanel({super.key, this.onSurfaceEnter});
-  final PointerEnterEventListener? onSurfaceEnter;
+  const ViewModePanel({super.key, this.onSurfaceExit});
+  final PointerExitEventListener? onSurfaceExit;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,7 @@ class ViewModePanel extends StatelessWidget {
     return MenuPanel(
       constraints: const BoxConstraints(minWidth: 260),
       padding: const EdgeInsetsGeometry.symmetric(vertical: 6),
-      onSurfaceEnter: onSurfaceEnter,
+      onSurfaceExit: onSurfaceExit,
       children: [
         for (final option in Menu.viewMode.children)
           MenuItemRadioSemantics(

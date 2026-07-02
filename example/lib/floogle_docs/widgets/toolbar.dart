@@ -3,14 +3,14 @@ import 'package:flutter/scheduler.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import 'app_state_manager.dart';
+import '../../shared/localized_shortcut_labeler.dart';
 import '../data/entry.dart';
 import '../data/menu.dart';
 import '../model/intents.dart';
 import '../utilities/colors.dart';
-import '../../shared/localized_shortcut_labeler.dart';
 import 'adapters/menu_entry_popup.dart';
 import 'adapters/menu_entry_toolbar_button.dart';
+import 'app_state_manager.dart';
 import 'icon_button.dart';
 import 'menu_divider.dart';
 import 'menus/align_indent.dart';
@@ -122,14 +122,14 @@ class _ToolbarState extends State<Toolbar> {
   late final enterForwardAction = {
     BaseMenuHorizontalFocusNextIntent: CallbackAction<BaseMenuHorizontalFocusNextIntent>(
       onInvoke: (intent) =>
-          Actions.invoke(overflowButtonFocusNode.context!, const BaseMenuEnterIntent.focusFirst()),
+          Actions.invoke(overflowButtonFocusNode.context!, const EnterMenuIntent.focusFirst()),
     ),
   };
 
   late final enterReverseAction = {
     BaseMenuHorizontalFocusPreviousIntent: CallbackAction<BaseMenuHorizontalFocusPreviousIntent>(
       onInvoke: (intent) =>
-          Actions.invoke(overflowButtonFocusNode.context!, const BaseMenuEnterIntent.focusLast()),
+          Actions.invoke(overflowButtonFocusNode.context!, const EnterMenuIntent.focusLast()),
     ),
   };
   final toolbarFocusScopeNode = FocusScopeNode(
@@ -439,7 +439,7 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
 
     return BaseMenu(
       controller: widget.controller,
-      positionDelegate: const DefaultBaseMenuPositioningDelegate(
+      positionDelegate: const DefaultMenuPositioningDelegate(
         overlayPadding: .symmetric(horizontal: 5),
         offset: Offset(0, 4),
         anchorAlignment: .bottomEnd,

@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import '../menu_utilities.dart';
 import 'focusable.dart';
 import 'interface.dart';
+import 'menu.dart';
 
 typedef HPreviousIntent = BaseMenuHorizontalFocusPreviousIntent;
 typedef HNextIntent = BaseMenuHorizontalFocusNextIntent;
@@ -38,7 +39,7 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
-    this.positionDelegate = const DefaultBaseMenuPositioningDelegate(),
+    this.positionDelegate = const DefaultMenuPositioningDelegate(),
     this.overlayChildBuilder,
     this.focusNode,
     this.autofocus = false,
@@ -53,7 +54,7 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
     this.role = SemanticsRole.menuItem,
     this.gestureSemanticsEnabled = true,
     this.gestureSemantics,
-    this.shortcuts = BaseControl.defaultShortcuts,
+    this.shortcuts = BaseControl.activateOnEnterAndSpaceUpShortcuts,
     this.enabled = true,
     this.anchorActions,
     this.requestFocusOnHover = true,
@@ -105,7 +106,7 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
   final Axis orientation;
 
   @override
-  final BaseMenuPositioningDelegate positionDelegate;
+  final MenuPositioningDelegate positionDelegate;
 
   @override
   final BaseMenuOverlayChildBuilder? overlayChildBuilder;
@@ -159,6 +160,8 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
   /// The delay after which the submenu should close when no longer hovered.
   final Duration hoverCloseDelay;
 
+  /// Whether the submenu is enabled. When false, the submenu will not open and
+  /// the button will be disabled.
   @override
   final bool enabled;
 
@@ -169,6 +172,8 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
 
   @override
   bool get requestCloseOnActivate => false;
+
+  String get debugMenuFocusNodeLabel => 'BaseSubmenu FocusNode${key != null ? ' ($key)' : ''}';
 
   @override
   State<BaseSubmenu> createState() => _BaseSubmenuState();
@@ -193,7 +198,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   void initState() {
     super.initState();
     if (widget.focusNode == null) {
-      _internalFocusNode = FocusNode();
+      _internalFocusNode = FocusNode(debugLabel: widget.debugMenuFocusNodeLabel);
     }
 
     _focusNode.addListener(_handleFocusChange);
@@ -203,8 +208,8 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final scope = MenuScope.maybeOf(context);
-    if (scope?.orientation != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
-      _parentOrientation = scope?.orientation;
+    if (scope?.axis != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
+      _parentOrientation = scope?.axis;
       _parentIsSubmenu = scope?.isSubmenu ?? false;
       _overlayActions = null;
       _anchorActions = null;
@@ -222,13 +227,18 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       oldWidget.focusNode?.removeListener(_handleFocusChange);
       if (widget.focusNode == null) {
         assert(_internalFocusNode == null);
-        _internalFocusNode = FocusNode();
+        _internalFocusNode = FocusNode(debugLabel: widget.debugMenuFocusNodeLabel);
       } else {
         _internalFocusNode?.dispose();
         _internalFocusNode = null;
       }
       _focusNode.addListener(_handleFocusChange);
     }
+
+    assert(() {
+      _internalFocusNode?.debugLabel = widget.debugMenuFocusNodeLabel;
+      return true;
+    }());
 
     if (oldWidget.orientation != widget.orientation) {
       _overlayActions = null;
@@ -385,7 +395,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     if (widget.onActivate != null) {
       widget.onActivate!.call();
     } else {
-      Actions.maybeInvoke(_focusNode.context!, const BaseMenuEnterIntent.focusFirst());
+      Actions.maybeInvoke(_focusNode.context!, const EnterMenuIntent.focusFirst());
     }
   }
 
@@ -511,9 +521,9 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
         gestureSemantics: widget.gestureSemantics,
         shortcuts: _parentOrientation == .vertical
             ? {
-                horizontalArrowNext: const BaseMenuEnterIntent.focusFirst(),
+                horizontalArrowNext: const EnterMenuIntent.focusFirst(),
                 if (widget.orientation == .horizontal)
-                  horizontalArrowPrevious: const BaseMenuEnterIntent.focusLast(),
+                  horizontalArrowPrevious: const EnterMenuIntent.focusLast(),
                 ...?widget.shortcuts,
               }
             : widget.shortcuts ?? {},

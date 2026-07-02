@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../menu_utilities.dart';
+import 'panel.dart';
 
 // These interfaces are used to limit duplicate documentation.
 
@@ -159,7 +159,7 @@ abstract mixin class BaseMenuInterface {
   Axis get orientation;
 
   /// A delegate that controls how the menu is positioned.
-  BaseMenuPositioningDelegate get positionDelegate;
+  MenuPositioningDelegate get positionDelegate;
 
   /// An optional builder that wraps the menu overlay.
   ///

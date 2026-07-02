@@ -66,7 +66,7 @@ class _ViewModeState extends State<_ViewMode> {
       menuController: controller,
       focusNode: _focusNode,
       panel: ViewModePanel(
-        onSurfaceEnter: (event) {
+        onSurfaceExit: (event) {
           if (!_focusNode.hasFocus) {
             _focusNode.requestFocus();
           }

@@ -3,13 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
+import 'package:menu_utilities/src/panel.dart';
 
-import '../app_state_manager.dart';
 import '../../data/entry.dart';
 import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../../utilities/colors.dart';
 import '../adapters/menu_entry_toolbar_button.dart';
+import '../app_state_manager.dart';
 import '../editable.dart';
 import '../menu_action_label.dart';
 
@@ -280,7 +281,7 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
   Widget build(BuildContext context) {
     return BaseMenu(
       controller: menuController,
-      positionDelegate: const DefaultBaseMenuPositioningDelegate(
+      positionDelegate: const DefaultMenuPositioningDelegate(
         overlayPadding: .zero,
         anchorAlignment: .topStart,
         menuAlignment: .topStart,

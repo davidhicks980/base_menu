@@ -28,24 +28,15 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
     super.dispose();
   }
 
-  Widget _buildOverlayWrapper(BuildContext context, Widget child) {
-    return BaseHoverable<BaseMenu>(
-      onExit: (event) {
-        anchorFocusNode.requestFocus();
-      },
-      child: child,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return BaseSubmenu(
-      overlayChildBuilder: _buildOverlayWrapper,
-      positionDelegate: const DefaultBaseMenuPositioningDelegate(
+      positionDelegate: const DefaultMenuPositioningDelegate(
         overlayPadding: EdgeInsets.only(top: 55, bottom: 8),
       ),
       orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
       controller: controller,
+      focusNode: anchorFocusNode,
       onPressed: () {
         if (controller.isOpen) {
           controller.close();
@@ -53,11 +44,10 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
           controller.open();
         }
       },
-
       menu:
           widget.panel ??
           MenuEntryPanel(
-            onSurfaceEnter: (_) {
+            onSurfaceExit: (_) {
               if (!anchorFocusNode.hasFocus) {
                 anchorFocusNode.requestFocus();
               }

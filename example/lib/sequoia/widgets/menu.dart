@@ -151,7 +151,7 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
       child: BaseSubmenu(
         controller: controller,
         // Top level opens down, nested submenus open to the side
-        positionDelegate: DefaultBaseMenuPositioningDelegate(
+        positionDelegate: DefaultMenuPositioningDelegate(
           padding: const EdgeInsets.symmetric(vertical: 4),
           offset: widget.isTopLevel ? const Offset(-4, 0) : const Offset(0, -1.5),
         ),
@@ -198,7 +198,7 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
                             : EdgeInsets.zero,
                         child: SequoiaMenuSurface(
                           child: BaseMenuPanel(
-                            onEnter: (event) {
+                            onPointerExit: (event) {
                               if (!focusNode.hasFocus) {
                                 focusNode.requestFocus();
                               }

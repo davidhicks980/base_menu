@@ -43,7 +43,7 @@ class _PopupState extends State<Popup> {
     return Center(
       child: BaseMenu(
         orientation: widget.orientation,
-        positionDelegate: const DefaultBaseMenuPositioningDelegate(offset: Offset(0, 4)),
+        positionDelegate: const DefaultMenuPositioningDelegate(offset: Offset(0, 4)),
 
         // The builder provides the anchor button and access to the menu
         // controller
@@ -68,7 +68,7 @@ class _PopupState extends State<Popup> {
         },
         menu: StyledMenuPanel(
           child: BaseMenuPanel(
-            onEnter: (_) {
+            onPointerEnter: (_) {
               if (!focusNode.hasFocus) {
                 focusNode.requestFocus();
               }

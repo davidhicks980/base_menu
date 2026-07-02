@@ -25,7 +25,7 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
     this.mouseCursor,
     this.gestureSemanticsEnabled = true,
     this.gestureSemantics,
-    this.shortcuts = defaultShortcuts,
+    this.shortcuts = activateOnEnterAndSpaceUpShortcuts,
     required this.child,
   });
 
@@ -187,6 +187,11 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
     return !context.dependOnInheritedWidgetOfExactType<_EnabledScope<T>>()!.enabled;
   }
 
+  static const activateOnEnterShortcuts = {
+    SingleActivator(LogicalKeyboardKey.space): DoNothingAndStopPropagationIntent(),
+    SingleActivator(LogicalKeyboardKey.enter): kIsWeb ? ButtonActivateIntent() : ActivateIntent(),
+  };
+
   /// The default shortcuts for [BaseControl]s.
   ///
   /// By default, Space triggers the control's [onPressed] callback on key up,
@@ -194,11 +199,15 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
   ///
   /// These shortcuts can be overridden by providing a different map to the
   /// [shortcuts] parameter.
-  static const defaultShortcuts = <ShortcutActivator, Intent>{
+  static const activateOnEnterAndSpaceUpShortcuts = <ShortcutActivator, Intent>{
     SingleActivator(LogicalKeyboardKey.space, includeRepeats: false): _ActivateDownIntent(),
-    SingleActivator(LogicalKeyboardKey.space): DoNothingAndStopPropagationIntent(),
+    ...activateOnEnterShortcuts,
     _SingleKeyUpActivator(LogicalKeyboardKey.space): ActivateIntent(),
+  };
+
+  static const activateOnEnterAndSpaceDownShortcuts = <ShortcutActivator, Intent>{
     SingleActivator(LogicalKeyboardKey.enter): kIsWeb ? ButtonActivateIntent() : ActivateIntent(),
+    SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
   };
 
   @override
@@ -208,6 +217,7 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
 class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
   late final _actions = <Type, Action<Intent>>{
     _ActivateDownIntent: CallbackAction<_ActivateDownIntent>(onInvoke: _handleActivateDown),
+    DoNothingAndStopPropagationIntent: DoNothingAction(),
     ActivateIntent: Action<ActivateIntent>.overridable(
       defaultAction: CallbackAction(onInvoke: _handleActivate),
       context: context,

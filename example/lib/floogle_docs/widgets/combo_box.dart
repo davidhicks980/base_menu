@@ -410,7 +410,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
         onOpen: widget.onOpen,
         onClose: widget.onClose,
         controller: widget.menuController,
-        positionDelegate: DefaultBaseMenuPositioningDelegate(
+        positionDelegate: DefaultMenuPositioningDelegate(
           // The vertical padding is to account for the border and padding of the anchor.
           padding: MenuPanel.defaultPadding,
           offset: const Offset(0, 7),

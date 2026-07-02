@@ -39,7 +39,7 @@ class _FontMenuState extends State<FontMenu> {
     Actions.invoke(context, SetFontFamilyIntent((family: family, weight: weight)));
   }
 
-  void _handleSurfaceEnter(PointerEnterEvent event) {
+  void _handleSurfaceExit(PointerExitEvent event) {
     if (!_focusNode.hasFocus) {
       _focusNode.requestFocus();
     }
@@ -71,7 +71,7 @@ class _FontMenuState extends State<FontMenu> {
             focusNode: _focusNode,
             panel: MenuPanel(
               clipBehavior: Clip.hardEdge,
-              onSurfaceEnter: _handleSurfaceEnter,
+              onSurfaceExit: _handleSurfaceExit,
               padding: const .symmetric(vertical: 6),
               constraints: const .tightFor(width: 272),
               scrollable: false,
@@ -232,7 +232,7 @@ class _SubmenuOptionState extends State<_SubmenuOption> {
         child: BaseSubmenu(
           controller: controller,
           focusNode: _focusNode,
-          positionDelegate: const DefaultBaseMenuPositioningDelegate(
+          positionDelegate: const DefaultMenuPositioningDelegate(
             padding: EdgeInsetsDirectional.symmetric(vertical: 6),
             offset: Offset(-8, 0),
           ),
@@ -242,7 +242,7 @@ class _SubmenuOptionState extends State<_SubmenuOption> {
             MenuController.maybeOf(context)?.close();
           },
           menu: MenuPanel(
-            onSurfaceEnter: (event) {
+            onSurfaceExit: (event) {
               if (!_focusNode.hasFocus) {
                 _focusNode.requestFocus();
               }

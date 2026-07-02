@@ -24,7 +24,6 @@ class MenuEntryPanel extends StatelessWidget {
     this.onSurfaceEnter,
     this.onSurfaceHover,
     this.onSurfaceExit,
-    this.mouseCursor = MouseCursor.defer,
   });
 
   final BoxConstraints? constraints;
@@ -35,7 +34,6 @@ class MenuEntryPanel extends StatelessWidget {
   final void Function(PointerEnterEvent)? onSurfaceEnter;
   final void Function(PointerHoverEvent)? onSurfaceHover;
   final void Function(PointerExitEvent)? onSurfaceExit;
-  final MouseCursor mouseCursor;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +49,6 @@ class MenuEntryPanel extends StatelessWidget {
       onSurfaceEnter: onSurfaceEnter,
       onSurfaceExit: onSurfaceExit,
       onSurfaceHover: onSurfaceHover,
-      cursor: mouseCursor,
       children: [
         for (final child in menuEntry.children)
           switch (child) {

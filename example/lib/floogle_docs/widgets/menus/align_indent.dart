@@ -43,7 +43,7 @@ class _AlignIndentMenuState extends State<AlignIndentMenu> {
         borderRadius: BorderRadius.circular(6),
         color: FloogleColors.alignSurfaceColor,
         orientation: Axis.horizontal,
-        onSurfaceEnter: (_) {
+        onSurfaceExit: (_) {
           if (!_focusNode.hasFocus) {
             _focusNode.requestFocus();
           }

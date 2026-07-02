@@ -74,7 +74,7 @@ class _TextHighlightButtonState extends State<TextHighlightButton> {
             builder: (context) {
               return MenuPanel(
                 padding: const EdgeInsets.symmetric(vertical: 6),
-                onSurfaceEnter: (event) {
+                onSurfaceExit: (event) {
                   if (!_focusNode.hasFocus) {
                     _focusNode.requestFocus();
                   }

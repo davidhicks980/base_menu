@@ -2,8 +2,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import 'app_state_manager.dart';
 import '../utilities/colors.dart';
+import 'app_state_manager.dart';
 import 'dropdown_arrow.dart';
 import 'menu_panel.dart';
 
@@ -73,11 +73,11 @@ class _SelectState extends State<Select> {
       onFocusChange: _handleScopeFocusChange,
       onOpen: _handleOpen,
       positionDelegate: AppStateManager.isHeaderShownOf(context)
-          ? const DefaultBaseMenuPositioningDelegate(
+          ? const DefaultMenuPositioningDelegate(
               overlayPadding: EdgeInsets.only(top: 98, bottom: 8),
               padding: MenuPanel.defaultPadding,
             )
-          : const DefaultBaseMenuPositioningDelegate(
+          : const DefaultMenuPositioningDelegate(
               overlayPadding: EdgeInsets.only(top: 37, bottom: 8),
               padding: MenuPanel.defaultPadding,
             ),

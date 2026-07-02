@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
 import '../utilities/colors.dart';
 
@@ -43,24 +42,24 @@ class MenuTooltip extends StatefulWidget {
 
 class _MenuTooltipState extends State<MenuTooltip> {
   bool isForwardOrComplete = false;
-  static Offset _positionDelegate(TooltipPositionContext positionContext) {
-    return DefaultMenuLayoutDelegate(
-      offset: const Offset(0, 4),
-      anchorRect:
-          (positionContext.target - positionContext.targetSize.center(Offset.zero)) &
-          positionContext.targetSize,
-      overlayPadding: const EdgeInsets.all(8.0),
-      avoidBounds: {},
-      alignment: Alignment.bottomCenter,
-      menuAlignment: Alignment.topCenter,
-      textDirection: TextDirection.ltr,
-      padding: EdgeInsets.zero,
-      edgeBehavior: const EdgeBehavior(
-        horizontal: EdgeResolutionStrategy(),
-        vertical: EdgeResolutionStrategy(flip: true),
-      ),
-    ).getPositionForChild(positionContext.overlaySize, positionContext.tooltipSize);
-  }
+  // static Offset _positionDelegate(TooltipPositionContext positionContext) {
+  //   return DefaultMenuLayoutDelegate(
+  //     offset: const Offset(0, 4),
+  //     anchorRect:
+  //         (positionContext.target - positionContext.targetSize.center(Offset.zero)) &
+  //         positionContext.targetSize,
+  //     overlayPadding: const EdgeInsets.all(8.0),
+  //     avoidBounds: {},
+  //     alignment: Alignment.bottomCenter,
+  //     menuAlignment: Alignment.topCenter,
+  //     textDirection: TextDirection.ltr,
+  //     padding: EdgeInsets.zero,
+  //     edgeBehavior: const EdgeBehavior(
+  //       horizontal: EdgeResolutionStrategy(),
+  //       vertical: EdgeResolutionStrategy(flip: true),
+  //     ),
+  //   ).getPositionForChild(positionContext.overlaySize, positionContext.tooltipSize);
+  // }
 
   Widget _tooltipBuilder(BuildContext context, Animation<double> animation) {
     final child = Container(
@@ -115,7 +114,7 @@ class _MenuTooltipState extends State<MenuTooltip> {
       semanticsTooltip: widget.enableSemantics
           ? widget.message.toPlainText(includePlaceholders: false)
           : null,
-      positionDelegate: _positionDelegate,
+      // positionDelegate: _positionDelegate,
       tooltipBuilder: _tooltipBuilder,
       ignorePointer: true,
       child: widget.child,

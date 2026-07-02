@@ -142,7 +142,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
   @override
   Widget build(BuildContext context) {
     final child = BaseMenu(
-      positionDelegate: const DefaultBaseMenuPositioningDelegate(
+      positionDelegate: const DefaultMenuPositioningDelegate(
         padding: EdgeInsets.symmetric(vertical: 6),
       ),
       onCloseRequest: (hideOverlay) {
@@ -162,7 +162,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
         child: MenuEntryPanel(
           menuEntry: Menu.context,
           constraints: const BoxConstraints(minWidth: 320),
-          onSurfaceEnter: (_) {
+          onSurfaceExit: (_) {
             if (!_focusNode.hasFocus) {
               _focusNode.requestFocus();
             }

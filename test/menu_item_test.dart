@@ -497,6 +497,7 @@ void main() {
       );
 
       expect(semantics.properties.role, SemanticsRole.menuItem);
+      print(tester.getSemantics(find.byType(BaseMenuItem<void>)).toStringDeep());
       expect(
         tester.getSemantics(find.byType(BaseMenuItem<void>)),
         matchesSemantics(
@@ -505,6 +506,7 @@ void main() {
           isEnabled: true,
           hasEnabledState: true,
           isFocusable: true,
+          isButton: true,
           hasFocusAction: true,
           textDirection: .ltr,
         ),

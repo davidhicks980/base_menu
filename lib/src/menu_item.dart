@@ -26,7 +26,7 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
     this.role = .menuItem,
     this.gestureSemanticsEnabled = true,
     this.gestureSemantics,
-    this.shortcuts = BaseControl.defaultShortcuts,
+    this.shortcuts = BaseControl.activateOnEnterAndSpaceUpShortcuts,
     this.opaque = true,
     required this.child,
   }) : assert(

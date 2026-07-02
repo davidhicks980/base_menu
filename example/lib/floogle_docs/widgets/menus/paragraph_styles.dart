@@ -42,7 +42,7 @@ class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
     }
   }
 
-  void _handleSurfacePointerEnter(PointerEnterEvent event) {
+  void _handleSurfacePointerExit(PointerExitEvent event) {
     if (!_focusNode.hasFocus) {
       _focusNode.requestFocus();
     }
@@ -59,7 +59,7 @@ class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
           menuController: controller,
           focusNode: _focusNode,
           panel: MenuPanel(
-            onSurfaceEnter: _handleSurfacePointerEnter,
+            onSurfaceExit: _handleSurfacePointerExit,
             padding: const EdgeInsets.only(bottom: 6, top: 1, left: 1, right: 1),
             constraints: const BoxConstraints(minWidth: 221).normalize(),
             children: [
@@ -84,7 +84,7 @@ class _ParagraphStylesMenuState extends State<ParagraphStylesMenu> {
               const SizedBox(height: 7.5),
               BaseSubmenu(
                 controller: optionsController,
-                positionDelegate: const DefaultBaseMenuPositioningDelegate(
+                positionDelegate: const DefaultMenuPositioningDelegate(
                   padding: EdgeInsets.symmetric(vertical: 6),
                 ),
                 menu: const MenuPanel(
@@ -202,7 +202,7 @@ class _OptionState extends State<_Option> {
           },
           onPointerLeave: widget.onPointerLeave,
           menu: MenuPanel(
-            onSurfaceEnter: (event) {
+            onSurfaceExit: (event) {
               if (!_focusNode.hasFocus) {
                 _focusNode.requestFocus();
               }

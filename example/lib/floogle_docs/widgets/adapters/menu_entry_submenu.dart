@@ -45,15 +45,14 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
   Widget build(BuildContext context) {
     return BaseSubmenu(
       focusNode: _focusNode,
-      positionDelegate: const DefaultBaseMenuPositioningDelegate(padding: MenuPanel.defaultPadding),
+      positionDelegate: const DefaultMenuPositioningDelegate(padding: MenuPanel.defaultPadding),
       hoverOpenDelay: widget.hoverDelay,
       hoverCloseDelay: widget.hoverDelay,
       controller: _menuController,
       menu: MenuEntryPanel(
-        mouseCursor: SystemMouseCursors.basic,
         menuEntry: widget.entry,
         constraints: widget.entry == Menu.table ? null : widget.constraints,
-        onSurfaceEnter: (event) {
+        onSurfaceExit: (event) {
           if (!_focusNode.hasFocus) {
             _focusNode.requestFocus();
           }

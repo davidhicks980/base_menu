@@ -156,6 +156,9 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
       result.add(BoxHitTestEntry(this, position));
       _exitTimer = Timer(exitDuration, () {
         enabled = false;
+        if (attached) {
+          markNeedsPaint();
+        }
       });
       if (MenuAimInterceptor.visualizeAim) {
         markNeedsPaint();

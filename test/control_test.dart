@@ -1158,10 +1158,9 @@ void main() {
     expect(invocations, 0);
   });
 
-  testWidgets('can override ActivateIntent action [Web]', skip: !kIsWeb, (
-    WidgetTester tester,
-  ) async {
+  testWidgets('can override ActivateIntent [Web]', skip: !kIsWeb, (WidgetTester tester) async {
     var invocations = 0;
+    var presses = 0;
 
     await tester.pumpWidget(
       App(
@@ -1179,7 +1178,7 @@ void main() {
           child: BaseControl<void>(
             autofocus: true,
             onPressed: () {
-              fail('onPressed should not be called when shortcut is overridden');
+              presses++;
             },
             child: Text(Tag.a.text),
           ),
@@ -1187,28 +1186,30 @@ void main() {
       ),
     );
 
-    // Enter usually triggers ActivateIntent in BaseControl,
-    // but the inner Shortcuts widget redefines it to CustomIntent.
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
     await tester.pump();
 
     expect(invocations, 0);
+    expect(presses, 1);
 
     await tester.sendKeyDownEvent(LogicalKeyboardKey.space);
     await tester.pump();
 
     expect(invocations, 0);
+    expect(presses, 1);
 
     await tester.sendKeyUpEvent(LogicalKeyboardKey.space);
     await tester.pump();
 
     expect(invocations, 1);
+    expect(presses, 1);
   });
 
-  testWidgets('can override ButtonActivateIntent action [Web]', skip: !kIsWeb, (
+  testWidgets('can override ButtonActivateIntent [Web]', skip: !kIsWeb, (
     WidgetTester tester,
   ) async {
     var invocations = 0;
+    var presses = 0;
 
     await tester.pumpWidget(
       App(
@@ -1226,7 +1227,7 @@ void main() {
           child: BaseControl<void>(
             autofocus: true,
             onPressed: () {
-              fail('onPressed should not be called when shortcut is overridden');
+              presses++;
             },
             child: Text(Tag.a.text),
           ),
@@ -1243,11 +1244,13 @@ void main() {
     await tester.pump();
 
     expect(invocations, 1);
+    expect(presses, 0);
 
     await tester.sendKeyUpEvent(LogicalKeyboardKey.space);
     await tester.pump();
 
     expect(invocations, 1);
+    expect(presses, 1);
   });
 
   testWidgets('shortcuts can be overridden', (WidgetTester tester) async {

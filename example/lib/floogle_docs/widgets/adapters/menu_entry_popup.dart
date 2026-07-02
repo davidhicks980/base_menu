@@ -53,7 +53,7 @@ class _MenuEntryPopupState extends State<MenuEntryPopup> {
           return MenuEntryPanel(
             constraints: widget.constraints,
             menuEntry: widget.model,
-            onSurfaceEnter: (_) {
+            onSurfaceExit: (_) {
               focusNode.requestFocus();
               MenuController.maybeOf(context)?.open();
             },

@@ -5,6 +5,8 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_utilities/menu_utilities.dart';
+import 'package:menu_utilities/src/menu.dart';
+import 'package:menu_utilities/src/panel.dart';
 
 void main() {
   late MenuController controller;
@@ -352,7 +354,7 @@ void main() {
               Actions(
                 actions: traversalCaptureActions,
                 child: MenuScope(
-                  orientation: parentAxis,
+                  axis: parentAxis,
                   isSubmenu: true,
                   child: BaseSubmenu(
                     role: null,
@@ -448,7 +450,7 @@ void main() {
         );
 
         if (parentAxis != null) {
-          child = BaseMenuBar(axis: parentAxis, child: child);
+          child = BaseMenuBar(orientation: parentAxis, child: child);
         }
 
         return App(child);
@@ -915,7 +917,7 @@ void main() {
         await tester.pumpWidget(
           App(
             MenuScope(
-              orientation: Axis.vertical,
+              axis: Axis.vertical,
               isSubmenu: false,
               child: BaseSubmenu(
                 role: null,
@@ -948,7 +950,7 @@ void main() {
         await tester.pumpWidget(
           App(
             MenuScope(
-              orientation: Axis.horizontal,
+              axis: Axis.horizontal,
               isSubmenu: false,
               child: BaseSubmenu(
                 role: null,
@@ -986,7 +988,7 @@ void main() {
             Actions(
               actions: traversalCaptureActions,
               child: MenuScope(
-                orientation: Axis.vertical,
+                axis: Axis.vertical,
                 isSubmenu: false,
                 child: BaseSubmenu(
                   role: null,
@@ -1024,7 +1026,7 @@ void main() {
             Actions(
               actions: traversalCaptureActions,
               child: MenuScope(
-                orientation: .horizontal,
+                axis: .horizontal,
                 isSubmenu: false,
                 child: BaseSubmenu(
                   role: null,
@@ -1114,7 +1116,7 @@ void main() {
         await tester.pumpWidget(
           App(
             MenuScope(
-              orientation: .horizontal,
+              axis: .horizontal,
               isSubmenu: true,
               child: BaseSubmenu(
                 role: null,
@@ -1140,7 +1142,7 @@ void main() {
         await tester.pumpWidget(
           App(
             MenuScope(
-              orientation: .vertical,
+              axis: .vertical,
               isSubmenu: true,
               child: BaseSubmenu(
                 role: null,
@@ -1171,7 +1173,7 @@ void main() {
               actions: traversalCaptureActions,
               child: App(
                 MenuScope(
-                  orientation: .horizontal,
+                  axis: .horizontal,
                   isSubmenu: true,
                   child: BaseSubmenu(
                     role: null,
@@ -1203,7 +1205,7 @@ void main() {
               actions: traversalCaptureActions,
               child: App(
                 MenuScope(
-                  orientation: .vertical,
+                  axis: .vertical,
                   isSubmenu: true,
                   child: BaseSubmenu(
                     role: null,
@@ -1244,7 +1246,7 @@ void main() {
       label: 'Custom Submenu Label',
       role: SemanticsRole.menu,
     );
-    const positionDelegate = DefaultBaseMenuPositioningDelegate();
+    const positionDelegate = DefaultMenuPositioningDelegate();
     const orientation = Axis.horizontal;
     const edgeBehavior = TraversalEdgeBehavior.closedLoop;
 
@@ -1374,7 +1376,7 @@ void main() {
     }
 
     final shortcuts = {
-      const SingleActivator(LogicalKeyboardKey.keyA): const BaseMenuEnterIntent.focusFirst(),
+      const SingleActivator(LogicalKeyboardKey.keyA): const EnterMenuIntent.focusFirst(),
     };
 
     await tester.pumpWidget(
@@ -1420,7 +1422,7 @@ void main() {
       menuItem.shortcuts,
       containsPair(
         const SingleActivator(LogicalKeyboardKey.keyA),
-        const BaseMenuEnterIntent.focusFirst(),
+        const EnterMenuIntent.focusFirst(),
       ),
     );
 
@@ -1897,7 +1899,7 @@ void main() {
           App(
             textDirection: TextDirection.ltr,
             BaseMenuBar(
-              axis: Axis.vertical,
+              orientation: Axis.vertical,
               child: BaseSubmenu(
                 controller: controller,
                 focusNode: focusNode,
@@ -1926,7 +1928,7 @@ void main() {
           App(
             textDirection: TextDirection.rtl,
             BaseMenuBar(
-              axis: Axis.vertical,
+              orientation: Axis.vertical,
               child: BaseSubmenu(
                 controller: controller,
                 focusNode: focusNode,
@@ -1955,7 +1957,7 @@ void main() {
             App(
               textDirection: TextDirection.ltr,
               BaseMenuBar(
-                axis: Axis.vertical,
+                orientation: Axis.vertical,
                 child: BaseSubmenu(
                   orientation: Axis.horizontal,
                   controller: controller,
@@ -1993,7 +1995,7 @@ void main() {
           App(
             textDirection: TextDirection.ltr,
             BaseMenuBar(
-              axis: Axis.vertical,
+              orientation: Axis.vertical,
               child: BaseSubmenu(
                 shortcuts: const {
                   SingleActivator(LogicalKeyboardKey.arrowRight):
@@ -2102,7 +2104,7 @@ void main() {
         App(
           textDirection: TextDirection.rtl,
           BaseMenuBar(
-            axis: Axis.vertical,
+            orientation: Axis.vertical,
             child: BaseSubmenu(
               role: null,
 
@@ -2130,7 +2132,7 @@ void main() {
         App(
           textDirection: TextDirection.ltr,
           BaseMenuBar(
-            axis: Axis.vertical,
+            orientation: Axis.vertical,
             child: BaseSubmenu(
               role: null,
               controller: controller,

@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:menu_utilities/menu_utilities.dart';
+import 'package:menu_utilities/src/panel.dart';
 
 import '../utilities/colors.dart';
 
@@ -18,7 +18,6 @@ class MenuPanel extends StatelessWidget {
     this.onSurfaceEnter,
     this.onSurfaceExit,
     this.onSurfaceHover,
-    this.cursor = MouseCursor.defer,
     this.scrollable = true,
   });
 
@@ -35,7 +34,6 @@ class MenuPanel extends StatelessWidget {
   final PointerEnterEventListener? onSurfaceEnter;
   final PointerHoverEventListener? onSurfaceHover;
   final PointerExitEventListener? onSurfaceExit;
-  final MouseCursor cursor;
   final bool scrollable;
 
   @override
@@ -50,10 +48,9 @@ class MenuPanel extends StatelessWidget {
         orientation: orientation,
         spacing: spacing,
         scrollable: scrollable,
-        onEnter: onSurfaceEnter,
-        onHover: onSurfaceHover,
-        onExit: onSurfaceExit,
-        cursor: cursor,
+        onPointerEnter: onSurfaceEnter,
+        onPointerHover: onSurfaceHover,
+        onPointerExit: onSurfaceExit,
         children: children,
       ),
     );

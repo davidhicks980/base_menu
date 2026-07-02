@@ -1,9 +1,9 @@
 // ignore_for_file: avoid_print, public_member_api_docs
 import 'dart:ui';
 
+import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
 /// Moves the mouse from [start] to [end] over [duration], sending [steps] pointer events.
 Future<void> moveMouse(

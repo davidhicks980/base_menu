@@ -1,19 +1,19 @@
+import 'package:base_menu/base_menu.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
-import 'model/enum.dart';
-import 'utilities/colors.dart';
-import 'widgets/action_reflector.dart';
-import 'widgets/app_state_manager.dart';
-import 'widgets/editor.dart';
-import 'widgets/floogle_docs_logo.dart';
-import 'widgets/menus/document_menu_bar.dart';
-import 'widgets/title_field.dart';
-import 'widgets/title_icon.dart';
-import 'widgets/toolbar.dart';
+import 'src/model/enum.dart';
+import 'src/theme/colors.dart';
+import 'src/widgets/action_reflector.dart';
+import 'src/widgets/app_state_manager.dart';
+import 'src/widgets/editor.dart';
+import 'src/widgets/floogle_docs_logo.dart';
+import 'src/widgets/menus/document_menu_bar.dart';
+import 'src/widgets/title_field.dart';
+import 'src/widgets/title_icon.dart';
+import 'src/widgets/toolbar.dart';
 
 class FloogleDocsApp extends StatefulWidget {
   const FloogleDocsApp({super.key});

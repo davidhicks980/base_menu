@@ -4,7 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../checkbox_menu_item/checkbox_menu_item.dart';
 import '../floogle_docs/floogle_docs.dart';
-import '../floogle_docs/utilities/colors.dart';
+import '../floogle_docs/src/theme/colors.dart';
 import '../menu/menu_app.dart';
 import '../menubar/menubar_app.dart';
 import '../sequoia/sequoia.dart';
@@ -104,7 +104,7 @@ class _AppState extends State<App> {
     final app = Directionality(
       textDirection: _textDirection,
       child: MaterialApp(
-        title: 'Menu Utilities Example',
+        title: 'Base Menu Library',
         theme: ThemeData(
           pageTransitionsTheme: PageTransitionsTheme(
             builders: {
@@ -236,9 +236,9 @@ class _AppRouteWrapper extends StatelessWidget {
           return ColoredBox(
             color: Theme.of(context).colorScheme.surfaceContainer,
             child: Semantics(
-              label: 'Menu Utilities Example',
+              label: 'Base Menu Library',
               child: Title(
-                title: 'Menu Utilities Example',
+                title: 'Base Menu Library',
                 color: Colors.black,
                 child: AppScaffold(child: child),
               ),
@@ -392,11 +392,10 @@ class _Drawer extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(64, 12, 16, 0),
                 child: Text(
-                  'Menu Utilities',
-                  style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
-                  ),
+                  'Base Menu',
+                  style: TextTheme.of(
+                    context,
+                  ).headlineSmall!.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
                 ),
               ),
 

@@ -1,9 +1,9 @@
+import 'package:base_menu/base_menu.dart';
+import 'package:base_menu/src/hoverable.dart' show BaseHoverableStateInjector;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:menu_utilities/menu_utilities.dart';
-import 'package:menu_utilities/src/hoverable.dart';
 
 import 'utilities.dart';
 

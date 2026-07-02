@@ -1,5 +1,5 @@
+import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
 import 'src/checkbox_menu_item.dart';
 

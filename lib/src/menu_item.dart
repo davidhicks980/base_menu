@@ -4,7 +4,7 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../menu_utilities.dart';
+import 'control.dart';
 import 'interface.dart';
 
 /// A widget that manages the state of a menu item and propagates it to

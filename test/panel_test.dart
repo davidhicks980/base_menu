@@ -1,9 +1,9 @@
 import 'dart:ui' as ui;
 
+import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
 import 'utilities.dart';
 
@@ -85,7 +85,7 @@ void main() {
     // Explicit orientation property takes precedence
     await tester.pumpWidget(
       const App(
-        MenuScope(
+        BaseMenuScope(
           axis: Axis.vertical,
           isSubmenu: false,
           child: BaseMenuPanel(orientation: Axis.horizontal, children: <Widget>[Text('Item 1')]),
@@ -97,7 +97,7 @@ void main() {
     // Inherited orientation from MenuScope
     await tester.pumpWidget(
       const App(
-        MenuScope(
+        BaseMenuScope(
           isSubmenu: false,
           axis: Axis.horizontal,
           child: BaseMenuPanel(children: <Widget>[Text('Item 1')]),

@@ -65,6 +65,9 @@ import 'interface.dart';
 ///     be used to manage focus state.
 @optionalTypeArgs
 class BaseControl<T extends Object?> extends StatefulWidget implements BaseControlInterface {
+  /// Creates a [BaseControl] widget.
+  ///
+  /// The [child] parameter must not be null.
   const BaseControl({
     super.key,
     this.onPressed,

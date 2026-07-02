@@ -5,10 +5,6 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../menu_utilities.dart';
-
-// These interfaces exist to standardize documentation and nomenclature.
-
 @internal
 abstract interface class BaseHoverableInterface {
   /// Called when a pointer enters this widget.
@@ -325,5 +321,19 @@ abstract interface class BaseMenuInterface {
   /// This builder is passed the entire menu overlay, not just the visual menu
   /// panel. As a result, it can be used to add widgets that should be outside
   /// of the menu panel, such as a barrier that dismisses the menu when tapped.
-  BaseMenuOverlayChildBuilder? get overlayChildBuilder;
+  MenuOverlayChildBuilder? get overlayChildBuilder;
+}
+
+/// Signature for a callback that builds a widget that surrounds the overlay of
+/// a [BaseMenu].
+typedef MenuOverlayChildBuilder = Widget Function(BuildContext context, Widget child);
+
+/// A delegate that builds a widget that positions the menu panel of a [BaseMenu].
+abstract interface class MenuPositioningDelegate {
+  /// Creates a [MenuPositioningDelegate].
+  const MenuPositioningDelegate();
+
+  /// Builds a widget that positions the menu panel `child` using the provided
+  /// `position` information.
+  Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child);
 }

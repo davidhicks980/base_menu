@@ -1,10 +1,10 @@
 import 'dart:ui' as ui;
 
+import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
 import 'utilities.dart';
 
@@ -325,7 +325,7 @@ void main() {
             App(
               Actions(
                 actions: traversalCaptureActions,
-                child: MenuScope(
+                child: BaseMenuScope(
                   axis: parentAxis,
                   isSubmenu: true,
                   child: BaseSubmenu(
@@ -888,7 +888,7 @@ void main() {
       testWidgets('same-axis overlay: previous intent closes menu', (WidgetTester tester) async {
         await tester.pumpWidget(
           App(
-            MenuScope(
+            BaseMenuScope(
               axis: Axis.vertical,
               isSubmenu: false,
               child: BaseSubmenu(
@@ -921,7 +921,7 @@ void main() {
 
         await tester.pumpWidget(
           App(
-            MenuScope(
+            BaseMenuScope(
               axis: Axis.horizontal,
               isSubmenu: false,
               child: BaseSubmenu(
@@ -959,7 +959,7 @@ void main() {
           App(
             Actions(
               actions: traversalCaptureActions,
-              child: MenuScope(
+              child: BaseMenuScope(
                 axis: Axis.vertical,
                 isSubmenu: false,
                 child: BaseSubmenu(
@@ -997,7 +997,7 @@ void main() {
           App(
             Actions(
               actions: traversalCaptureActions,
-              child: MenuScope(
+              child: BaseMenuScope(
                 axis: .horizontal,
                 isSubmenu: false,
                 child: BaseSubmenu(
@@ -1084,7 +1084,7 @@ void main() {
       ) async {
         await tester.pumpWidget(
           App(
-            MenuScope(
+            BaseMenuScope(
               axis: .horizontal,
               isSubmenu: true,
               child: BaseSubmenu(
@@ -1110,7 +1110,7 @@ void main() {
 
         await tester.pumpWidget(
           App(
-            MenuScope(
+            BaseMenuScope(
               axis: .vertical,
               isSubmenu: true,
               child: BaseSubmenu(
@@ -1141,7 +1141,7 @@ void main() {
             Actions(
               actions: traversalCaptureActions,
               child: App(
-                MenuScope(
+                BaseMenuScope(
                   axis: .horizontal,
                   isSubmenu: true,
                   child: BaseSubmenu(
@@ -1173,7 +1173,7 @@ void main() {
             Actions(
               actions: traversalCaptureActions,
               child: App(
-                MenuScope(
+                BaseMenuScope(
                   axis: .vertical,
                   isSubmenu: true,
                   child: BaseSubmenu(

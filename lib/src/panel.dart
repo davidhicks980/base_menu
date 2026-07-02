@@ -173,7 +173,8 @@ class BaseMenuPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Axis orientation = this.orientation ?? MenuScope.maybeOf(context)?.axis ?? Axis.vertical;
+    final Axis orientation =
+        this.orientation ?? BaseMenuScope.maybeOf(context)?.axis ?? Axis.vertical;
     Widget child = Flex(
       direction: orientation,
       mainAxisSize: mainAxisSize,

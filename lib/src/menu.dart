@@ -7,7 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../menu_utilities.dart';
+import 'aim.dart';
 import 'interface.dart';
 
 double _computeSquaredDistanceToRect(Offset point, Rect rect) {
@@ -104,11 +104,16 @@ class EnterMenuIntent extends Intent {
 ///
 /// This is used by [BaseMenu], [BaseMenuBar], and [BaseSubmenu] to determine
 /// the appropriate keyboard navigation behavior for their menu items.
-class MenuScope extends InheritedWidget {
-  /// Creates a [MenuScope] that provides the [axis] and [isSubmenu] status of a
+class BaseMenuScope extends InheritedWidget {
+  /// Creates a [BaseMenuScope] that provides the [axis] and [isSubmenu] status of a
   /// menu to its descendants.
   @visibleForTesting
-  const MenuScope({super.key, required super.child, required this.axis, required this.isSubmenu});
+  const BaseMenuScope({
+    super.key,
+    required super.child,
+    required this.axis,
+    required this.isSubmenu,
+  });
 
   /// The direction of keyboard navigation for the menu items in this menu.
   final Axis axis;
@@ -119,30 +124,16 @@ class MenuScope extends InheritedWidget {
   /// to false.
   final bool isSubmenu;
 
-  /// Returns the nearest widget of the given type [MenuScope] and creates a
+  /// Returns the nearest widget of the given type [BaseMenuScope] and creates a
   /// dependency on it, or null if no appropriate widget is found.
-  static MenuScope? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<MenuScope>();
+  static BaseMenuScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<BaseMenuScope>();
   }
 
   @override
-  bool updateShouldNotify(MenuScope oldWidget) {
+  bool updateShouldNotify(BaseMenuScope oldWidget) {
     return axis != oldWidget.axis || isSubmenu != oldWidget.isSubmenu;
   }
-}
-
-/// Signature for a callback that builds a widget that surrounds the overlay of
-/// a [BaseMenu].
-typedef BaseMenuOverlayChildBuilder = Widget Function(BuildContext context, Widget child);
-
-/// A delegate that builds a widget that positions the menu panel of a [BaseMenu].
-abstract interface class MenuPositioningDelegate {
-  /// Creates a [MenuPositioningDelegate].
-  const MenuPositioningDelegate();
-
-  /// Builds a widget that positions the menu panel `child` using the provided
-  /// `position` information.
-  Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child);
 }
 
 /// Defines the positioning behavior of a [BaseMenu] when it overflows the edge
@@ -346,7 +337,7 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child) {
     final alignment =
         anchorAlignment ??
-        switch (MenuScope.maybeOf(context)?.axis) {
+        switch (BaseMenuScope.maybeOf(context)?.axis) {
           Axis.vertical => AlignmentDirectional.topEnd,
           _ => AlignmentDirectional.bottomStart,
         };
@@ -499,7 +490,7 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
   final bool useRootOverlay;
 
   @override
-  final BaseMenuOverlayChildBuilder? overlayChildBuilder;
+  final MenuOverlayChildBuilder? overlayChildBuilder;
 
   @override
   final Widget menu;
@@ -601,7 +592,7 @@ class _BaseMenuState extends State<BaseMenu> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
-    final scope = MenuScope.maybeOf(context);
+    final scope = BaseMenuScope.maybeOf(context);
     if (scope?.axis != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
       _parentOrientation = scope?.axis;
       _parentIsSubmenu = scope?.isSubmenu ?? false;
@@ -853,7 +844,7 @@ class _MenuOverlay extends StatelessWidget {
           axis: submenuAxis,
           focusScopeNode: focusScopeNode,
           semanticProperties: semanticProperties,
-          child: MenuScope(axis: submenuAxis, isSubmenu: true, child: child),
+          child: BaseMenuScope(axis: submenuAxis, isSubmenu: true, child: child),
         ),
       ),
     );
@@ -1100,7 +1091,7 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
       axis: widget.orientation,
       semanticProperties: widget.semanticProperties,
       focusScopeNode: _menuScopeNode,
-      child: MenuScope(axis: widget.orientation, isSubmenu: false, child: widget.child),
+      child: BaseMenuScope(axis: widget.orientation, isSubmenu: false, child: widget.child),
     );
 
     return RawMenuAnchorGroup(

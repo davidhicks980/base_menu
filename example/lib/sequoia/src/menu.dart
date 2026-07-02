@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:base_menu/base_menu.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
 import 'dismiss.dart';
 import 'menu_action_label.dart';

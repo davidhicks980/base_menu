@@ -1,21 +1,9 @@
-# Menu Utilities (WIP)
+# Base Menu (WIP)
 
-Composable widgets for building menu systems in Flutter.
+Composable widgets for building menu systems.
 
 Warning: This package is a work in progress and the API is subject to change.
 Use with caution and be prepared for breaking changes.
-
-## Features
-
-* **Robust Keyboard Traversal:** Built-in shortcut mappings for navigating menus
-  and submenus via the keyboard (arrows, tab, home, end, etc.).
-* **Adaptive Positioning:** Customizable positioning logic that adapts to
-  padding, offsets, and screen boundaries to ensure menus are always fully
-  visible.
-* **Multi-axis:** Works for both vertical and horizontal menu layouts,
-  making it suitable for dropdowns, context menus, toolbars, and more.
-* **Unstyled by default:** Provides core functionality without imposing any visual
-  opinions, allowing you to style menus to fit your app's unique look and feel.
 
 ## Motivation
 
@@ -31,14 +19,14 @@ features in the meantime.
 Add the package to your `pubspec.yaml` and import it into your project:
 
 ```dart
-import 'package:menu_utilities/menu_utilities.dart';
+import 'package:base_menu/base_menu.dart';
 ```
 
 ## Usage
 
 ```dart
 import 'package:flutter/widgets.dart';
-import 'package:menu_utilities/menu_utilities.dart';
+import 'package:base_menu/base_menu.dart';
 
 class MyDropdownMenu extends StatelessWidget {
   const MyDropdownMenu({super.key});

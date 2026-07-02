@@ -6,9 +6,11 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../menu_utilities.dart';
+import 'control.dart';
 import 'focusable.dart';
 import 'interface.dart';
+import 'menu.dart';
+import 'menu_item.dart';
 
 /// A widget that displays a hierarchical submenu when opened.
 ///
@@ -125,7 +127,7 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
   final MenuPositioningDelegate positionDelegate;
 
   @override
-  final BaseMenuOverlayChildBuilder? overlayChildBuilder;
+  final MenuOverlayChildBuilder? overlayChildBuilder;
 
   @override
   final VoidCallback? onPressed;
@@ -231,7 +233,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final MenuScope? scope = MenuScope.maybeOf(context);
+    final BaseMenuScope? scope = BaseMenuScope.maybeOf(context);
     if (scope?.axis != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
       _parentOrientation = scope?.axis;
       _parentIsSubmenu = scope?.isSubmenu ?? false;

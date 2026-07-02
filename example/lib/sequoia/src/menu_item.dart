@@ -1,6 +1,6 @@
+import 'package:base_menu/base_menu.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
 import 'menu_action_label.dart';
 

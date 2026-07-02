@@ -1,6 +1,6 @@
+import 'package:base_menu/base_menu.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
 import '../../shared/localized_shortcut_labeler.dart';
 

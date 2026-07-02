@@ -1,6 +1,6 @@
+import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:menu_utilities/menu_utilities.dart';
 
 const Color kSeedColor = Color(0xFF4285F4);
 const Color kPressedColor = Color(0xFF174EA6);

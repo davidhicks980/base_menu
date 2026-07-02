@@ -7,19 +7,16 @@ import 'package:flutter/widgets.dart';
 
 import 'menu.dart';
 
-/// A widget that displays and organizes menu items in a linear layout along a
-/// given [orientation].
+/// A widget that displays menu items in a linear layout along a given
+/// [orientation].
 ///
-/// [BaseMenuPanel] automatically lays out its [children] along the
-/// [orientation] axis (defaulting to the orientation of the nearest [BaseMenu],
-/// or [Axis.vertical] if none is found).
+/// [BaseMenuPanel] does not provide any visual styling. To style the menu
+/// surface, wrap [BaseMenuPanel] in a [Container] or [DecoratedBox].
 ///
-/// [BaseMenuPanel] only describes layout and functionality of the menu surface.
-/// It does not provide any visual styling or decoration.
-///
-/// This class is intended as a simple content surface for [BaseMenu],
-/// [BaseSubmenu], and [BaseMenuBar], but can also be used independently to
-/// create custom menu surfaces.
+/// [BaseMenuPanel] automatically lays out its [children] along the provided
+/// [orientation]. If [orientation] is null, the [orientation] of the nearest
+/// ancestor [BaseMenu] is used. If there is no ancestor [BaseMenu], the
+/// [orientation] defaults to [Axis.vertical].
 ///
 /// The [onPointerEnter], [onPointerExit], and [onPointerHover] callbacks are
 /// triggered when the pointer enters, exits, or hovers over a hit-testable

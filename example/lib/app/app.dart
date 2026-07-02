@@ -85,6 +85,19 @@ class _AppState extends State<App> {
   final bool _isRTL = false;
   final double _textScaleFactor = 1.0;
   TextDirection get _textDirection => _isRTL ? TextDirection.rtl : TextDirection.ltr;
+  late final SemanticsHandle _semanticsHandle;
+
+  @override
+  void initState() {
+    super.initState();
+    _semanticsHandle = SemanticsBinding.instance.ensureSemantics();
+  }
+
+  @override
+  void dispose() {
+    _semanticsHandle.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +120,7 @@ class _AppState extends State<App> {
               builder: (context) {
                 final theme = ThemeData(
                   fontFamily: 'GoogleSans',
+                  package: 'example',
                   dividerTheme: DividerThemeData(
                     thickness: 0.0,
                     color: destination.brightness == Brightness.dark
@@ -147,6 +161,8 @@ class _AppState extends State<App> {
                       return TextStyle(
                         fontSize: 14,
                         fontFamily: 'GoogleSans',
+                        package: 'example',
+
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                         color: isSelected
                             ? (destination.brightness == Brightness.dark
@@ -211,7 +227,10 @@ class _AppRouteWrapper extends StatelessWidget {
     };
 
     return Theme(
-      data: Theme.of(context).copyWith(brightness: destination.brightness),
+      data: Theme.of(context).copyWith(
+        brightness: destination.brightness,
+        textTheme: Theme.of(context).textTheme.apply(package: 'example'),
+      ),
       child: Builder(
         builder: (context) {
           return ColoredBox(

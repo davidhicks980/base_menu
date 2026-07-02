@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
@@ -21,28 +22,44 @@ class FloogleDocsApp extends StatefulWidget {
 }
 
 class _FloogleDocsAppState extends State<FloogleDocsApp> {
+  late final SemanticsHandle _semanticsHandle;
+
+  @override
+  void initState() {
+    super.initState();
+    _semanticsHandle = SemanticsBinding.instance.ensureSemantics();
+  }
+
+  @override
+  void dispose() {
+    _semanticsHandle.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return const DefaultTextStyle(
       style: TextStyle(
         fontFamily: 'RobotoFlex',
         fontFamilyFallback: ['InterVariable'],
+        package: 'example',
+
         color: FloogleColors.grey,
         fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
       ),
-      child: ActionReflector(child: AppStateManager(child: Main())),
+      child: ActionReflector(child: AppStateManager(child: _App())),
     );
   }
 }
 
-class Main extends StatefulWidget {
-  const Main({super.key});
+class _App extends StatefulWidget {
+  const _App();
 
   @override
-  State<Main> createState() => _MainState();
+  State<_App> createState() => _AppState();
 }
 
-class _MainState extends State<Main> {
+class _AppState extends State<_App> {
   final WidgetOrderTraversalPolicy _headerTraversal = WidgetOrderTraversalPolicy();
   bool _isHeaderExpanded = true;
   bool _isHeaderVisible = true;

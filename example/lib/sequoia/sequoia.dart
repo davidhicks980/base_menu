@@ -61,7 +61,7 @@ class _SequoiaAppState extends State<SequoiaApp> {
               MenuItem(
                 label: 'Services',
                 children: [
-                  MenuItem(label: 'Search in Google'),
+                  MenuItem(label: 'Search in Floogle'),
                   MenuItem(label: 'Translate'),
                 ],
               ),

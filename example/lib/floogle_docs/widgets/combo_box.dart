@@ -199,6 +199,7 @@ class ComboBox extends StatefulWidget {
     this.focusNode,
     this.textStyle = const TextStyle(
       fontFamily: 'GoogleSans',
+      package: 'example',
       fontSize: 14,
       color: FloogleColors.grey,
       decoration: TextDecoration.none,
@@ -520,6 +521,8 @@ class _Anchor extends StatelessWidget {
             blurredSelectionColor: FloogleColors.transparent,
             style: defaultTextStyle.copyWith(
               color: FloogleColors.darkGray,
+              package: 'example',
+
               decoration: TextDecoration.none,
               fontWeight: const FontWeight(450),
             ),
@@ -527,7 +530,9 @@ class _Anchor extends StatelessWidget {
           )
         : Padding(
             padding: const EdgeInsets.only(right: 3),
-            child: ExcludeSemantics(child: Text(selected, style: defaultTextStyle)),
+            child: ExcludeSemantics(
+              child: Text(selected, style: defaultTextStyle.copyWith(package: "example")),
+            ),
           );
 
     field = Padding(

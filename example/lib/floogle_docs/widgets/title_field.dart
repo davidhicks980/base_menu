@@ -59,6 +59,7 @@ class _TitleFieldState extends State<TitleField> {
       ? TextStyle(
           fontSize: 18.5,
           fontFamily: 'GoogleSansFlex',
+          package: 'example',
           fontFamilyFallback: ['GoogleSans'],
           height: 1.2,
           letterSpacing: -0.4,
@@ -73,6 +74,7 @@ class _TitleFieldState extends State<TitleField> {
       : TextStyle(
           fontSize: 18,
           fontFamily: 'GoogleSans',
+          package: 'example',
           height: 1.2,
           overflow: TextOverflow.ellipsis,
           color: FloogleColors.darkGray,

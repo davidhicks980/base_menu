@@ -26,7 +26,12 @@ class _MenuBarState extends State<MenuBar> {
         : const Icon(Icons.arrow_drop_down, size: 16);
     return Center(
       child: DefaultTextStyle(
-        style: const TextStyle(fontFamily: 'InterVariable', fontSize: 14, color: Color(0xff000000)),
+        style: const TextStyle(
+          fontFamily: 'InterVariable',
+          package: 'example',
+          fontSize: 14,
+          color: Color(0xff000000),
+        ),
         child: BaseMenuBar(
           focusScopeNode: focusScopeNode,
           orientation: widget.orientation,

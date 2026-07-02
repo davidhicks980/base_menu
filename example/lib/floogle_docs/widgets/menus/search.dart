@@ -15,6 +15,7 @@ import '../menu_action_label.dart';
 
 const defaultStyle = TextStyle(
   fontFamily: 'RobotoFlex',
+  package: 'example',
   fontSize: kIsWeb ? 13 : 14,
   color: placeholderColor,
   height: 1.2,
@@ -497,6 +498,7 @@ class _SearchEntry extends StatelessWidget {
                   height: 20 / 14,
                   letterSpacing: 0.2,
                   fontFamily: 'RobotoFlex',
+                  package: 'example',
                   color: textColor,
                   fontVariations: kIsWeb
                       ? [FontVariation.weight(450)]

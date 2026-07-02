@@ -66,6 +66,7 @@ class MenuActionLabel extends StatelessWidget {
 
   static const labelTextStyle = TextStyle(
     fontFamily: 'RobotoFlex',
+    package: 'example',
     fontSize: kIsWeb ? 14.25 : 14,
     color: FloogleColors.darkGray,
     fontWeight: kIsWeb ? FontWeight(475) : FontWeight.w400,
@@ -78,6 +79,7 @@ class MenuActionLabel extends StatelessWidget {
 
   static const _acceleratorTextStyle = TextStyle(
     fontFamily: 'RobotoFlex',
+    package: 'example',
     fontFamilyFallback: ['InterVariable'],
     fontSize: 14,
     fontWeight: FontWeight.w500,

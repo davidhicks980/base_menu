@@ -73,6 +73,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
                     textStyle: const TextStyle(
                       fontFamily: 'GoogleSansFlex',
                       fontFamilyFallback: ['GoogleSans'],
+                      package: 'example',
                       fontSize: 14.5,
                       fontWeight: FontWeight(460),
                       letterSpacing: 0.1,
@@ -80,6 +81,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
                     ),
                     uppercaseTextStyle: const TextStyle(
                       fontFamily: 'GoogleSans',
+                      package: 'example',
                       fontSize: 14.5,
                       fontWeight: FontWeight(460),
                       letterSpacing: -0.3,

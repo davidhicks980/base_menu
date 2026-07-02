@@ -94,27 +94,69 @@ final WidgetStateProperty<BoxDecoration> demoMenuItemDecoration = WidgetStatePro
 });
 
 final WidgetStateProperty<TextStyle> demoTextStyle = WidgetStateProperty.fromMap({
-  WidgetState.disabled: const TextStyle(color: kDisabledText, fontFamily: 'InterVariable'),
-  WidgetState.pressed: const TextStyle(color: kWhite, fontFamily: 'InterVariable'),
+  WidgetState.disabled: const TextStyle(
+    color: kDisabledText,
+    fontFamily: 'InterVariable',
+    package: 'example',
+  ),
+  WidgetState.pressed: const TextStyle(
+    color: kWhite,
+    fontFamily: 'InterVariable',
+    package: 'example',
+  ),
   WidgetState.hovered & WidgetState.pressed: const TextStyle(
     color: kBlack,
     fontFamily: 'InterVariable',
+    package: 'example',
   ),
-  WidgetState.hovered: const TextStyle(color: kWhite, fontFamily: 'InterVariable'),
-  WidgetState.focused: const TextStyle(color: kDefaultText, fontFamily: 'InterVariable'),
-  WidgetState.any: const TextStyle(color: kDefaultText, fontFamily: 'InterVariable'),
+  WidgetState.hovered: const TextStyle(
+    color: kWhite,
+    fontFamily: 'InterVariable',
+    package: 'example',
+  ),
+  WidgetState.focused: const TextStyle(
+    color: kDefaultText,
+    fontFamily: 'InterVariable',
+    package: 'example',
+  ),
+  WidgetState.any: const TextStyle(
+    color: kDefaultText,
+    fontFamily: 'InterVariable',
+    package: 'example',
+  ),
 });
 
 final WidgetStateProperty<TextStyle> demoButtonTextStyle = WidgetStateProperty.fromMap({
-  WidgetState.disabled: const TextStyle(color: kDisabledText, fontFamily: 'InterVariable'),
-  WidgetState.pressed: const TextStyle(color: kWhite, fontFamily: 'InterVariable'),
+  WidgetState.disabled: const TextStyle(
+    color: kDisabledText,
+    fontFamily: 'InterVariable',
+    package: 'example',
+  ),
+  WidgetState.pressed: const TextStyle(
+    color: kWhite,
+    fontFamily: 'InterVariable',
+    package: 'example',
+  ),
   (WidgetState.hovered & WidgetState.focused): const TextStyle(
     color: kDefaultText,
     fontFamily: 'InterVariable',
+    package: 'example',
   ),
-  WidgetState.hovered: const TextStyle(color: kWhite, fontFamily: 'InterVariable'),
-  WidgetState.focused: const TextStyle(color: kDefaultText, fontFamily: 'InterVariable'),
-  WidgetState.any: const TextStyle(color: kDefaultText, fontFamily: 'InterVariable'),
+  WidgetState.hovered: const TextStyle(
+    color: kWhite,
+    fontFamily: 'InterVariable',
+    package: 'example',
+  ),
+  WidgetState.focused: const TextStyle(
+    color: kDefaultText,
+    fontFamily: 'InterVariable',
+    package: 'example',
+  ),
+  WidgetState.any: const TextStyle(
+    color: kDefaultText,
+    fontFamily: 'InterVariable',
+    package: 'example',
+  ),
 });
 
 class StyledMenuButtonChild extends StatelessWidget {

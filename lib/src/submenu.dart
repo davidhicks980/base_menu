@@ -9,9 +9,8 @@ import 'package:flutter/widgets.dart';
 import '../menu_utilities.dart';
 import 'focusable.dart';
 import 'interface.dart';
-import 'menu.dart';
 
-/// A widget that anchors a nested submenu to an item within a parent menu.
+/// A widget that displays a hierarchical submenu when opened.
 ///
 /// The [BaseSubmenu] widget is optimized specifically for hierarchical nested
 /// submenus. It includes built-in hover delay timing ([hoverOpenDelay] and

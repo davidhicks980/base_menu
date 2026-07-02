@@ -39,6 +39,7 @@ class _TextColorButtonState extends State<TextColorButton> {
               style: TextStyle(
                 fontSize: 14,
                 fontFamily: 'RobotoFlex',
+                package: 'example',
                 fontWeight: FontWeight.w500,
                 color: FloogleColors.darkGray,
                 height: 1.0,

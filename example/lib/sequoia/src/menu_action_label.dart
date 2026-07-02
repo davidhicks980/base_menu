@@ -19,18 +19,20 @@ const Color _kSequoiaShortcutDark = Color.fromARGB(90, 255, 255, 255);
 
 const _webFontStyle = TextStyle(
   fontFamily: 'Main',
+  package: 'example',
   decoration: .none,
   fontVariations: [FontVariation.opticalSize(16), FontVariation.weight(450)],
 );
 
 const _cupertinoFontStyle = TextStyle(
   fontFamily: 'CupertinoSystemText',
+  package: 'example',
   letterSpacing: -0.1, // SF Pro standard tight tracking
   height: 1.2,
   decoration: TextDecoration.none,
 );
 
-TextStyle get textStyle => switch (defaultTargetPlatform) {
+TextStyle textStyle = switch (defaultTargetPlatform) {
   .iOS || .macOS when !kIsWeb => _cupertinoFontStyle,
   _ => _webFontStyle,
 };
@@ -283,7 +285,7 @@ class MenuBarHighlightPainter extends CustomPainter {
     }
 
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.1)
+      ..color = Colors.white.withValues(alpha: 0.1)
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 

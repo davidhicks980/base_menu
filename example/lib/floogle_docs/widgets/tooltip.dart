@@ -7,6 +7,7 @@ import '../utilities/colors.dart';
 const webStyle = TextStyle(
   color: FloogleColors.onDarkGray,
   fontFamily: 'GoogleSans',
+  package: 'example',
   fontSize: 12.0,
   fontVariations: [FontVariation.weight(500)],
   letterSpacing: 0.1,
@@ -17,6 +18,7 @@ const webStyle = TextStyle(
 const defaultStyle = TextStyle(
   color: FloogleColors.onDarkGray,
   fontFamily: 'GoogleSans',
+  package: 'example',
   fontSize: 12.0,
   fontVariations: [FontVariation.weight(425)],
   letterSpacing: 0.1,

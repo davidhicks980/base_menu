@@ -447,6 +447,7 @@ class _ColorPickerPanelState extends State<ColorPickerPanel> {
                           'CUSTOM',
                           style: TextStyle(
                             fontFamily: 'RobotoFlex',
+                            package: 'example',
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.8,

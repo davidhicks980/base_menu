@@ -403,6 +403,7 @@ class _RulerPainter extends CustomPainter {
             fontSize: 11,
             fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
             fontFamily: 'GoogleSansCode',
+            package: 'example',
           ),
         );
         textPainter.layout();
@@ -588,6 +589,7 @@ class _VerticalRulerPainter extends CustomPainter {
             fontSize: 11,
             fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
             fontFamily: 'GoogleSansCode',
+            package: 'example',
           ),
         );
         textPainter.layout();

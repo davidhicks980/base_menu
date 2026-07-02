@@ -169,6 +169,7 @@ class MenuSectionHeader extends StatelessWidget {
               color: FloogleColors.darkGray,
               fontVariations: [FontVariation.weight(550)],
               fontFamily: 'RobotoFlex',
+              package: 'example',
               decoration: TextDecoration.none,
             ),
             child: child,
@@ -264,7 +265,11 @@ class _SubmenuOptionState extends State<_SubmenuOption> {
                       },
                       child: Text(
                         fontWeightToLabelMap[variant]!,
-                        style: TextStyle(fontFamily: widget.value.label, fontWeight: variant),
+                        style: TextStyle(
+                          fontFamily: widget.value.label,
+                          package: 'example',
+                          fontWeight: variant,
+                        ),
                       ),
                     );
                   },
@@ -279,6 +284,7 @@ class _SubmenuOptionState extends State<_SubmenuOption> {
               widget.value.label,
               style: TextStyle(
                 fontFamily: widget.value.label,
+                package: 'example',
                 fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
               ),
             ),

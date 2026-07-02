@@ -10,6 +10,7 @@ class MenuBarButtonLabel extends StatelessWidget {
 
   static const _textStyle = TextStyle(
     fontFamily: 'GoogleSans',
+    package: 'example',
     fontSize: 14,
     letterSpacing: 0.2,
     fontWeight: FontWeight.w400,

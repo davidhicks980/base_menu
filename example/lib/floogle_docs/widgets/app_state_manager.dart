@@ -362,7 +362,11 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
         final textStyle =
             controller.selectedTextStyle?.textStyle ??
-            TextStyle(fontWeight: FontWeight.normal, fontFamily: FontFamily.roboto.label);
+            TextStyle(
+              fontWeight: FontWeight.normal,
+              fontFamily: FontFamily.roboto.label,
+              package: 'example',
+            );
 
         controller.applyStyle(
           SegmentTextStyle(

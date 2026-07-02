@@ -36,3 +36,4 @@ migrate_working_dir/
 .vscode/copilot-instructions.md
 .gitignore
 .vscode/settings.json
+bust.sh

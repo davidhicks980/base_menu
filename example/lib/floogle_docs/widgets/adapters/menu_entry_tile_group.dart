@@ -207,6 +207,7 @@ class _TileLinePainter extends CustomPainter {
                 color: FloogleColors.black,
                 height: 1.0,
                 fontFamily: 'RobotoFlex',
+                package: 'example',
                 fontSize: 10.0,
                 letterSpacing: 1,
                 fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,

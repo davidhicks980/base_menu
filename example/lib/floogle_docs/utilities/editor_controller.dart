@@ -14,6 +14,7 @@ class EditorController extends TextEditingController {
     DocumentParagraphStyle.normal: const SegmentTextStyle(
       textStyle: TextStyle(
         fontFamily: 'RobotoFlex',
+        package: 'example',
         fontSize: kIsWeb ? 14.5 : 14.0,
         height: 20 / 14,
         color: FloogleColors.black,

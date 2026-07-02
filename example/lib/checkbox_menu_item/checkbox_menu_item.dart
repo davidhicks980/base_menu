@@ -24,6 +24,8 @@ class _CheckboxMenuItemAppState extends State<CheckboxMenuItemApp> {
     return DefaultTextStyle(
       style: const TextStyle(
         fontFamily: 'InterVariable',
+        package: 'example',
+
         fontSize: 14,
         color: Color(0xFF1A1A1A),
         height: 1.5,

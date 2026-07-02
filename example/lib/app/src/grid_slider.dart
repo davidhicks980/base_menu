@@ -18,10 +18,7 @@ extension AlongSize on Offset {
 
 extension Clamp on Alignment {
   Alignment clamp(double min, double max, [double? minY, double? maxY]) {
-    return Alignment(
-      ui.clampDouble(x, min, max),
-      ui.clampDouble(y, minY ?? min, maxY ?? max),
-    );
+    return Alignment(ui.clampDouble(x, min, max), ui.clampDouble(y, minY ?? min, maxY ?? max));
   }
 }
 
@@ -133,11 +130,9 @@ class _GridSliderState extends State<GridSlider> {
           alignment: Alignment.center,
           children: <Widget>[
             CustomPaint(
-                painter: GridPainter(_position, brightness),
-                size: Size(
-                  widget.size.width - 16,
-                  widget.size.height - 16,
-                )),
+              painter: GridPainter(_position, brightness),
+              size: Size(widget.size.width - 16, widget.size.height - 16),
+            ),
             Align(
               alignment: _position,
               child: Focus(
@@ -149,10 +144,7 @@ class _GridSliderState extends State<GridSlider> {
                   child: Container(
                     width: 8,
                     height: 8,
-                    decoration: const BoxDecoration(
-                      color: dotColor,
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: const BoxDecoration(color: dotColor, shape: BoxShape.circle),
                   ),
                 ),
               ),
@@ -162,6 +154,7 @@ class _GridSliderState extends State<GridSlider> {
               left: 12,
               child: DefaultTextStyle(
                 style: TextStyle(
+                  package: 'example',
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: brightness == Brightness.dark ? white : black,
@@ -210,10 +203,7 @@ class _GridSliderState extends State<GridSlider> {
 }
 
 class GridPainter extends CustomPainter {
-  const GridPainter(
-    this.dotAlignment,
-    this.brightness,
-  );
+  const GridPainter(this.dotAlignment, this.brightness);
   final Alignment dotAlignment;
   final Brightness brightness;
 
@@ -222,8 +212,7 @@ class GridPainter extends CustomPainter {
     final double tenthWidth = size.width / 10;
     final double tenthHeight = size.height / 10;
     final Paint paint = Paint()
-      ..color =
-          brightness == Brightness.dark ? whiteTransparent : blackTransparent
+      ..color = brightness == Brightness.dark ? whiteTransparent : blackTransparent
       ..strokeWidth = 0.0
       ..isAntiAlias = false;
 
@@ -243,7 +232,6 @@ class GridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(GridPainter oldDelegate) {
-    return oldDelegate.dotAlignment != dotAlignment ||
-        oldDelegate.brightness != brightness;
+    return oldDelegate.dotAlignment != dotAlignment || oldDelegate.brightness != brightness;
   }
 }

@@ -129,6 +129,7 @@ class _SelectTextButton extends StatelessWidget {
           DefaultTextStyle.merge(
             style: const TextStyle(
               fontFamily: 'GoogleSans',
+              package: 'example',
               fontSize: 14,
               height: 1.2,
               letterSpacing: 0.1,

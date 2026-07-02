@@ -1,14 +1,14 @@
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import '../app_state_manager.dart';
 import '../../model/enum.dart';
 import '../../model/intents.dart';
-import '../tooltip.dart';
 import '../../utilities/colors.dart';
+import '../app_state_manager.dart';
 import '../combo_box.dart';
 import '../dropdown_arrow.dart';
 import '../menu_divider.dart';
+import '../tooltip.dart';
 
 class ZoomMenu extends StatefulWidget {
   const ZoomMenu({super.key});

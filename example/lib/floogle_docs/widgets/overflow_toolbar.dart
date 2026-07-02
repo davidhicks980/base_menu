@@ -30,7 +30,6 @@ class _OverflowRowState extends State<OverflowRow> {
         for (int i = 0; i < widget.children.length; i++)
           IgnorePointer(
             ignoring: i >= _lastVisible,
-            ignoringSemantics: i >= _lastVisible,
             child: ExcludeFocus(excluding: i >= _lastVisible, child: widget.children[i]),
           ),
       ],

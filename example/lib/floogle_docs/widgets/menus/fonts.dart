@@ -4,18 +4,18 @@ import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import '../app_state_manager.dart';
 import '../../extensions/string.dart';
 import '../../model/enum.dart';
 import '../../model/intents.dart';
-import '../tooltip.dart';
 import '../../utilities/colors.dart';
+import '../app_state_manager.dart';
 import '../menu_action_label.dart';
 import '../menu_divider.dart';
 import '../menu_item.dart';
 import '../menu_panel.dart';
 import '../select.dart';
 import '../selectable_menu_item.dart';
+import '../tooltip.dart';
 import '../web_label.dart';
 
 class FontMenu extends StatefulWidget {

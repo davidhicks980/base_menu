@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../app_state_manager.dart';
 import '../../model/intents.dart';
 import '../../utilities/colors.dart';
+import '../app_state_manager.dart';
 import '../color_grid.dart';
 import '../menu_item.dart';
 import '../menu_panel.dart';

@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 import 'package:menu_utilities/src/hoverable.dart';
 
+import 'utilities.dart';
+
 void main() {
   testWidgets('Initial state is not hovered', (WidgetTester tester) async {
     bool? isHovered;
@@ -35,7 +37,7 @@ void main() {
         Scaffold(
           body: Center(
             child: BaseHoverable<void>(
-              onEnter: (_) {
+              onPointerEnter: (_) {
                 entered = true;
               },
               child: Text(Tag.a.text),
@@ -67,7 +69,7 @@ void main() {
         Scaffold(
           body: Center(
             child: BaseHoverable<void>(
-              onHover: (_) {
+              onPointerHover: (_) {
                 hoverCount++;
               },
               child: Text(Tag.a.text),
@@ -98,7 +100,7 @@ void main() {
         Scaffold(
           body: Center(
             child: BaseHoverable<void>(
-              onExit: (_) {
+              onPointerExit: (_) {
                 exited = true;
               },
               child: Text(Tag.a.text),
@@ -130,9 +132,9 @@ void main() {
       App(
         BaseHoverable<void>(
           enabled: false,
-          onEnter: (_) => entered = true,
-          onHover: (_) => entered = true,
-          onExit: (_) => entered = true,
+          onPointerEnter: (_) => entered = true,
+          onPointerHover: (_) => entered = true,
+          onPointerExit: (_) => entered = true,
           child: Text(Tag.a.text),
         ),
       ),
@@ -220,7 +222,7 @@ void main() {
     await tester.pumpWidget(
       App(
         BaseHoverable<void>(
-          cursor: cursor,
+          mouseCursor: cursor,
           behavior: behavior,
           opaque: false,
           enabled: false,
@@ -247,20 +249,20 @@ void main() {
         Stack(
           children: [
             BaseHoverable<int>(
-              onEnter: (_) {
+              onPointerEnter: (_) {
                 bottomHovered = true;
               },
-              onExit: (_) {
+              onPointerExit: (_) {
                 bottomHovered = false;
               },
               child: Container(width: 200, height: 200, color: const Color(0xFF0011FF)),
             ),
             BaseHoverable<String>(
               key: Tag.a.key,
-              onEnter: (_) {
+              onPointerEnter: (_) {
                 topHovered = true;
               },
-              onExit: (_) {
+              onPointerExit: (_) {
                 topHovered = false;
               },
               child: Container(width: 200, height: 200, color: const Color(0xFFFF1100)),
@@ -294,10 +296,10 @@ void main() {
         Stack(
           children: [
             BaseHoverable<int>(
-              onEnter: (_) {
+              onPointerEnter: (_) {
                 bottomHovered = true;
               },
-              onExit: (_) {
+              onPointerExit: (_) {
                 bottomHovered = false;
               },
               child: Container(width: 200, height: 200, color: const Color(0xFF0011FF)),
@@ -305,10 +307,10 @@ void main() {
             BaseHoverable<String>(
               opaque: false,
               key: Tag.a.key,
-              onEnter: (_) {
+              onPointerEnter: (_) {
                 topHovered = true;
               },
-              onExit: (_) {
+              onPointerExit: (_) {
                 topHovered = false;
               },
               child: Container(width: 200, height: 200, color: const Color(0xFFFF1100)),
@@ -342,13 +344,13 @@ void main() {
           children: [
             BaseHoverable<int>(
               behavior: HitTestBehavior.opaque,
-              onEnter: (_) => bottomHovered = true,
+              onPointerEnter: (_) => bottomHovered = true,
               child: const SizedBox(width: 200, height: 200),
             ),
             BaseHoverable<String>(
               // opaque is true by default
               behavior: HitTestBehavior.opaque,
-              onEnter: (_) => topHovered = true,
+              onPointerEnter: (_) => topHovered = true,
               child: SizedBox(key: Tag.a.key, width: 200, height: 200),
             ),
           ],
@@ -377,7 +379,7 @@ void main() {
           children: [
             BaseHoverable<int>(
               behavior: HitTestBehavior.opaque,
-              onEnter: (_) {
+              onPointerEnter: (_) {
                 bottomHovered = true;
               },
               child: const SizedBox(width: 200, height: 200),
@@ -385,7 +387,7 @@ void main() {
             BaseHoverable<String>(
               // opaque is true by default
               behavior: HitTestBehavior.translucent,
-              onEnter: (_) {
+              onPointerEnter: (_) {
                 topHovered = true;
               },
               child: SizedBox(key: Tag.a.key, width: 200, height: 200),
@@ -418,13 +420,13 @@ void main() {
           children: [
             BaseHoverable<int>(
               behavior: HitTestBehavior.opaque,
-              onEnter: (_) {
+              onPointerEnter: (_) {
                 bottomHovered = true;
               },
               child: const SizedBox(width: 200, height: 200),
             ),
             BaseHoverable<String>(
-              onEnter: (_) {
+              onPointerEnter: (_) {
                 topHovered = true;
               },
               child: SizedBox(key: Tag.a.key, width: 200, height: 200),

@@ -1,41 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import '../shared/theme.dart';
+import '../../shared/theme.dart';
 
-const focusColor = Color(0xFFF2F2F7); // Light grey for hover/focus
-const pressedColor = Color(0xFFE5E5EA);
-const anyColor = Color(0xFFFFFFFF);
-
-class MenuBarApp extends StatelessWidget {
-  const MenuBarApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Expanded(child: _MenuBar(orientation: Axis.vertical)),
-        Container(height: 1, color: ColorScheme.of(context).outlineVariant),
-        const Expanded(child: _MenuBar(orientation: Axis.horizontal)),
-      ],
-    );
-  }
-}
-
-class _MenuBar extends StatefulWidget {
-  const _MenuBar({required this.orientation});
+class MenuBar extends StatefulWidget {
+  const MenuBar({super.key, required this.orientation});
   final Axis orientation;
 
   @override
-  State<_MenuBar> createState() => _MenuBarState();
+  State<MenuBar> createState() => _MenuBarState();
 }
 
-class _MenuBarState extends State<_MenuBar> {
-  final focusNode = FocusNode();
+class _MenuBarState extends State<MenuBar> {
+  final focusScopeNode = FocusScopeNode();
   @override
   void dispose() {
+    focusScopeNode.dispose();
     super.dispose();
-    focusNode.dispose();
   }
 
   @override
@@ -47,11 +28,15 @@ class _MenuBarState extends State<_MenuBar> {
       child: DefaultTextStyle(
         style: const TextStyle(fontFamily: 'InterVariable', fontSize: 14, color: Color(0xff000000)),
         child: BaseMenuBar(
+          focusScopeNode: focusScopeNode,
           orientation: widget.orientation,
           child: StyledMenuPanel(
             child: ClipRRect(
               borderRadius: const BorderRadius.all(Radius.circular(4)),
               child: BaseMenuPanel(
+                onPointerExit: (event) {
+                  focusScopeNode.requestScopeFocus();
+                },
                 constraints: const BoxConstraints(minWidth: 150),
                 orientation: widget.orientation,
                 children: [
@@ -113,9 +98,7 @@ class _MenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BaseMenuItem(
-      onPressed: () {
-        print('Pressed $label');
-      },
+      onPressed: () {},
       child: StyledMenuItemChild(child: Text(label)),
     );
   }
@@ -172,7 +155,7 @@ class _SubmenuState extends State<_Submenu> with SingleTickerProviderStateMixin 
           child: BaseMenuPanel(
             clipBehavior: .hardEdge,
             padding: const EdgeInsets.all(4.0),
-            onPointerEnter: (event) {
+            onPointerExit: (event) {
               if (!focusNode.hasFocus) {
                 focusNode.requestFocus();
               }

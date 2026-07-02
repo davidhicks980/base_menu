@@ -11,31 +11,48 @@ import 'focusable.dart';
 import 'interface.dart';
 import 'menu.dart';
 
-typedef HPreviousIntent = BaseMenuHorizontalFocusPreviousIntent;
-typedef HNextIntent = BaseMenuHorizontalFocusNextIntent;
-typedef VPreviousIntent = BaseMenuVerticalFocusPreviousIntent;
-typedef VNextIntent = BaseMenuVerticalFocusNextIntent;
-
-class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseMenuItemInterface {
+/// A widget that anchors a nested submenu to an item within a parent menu.
+///
+/// The [BaseSubmenu] widget is optimized specifically for hierarchical nested
+/// submenus. It includes built-in hover delay timing ([hoverOpenDelay] and
+/// [hoverCloseDelay]), synchronized pseudo-focus highlighting across submenu
+/// levels, and orientation-aware keyboard navigation.
+///
+/// The [child] widget should only handle visual representation. Focus,
+/// activation, and hover interactions should be handled through the
+/// [BaseSubmenu] properties, which are then passed to the internal
+/// [BaseMenuItem].
+///
+/// To customize the [Actions] for the submenu anchor, use the [anchorActions]
+/// property. The overlay's [Actions] can be customized by wrapping the [menu]
+/// in an [Actions] widget.
+///
+/// **See also**:
+///  * [BaseMenu], which is used internally to manage the submenu's overlay.
+///  * [BaseMenuItem], which is used internally to manage the submenu's anchor.
+///  * [BaseMenuBar], which can used to group multiple [BaseSubmenu] widgets
+///    into a menu bar.
+class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuItemInterface {
+  /// Creates a [BaseSubmenu].
+  ///
+  /// The [child], [menu], and [controller] parameters are required.
   const BaseSubmenu({
     super.key,
-    this.hoverOpenDelay = Duration.zero,
-    this.hoverCloseDelay = Duration.zero,
     required this.child,
-    this.onOpen,
-    this.onOpenRequest = BaseMenuInterface.defaultOnOpenRequested,
-    this.onClose,
-    this.onCloseRequest = BaseMenuInterface.defaultOnCloseRequested,
-    this.useRootOverlay = false,
     required this.menu,
     required this.controller,
+    this.hoverOpenDelay = Duration.zero,
+    this.hoverCloseDelay = Duration.zero,
+    this.onOpen,
+    this.onOpenRequest = BaseMenu.defaultOnOpenRequested,
+    this.onClose,
+    this.onCloseRequest = BaseMenu.defaultOnCloseRequested,
+    this.useRootOverlay = false,
     this.consumeOutsideTaps = false,
     this.onFocusChange,
     this.directionalFocusEdgeBehavior,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
-      namesRoute: true,
-      label: 'Submenu',
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
@@ -47,7 +64,7 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
     this.onActivate,
     this.onPointerEnter,
     this.onPointerHover,
-    this.onPointerLeave,
+    this.onPointerExit,
     this.behavior = HitTestBehavior.deferToChild,
     this.opaque = true,
     this.mouseCursor,
@@ -64,13 +81,16 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
   final Widget child;
 
   @override
+  final Widget menu;
+
+  @override
+  final MenuController controller;
+
+  @override
   final FocusNode? focusNode;
 
   @override
   final bool autofocus;
-
-  @override
-  final MenuController controller;
 
   @override
   final bool consumeOutsideTaps;
@@ -89,9 +109,6 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
 
   @override
   final bool useRootOverlay;
-
-  @override
-  final Widget menu;
 
   @override
   final ValueChanged<bool>? onFocusChange;
@@ -131,7 +148,7 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
   final PointerHoverEventListener? onPointerHover;
 
   @override
-  final PointerExitEventListener? onPointerLeave;
+  final PointerExitEventListener? onPointerExit;
 
   @override
   final HitTestBehavior behavior;
@@ -165,6 +182,12 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
   @override
   final bool enabled;
 
+  /// The [Actions] to be used for the submenu anchor when the submenu is open.
+  ///
+  /// This can be used to customize the keyboard navigation for the submenu
+  /// anchor.
+  ///
+  /// Defaults to null.
   final Map<Type, Action<Intent>>? anchorActions;
 
   @override
@@ -173,6 +196,8 @@ class BaseSubmenu extends StatefulWidget with BaseMenuInterface implements BaseM
   @override
   bool get requestCloseOnActivate => false;
 
+  @visibleForTesting
+  // ignore: public_member_api_docs
   String get debugMenuFocusNodeLabel => 'BaseSubmenu FocusNode${key != null ? ' ($key)' : ''}';
 
   @override
@@ -207,7 +232,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final scope = MenuScope.maybeOf(context);
+    final MenuScope? scope = MenuScope.maybeOf(context);
     if (scope?.axis != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
       _parentOrientation = scope?.axis;
       _parentIsSubmenu = scope?.isSubmenu ?? false;
@@ -316,7 +341,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     }
 
     _updateHighlight();
-    widget.onPointerLeave?.call(event);
+    widget.onPointerExit?.call(event);
   }
 
   void _handlePointerEnterPanel(PointerEvent event) {
@@ -399,12 +424,41 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     }
   }
 
-  Widget _buildHighlight(BuildContext context, Widget? child) {
-    return BaseFocusableStateInjector<BaseMenuItem>(
-      showFocusHighlight: _highlightNotifier.value,
-      child: child!,
-    );
-  }
+  Map<Type, Action<Intent>>? _buildActions({required bool inSubmenu}) =>
+      switch ((widget.orientation, inSubmenu)) {
+        (Axis.horizontal, true) => {
+          VerticalMenuFocusPreviousIntent: CallbackAction<VerticalMenuFocusPreviousIntent>(
+            onInvoke: _handleSameAxisSubmenuPrevious,
+          ),
+        },
+        (Axis.vertical, true) => {
+          HorizontalMenuFocusPreviousIntent: CallbackAction<HorizontalMenuFocusPreviousIntent>(
+            onInvoke: _handleSameAxisSubmenuPrevious,
+          ),
+        },
+        (Axis.horizontal, false) => {
+          VerticalMenuFocusPreviousIntent: CallbackAction<VerticalMenuFocusPreviousIntent>(
+            onInvoke: _handleCrossAxisPrevious,
+          ),
+          VerticalMenuFocusNextIntent: CallbackAction<VerticalMenuFocusNextIntent>(
+            onInvoke: _handleCrossAxisNext,
+          ),
+        },
+        (Axis.vertical, false) => {
+          HorizontalMenuFocusPreviousIntent: CallbackAction<HorizontalMenuFocusPreviousIntent>(
+            onInvoke: _handleCrossAxisPrevious,
+          ),
+          HorizontalMenuFocusNextIntent: CallbackAction<HorizontalMenuFocusNextIntent>(
+            onInvoke: _handleCrossAxisNext,
+          ),
+        },
+      };
+
+  Widget _buildHighlight(BuildContext context, Widget? child) =>
+      BaseFocusableStateInjector<BaseMenuItem>(
+        showFocusHighlight: _highlightNotifier.value,
+        child: child!,
+      );
 
   Widget _buildOverlayChild(BuildContext context, Widget child) {
     final overlay = MouseRegion(
@@ -421,29 +475,8 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   Widget build(BuildContext context) {
     // When _parentOrientation == null, there is no parent menu bar or menu
     // anchor. In this case, overlay actions are not set.
-    if (_parentOrientation != null) {
-      final inSameAxisSubmenu = _parentOrientation == widget.orientation;
-      _overlayActions ??= switch ((widget.orientation, inSameAxisSubmenu)) {
-        (Axis.horizontal, true) => {
-          VPreviousIntent: CallbackAction<VPreviousIntent>(
-            onInvoke: _handleSameAxisSubmenuPrevious,
-          ),
-        },
-        (Axis.vertical, true) => {
-          HPreviousIntent: CallbackAction<HPreviousIntent>(
-            onInvoke: _handleSameAxisSubmenuPrevious,
-          ),
-        },
-        (Axis.vertical, false) => {
-          HPreviousIntent: CallbackAction<HPreviousIntent>(onInvoke: _handleCrossAxisPrevious),
-          HNextIntent: CallbackAction<HNextIntent>(onInvoke: _handleCrossAxisNext),
-        },
-
-        (Axis.horizontal, false) => {
-          VPreviousIntent: CallbackAction<VPreviousIntent>(onInvoke: _handleCrossAxisPrevious),
-          VNextIntent: CallbackAction<VNextIntent>(onInvoke: _handleCrossAxisNext),
-        },
-      };
+    if (_overlayActions == null && _parentOrientation != null) {
+      _overlayActions = _buildActions(inSubmenu: _parentOrientation == widget.orientation);
     }
 
     return BaseMenu(
@@ -466,34 +499,15 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   Widget _buildChild(BuildContext context, MenuController controller, Widget? child) {
-    if (controller.isOpen) {
-      final bool inSameAxisSubmenu = _parentOrientation == widget.orientation && _parentIsSubmenu;
-      _anchorActions ??= switch ((widget.orientation, inSameAxisSubmenu)) {
-        (Axis.horizontal, true) => {
-          VPreviousIntent: CallbackAction<VPreviousIntent>(
-            onInvoke: _handleSameAxisSubmenuPrevious,
-          ),
-        },
-        (Axis.vertical, true) => {
-          HPreviousIntent: CallbackAction<HPreviousIntent>(
-            onInvoke: _handleSameAxisSubmenuPrevious,
-          ),
-        },
-        (Axis.vertical, false) => {
-          HPreviousIntent: CallbackAction<HPreviousIntent>(onInvoke: _handleCrossAxisPrevious),
-          HNextIntent: CallbackAction<HNextIntent>(onInvoke: _handleCrossAxisNext),
-        },
-
-        (Axis.horizontal, false) => {
-          VPreviousIntent: CallbackAction<VPreviousIntent>(onInvoke: _handleCrossAxisPrevious),
-          VNextIntent: CallbackAction<VNextIntent>(onInvoke: _handleCrossAxisNext),
-        },
-      };
+    if (controller.isOpen && _anchorActions == null) {
+      _anchorActions = _buildActions(
+        inSubmenu: _parentOrientation == widget.orientation && _parentIsSubmenu,
+      );
     }
 
     final (
-      horizontalArrowNext,
-      horizontalArrowPrevious,
+      SingleActivator horizontalArrowNext,
+      SingleActivator horizontalArrowPrevious,
     ) = switch (Directionality.maybeOf(context) ?? .ltr) {
       .ltr => (const SingleActivator(.arrowRight), const SingleActivator(.arrowLeft)),
       .rtl => (const SingleActivator(.arrowLeft), const SingleActivator(.arrowRight)),
@@ -510,7 +524,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
         onActivate: widget.enabled ? _handleActivate : null,
         onPointerEnter: _handlePointerEnterAnchor,
         onPointerHover: widget.onPointerHover,
-        onPointerLeave: _handlePointerLeaveAnchor,
+        onPointerExit: _handlePointerLeaveAnchor,
         requestCloseOnActivate: widget.requestCloseOnActivate,
         requestFocusOnHover: widget.requestFocusOnHover,
         behavior: widget.behavior,

@@ -1,9 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../app_state_manager.dart';
 import '../../data/menu.dart';
 import '../../model/model.dart';
+import '../app_state_manager.dart';
 import '../dimension_picker.dart';
 import '../menu_divider.dart';
 import '../menu_item.dart';

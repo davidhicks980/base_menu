@@ -8,6 +8,61 @@ import 'focusable.dart';
 import 'hoverable.dart';
 import 'interface.dart';
 
+/// An interactive widget that manages common UI states and coordinates pointer
+/// and keyboard activation.
+///
+/// {@template BaseControl.description}
+/// This widget does not provide any visual styling. The [child] is responsible
+/// for defining the control's layout and visual appearance.
+///
+/// ## States
+///
+/// The visual state of this control can be inherited by descendant widgets by
+/// using [statesOf], or by using individual state selectors. The following
+/// selectors are provided:
+/// * **Pressed**: Driven by tap gestures or keyboard action intents. Queried
+///   using [isPressedOf].
+/// * **Disabled**: Driven by the absence of [onActivate] and [onPressed].
+///   Queried using [isDisabledOf].
+/// * **Hover**: Queried using [isHoveredOf]/[isHoverHighlightShownOf].
+///   * [statesOf] will only include [WidgetState.hovered] when
+///     [isHoverHighlightShownOf] returns true.
+/// * **Focus**: Queried using [isFocusedOf]/[isFocusHighlightShownOf].
+///   * [statesOf] will only include [WidgetState.focused] when
+///     [isFocusHighlightShownOf] returns true.
+///
+/// The states are not mutually exclusive; for example, a control can be both
+/// hovered and focused at the same time.
+///
+/// ## Actions
+///
+/// The [onActivate] method can be provided to handle activation intents. If
+/// [onActivate] is null, [onPressed] will be called instead. If neither is
+/// defined, the control will be disabled; [enabled] will be false,
+/// [isDisabledOf] will return true, and the control will not respond to pointer
+/// or keyboard input.
+///
+/// The behavior of [ActivateIntent] and [ButtonActivateIntent] can be
+/// overridden by wrapping the [BaseControl] in an [Actions] widget. Note that
+/// [onActivate] and [onPressed] will no longer be called in response to
+/// overridden intents, so the [Actions] widget must handle the activation
+/// logic.
+///
+/// ## Scope
+///
+/// The optional type parameter can be used to scope the state selectors to a
+/// specific type. For example, [BaseMenuItem] wraps [BaseControl] and uses the
+/// type parameter to specialize its own state selectors.
+///
+/// {@endtemplate}
+///
+/// **See also:**
+///   * [BaseMenuItem], which wraps [BaseControl] and provides additional menu
+///     item functionality.
+///   * [BaseHoverable], which provides a standalone hoverable widget that can
+///     be used to manage hover state.
+///   * [BaseFocusable], which provides a standalone focusable widget that can
+///     be used to manage focus state.
 @optionalTypeArgs
 class BaseControl<T extends Object?> extends StatefulWidget implements BaseControlInterface {
   const BaseControl({
@@ -16,7 +71,7 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
     this.onActivate,
     this.onPointerHover,
     this.onPointerEnter,
-    this.onPointerLeave,
+    this.onPointerExit,
     this.onFocusChange,
     this.focusNode,
     this.autofocus = false,
@@ -42,7 +97,7 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
   final PointerHoverEventListener? onPointerHover;
 
   @override
-  final PointerExitEventListener? onPointerLeave;
+  final PointerExitEventListener? onPointerExit;
 
   @override
   final ValueChanged<bool>? onFocusChange;
@@ -77,21 +132,17 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
   @override
   final Widget child;
 
-  /// Returns the [WidgetState]s of the ancestor [BaseControl] nearest to the
-  /// provided `context`.
+  /// Returns the [WidgetState]s of the ancestor [BaseControl] of type [T]
+  /// nearest to the provided `context`.
   ///
   /// {@template BaseControl.statesOf}
   /// Calling this method establishes a dependency that will cause the provided
   /// [BuildContext] to rebuild whenever any of the following states change:
   ///
-  /// - [WidgetState.pressed], which indicates whether the ancestor is currently
-  ///   pressed.
-  /// - [WidgetState.hovered], which indicates whether the ancestor should show
-  ///   a hover highlight.
-  /// - [WidgetState.focused], which indicates whether the ancestor should show
-  ///   a focus highlight.
-  /// - [WidgetState.disabled], which indicates whether the ancestor is
-  ///   currently disabled.
+  /// - [WidgetState.pressed], when the ancestor is currently pressed.
+  /// - [WidgetState.hovered], when the ancestor should show a hover highlight.
+  /// - [WidgetState.focused], when the ancestor should show a focus highlight.
+  /// - [WidgetState.disabled], when the ancestor is currently disabled.
   ///
   /// To minimize rebuilds, widgets that only react to specific states can use
   /// the following state selectors:
@@ -119,31 +170,36 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
     };
   }
 
-  ///  Returns whether the ancestor [BaseControl] nearest to the provided
-  /// `context` is hovered.
+  /// Returns whether the ancestor [BaseControl] of type [T] nearest to the
+  /// provided `context` is hovered.
   ///
   /// {@macro BaseHoverable.isHoveredOf}
-  ///
-  /// See Also:
-  ///
-  ///   * [isHoverHighlightShownOf], which indicates whether the control should
-  ///     visually indicate that it is hovered.
-  ///   * [isFocusedOf], which indicates whether the control is focused.
   @optionalTypeArgs
   static bool isHoveredOf<T extends Object?>(BuildContext context) {
     return BaseHoverable.isHoveredOf<T>(context);
   }
 
-  /// Returns whether the ancestor [BaseControl] nearest to the provided
-  /// `context` is pressed.
+  /// Returns whether the ancestor [BaseControl] of type [T] nearest to the
+  /// provided `context` is pressed.
   ///
-  /// When true, [statesOf] will also include [WidgetState.pressed].
+  /// {@template BaseControl.isPressedOf}
+  /// Calling this method establishes a dependency that will cause the provided
+  /// [BuildContext] to rebuild whenever the ancestor [BaseControl] is pressed
+  /// or released.
+  ///
+  /// If the [shortcuts] property is set to
+  /// [BaseControl.activateOnEnterAndSpaceUpShortcuts], this method will return true when
+  /// [LogicalKeyboardKey.space] is pressed down, as well as when it is pressed
+  /// via pointer.
+  ///
+  /// When true, the [Set<WidgetState>] returned by [statesOf] will include [WidgetState.pressed].
+  /// {@endtemplate}
   @optionalTypeArgs
   static bool isPressedOf<T extends Object?>(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<_PressableScope<T>>()!.pressed;
   }
 
-  /// Returns whether the ancestor [BaseControl] nearest to the provided
+  /// Returns whether the ancestor [BaseControl] of type [T] nearest to the provided
   /// `context` has input focus.
   ///
   /// {@macro BaseFocusable.isFocusedOf}
@@ -152,50 +208,50 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
     return BaseFocusable.isFocusedOf<T>(context);
   }
 
-  /// Returns whether the ancestor [BaseControl] nearest to the provided
-  /// `context` should show a visual focus highlight.
+  /// Returns whether the ancestor [BaseControl] of type [T] nearest to the
+  /// provided `context` should show a visual focus highlight.
   ///
   /// {@macro BaseFocusable.isFocusHighlightShownOf}
   ///
-  /// If true, [statesOf] will also include [WidgetState.focused].
-  ///
-
+  /// If true, the [Set<WidgetState>] returned by [statesOf] will include
+  /// [WidgetState.focused].
   @optionalTypeArgs
   static bool isFocusHighlightShownOf<T extends Object?>(BuildContext context) {
     return BaseFocusable.isFocusHighlightShownOf<T>(context);
   }
 
-  /// Returns whether the ancestor [BaseControl] nearest to the provided
-  /// `context` should show a visual hover highlight.
+  /// Returns whether the ancestor [BaseControl] of type [T] nearest to the
+  /// provided `context` should show a visual hover highlight.
   ///
   /// {@macro BaseHoverable.isHoverHighlightShownOf}
   ///
-  /// When true, the set returned by [statesOf] will contain
+  /// When true, the [Set<WidgetState>] returned by [statesOf] will include
   /// [WidgetState.hovered].
   @optionalTypeArgs
   static bool isHoverHighlightShownOf<T extends Object?>(BuildContext context) {
     return BaseHoverable.isHoverHighlightShownOf<T>(context);
   }
 
-  /// Returns whether the ancestor [BaseControl] nearest to the provided
-  /// `context` is disabled.
+  /// Returns whether the ancestor [BaseControl] of type [T] nearest to the
+  /// provided `context` is disabled.
   ///
-  /// When true, the set returned by [statesOf] will contain
+  /// {@template BaseControl.isDisabledOf}
+  /// Calling this method establishes a dependency that will cause the provided
+  /// [BuildContext] to rebuild whenever the ancestor is enabled or disabled.
+  ///
+  /// When true, the [Set<WidgetState>] returned by [statesOf] will include
   /// [WidgetState.disabled].
+  /// {@endtemplate}
   @optionalTypeArgs
   static bool isDisabledOf<T extends Object?>(BuildContext context) {
     return !context.dependOnInheritedWidgetOfExactType<_EnabledScope<T>>()!.enabled;
   }
 
-  static const activateOnEnterShortcuts = {
-    SingleActivator(LogicalKeyboardKey.space): DoNothingAndStopPropagationIntent(),
-    SingleActivator(LogicalKeyboardKey.enter): kIsWeb ? ButtonActivateIntent() : ActivateIntent(),
-  };
-
   /// The default shortcuts for [BaseControl]s.
   ///
-  /// By default, Space triggers the control's [onPressed] callback on key up,
-  /// and Enter triggers it on key down.
+  /// [LogicalKeyboardKey.space] triggers the control's [onPressed] or
+  /// [onActivate] callback on key up, and [LogicalKeyboardKey.enter]
+  /// triggers it on key down.
   ///
   /// These shortcuts can be overridden by providing a different map to the
   /// [shortcuts] parameter.
@@ -205,6 +261,16 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
     _SingleKeyUpActivator(LogicalKeyboardKey.space): ActivateIntent(),
   };
 
+  /// Alternative shortcuts for [BaseControl]s that only triggers the control's
+  /// [onPressed] or [onActivate] callback on [LogicalKeyboardKey.enter] key down.
+  static const activateOnEnterShortcuts = <ShortcutActivator, Intent>{
+    SingleActivator(LogicalKeyboardKey.space): DoNothingAndStopPropagationIntent(),
+    SingleActivator(LogicalKeyboardKey.enter): kIsWeb ? ButtonActivateIntent() : ActivateIntent(),
+  };
+
+  /// Alternative shortcuts for [BaseControl]s that trigger the control's
+  /// [onPressed] or [onActivate] callback on key down for both
+  /// [LogicalKeyboardKey.space] and [LogicalKeyboardKey.enter].
   static const activateOnEnterAndSpaceDownShortcuts = <ShortcutActivator, Intent>{
     SingleActivator(LogicalKeyboardKey.enter): kIsWeb ? ButtonActivateIntent() : ActivateIntent(),
     SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
@@ -318,20 +384,20 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
       enabled: widget.enabled,
       behavior: widget.behavior,
       opaque: widget.opaque,
-      onEnter: (PointerEnterEvent event) {
+      onPointerEnter: (PointerEnterEvent event) {
         setState(() {
           isHovered = true;
         });
         widget.onPointerEnter?.call(event);
       },
-      onHover: widget.onPointerHover,
-      onExit: (PointerExitEvent event) {
-        widget.onPointerLeave?.call(event);
+      onPointerHover: widget.onPointerHover,
+      onPointerExit: (PointerExitEvent event) {
+        widget.onPointerExit?.call(event);
         setState(() {
           isHovered = false;
         });
       },
-      cursor: hasMouseCursor
+      mouseCursor: hasMouseCursor
           ? widget.mouseCursor!.resolve({
               if (isHovered) WidgetState.hovered,
               if (BaseControl.isPressedOf<T>(context)) WidgetState.pressed,
@@ -398,10 +464,6 @@ enum _ActivationSource { pointer, keyboard }
 
 class _ActivateDownIntent extends Intent {
   const _ActivateDownIntent();
-}
-
-class ActivateCompleteIntent extends Intent {
-  const ActivateCompleteIntent();
 }
 
 class _PressableScope<T extends Object?> extends InheritedWidget {

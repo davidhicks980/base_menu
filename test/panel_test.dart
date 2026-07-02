@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_utilities/menu_utilities.dart';
-import 'package:menu_utilities/src/menu.dart';
+
+import 'utilities.dart';
 
 Finder findWidgetBetween(Type type, {required Type ancestor, required Type descendant}) {
   return find.descendant(

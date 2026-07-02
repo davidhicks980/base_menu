@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import 'tooltip.dart';
 import '../utilities/colors.dart';
+import 'tooltip.dart';
 
 class TitleIconButton extends StatelessWidget {
   const TitleIconButton({super.key, required this.child, required this.tooltip});

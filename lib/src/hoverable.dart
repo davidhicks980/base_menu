@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import 'interface.dart';
+
 /// Injects [BaseHoverable] state for type [T] into the widget tree.
 ///
 /// Use this widget to:
@@ -9,6 +11,7 @@ import 'package:flutter/widgets.dart';
 ///    subtree.
 ///  * Override the value of [BaseHoverable.isHoverHighlightShownOf] for a
 ///    specific subtree using the [showHoverHighlight] property.
+@internal
 class BaseHoverableStateInjector<T extends Object?> extends StatelessWidget {
   const BaseHoverableStateInjector({super.key, this.showHoverHighlight, required this.child});
 
@@ -36,56 +39,59 @@ class BaseHoverableStateInjector<T extends Object?> extends StatelessWidget {
   }
 }
 
+/// A widget that manages hover state for type [T] and propagates it
+/// to descendants in the widget tree.
+///
+/// Descendants can subscribe to changes in hover or hover highlight visibility
+/// using [BaseHoverable.isHoveredOf] and [BaseHoverable.isHoverHighlightShownOf].
 @optionalTypeArgs
-class BaseHoverable<T extends Object?> extends StatefulWidget {
+class BaseHoverable<T extends Object?> extends StatefulWidget implements BaseHoverableInterface {
+  /// Creates a widget that forwards mouse events to callbacks.
+  ///
+  /// By default, all callbacks are empty, [mouseCursor] is [MouseCursor.defer], and
+  /// [opaque] is true.
   const BaseHoverable({
     super.key,
-    this.onHover,
-    this.onEnter,
-    this.onExit,
+    this.onPointerHover,
+    this.onPointerEnter,
+    this.onPointerExit,
     this.behavior = HitTestBehavior.deferToChild,
-    this.cursor = MouseCursor.defer,
+    this.mouseCursor = MouseCursor.defer,
     this.opaque = true,
     this.enabled = true,
     required this.child,
   });
 
-  /// Called when a pointer enters this widget.
-  ///
-  /// This callback is not called when [enabled] is false.
-  ///
-  /// See [MouseRegion.onEnter] for more details.
-  final PointerEnterEventListener? onEnter;
+  @override
+  final PointerEnterEventListener? onPointerEnter;
 
-  /// Called when a pointer moves within the bounds of this widget.
-  ///
-  /// This callback is not called when [enabled] is false.
-  ///
-  /// See [MouseRegion.onHover] for more details.
-  final PointerHoverEventListener? onHover;
+  @override
+  final PointerHoverEventListener? onPointerHover;
 
-  /// Called when a pointer exits this widget.
-  ///
-  /// This callback is not called when [enabled] is false.
-  ///
-  /// See [MouseRegion.onExit] for more details.
-  final PointerExitEventListener? onExit;
+  @override
+  final PointerExitEventListener? onPointerExit;
 
   /// The mouse cursor to display when a pointer is hovering over this region.
   ///
   /// Defaults to [MouseCursor.defer], which defers the choice of cursor to the
   /// nearest underlying region that specifies a cursor.
-  final MouseCursor cursor;
+  final MouseCursor mouseCursor;
 
-  /// The hit test behavior to use for pointer events.
+  @override
   final HitTestBehavior behavior;
+
+  @override
+  final bool opaque;
 
   /// Whether this widget should trigger hover callbacks and show hover highlights.
   ///
-  /// If false, this widget will not trigger hover callbacks or show a hover
-  /// highlight, but it will
+  /// If false, this widget will not trigger hover callbacks, but it will still
+  /// communicate its hover state to descendants.
   final bool enabled;
-  final bool opaque;
+
+  /// The widget below this widget in the tree.
+  ///
+  /// {@macro flutter.widgets.ProxyWidget.child}
   final Widget child;
 
   static _HoverableScope<T>? _of<T extends Object?>(BuildContext context) {
@@ -98,7 +104,6 @@ class BaseHoverable<T extends Object?> extends StatefulWidget {
   /// `context` is being hovered by a pointer.
   ///
   /// {@template BaseHoverable.isHoveredOf}
-  ///
   /// Calling this method establishes a dependency that will cause the provided
   /// [BuildContext] to rebuild whenever the ancestor gains or loses hover.
   ///
@@ -106,7 +111,6 @@ class BaseHoverable<T extends Object?> extends StatefulWidget {
   /// the widget is [enabled] or the [FocusHighlightMode]. As a result,
   /// [isHoverHighlightShownOf] should be used instead of [isHoveredOf] to
   /// determine the visual appearance of downstream widgets.
-  ///
   /// {@endtemplate}
   @optionalTypeArgs
   static bool isHoveredOf<T extends Object?>(BuildContext context) {
@@ -117,7 +121,6 @@ class BaseHoverable<T extends Object?> extends StatefulWidget {
   /// `context` should show a visual hover highlight.
   ///
   /// {@template BaseHoverable.isHoverHighlightShownOf}
-  ///
   /// Calling this method establishes a dependency that will cause the provided
   /// [BuildContext] to rebuild whenever the ancestor gains or loses highlight
   /// hover.
@@ -172,7 +175,7 @@ class _BaseHoverableState<T extends Object?> extends State<BaseHoverable<T>> {
     });
 
     if (widget.enabled) {
-      widget.onEnter?.call(event);
+      widget.onPointerEnter?.call(event);
     }
   }
 
@@ -182,7 +185,7 @@ class _BaseHoverableState<T extends Object?> extends State<BaseHoverable<T>> {
     });
 
     if (widget.enabled) {
-      widget.onExit?.call(event);
+      widget.onPointerExit?.call(event);
     }
   }
 
@@ -203,10 +206,10 @@ class _BaseHoverableState<T extends Object?> extends State<BaseHoverable<T>> {
     return MouseRegion(
       opaque: widget.opaque,
       onEnter: _handleEnter,
-      onHover: widget.enabled ? widget.onHover : null,
+      onHover: widget.enabled ? widget.onPointerHover : null,
       onExit: _handleLeave,
       hitTestBehavior: widget.behavior,
-      cursor: widget.cursor,
+      cursor: widget.mouseCursor,
       child: _HoverableScope<T>(
         hovered: _isHovered,
         showHoverHighlight: _showHoverHighlight,

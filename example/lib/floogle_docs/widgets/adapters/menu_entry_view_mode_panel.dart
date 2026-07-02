@@ -1,10 +1,11 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import '../app_state_manager.dart';
+
 import '../../data/menu.dart';
 import '../../model/enum.dart';
 import '../../utilities/colors.dart';
+import '../app_state_manager.dart';
 import '../menu_item_radio_semantics.dart';
 import '../menu_panel.dart';
 import '../selectable_menu_item.dart';

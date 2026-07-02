@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 import 'package:menu_utilities/src/focusable.dart';
 
+import 'utilities.dart';
+
 void main() {
   testWidgets('initial state is not focused', (WidgetTester tester) async {
     bool? isFocused;

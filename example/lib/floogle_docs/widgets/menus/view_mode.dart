@@ -1,10 +1,10 @@
 import 'package:flutter/widgets.dart';
 
-import '../app_state_manager.dart';
 import '../../model/enum.dart';
-import '../tooltip.dart';
 import '../adapters/menu_entry_view_mode_panel.dart';
+import '../app_state_manager.dart';
 import '../select.dart';
+import '../tooltip.dart';
 
 class ViewModeMenu extends StatelessWidget {
   const ViewModeMenu({super.key, required this.breakpoint});

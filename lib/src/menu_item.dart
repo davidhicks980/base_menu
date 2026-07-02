@@ -7,15 +7,29 @@ import 'package:flutter/widgets.dart';
 import '../menu_utilities.dart';
 import 'interface.dart';
 
+/// A widget that manages the state of a menu item and propagates it to
+/// descendants in the widget tree.
+///
+/// The [BaseMenuItem] widget extends [BaseControl] with additional
+/// functionality specific to menu items:
+/// * When [requestCloseOnActivate] is true, it will close ancestor menus when activated.
+/// * When [requestFocusOnHover] is true, it will request focus when hovered.
+/// * It defaults to the [SemanticsRole.menuItem] role, which is appropriate for
+///   menu items. This can be overridden by setting [role] to a different value.
+///
+/// {@macro BaseControl.description}
 @optionalTypeArgs
 class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenuItemInterface {
+  /// Creates a [BaseMenuItem] widget.
+  ///
+  /// The [child] parameter must not be null.
   const BaseMenuItem({
     super.key,
     this.onPressed,
     this.onActivate,
     this.onPointerHover,
     this.onPointerEnter,
-    this.onPointerLeave,
+    this.onPointerExit,
     this.onFocusChange,
     this.focusNode,
     this.autofocus = false,
@@ -47,7 +61,7 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
   final PointerHoverEventListener? onPointerHover;
 
   @override
-  final PointerExitEventListener? onPointerLeave;
+  final PointerExitEventListener? onPointerExit;
 
   @override
   final ValueChanged<bool>? onFocusChange;
@@ -91,26 +105,52 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
   @override
   bool get enabled => onPressed != null || onActivate != null;
 
+  /// Returns the [WidgetState]s of the ancestor [BaseMenuItem] of type [T]
+  /// nearest to the provided `context`.
+  ///
+  /// {@macro BaseControl.statesOf}
   @optionalTypeArgs
   static Set<WidgetState> statesOf<T extends Object?>(BuildContext context) {
     return BaseControl.statesOf<BaseMenuItem<T>>(context);
   }
 
+  /// Returns whether the ancestor [BaseMenuItem] of type [T] nearest to the
+  /// provided `context` is hovered.
+  ///
+  /// {@macro BaseHoverable.isHoveredOf}
+  ///
+  /// See Also:
+  ///
+  ///   * [isHoverHighlightShownOf], which indicates whether the control should
+  ///     visually indicate that it is hovered.
+  ///   * [isFocusedOf], which indicates whether the control is focused.
   @optionalTypeArgs
   static bool isHoveredOf<T extends Object?>(BuildContext context) {
     return BaseControl.isHoveredOf<BaseMenuItem<T>>(context);
   }
 
+  /// Returns whether the ancestor [BaseMenuItem] of type [T] nearest to the
+  /// provided `context` has input focus.
+  ///
+  /// {@macro BaseControl.isPressedOf}
   @optionalTypeArgs
   static bool isPressedOf<T extends Object?>(BuildContext context) {
     return BaseControl.isPressedOf<BaseMenuItem<T>>(context);
   }
 
+  /// Returns whether the ancestor [BaseMenuItem] of type [T] nearest to the provided
+  /// `context` has input focus.
+  ///
+  /// {@macro BaseFocusable.isFocusedOf}
   @optionalTypeArgs
   static bool isFocusedOf<T extends Object?>(BuildContext context) {
     return BaseControl.isFocusedOf<BaseMenuItem<T>>(context);
   }
 
+  /// Returns whether the ancestor [BaseMenuItem] of type [T] nearest to
+  /// the provided `context` is disabled.
+  ///
+  /// {@macro BaseControl.isDisabledOf}
   @optionalTypeArgs
   static bool isDisabledOf<T extends Object?>(BuildContext context) {
     return BaseControl.isDisabledOf<BaseMenuItem<T>>(context);
@@ -202,7 +242,7 @@ class _BaseMenuItemState<T extends Object?> extends State<BaseMenuItem<T>> {
               ? _handleHoverEnter
               : widget.onPointerEnter,
           onPointerHover: widget.onPointerHover,
-          onPointerLeave: widget.onPointerLeave,
+          onPointerExit: widget.onPointerExit,
           focusNode: _focusNode,
           onFocusChange: widget.onFocusChange,
           autofocus: widget.autofocus,

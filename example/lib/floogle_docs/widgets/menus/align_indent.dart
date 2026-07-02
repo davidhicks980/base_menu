@@ -1,10 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../app_state_manager.dart';
 import '../../data/menu.dart';
 import '../../model/intents.dart';
 import '../../utilities/colors.dart';
+import '../app_state_manager.dart';
 import '../icon_button.dart';
 import '../menu_panel.dart';
 import '../popup.dart';

@@ -28,7 +28,7 @@ final WidgetStateProperty<BoxDecoration> demoButtonDecoration = WidgetStatePrope
     color: kPressedColor,
     borderRadius: BorderRadius.circular(8),
     border: Border.all(width: 3.5),
-    boxShadow: [BoxShadow(color: kSeedColor.withOpacity(0.4), blurRadius: 4)],
+    boxShadow: [BoxShadow(color: kSeedColor.withValues(alpha: 0.4), blurRadius: 4)],
   ),
   WidgetState.pressed: BoxDecoration(
     color: kPressedColor,
@@ -49,7 +49,7 @@ final WidgetStateProperty<BoxDecoration> demoButtonDecoration = WidgetStatePrope
   WidgetState.hovered: BoxDecoration(
     color: kSeedColor,
     borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: kSeedColor.withOpacity(0.5), width: 3.5),
+    border: Border.all(color: kSeedColor.withValues(alpha: 0.5), width: 3.5),
   ),
   WidgetState.any: BoxDecoration(
     color: kTransparent,
@@ -82,7 +82,7 @@ final WidgetStateProperty<BoxDecoration> demoMenuItemDecoration = WidgetStatePro
     border: Border.all(color: kSeedColor, width: 3.5),
   ),
   WidgetState.focused: BoxDecoration(
-    color: kSeedColor.withOpacity(0.12),
+    color: kSeedColor.withValues(alpha: 0.12),
     borderRadius: BorderRadius.circular(4),
     border: Border.all(color: kSeedColor, width: 3.5),
   ),

@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import 'utilities.dart';
+
 void main() {
   group('BaseMenuItem', () {
     testWidgets('Initial state is idle', (WidgetTester tester) async {
@@ -733,7 +735,7 @@ void main() {
           onActivate: mockOnActivate,
           onPointerEnter: mockOnPointerEnter,
           onPointerHover: mockOnPointerHover,
-          onPointerLeave: mockOnPointerLeave,
+          onPointerExit: mockOnPointerLeave,
           onFocusChange: mockOnFocusChange,
           role: null,
           focusNode: node,
@@ -757,7 +759,7 @@ void main() {
     expect(control.mouseCursor, cursor);
     expect(control.onPointerEnter, mockOnPointerEnter);
     expect(control.onPointerHover, mockOnPointerHover);
-    expect(control.onPointerLeave, mockOnPointerLeave);
+    expect(control.onPointerExit, mockOnPointerLeave);
     expect(control.onFocusChange, mockOnFocusChange);
     expect(control.gestureSemanticsEnabled, isTrue);
     expect(control.gestureSemantics, gestureSemantics);

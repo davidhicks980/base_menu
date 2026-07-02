@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import '../utilities/colors.dart';
 import '../../shared/localized_shortcut_labeler.dart';
+import '../utilities/colors.dart';
 
 class SubmenuActionLabel extends StatelessWidget {
   const SubmenuActionLabel({
@@ -231,7 +231,7 @@ class _ArrowPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(opacity)
+      ..color = color.withValues(alpha: opacity)
       ..style = PaintingStyle.fill;
 
     final vertices = ui.Vertices(ui.VertexMode.triangles, [

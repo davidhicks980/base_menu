@@ -7,6 +7,25 @@ import 'package:flutter/widgets.dart';
 
 import 'menu.dart';
 
+/// A widget that displays and organizes menu items in a linear layout along a
+/// given [orientation].
+///
+/// [BaseMenuPanel] automatically lays out its [children] along the
+/// [orientation] axis (defaulting to the orientation of the nearest [BaseMenu],
+/// or [Axis.vertical] if none is found).
+///
+/// [BaseMenuPanel] only describes layout and functionality of the menu surface.
+/// It does not provide any visual styling or decoration.
+///
+/// This class is intended as a simple content surface for [BaseMenu],
+/// [BaseSubmenu], and [BaseMenuBar], but can also be used independently to
+/// create custom menu surfaces.
+///
+/// The [onPointerEnter], [onPointerExit], and [onPointerHover] callbacks are
+/// triggered when the pointer enters, exits, or hovers over a hit-testable
+/// child of the panel. This is useful for implementing common desktop menu
+/// behavior, such as focusing the menu anchor button when [onPointerExit] is
+/// triggered.
 class BaseMenuPanel extends StatelessWidget {
   /// Creates a [BaseMenuPanel].
   ///
@@ -151,7 +170,8 @@ class BaseMenuPanel extends StatelessWidget {
   /// Called when a pointer hovers over a hit-testable member of [children].
   final PointerHoverEventListener? onPointerHover;
 
-  /// Whether the menu panel should be scrollable when its contents exceed the available space within the overlay.
+  /// Whether the menu panel should be scrollable when its contents exceed the
+  /// available space within the overlay.
   final bool scrollable;
 
   @override

@@ -1,5 +1,4 @@
 // ignore_for_file: overridden_fields, unused_element
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
@@ -16,10 +15,10 @@ class AliasedBorder extends Border {
 
   /// Creates a border whose sides are all the same.
   const AliasedBorder.fromBorderSide(BorderSide side)
-      : top = side,
-        right = side,
-        bottom = side,
-        left = side;
+    : top = side,
+      right = side,
+      bottom = side,
+      left = side;
 
   /// Creates a border with symmetrical vertical and horizontal sides.
   ///
@@ -30,10 +29,10 @@ class AliasedBorder extends Border {
   const AliasedBorder.symmetric({
     BorderSide vertical = BorderSide.none,
     BorderSide horizontal = BorderSide.none,
-  })  : left = vertical,
-        top = horizontal,
-        right = vertical,
-        bottom = horizontal;
+  }) : left = vertical,
+       top = horizontal,
+       right = vertical,
+       bottom = horizontal;
 
   /// A uniform border with all sides the same color and width.
   ///
@@ -44,8 +43,7 @@ class AliasedBorder extends Border {
     BorderStyle style = BorderStyle.solid,
     double strokeAlign = BorderSide.strokeAlignInside,
   }) {
-    final BorderSide side = BorderSide(
-        color: color, width: width, style: style, strokeAlign: strokeAlign);
+    final side = BorderSide(color: color, width: width, style: style, strokeAlign: strokeAlign);
     return AliasedBorder.fromBorderSide(side);
   }
 
@@ -86,36 +84,31 @@ class AliasedBorder extends Border {
     if (_widthIsUniform) {
       return EdgeInsets.all(top.strokeInset);
     }
-    return EdgeInsets.fromLTRB(left.strokeInset, top.strokeInset,
-        right.strokeInset, bottom.strokeInset);
+    return EdgeInsets.fromLTRB(
+      left.strokeInset,
+      top.strokeInset,
+      right.strokeInset,
+      bottom.strokeInset,
+    );
   }
 
   @override
   bool get isUniform =>
-      _colorIsUniform &&
-      _widthIsUniform &&
-      _styleIsUniform &&
-      _strokeAlignIsUniform;
+      _colorIsUniform && _widthIsUniform && _styleIsUniform && _strokeAlignIsUniform;
 
   bool get _colorIsUniform {
     final Color topColor = top.color;
-    return left.color == topColor &&
-        bottom.color == topColor &&
-        right.color == topColor;
+    return left.color == topColor && bottom.color == topColor && right.color == topColor;
   }
 
   bool get _widthIsUniform {
     final double topWidth = top.width;
-    return left.width == topWidth &&
-        bottom.width == topWidth &&
-        right.width == topWidth;
+    return left.width == topWidth && bottom.width == topWidth && right.width == topWidth;
   }
 
   bool get _styleIsUniform {
     final BorderStyle topStyle = top.style;
-    return left.style == topStyle &&
-        bottom.style == topStyle &&
-        right.style == topStyle;
+    return left.style == topStyle && bottom.style == topStyle && right.style == topStyle;
   }
 
   bool get _strokeAlignIsUniform {
@@ -126,7 +119,7 @@ class AliasedBorder extends Border {
   }
 
   Set<Color> _distinctVisibleColors() {
-    final Set<Color> distinctVisibleColors = <Color>{};
+    final distinctVisibleColors = <Color>{};
     if (top.style != BorderStyle.none) {
       distinctVisibleColors.add(top.color);
     }
@@ -252,17 +245,14 @@ class AliasedBorder extends Border {
         case BorderStyle.solid:
           switch (shape) {
             case BoxShape.circle:
-              assert(borderRadius == null,
-                  'A borderRadius cannot be given when shape is a BoxShape.circle.');
+              assert(
+                borderRadius == null,
+                'A borderRadius cannot be given when shape is a BoxShape.circle.',
+              );
               _paintUniformBorderWithCircle(canvas, rect, top);
             case BoxShape.rectangle:
               if (borderRadius != null && borderRadius != BorderRadius.zero) {
-                _paintUniformBorderWithRadius(
-                  canvas,
-                  rect,
-                  top,
-                  borderRadius,
-                );
+                _paintUniformBorderWithRadius(canvas, rect, top, borderRadius);
                 return;
               }
               _paintUniformBorderWithRectangle(canvas, rect, top);
@@ -282,29 +272,32 @@ class AliasedBorder extends Border {
     // and (borderRadius is present) or (border is visible and width != 0.0).
     if (visibleColors.length == 1 &&
         !hasHairlineBorder &&
-        (shape == BoxShape.circle ||
-            (borderRadius != null && borderRadius != BorderRadius.zero))) {
-      BoxBorder.paintNonUniformBorder(canvas, rect,
-          shape: shape,
-          borderRadius: borderRadius,
-          textDirection: textDirection,
-          top: top.style == BorderStyle.none ? BorderSide.none : top,
-          right: right.style == BorderStyle.none ? BorderSide.none : right,
-          bottom: bottom.style == BorderStyle.none ? BorderSide.none : bottom,
-          left: left.style == BorderStyle.none ? BorderSide.none : left,
-          color: visibleColors.first);
+        (shape == BoxShape.circle || (borderRadius != null && borderRadius != BorderRadius.zero))) {
+      BoxBorder.paintNonUniformBorder(
+        canvas,
+        rect,
+        shape: shape,
+        borderRadius: borderRadius,
+        textDirection: textDirection,
+        top: top.style == BorderStyle.none ? BorderSide.none : top,
+        right: right.style == BorderStyle.none ? BorderSide.none : right,
+        bottom: bottom.style == BorderStyle.none ? BorderSide.none : bottom,
+        left: left.style == BorderStyle.none ? BorderSide.none : left,
+        color: visibleColors.first,
+      );
       return;
     }
 
     assert(() {
       if (hasHairlineBorder) {
-        assert(borderRadius == null || borderRadius == BorderRadius.zero,
-            'A hairline border like `BorderSide(width: 0.0, style: BorderStyle.solid)` can only be drawn when BorderRadius is zero or null.');
+        assert(
+          borderRadius == null || borderRadius == BorderRadius.zero,
+          'A hairline border like `BorderSide(width: 0.0, style: BorderStyle.solid)` can only be drawn when BorderRadius is zero or null.',
+        );
       }
       if (borderRadius != null && borderRadius != BorderRadius.zero) {
         throw FlutterError.fromParts(<DiagnosticsNode>[
-          ErrorSummary(
-              'A borderRadius can only be given on borders with uniform colors.'),
+          ErrorSummary('A borderRadius can only be given on borders with uniform colors.'),
           ErrorDescription('The following is not uniform:'),
           if (!_colorIsUniform) ErrorDescription('BorderSide.color'),
         ]);
@@ -314,8 +307,7 @@ class AliasedBorder extends Border {
     assert(() {
       if (shape != BoxShape.rectangle) {
         throw FlutterError.fromParts(<DiagnosticsNode>[
-          ErrorSummary(
-              'A Border can only be drawn as a circle on borders with uniform colors.'),
+          ErrorSummary('A Border can only be drawn as a circle on borders with uniform colors.'),
           ErrorDescription('The following is not uniform:'),
           if (!_colorIsUniform) ErrorDescription('BorderSide.color'),
         ]);
@@ -323,18 +315,17 @@ class AliasedBorder extends Border {
       return true;
     }());
     assert(() {
-      if (!_strokeAlignIsUniform ||
-          top.strokeAlign != BorderSide.strokeAlignInside) {
+      if (!_strokeAlignIsUniform || top.strokeAlign != BorderSide.strokeAlignInside) {
         throw FlutterError.fromParts(<DiagnosticsNode>[
           ErrorSummary(
-              'A Border can only draw strokeAlign different than BorderSide.strokeAlignInside on borders with uniform colors.'),
+            'A Border can only draw strokeAlign different than BorderSide.strokeAlignInside on borders with uniform colors.',
+          ),
         ]);
       }
       return true;
     }());
 
-    paintBorder(canvas, rect,
-        top: top, right: right, bottom: bottom, left: left);
+    paintBorder(canvas, rect, top: top, right: right, bottom: bottom, left: left);
   }
 
   static RRect _inflateRRect(RRect rect, EdgeInsets insets) {
@@ -343,16 +334,18 @@ class AliasedBorder extends Border {
       rect.top - insets.top,
       rect.right + insets.right,
       rect.bottom + insets.bottom,
-      topLeft: (rect.tlRadius + Radius.elliptical(insets.left, insets.top))
-          .clamp(minimum: Radius.zero),
-      topRight: (rect.trRadius + Radius.elliptical(insets.right, insets.top))
-          .clamp(minimum: Radius.zero),
-      bottomRight:
-          (rect.brRadius + Radius.elliptical(insets.right, insets.bottom))
-              .clamp(minimum: Radius.zero),
-      bottomLeft:
-          (rect.blRadius + Radius.elliptical(insets.left, insets.bottom))
-              .clamp(minimum: Radius.zero),
+      topLeft: (rect.tlRadius + Radius.elliptical(insets.left, insets.top)).clamp(
+        minimum: Radius.zero,
+      ),
+      topRight: (rect.trRadius + Radius.elliptical(insets.right, insets.top)).clamp(
+        minimum: Radius.zero,
+      ),
+      bottomRight: (rect.brRadius + Radius.elliptical(insets.right, insets.bottom)).clamp(
+        minimum: Radius.zero,
+      ),
+      bottomLeft: (rect.blRadius + Radius.elliptical(insets.left, insets.bottom)).clamp(
+        minimum: Radius.zero,
+      ),
     );
   }
 
@@ -362,38 +355,42 @@ class AliasedBorder extends Border {
       rect.top + insets.top,
       rect.right - insets.right,
       rect.bottom - insets.bottom,
-      topLeft: (rect.tlRadius - Radius.elliptical(insets.left, insets.top))
-          .clamp(minimum: Radius.zero),
-      topRight: (rect.trRadius - Radius.elliptical(insets.right, insets.top))
-          .clamp(minimum: Radius.zero),
-      bottomRight:
-          (rect.brRadius - Radius.elliptical(insets.right, insets.bottom))
-              .clamp(minimum: Radius.zero),
-      bottomLeft:
-          (rect.blRadius - Radius.elliptical(insets.left, insets.bottom))
-              .clamp(minimum: Radius.zero),
+      topLeft: (rect.tlRadius - Radius.elliptical(insets.left, insets.top)).clamp(
+        minimum: Radius.zero,
+      ),
+      topRight: (rect.trRadius - Radius.elliptical(insets.right, insets.top)).clamp(
+        minimum: Radius.zero,
+      ),
+      bottomRight: (rect.brRadius - Radius.elliptical(insets.right, insets.bottom)).clamp(
+        minimum: Radius.zero,
+      ),
+      bottomLeft: (rect.blRadius - Radius.elliptical(insets.left, insets.bottom)).clamp(
+        minimum: Radius.zero,
+      ),
     );
   }
 
-  static void _paintUniformBorderWithCircle(
-      Canvas canvas, Rect rect, BorderSide side) {
+  static void _paintUniformBorderWithCircle(Canvas canvas, Rect rect, BorderSide side) {
     assert(side.style != BorderStyle.none);
     final Paint paint = side.toPaint()..isAntiAlias = false;
     final double radius = (rect.shortestSide + side.strokeOffset) / 2;
     canvas.drawCircle(rect.center, radius, paint);
   }
 
-  static void _paintUniformBorderWithRectangle(
-      Canvas canvas, Rect rect, BorderSide side) {
+  static void _paintUniformBorderWithRectangle(Canvas canvas, Rect rect, BorderSide side) {
     assert(side.style != BorderStyle.none);
     final Paint paint = side.toPaint()..isAntiAlias = false;
     canvas.drawRect(rect.inflate(side.strokeOffset / 2), paint);
   }
 
   static void _paintUniformBorderWithRadius(
-      Canvas canvas, Rect rect, BorderSide side, BorderRadius borderRadius) {
+    Canvas canvas,
+    Rect rect,
+    BorderSide side,
+    BorderRadius borderRadius,
+  ) {
     assert(side.style != BorderStyle.none);
-    final Paint paint = Paint()..color = side.color;
+    final paint = Paint()..color = side.color;
     paint.isAntiAlias = false;
     final double width = side.width;
     if (width == 0.0) {
@@ -432,7 +429,7 @@ class AliasedBorder extends Border {
     if (isUniform) {
       return '${objectRuntimeType(this, 'Border')}.all($top)';
     }
-    final List<String> arguments = <String>[
+    final arguments = <String>[
       if (top != BorderSide.none) 'top: $top',
       if (right != BorderSide.none) 'right: $right',
       if (bottom != BorderSide.none) 'bottom: $bottom',

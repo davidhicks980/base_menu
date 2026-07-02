@@ -1,10 +1,10 @@
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart' show Firebase;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 
+import 'app/app.dart';
 import 'firebase_options.dart';
-import 'testapp.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,5 +15,5 @@ void main() async {
       return true;
     }());
   }
-  runApp(const TestApp());
+  runApp(const App());
 }

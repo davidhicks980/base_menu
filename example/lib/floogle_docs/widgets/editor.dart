@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'app_state_manager.dart';
 import '../model/enum.dart';
 import '../utilities/colors.dart';
+import 'app_state_manager.dart';
 import 'editable.dart';
 import 'menus/context_menu.dart';
 import 'ruler.dart';
@@ -39,7 +39,7 @@ class _EditorViewState extends State<EditorView> {
     const editor = _EditorWidget();
     final child = Builder(
       builder: (context) {
-        final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
+        final bool isOpen = MenuController.maybeIsOpenOf(context) ?? false;
         return Shortcuts(shortcuts: isOpen ? {} : shortcuts, child: editor);
       },
     );
@@ -108,9 +108,8 @@ class _EditorViewState extends State<EditorView> {
                                             // the text editor can be edited.
                                             child: Builder(
                                               builder: (context) {
-                                                final editorState = AppStateManager.documentStateOf(
-                                                  context,
-                                                );
+                                                final Map<SelectionKey, Object> editorState =
+                                                    AppStateManager.documentStateOf(context);
                                                 return Padding(
                                                   padding: EdgeInsets.fromLTRB(
                                                     editorState[SelectionKey.leftMargin]! as double,
@@ -179,22 +178,4 @@ class _EditorWidget extends StatelessWidget {
       expands: true,
     );
   }
-}
-
-class _TopLeftBorderPainter extends CustomPainter {
-  const _TopLeftBorderPainter();
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = FloogleColors.separatorColor
-      ..style = PaintingStyle.stroke
-      ..isAntiAlias = false
-      ..strokeWidth = kIsWeb ? 1.0 : 0.0;
-
-    canvas.drawLine(const Offset(16, 0), Offset(size.width, 0), paint);
-    canvas.drawLine(const Offset(16, 0), Offset(16, size.height), paint);
-  }
-
-  @override
-  bool shouldRepaint(_TopLeftBorderPainter oldDelegate) => false;
 }

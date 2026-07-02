@@ -2,26 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../checkbox_menu_item/checkbox_menu_item.dart';
 import '../floogle_docs/floogle_docs.dart';
 import '../floogle_docs/utilities/colors.dart';
-import '../menubar/menubar.dart';
-import '../popup/popup.dart';
+import '../menu/menu_app.dart';
+import '../menubar/menubar_app.dart';
 import '../sequoia/sequoia.dart';
-import 'aliased_border.dart';
+import '../submenu/submenu_app.dart';
+import 'src/aliased_border.dart';
 
 const _kLightBorderColor = Color.fromARGB(255, 121, 121, 121);
 const _kDarkBorderColor = Color.fromARGB(255, 76, 76, 76);
 
 enum Destination {
-  popup('Popup', '/', icon: Icon(Symbols.list_alt), selectedIcon: Icon(Symbols.list_alt, fill: 1)),
+  menu(
+    'BaseMenu',
+    '/',
+    icon: Icon(Symbols.list_alt),
+    selectedIcon: Icon(Symbols.list_alt, fill: 1),
+  ),
+  submenu(
+    'BaseSubmenu',
+    '/submenu',
+    icon: Icon(Symbols.list_alt),
+    selectedIcon: Icon(Symbols.list_alt, fill: 1),
+  ),
   menuBar(
-    'Menu Bar',
+    'BaseMenuBar',
     '/menu-bar',
     icon: Icon(Symbols.list_alt),
     selectedIcon: Icon(Symbols.list_alt, fill: 1),
   ),
+  menuItem(
+    'BaseMenuItem',
+    '/menu-item',
+    icon: Icon(Symbols.list_alt),
+    selectedIcon: Icon(Symbols.list_alt, fill: 1),
+  ),
   aim('Aim', '/aim', icon: Icon(Symbols.list_alt), selectedIcon: Icon(Symbols.list_alt, fill: 1)),
-
   floogleDocs(
     'Floogle Docs',
     '/floogle-docs',
@@ -52,7 +70,7 @@ enum Destination {
 
   /// Helper to find a destination based on the current route name.
   static Destination fromRoute(String? route) {
-    return Destination.values.firstWhere((d) => d.route == route, orElse: () => Destination.popup);
+    return Destination.values.firstWhere((d) => d.route == route, orElse: () => Destination.menu);
   }
 }
 
@@ -65,10 +83,8 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final bool _isRTL = false;
-  final bool _isDarkMode = false;
   final double _textScaleFactor = 1.0;
   TextDirection get _textDirection => _isRTL ? TextDirection.rtl : TextDirection.ltr;
-  Brightness get _brightness => _isDarkMode ? Brightness.dark : Brightness.light;
 
   @override
   Widget build(BuildContext context) {
@@ -84,16 +100,15 @@ class _AppState extends State<App> {
             },
           ),
         ),
-        initialRoute: Destination.popup.route,
+        initialRoute: Destination.menu.route,
         routes: {
           for (final destination in Destination.values)
             destination.route: (context) => Builder(
               builder: (context) {
                 final theme = ThemeData(
                   fontFamily: 'GoogleSans',
-
                   dividerTheme: DividerThemeData(
-                    thickness: 1 / (MediaQuery.maybeDevicePixelRatioOf(context) ?? 1),
+                    thickness: 0.0,
                     color: destination.brightness == Brightness.dark
                         ? _kDarkBorderColor
                         : _kLightBorderColor,
@@ -125,8 +140,8 @@ class _AppState extends State<App> {
                     tileHeight: 36,
                     indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
                     indicatorColor: destination.brightness == Brightness.dark
-                        ? Colors.white.withOpacity(0.12)
-                        : Colors.black.withOpacity(0.08),
+                        ? Colors.white.withValues(alpha: 0.12)
+                        : Colors.black.withValues(alpha: 0.08),
                     labelTextStyle: WidgetStateProperty.resolveWith((states) {
                       final isSelected = states.contains(WidgetState.selected);
                       return TextStyle(
@@ -138,8 +153,8 @@ class _AppState extends State<App> {
                                   ? Colors.white
                                   : Colors.black)
                             : (destination.brightness == Brightness.dark
-                                  ? Colors.white.withOpacity(0.7)
-                                  : Colors.black.withOpacity(0.7)),
+                                  ? Colors.white.withValues(alpha: 0.7)
+                                  : Colors.black.withValues(alpha: 0.7)),
                       );
                     }),
                     iconTheme: WidgetStateProperty.resolveWith((states) {
@@ -151,8 +166,8 @@ class _AppState extends State<App> {
                                   ? Colors.white
                                   : Colors.black)
                             : (destination.brightness == Brightness.dark
-                                  ? Colors.white.withOpacity(0.7)
-                                  : Colors.black.withOpacity(0.7)),
+                                  ? Colors.white.withValues(alpha: 0.7)
+                                  : Colors.black.withValues(alpha: 0.7)),
                       );
                     }),
                   ),
@@ -186,11 +201,13 @@ class _AppRouteWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Widget child = switch (destination) {
-      Destination.popup => const PopupApp(),
+      Destination.menu => const MenuApp(),
       Destination.menuBar => const MenuBarApp(),
+      Destination.submenu => const SubmenuApp(),
       Destination.aim => const SizedBox(),
       Destination.floogleDocs => const FloogleDocsApp(),
       Destination.sequoia => const SequoiaApp(),
+      Destination.menuItem => const CheckboxMenuItemApp(),
     };
 
     return Theme(
@@ -437,7 +454,7 @@ class _DrawerHeader extends StatelessWidget {
         title.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall!.copyWith(
           fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
         ),
       ),
     );

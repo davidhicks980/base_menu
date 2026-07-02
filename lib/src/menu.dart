@@ -10,12 +10,6 @@ import 'package:flutter/widgets.dart';
 import '../menu_utilities.dart';
 import 'interface.dart';
 
-// Examples can assume:
-// late BuildContext context;
-// late StateSetter setState;
-// late List<Widget> menuItems;
-// late RawMenuAnchorOverlayPosition position;
-
 double _computeSquaredDistanceToRect(Offset point, Rect rect) {
   final double dx = point.dx - ui.clampDouble(point.dx, rect.left, rect.right);
   final double dy = point.dy - ui.clampDouble(point.dy, rect.top, rect.bottom);
@@ -25,8 +19,8 @@ double _computeSquaredDistanceToRect(Offset point, Rect rect) {
 const Map<SingleActivator, Intent> _kMenuShortcuts = <SingleActivator, Intent>{
   SingleActivator(LogicalKeyboardKey.gameButtonA): ActivateIntent(),
   SingleActivator(LogicalKeyboardKey.escape): DismissIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowUp): BaseMenuVerticalFocusPreviousIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowDown): BaseMenuVerticalFocusNextIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowUp): VerticalMenuFocusPreviousIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowDown): VerticalMenuFocusNextIntent(),
   SingleActivator(LogicalKeyboardKey.tab): NextFocusIntent(),
   SingleActivator(LogicalKeyboardKey.tab, shift: true): PreviousFocusIntent(),
   SingleActivator(LogicalKeyboardKey.home): _MenuFocusFirstIntent(),
@@ -35,14 +29,14 @@ const Map<SingleActivator, Intent> _kMenuShortcuts = <SingleActivator, Intent>{
 
 const Map<SingleActivator, Intent> _kMenuLTRShortcuts = {
   ..._kMenuShortcuts,
-  SingleActivator(LogicalKeyboardKey.arrowLeft): BaseMenuHorizontalFocusPreviousIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowRight): BaseMenuHorizontalFocusNextIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowLeft): HorizontalMenuFocusPreviousIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowRight): HorizontalMenuFocusNextIntent(),
 };
 
 const Map<SingleActivator, Intent> _kMenuRTLShortcuts = {
   ..._kMenuShortcuts,
-  SingleActivator(LogicalKeyboardKey.arrowLeft): BaseMenuHorizontalFocusNextIntent(),
-  SingleActivator(LogicalKeyboardKey.arrowRight): BaseMenuHorizontalFocusPreviousIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowLeft): HorizontalMenuFocusNextIntent(),
+  SingleActivator(LogicalKeyboardKey.arrowRight): HorizontalMenuFocusPreviousIntent(),
 };
 
 const Map<ShortcutActivator, Intent> _kStopDirectionalPropagationShortcuts =
@@ -58,24 +52,28 @@ sealed class _TraversalIntent extends Intent {
   const _TraversalIntent();
 }
 
-/// An intent that moves focus to the next item within a horizontal menu or menubar.
-final class BaseMenuHorizontalFocusNextIntent extends _TraversalIntent {
-  const BaseMenuHorizontalFocusNextIntent();
+/// An intent that moves focus to the next item within a horizontal [BaseMenu] or [BaseMenuBar].
+final class HorizontalMenuFocusNextIntent extends _TraversalIntent {
+  /// Creates a [HorizontalMenuFocusNextIntent].
+  const HorizontalMenuFocusNextIntent();
 }
 
-/// An intent that moves focus to the previous item within a horizontal menu or menubar.
-final class BaseMenuHorizontalFocusPreviousIntent extends _TraversalIntent {
-  const BaseMenuHorizontalFocusPreviousIntent();
+/// An intent that moves focus to the previous item within a horizontal [BaseMenu] or [BaseMenuBar].
+final class HorizontalMenuFocusPreviousIntent extends _TraversalIntent {
+  /// Creates a [HorizontalMenuFocusPreviousIntent].
+  const HorizontalMenuFocusPreviousIntent();
 }
 
-/// An intent that moves focus down to the next item within a vertical menu.
-final class BaseMenuVerticalFocusNextIntent extends _TraversalIntent {
-  const BaseMenuVerticalFocusNextIntent();
+/// An intent that moves focus to the next item in a vertical [BaseMenu] or [BaseMenuBar].
+final class VerticalMenuFocusNextIntent extends _TraversalIntent {
+  /// Creates a [VerticalMenuFocusNextIntent].
+  const VerticalMenuFocusNextIntent();
 }
 
-/// An intent that moves focus up to the previous item within a vertical menu.
-final class BaseMenuVerticalFocusPreviousIntent extends _TraversalIntent {
-  const BaseMenuVerticalFocusPreviousIntent();
+/// An intent that moves focus to the previous item in a vertical [BaseMenu] or [BaseMenuBar].
+final class VerticalMenuFocusPreviousIntent extends _TraversalIntent {
+  /// Creates a [VerticalMenuFocusPreviousIntent].
+  const VerticalMenuFocusPreviousIntent();
 }
 
 class _MenuFocusFirstIntent extends Intent {
@@ -87,9 +85,10 @@ class _MenuFocusLastIntent extends Intent {
 }
 
 /// An [Intent] that signals the nearest ancestor [BaseMenu] should be opened
-/// and focused. [MenuEnterIntent.focusFirst] and [MenuEnterIntent.focusLast]
-/// are provided to open the menu and focus the first or last menu item,
-/// respectively.
+/// and focused.
+///
+/// Use [EnterMenuIntent.focusFirst] to open and focus the first menu item, and
+/// [EnterMenuIntent.focusLast] to open and focus the last menu item.
 class EnterMenuIntent extends Intent {
   /// An intent that opens a [BaseMenu] and requests focus on the first menu item.
   const EnterMenuIntent.focusFirst() : _scopeIntent = const _MenuFocusFirstIntent();
@@ -106,6 +105,9 @@ class EnterMenuIntent extends Intent {
 /// This is used by [BaseMenu], [BaseMenuBar], and [BaseSubmenu] to determine
 /// the appropriate keyboard navigation behavior for their menu items.
 class MenuScope extends InheritedWidget {
+  /// Creates a [MenuScope] that provides the [axis] and [isSubmenu] status of a
+  /// menu to its descendants.
+  @visibleForTesting
   const MenuScope({super.key, required super.child, required this.axis, required this.isSubmenu});
 
   /// The direction of keyboard navigation for the menu items in this menu.
@@ -133,15 +135,13 @@ class MenuScope extends InheritedWidget {
 /// a [BaseMenu].
 typedef BaseMenuOverlayChildBuilder = Widget Function(BuildContext context, Widget child);
 
-/// A delegate responsible for building the widget that positions a
-/// [BaseMenu.menu].
-@immutable
-abstract class MenuPositioningDelegate {
+/// A delegate that builds a widget that positions the menu panel of a [BaseMenu].
+abstract interface class MenuPositioningDelegate {
   /// Creates a [MenuPositioningDelegate].
   const MenuPositioningDelegate();
 
-  /// Builds a widget that positions the menu panel [child] using the provided
-  /// [RawMenuOverlayInfo] coordinate information.
+  /// Builds a widget that positions the menu panel `child` using the provided
+  /// `position` information.
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child);
 }
 
@@ -152,11 +152,11 @@ abstract class MenuPositioningDelegate {
 /// [flip] to the other side of an anchor, and then [shift] if it still doesn't
 /// fit.
 ///
-/// If all strategies are false, the menu will be positioned according to the
-/// [MenuPositioningDelegate] without any adjustments to keep it within the
-/// screen boundaries.
+/// If [shift] and [constrain] are false, the menu may be positioned such that
+/// it is partially or fully off-screen.
 @immutable
 class EdgeBehaviorStrategy {
+  /// Creates an [EdgeBehaviorStrategy].
   const EdgeBehaviorStrategy({this.shift = false, this.flip = false, this.constrain = false});
 
   /// The menu will be shifted to stay within the screen boundaries,
@@ -173,8 +173,8 @@ class EdgeBehaviorStrategy {
   /// will occur. The first pass measures the menu based on its unconstrained
   /// size and calculates a position, and the second pass constrains the menu to
   /// fit within the available space. The menu is not repositioned after the
-  /// second pass, so the menu position is based on the unconstrained size of
-  /// the menu.
+  /// second pass, so the menu will be pinned to its natural position based on
+  /// its unconstrained size.
   final bool constrain;
 
   @override
@@ -199,6 +199,7 @@ class EdgeBehaviorStrategy {
 /// Used by [DefaultMenuPositioningDelegate].
 @immutable
 class EdgeBehavior {
+  /// Creates an [EdgeBehavior] widget.
   const EdgeBehavior({required this.horizontal, required this.vertical});
 
   /// The strategy to apply when the menu overflows the left or right edges of
@@ -253,7 +254,7 @@ class EdgeBehavior {
 ///
 /// The [edgeBehavior] defines how the menu panel should be positioned when it
 /// overflows the edge of the screen.
-class DefaultMenuPositioningDelegate extends MenuPositioningDelegate {
+class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
   /// Creates a [DefaultMenuPositioningDelegate].
   const DefaultMenuPositioningDelegate({
     this.anchorAlignment,
@@ -266,7 +267,7 @@ class DefaultMenuPositioningDelegate extends MenuPositioningDelegate {
       horizontal: EdgeBehaviorStrategy(flip: true, shift: true, constrain: true),
       vertical: EdgeBehaviorStrategy(flip: true, shift: true, constrain: true),
     ),
-    this.enableAimAssist = false,
+    this.enableAimAssist,
   });
 
   /// The point on the menu surface that attaches to the anchor.
@@ -331,7 +332,15 @@ class DefaultMenuPositioningDelegate extends MenuPositioningDelegate {
   final EdgeInsetsGeometry overlayPadding;
 
   /// Whether to enable the aim assist feature for this menu.
-  final bool enableAimAssist;
+  ///
+  /// To enable aim assist for all menus in a subtree, place a [MenuAimScope]
+  /// above the [BaseMenu] in the widget tree and set its [MenuAimScope.enable]
+  /// property to true.
+  ///
+  /// Defaults to null, which means the menu will inherit the aim assist setting
+  /// from the nearest [MenuAimScope] ancestor. If there is no [MenuAimScope]
+  /// ancestor, aim assist will be disabled.
+  final bool? enableAimAssist;
 
   @override
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child) {
@@ -346,19 +355,8 @@ class DefaultMenuPositioningDelegate extends MenuPositioningDelegate {
         ? Offset(-offset.dx, offset.dy)
         : offset;
 
-    if (!enableAimAssist) {
-      return _MenuPositioner(
-        overlayPadding: overlayPadding,
-        menuPadding: padding,
-        anchorRect: position.anchorRect,
-        offset: resolvedOffset,
-        menuPosition: position.position,
-        menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
-        alignment: alignment,
-        edgeBehavior: edgeBehavior,
-        child: child,
-      );
-    } else {
+    final enableAim = enableAimAssist ?? MenuAimScope.isEnabledOf(context);
+    if (enableAim) {
       final geometry = MenuAimGeometry()..anchorRect = position.anchorRect;
       return Stack(
         textDirection: .ltr,
@@ -380,6 +378,18 @@ class DefaultMenuPositioningDelegate extends MenuPositioningDelegate {
           MenuAimInterceptor(geometry: geometry),
         ],
       );
+    } else {
+      return _MenuPositioner(
+        overlayPadding: overlayPadding,
+        menuPadding: padding,
+        anchorRect: position.anchorRect,
+        offset: resolvedOffset,
+        menuPosition: position.position,
+        menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+        alignment: alignment,
+        edgeBehavior: edgeBehavior,
+        child: child,
+      );
     }
   }
 }
@@ -391,50 +401,52 @@ class DefaultMenuPositioningDelegate extends MenuPositioningDelegate {
 /// and submenus. It manages an [OverlayPortal] containing the [menu] content,
 /// which is typically a [BaseMenuPanel] containing a list of menu items.
 ///
-/// ### Parameters
-/// * [menu]: (Required) The widget displayed when the menu is opened. Typically
-///   a [BaseMenuPanel].
-/// * [builder]: A builder that constructs the child widget that triggers the
-///   menu. It receives the [BuildContext], the [MenuController], and an
-///   optional [child] widget.
-/// * [child]: An optional child to be passed to the [builder].
-/// * [orientation]: Sets the main traversal axis. Vertical menus use up/down
+/// [BaseMenu] uses [RawMenuAnchor] and [MenuController] to control the
+/// open/close state of the menu. As such, [BaseMenu] shares a similar API:
+/// * The menu is opened by calling [MenuController.open] and closed by calling
+///   [MenuController.close].
+/// * The menu can be opened with a specific position by passing a `position`
+///   argument to [MenuController.open].
+/// * The nearest ancestor [BaseMenu] open/close state can be observed using
+///   [MenuController.maybeIsOpenOf].
+/// * The nearest ancestor [MenuController] can be read using
+///   [MenuController.maybeOf].
+/// * Tapping outside the menu/anchor or pressing [LogicalKeyboardKey.escape]
+///   will emit a [DismissIntent] that closes the menu.
+/// * The [consumeOutsideTaps] property can be set to true to prevent tap events
+///   from propagating to underlying widgets when the menu is open.
+///
+/// In addition to the [RawMenuAnchor] API, the following properties can be used
+/// to customize the behavior of the menu:
+/// * **[orientation]**: Sets the traversal axis. Vertical menus use up/down
 ///   arrows; horizontal menus use left/right.
-/// * [positionDelegate]: A delegate that controls how the menu is positioned.
-/// * [semanticProperties]: The [SemanticsProperties] passed to the menu's
-///   overlay.
-/// * [onOpen], [onClose]: Callbacks invoked when the menu overlay is shown or
-///   hidden, respectively.
-/// * [onOpenRequest], [onCloseRequest]: Callbacks invoked when
-///   [MenuController.open] and [MenuController.close] are called, respectively.
-///   These can be used to run animations before showing or hiding the menu
-///   overlay.
-/// * [useRootOverlay]: Whether to render the menu in the root overlay.
-/// * [consumeOutsideTaps]: Whether or not a tap event that closes the menu will
-///   be permitted to continue on to the gesture arena.
-/// * [controller]: An optional [MenuController] to manage the menu's open/close
-///   state.
-/// * [onFocusChange]: A callback invoked when the menu's focus state changes.
-/// * [directionalFocusEdgeBehavior]: Controls how focus traversal behaves when
-///   focus moves beyond the first or last item in the menu. Defaults to
+/// * **[positionDelegate]**: Controls how the menu is positioned.
+/// * **[semanticProperties]**: The [SemanticsProperties] applied to the menu's
+///   [Semantics] node.
+/// * **[onFocusChange]**: Notifies when the menu surface gains or loses focus.
+/// * **[directionalFocusEdgeBehavior]**: Controls how focus traversal behaves
+///   when focus moves beyond the first or last item in the menu. Defaults to
 ///   [TraversalEdgeBehavior.stop] on iOS and macOS, and
-///   [TraversalEdgeBehavior.closedLoop] on other platforms including web.
+///   [TraversalEdgeBehavior.closedLoop] on other platforms (including web).
 ///
 /// See also:
 /// * [BaseSubmenu], a [BaseMenu] that adds hover and focus behavior for nested
 ///   submenus.
 /// * [BaseMenuBar], for horizontal groupings of [BaseMenu]s.
+/// * [BaseMenuPanel], a default menu panel that can be used by [BaseMenu].
 /// * [DefaultMenuPositioningDelegate], for customizing how the menu is placed.
-class BaseMenu extends StatefulWidget with BaseMenuInterface {
+class BaseMenu extends StatefulWidget implements BaseMenuInterface {
+  /// Creates a [BaseMenu].
+  ///
+  /// The [menu] parameter is required and must not be null.
   const BaseMenu({
     super.key,
-    this.onOpen,
-    this.onClose,
-    this.onOpenRequest = BaseMenuInterface.defaultOnOpenRequested,
-    this.onCloseRequest = BaseMenuInterface.defaultOnCloseRequested,
-    this.useRootOverlay = false,
     this.controller,
     this.consumeOutsideTaps = false,
+    this.onOpen,
+    this.onClose,
+    this.onOpenRequest = BaseMenu.defaultOnOpenRequested,
+    this.onCloseRequest = BaseMenu.defaultOnCloseRequested,
     this.onFocusChange,
     this.directionalFocusEdgeBehavior,
     this.semanticProperties = const SemanticsProperties(
@@ -442,10 +454,11 @@ class BaseMenu extends StatefulWidget with BaseMenuInterface {
       role: SemanticsRole.menu,
     ),
     this.orientation = Axis.vertical,
-    required this.menu,
     this.positionDelegate = const DefaultMenuPositioningDelegate(),
-    this.builder,
+    this.useRootOverlay = false,
     this.overlayChildBuilder,
+    required this.menu,
+    this.builder,
     this.child,
   });
 
@@ -459,31 +472,13 @@ class BaseMenu extends StatefulWidget with BaseMenuInterface {
   final VoidCallback? onOpen;
 
   @override
-  final RawMenuAnchorOpenRequestedCallback onOpenRequest;
-
-  @override
   final VoidCallback? onClose;
 
   @override
+  final RawMenuAnchorOpenRequestedCallback onOpenRequest;
+
+  @override
   final RawMenuAnchorCloseRequestedCallback onCloseRequest;
-
-  /// The widget that this [BaseMenu] surrounds.
-  ///
-  /// Typically, this is a button used to open the menu by calling
-  /// [MenuController.open] on the `controller` passed to the builder.
-  ///
-  /// If not supplied, then the [BaseMenu] will be the size that its parent
-  /// allocates for it.
-  final RawMenuAnchorChildBuilder? builder;
-
-  @override
-  final Widget? child;
-
-  @override
-  final bool useRootOverlay;
-
-  @override
-  final Widget menu;
 
   @override
   final ValueChanged<bool>? onFocusChange;
@@ -501,9 +496,28 @@ class BaseMenu extends StatefulWidget with BaseMenuInterface {
   final MenuPositioningDelegate positionDelegate;
 
   @override
+  final bool useRootOverlay;
+
+  @override
   final BaseMenuOverlayChildBuilder? overlayChildBuilder;
 
+  @override
+  final Widget menu;
+
+  /// The widget that this [BaseMenu] surrounds.
+  ///
+  /// Typically, this is a button used to open the menu by calling
+  /// [MenuController.open] on the `controller` passed to the builder.
+  ///
+  /// If not supplied, then the [BaseMenu] will be the size that its parent
+  /// allocates for it.
+  final RawMenuAnchorChildBuilder? builder;
+
+  @override
+  final Widget? child;
+
   @visibleForTesting
+  // ignore: public_member_api_docs
   TraversalEdgeBehavior get effectiveTraversalEdgeBehavior {
     if (directionalFocusEdgeBehavior != null) {
       return directionalFocusEdgeBehavior!;
@@ -519,7 +533,22 @@ class BaseMenu extends StatefulWidget with BaseMenuInterface {
     };
   }
 
+  // ignore: public_member_api_docs
   String get debugMenuFocusScopeLabel => 'BaseMenu FocusScopeNode${key != null ? ' ($key)' : ''}';
+
+  /// The fallback [onOpenRequest] if one is not supplied to the menu.
+  ///
+  /// By default, the menu will open immediately without any delay or animation.
+  static void defaultOnOpenRequested(Offset? position, VoidCallback showOverlay) {
+    showOverlay();
+  }
+
+  /// The fallback `onCloseRequest` if one is not supplied to the menu.
+  ///
+  /// By default, the menu will close immediately without any delay or animation.
+  static void defaultOnCloseRequested(VoidCallback hideOverlay) {
+    hideOverlay();
+  }
 
   @override
   State<BaseMenu> createState() => _BaseMenuState();
@@ -646,10 +675,6 @@ class _BaseMenuState extends State<BaseMenu> {
             const SingleActivator(LogicalKeyboardKey.arrowDown): const EnterMenuIntent.focusFirst(),
             if (!_parentIsSubmenu || widget.orientation == Axis.vertical)
               const SingleActivator(LogicalKeyboardKey.arrowUp): const EnterMenuIntent.focusLast(),
-            if (!_parentIsSubmenu && widget.orientation == Axis.horizontal) ...{
-              const SingleActivator(LogicalKeyboardKey.arrowLeft):
-                  const EnterMenuIntent.focusLast(),
-            },
           },
         },
         child:
@@ -844,7 +869,108 @@ class _MenuOverlay extends StatelessWidget {
   }
 }
 
+/// A widget that groups a collection of [BaseMenu]s into an accessible menu
+/// bar.
+///
+/// [BaseMenuBar] coordinates a series of hierarchical menus, typically
+/// presented as a horizontal row atop an application window (such as "File",
+/// "Edit", "View"). When one menu in the bar is opened, any other open menu in
+/// that same bar is automatically closed.
+///
+/// [BaseMenuBar] can be managed using the [MenuController] API:
+/// * The nearest ancestor [BaseMenuBar] open/close state can be observed using
+///   [MenuController.maybeIsOpenOf].
+/// * The nearest ancestor [MenuController] can be read using
+///   [MenuController.maybeOf].
+/// * Tapping outside of the [BaseMenuBar] or pressing
+///   [LogicalKeyboardKey.escape] will emit a [DismissIntent] that closes the
+///   menu.
+///
+/// The [orientation] property controls the keyboard navigation layout. By
+/// default, the menu bar is horizontal, meaning [LogicalKeyboardKey.arrowLeft]
+/// and [LogicalKeyboardKey.arrowRight] keys traverse the top-level menu items.
+/// If the menu bar is vertical, the [LogicalKeyboardKey.arrowUp] and
+/// [LogicalKeyboardKey.arrowDown] keys traverse the top-level menu items.
+///
+/// ### Basic Usage Pattern
+///
+/// ```dart
+/// BaseMenuBar(
+///   child: BaseMenuPanel(
+///     constraints: const BoxConstraints(height: 30),
+///     children: <Widget>[
+///       BaseSubmenu(
+///         controller: controller,
+///         menu: ColoredBox(
+///           color: const Color(0xFFFFFFFF),
+///           child: BaseMenuPanel(
+///             padding: const EdgeInsets.all(10),
+///             children: <Widget>[
+///               BaseMenuItem(
+///                 onPressed: () {
+///                   print('New');
+///                 },
+///                 child: const Text('New'),
+///               ),
+///               BaseMenuItem(
+///                 onPressed: () {
+///                   print('Open');
+///                 },
+///                 child: const Text('Open...'),
+///               ),
+///             ],
+///           ),
+///         ),
+///         child: Container(
+///           padding: const EdgeInsets.symmetric(horizontal: 30),
+///           color: const Color(0xFF61FF71),
+///           alignment: .center,
+///           child: const Text('File'),
+///         ),
+///       ),
+///       BaseSubmenu(
+///         controller: nestedController,
+///         menu: ColoredBox(
+///           color: const Color(0xFFFFFFFF),
+///           child: BaseMenuPanel(
+///             padding: const EdgeInsets.all(10),
+///             children: <Widget>[
+///               BaseMenuItem(
+///                 onPressed: () {
+///                   print('Undo');
+///                 },
+///                 child: const Text('Undo'),
+///               ),
+///               BaseMenuItem(
+///                 onPressed: () {
+///                   print('Redo');
+///                 },
+///                 child: const Text('Redo'),
+///               ),
+///             ],
+///           ),
+///         ),
+///         child: Container(
+///           padding: const EdgeInsets.symmetric(horizontal: 30),
+///           color: const Color(0xFF619BFF),
+///           alignment: .center,
+///           child: const Text('Edit'),
+///          ),
+///        ),
+///      ],
+///    ),
+///  ),
+///);
+/// ```
+///
+///See also:
+/// * [BaseMenu], for individual dropdown menus and context menus.
+/// * [BaseSubmenu], for nested submenus within a menu panel.
+/// * [BaseMenuPanel], the standard companion panel for laying out menu items
 class BaseMenuBar extends StatefulWidget {
+  /// Creates a [BaseMenuBar].
+  ///
+  /// The [child] parameter is required and must not be null.
   const BaseMenuBar({
     super.key,
     this.controller,
@@ -856,10 +982,36 @@ class BaseMenuBar extends StatefulWidget {
     ),
     required this.child,
   });
+
+  /// The [MenuController] that controls the global open/close state of the
+  /// [BaseMenuBar]'s submenus.
+  ///
+  /// If provided, this controller can be used to query whether any children are
+  /// open via [MenuController.isOpen], or to close all children at once using
+  /// [MenuController.close].
   final MenuController? controller;
+
+  /// The keyboard navigation layout and axis direction for the [BaseMenuBar].
+  ///
+  /// Defaults to [Axis.horizontal] (meaning left and right arrow keys traverse the top-level items).
   final Axis orientation;
+
+  /// An optional [FocusScopeNode] to manage focus events within the
+  /// [BaseMenuBar].
+  ///
+  /// If not provided, an internal [FocusScopeNode] is instantiated and
+  /// maintained automatically.
   final FocusScopeNode? focusScopeNode;
+
+  /// The [SemanticsProperties] applied to the [BaseMenuBar]'s semantic node.
+  ///
+  /// Defaults to describing a [SemanticsRole.menuBar] route scope.
   final SemanticsProperties semanticProperties;
+
+  /// The content of the [BaseMenuBar].
+  ///
+  /// While the [BaseMenuPanel] provides a simple default layout, the [child]
+  /// can be any widget.
   final Widget child;
 
   @override
@@ -875,7 +1027,7 @@ class BaseMenuBar extends StatefulWidget {
 }
 
 class _BaseMenuBarState extends State<BaseMenuBar> {
-  late final _actions = {
+  late final _actions = <Type, Action<Intent>>{
     NextFocusIntent: CallbackAction<NextFocusIntent>(
       onInvoke: (intent) {
         _menuController.close();
@@ -1026,21 +1178,18 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
           _MenuFocusLastIntent: _FocusLastAction(widget.focusScopeNode),
           ...switch (widget.axis) {
             Axis.vertical => {
-              BaseMenuVerticalFocusNextIntent: _TraverseNextAction<BaseMenuVerticalFocusNextIntent>(
+              VerticalMenuFocusNextIntent: _TraverseNextAction<VerticalMenuFocusNextIntent>(
                 widget.focusScopeNode,
               ),
-              BaseMenuVerticalFocusPreviousIntent:
-                  _TraversePreviousAction<BaseMenuVerticalFocusPreviousIntent>(
-                    widget.focusScopeNode,
-                  ),
+              VerticalMenuFocusPreviousIntent:
+                  _TraversePreviousAction<VerticalMenuFocusPreviousIntent>(widget.focusScopeNode),
             },
             Axis.horizontal => {
-              BaseMenuHorizontalFocusNextIntent:
-                  _TraverseNextAction<BaseMenuHorizontalFocusNextIntent>(widget.focusScopeNode),
-              BaseMenuHorizontalFocusPreviousIntent:
-                  _TraversePreviousAction<BaseMenuHorizontalFocusPreviousIntent>(
-                    widget.focusScopeNode,
-                  ),
+              HorizontalMenuFocusNextIntent: _TraverseNextAction<HorizontalMenuFocusNextIntent>(
+                widget.focusScopeNode,
+              ),
+              HorizontalMenuFocusPreviousIntent:
+                  _TraversePreviousAction<HorizontalMenuFocusPreviousIntent>(widget.focusScopeNode),
             },
           },
         },

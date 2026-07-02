@@ -120,14 +120,14 @@ class Toolbar extends StatefulWidget {
 
 class _ToolbarState extends State<Toolbar> {
   late final enterForwardAction = {
-    BaseMenuHorizontalFocusNextIntent: CallbackAction<BaseMenuHorizontalFocusNextIntent>(
+    HorizontalMenuFocusNextIntent: CallbackAction<HorizontalMenuFocusNextIntent>(
       onInvoke: (intent) =>
           Actions.invoke(overflowButtonFocusNode.context!, const EnterMenuIntent.focusFirst()),
     ),
   };
 
   late final enterReverseAction = {
-    BaseMenuHorizontalFocusPreviousIntent: CallbackAction<BaseMenuHorizontalFocusPreviousIntent>(
+    HorizontalMenuFocusPreviousIntent: CallbackAction<HorizontalMenuFocusPreviousIntent>(
       onInvoke: (intent) =>
           Actions.invoke(overflowButtonFocusNode.context!, const EnterMenuIntent.focusLast()),
     ),
@@ -418,8 +418,8 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
               child: Flexible(
                 child: Actions(
                   actions: {
-                    BaseMenuVerticalFocusPreviousIntent: DoNothingAction(),
-                    BaseMenuVerticalFocusNextIntent: DoNothingAction(),
+                    VerticalMenuFocusPreviousIntent: DoNothingAction(),
+                    VerticalMenuFocusNextIntent: DoNothingAction(),
                     NextFocusIntent: NextFocusAction(),
                     PreviousFocusIntent: PreviousFocusAction(),
                   },

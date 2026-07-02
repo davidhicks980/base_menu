@@ -7,10 +7,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
-import 'app_state_manager.dart';
 import '../model/enum.dart';
 import '../model/intents.dart';
 import '../utilities/colors.dart';
+import 'app_state_manager.dart';
 
 const double pixelsPerInch = 96.0;
 const double pixelsPerTick = pixelsPerInch / 8.0;

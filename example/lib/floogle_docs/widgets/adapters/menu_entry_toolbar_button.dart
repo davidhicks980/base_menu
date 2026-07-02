@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../app_state_manager.dart';
+import '../../../shared/localized_shortcut_labeler.dart';
 import '../../model/intents.dart';
 import '../../model/model.dart';
 import '../../utilities/colors.dart';
-import '../../../shared/localized_shortcut_labeler.dart';
+import '../app_state_manager.dart';
 import '../icon_button.dart';
 
 class MenuEntryToolbarButton extends StatelessWidget {

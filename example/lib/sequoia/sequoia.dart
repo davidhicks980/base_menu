@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'widgets/context_menu.dart';
-import 'widgets/menu.dart';
-import 'widgets/model.dart';
+import 'src/context_menu.dart';
+import 'src/menu.dart';
+import 'src/model.dart';
 
 class SequoiaApp extends StatefulWidget {
   const SequoiaApp({super.key});

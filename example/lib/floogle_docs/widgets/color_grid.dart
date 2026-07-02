@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -240,7 +242,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
                   boxShadow: BaseControl.isFocusedOf(context)
                       ? [
                           BoxShadow(
-                            color: FloogleColors.black.withOpacity(0.6),
+                            color: FloogleColors.black.withValues(alpha: 0.6),
                             blurRadius: 3,
                             spreadRadius: 1,
                           ),
@@ -248,7 +250,7 @@ class _ColorSwatchState extends State<_ColorSwatch> {
                       : BaseControl.isHoveredOf(context) || widget.isSelected
                       ? [
                           BoxShadow(
-                            color: FloogleColors.black.withOpacity(0.35),
+                            color: FloogleColors.black.withValues(alpha: 0.35),
                             blurRadius: 3,
                             spreadRadius: 1,
                           ),

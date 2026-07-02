@@ -4,27 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-/// Moves the mouse from [start] to [end] over [duration], sending [steps] pointer events.
-Future<void> moveMouse(
-  TestGesture gesture, {
-  required WidgetTester tester,
-  required Offset start,
-  required Offset end,
-  required Duration duration,
-  required int steps,
-  ValueChanged<Offset>? onStep,
-}) async {
-  final int intervalMicros = duration.inMicroseconds ~/ steps;
-  for (var i = 1; i <= steps; i++) {
-    final double t = i / steps;
-    final Offset location = Offset.lerp(start, end, t)!;
-
-    // Advance the mock clock before the move to simulate elapsed time.
-    await tester.pump(Duration(microseconds: intervalMicros));
-    await gesture.moveTo(location);
-    onStep?.call(location);
-  }
-}
+import 'utilities.dart';
 
 void main() {
   Future<void> runBoundaryTest(

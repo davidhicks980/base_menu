@@ -3,12 +3,12 @@ import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import '../app_state_manager.dart';
 import '../../data/entry.dart';
 import '../../model/intents.dart';
-import '../tooltip.dart';
 import '../adapters/menu_entry_toolbar_button.dart';
+import '../app_state_manager.dart';
 import '../combo_box.dart';
+import '../tooltip.dart';
 
 class FontSizeMenu extends StatefulWidget {
   const FontSizeMenu({super.key});
@@ -95,7 +95,7 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
       ),
     );
     return BaseHoverable(
-      cursor: WidgetStateMouseCursor.textable,
+      mouseCursor: WidgetStateMouseCursor.textable,
       child: Builder(
         builder: (context) {
           return DecoratedBox(

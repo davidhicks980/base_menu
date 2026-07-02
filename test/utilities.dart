@@ -1,9 +1,31 @@
-// ********* UTILITIES *********  //
+// ignore_for_file: avoid_print, public_member_api_docs
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:menu_utilities/menu_utilities.dart';
 
-import '../menu_utilities.dart';
+/// Moves the mouse from [start] to [end] over [duration], sending [steps] pointer events.
+Future<void> moveMouse(
+  TestGesture gesture, {
+  required WidgetTester tester,
+  required Offset start,
+  required Offset end,
+  required Duration duration,
+  required int steps,
+  ValueChanged<Offset>? onStep,
+}) async {
+  final int intervalMicros = duration.inMicroseconds ~/ steps;
+  for (var i = 1; i <= steps; i++) {
+    final double t = i / steps;
+    final Offset location = Offset.lerp(start, end, t)!;
+
+    // Advance the mock clock before the move to simulate elapsed time.
+    await tester.pump(Duration(microseconds: intervalMicros));
+    await gesture.moveTo(location);
+    onStep?.call(location);
+  }
+}
 
 /// Allows the creation of arbitrarily-nested tags in tests.
 @immutable
@@ -96,7 +118,7 @@ class NestedTag extends Tag {
   int get hashCode => _name.hashCode ^ _prefix.hashCode ^ level.hashCode;
 }
 
-final testButtonDecoration = WidgetStateProperty.fromMap({
+final WidgetStateProperty<BoxDecoration> testButtonDecoration = WidgetStateProperty.fromMap({
   WidgetState.pressed: const BoxDecoration(
     color: Color.fromARGB(255, 212, 21, 155),
     border: Border.symmetric(horizontal: BorderSide(color: Color.fromARGB(255, 255, 0, 242))),
@@ -139,7 +161,7 @@ class Button extends StatefulWidget {
     FocusNode? focusNode,
     bool autofocus = false,
     BoxConstraints? constraints,
-    void Function(bool)? onFocusChange,
+    void Function(bool isFocused)? onFocusChange,
     SemanticsRole? role,
     bool requestFocusOnHover = false,
     bool requestCloseOnActivate = false,
@@ -166,7 +188,7 @@ class Button extends StatefulWidget {
     FocusNode? focusNode,
     bool autofocus = false,
     BoxConstraints? constraints,
-    void Function(bool)? onFocusChange,
+    void Function(bool isFocused)? onFocusChange,
     SemanticsRole? role,
     bool requestFocusOnHover = false,
     bool requestCloseOnActivate = false,
@@ -402,7 +424,7 @@ class MenuSystem extends StatelessWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF000000).withOpacity(0.25),
+              color: const Color(0xFF000000).withValues(alpha: 0.25),
               blurRadius: 4,
               spreadRadius: 2,
               offset: const Offset(0, 2),
@@ -416,7 +438,7 @@ class MenuSystem extends StatelessWidget {
             ?leading,
             for (final tag in currentTags)
               if (depth < layers.length - 1)
-                TestSubmenu(
+                _Submenu(
                   autofocus: autofocus == tag && depth == 0,
                   tag: tag,
                   orientation: layers[depth + 1],
@@ -447,7 +469,7 @@ class MenuSystem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isMenuBar) {
-      return BaseMenuBar(axis: layers.first, child: _buildLevel(depth: 0));
+      return BaseMenuBar(orientation: layers.first, child: _buildLevel(depth: 0));
     } else {
       return BaseMenu(
         directionalFocusEdgeBehavior: .closedLoop,
@@ -459,9 +481,8 @@ class MenuSystem extends StatelessWidget {
   }
 }
 
-class TestSubmenu extends StatefulWidget {
-  const TestSubmenu({
-    super.key,
+class _Submenu extends StatefulWidget {
+  const _Submenu({
     required this.tag,
     required this.menu,
     required this.trailing,
@@ -478,10 +499,10 @@ class TestSubmenu extends StatefulWidget {
   final bool enabled;
 
   @override
-  State<TestSubmenu> createState() => _TestSubmenuState();
+  State<_Submenu> createState() => _SubmenuState();
 }
 
-class _TestSubmenuState extends State<TestSubmenu> {
+class _SubmenuState extends State<_Submenu> {
   final controller = MenuController();
   late final FocusNode internalFocusNode;
 
@@ -506,7 +527,7 @@ class _TestSubmenuState extends State<TestSubmenu> {
       child: BaseSubmenu(
         role: widget.tag == Tag.anchor ? null : .menuItem,
         directionalFocusEdgeBehavior: .closedLoop,
-        positionDelegate: const DefaultBaseMenuPositioningDelegate(
+        positionDelegate: const DefaultMenuPositioningDelegate(
           padding: EdgeInsetsGeometry.symmetric(horizontal: 4, vertical: 4),
         ),
         autofocus: widget.autofocus,
@@ -562,6 +583,24 @@ class SubmenuChild extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class MenuItemChild extends StatelessWidget {
+  const MenuItemChild({super.key, required this.tag});
+  final Tag tag;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: tag.level == 0
+          ? const BoxConstraints.tightFor(width: 150, height: 32)
+          : const BoxConstraints.tightFor(width: 225, height: 32),
+      child: DecoratedBox(
+        decoration: testButtonDecoration.resolve(BaseMenuItem.statesOf(context)),
+        child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8.0), child: Text(tag.text)),
       ),
     );
   }

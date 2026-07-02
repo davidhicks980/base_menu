@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:menu_utilities/menu_utilities.dart';
-import 'package:menu_utilities/src/panel.dart';
 
 import '../../data/entry.dart';
 import '../../data/menu.dart';

@@ -8,7 +8,6 @@ import 'menu_item_radio_semantics.dart';
 class TileGroup<T> extends StatefulWidget {
   const TileGroup({
     super.key,
-
     required this.tileSize,
     required this.columns,
     required this.value,

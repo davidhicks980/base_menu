@@ -13,13 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-// Tests that apply to select constructors have a suffix that indicates which
-// constructor the test applies to:
-//  * [Default]: Applies to [RawMenuAnchor],
-//  * [OverlayBuilder]: Applies to [BaseMenu]
-//  * [BaseMenuBar]: Applies to [RawMenuAnchor.menuPanel].
-//  * [BaseMenu]: Applies to [RawMenuAnchor] and [BaseMenu]
-// Otherwise, the test applies to all constructors.
+import 'utilities.dart';
 
 void main() {
   late MenuController controller;
@@ -1937,31 +1931,6 @@ void main() {
     expect(closed, isTrue);
   });
 
-  testWidgets('panel diagnostics', (WidgetTester tester) async {
-    const panel = BaseMenuPanel(
-      orientation: Axis.vertical,
-      padding: EdgeInsetsDirectional.all(5),
-
-      children: <Widget>[Text('1')],
-    );
-
-    await tester.pumpWidget(const App(panel));
-    await tester.pump();
-
-    final builder = DiagnosticPropertiesBuilder();
-    panel.debugFillProperties(builder);
-    final List<String> properties = builder.properties
-        .where((DiagnosticsNode node) => !node.isFiltered(DiagnosticLevel.info))
-        .map((DiagnosticsNode node) => node.toString())
-        .toList();
-
-    expect(properties, const <String>[
-      'constrainCrossAxis: true',
-      'padding override: EdgeInsetsDirectional(5.0, 5.0, 5.0, 5.0)',
-      'direction: vertical',
-    ]);
-  });
-
   testWidgets('[BaseMenu] diagnostics', (WidgetTester tester) async {
     final focusNode = FocusNode();
     addTearDown(focusNode.dispose);
@@ -2325,27 +2294,6 @@ void main() {
   });
 
   group('Aim', () {
-    Future<void> moveMouse(
-      TestGesture gesture, {
-      required WidgetTester tester,
-      required Offset start,
-      required Offset end,
-      required Duration duration,
-      required int steps,
-      ValueChanged<Offset>? onStep,
-    }) async {
-      final int intervalMicros = duration.inMicroseconds ~/ steps;
-      for (var i = 1; i <= steps; i++) {
-        final double t = i / steps;
-        final Offset location = Offset.lerp(start, end, t)!;
-
-        // Advance the mock clock before the move to simulate elapsed time.
-        await tester.pump(Duration(microseconds: intervalMicros));
-        await gesture.moveTo(location);
-        onStep?.call(location);
-      }
-    }
-
     testWidgets('MenuAimInterceptor intercepts diagonal movement to submenu', (
       WidgetTester tester,
     ) async {
@@ -4290,32 +4238,30 @@ void main() {
             ),
           );
 
-          // 1. Enter submenu via keyboard
           await expectFocusPath(tester, [(LogicalKeyboardKey.arrowDown, Tag.a.a)]);
 
-          // 2. Transition to hover: hover over 'Tag.a.c'
           final gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
           addTearDown(gesture.removePointer);
           await gesture.addPointer(location: Offset.zero);
+          await tester.pump();
           await gesture.moveTo(tester.getCenter(find.text(Tag.a.c.text)));
-          await tester.pump();
-          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 1));
 
           expect(FocusManager.instance.primaryFocus?.debugLabel, contains(Tag.a.c.focusNode));
           expect(find.text(Tag.a.c.a.text), findsOneWidget);
 
-          // 3. Transition to directional: move from 'Tag.a.c' to 'Tag.a.d' via keyboard
-          await expectFocusPath(tester, [(LogicalKeyboardKey.arrowDown, Tag.a.d)]);
+          await expectFocusPath(tester, [
+            (LogicalKeyboardKey.arrowDown, Tag.a.c.a),
+            (LogicalKeyboardKey.arrowLeft, Tag.a.c),
+          ]);
 
           expect(find.text(Tag.a.c.a.text), findsNothing);
 
-          // 4. Transition back to hover: hover over 'Tag.a.b'
           await gesture.moveTo(tester.getCenter(find.text(Tag.a.b.text)));
           await tester.pump();
 
           expect(FocusManager.instance.primaryFocus?.debugLabel, contains(Tag.a.b.focusNode));
 
-          // 5. Transition to directional: move from 'Tag.a.b' to 'Tag.a.a' via keyboard
           await expectFocusPath(tester, [(LogicalKeyboardKey.arrowUp, Tag.a.a)]);
         });
 
@@ -4326,24 +4272,22 @@ void main() {
             const App(MenuSystem(layers: [Axis.vertical], autofocus: Tag.anchor, isMenuBar: false)),
           );
 
-          // 1. Open menu and focus first item via keyboard
           await expectFocusPath(tester, [(LogicalKeyboardKey.arrowDown, Tag.a)]);
 
-          // 2. Transition to hover: hover over 'Tag.c'
-          final pointer = TestPointer(1, ui.PointerDeviceKind.mouse);
-          await tester.sendEventToBinding(pointer.hover(tester.getCenter(find.text(Tag.c.text))));
+          final gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+          addTearDown(gesture.removePointer);
+          await gesture.addPointer(location: Offset.zero);
+          await gesture.moveTo(tester.getCenter(find.text(Tag.c.text)));
           await tester.pumpAndSettle();
+
           expect(FocusManager.instance.primaryFocus?.debugLabel, contains(Tag.c.focusNode));
 
-          // 3. Transition to directional: move from 'Tag.c' to 'Tag.d' via keyboard
           await expectFocusPath(tester, [(LogicalKeyboardKey.arrowDown, Tag.d)]);
-
-          // 4. Transition back to hover: hover over 'Tag.b'
-          await tester.sendEventToBinding(pointer.hover(tester.getCenter(find.text(Tag.b.text))));
+          await gesture.moveTo(tester.getCenter(find.text(Tag.b.text)));
           await tester.pumpAndSettle();
+
           expect(FocusManager.instance.primaryFocus?.debugLabel, contains(Tag.b.focusNode));
 
-          // 5. Transition to directional: move from 'Tag.b' to 'Tag.a' via keyboard
           await expectFocusPath(tester, [(LogicalKeyboardKey.arrowUp, Tag.a)]);
         });
       });

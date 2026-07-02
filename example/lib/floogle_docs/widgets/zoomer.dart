@@ -111,8 +111,8 @@ class _ZoomerState extends State<Zoomer> {
     final double clampedY = (minY < maxY) ? targetY.clamp(minY, maxY) : targetY.clamp(maxY, minY);
 
     _transformController.value = Matrix4.identity()
-      ..translate(clampedX, clampedY)
-      ..scale(scale);
+      ..translateByDouble(clampedX, clampedY, 0, 0)
+      ..scaleByDouble(scale, scale, 1.0, 1.0);
   }
 
   void _handleInteractionEnd(ScaleEndDetails details) {

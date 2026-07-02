@@ -8,6 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
+import 'utilities.dart';
+
 void main() {
   testWidgets('initial state is idle', (WidgetTester tester) async {
     await tester.pumpWidget(App(BaseControl<void>(onPressed: () {}, child: Text(Tag.a.text))));
@@ -118,7 +120,7 @@ void main() {
           opaque: false,
           onPointerHover: (_) => hovered = true,
           onPointerEnter: (_) => entered = true,
-          onPointerLeave: (_) => exited = true,
+          onPointerExit: (_) => exited = true,
           child: Text(Tag.a.text),
         ),
       ),
@@ -128,7 +130,7 @@ void main() {
         tester.widget<BaseHoverable<void>>(find.byType(BaseHoverable<void>));
 
     expect(hoverable().enabled, isTrue);
-    expect(hoverable().cursor, cursor);
+    expect(hoverable().mouseCursor, cursor);
     expect(hoverable().behavior, behavior);
     expect(hoverable().opaque, isFalse);
 
@@ -157,7 +159,7 @@ void main() {
           opaque: false,
           onPointerHover: (_) => hovered = true,
           onPointerEnter: (_) => entered = true,
-          onPointerLeave: (_) => exited = true,
+          onPointerExit: (_) => exited = true,
           child: Text(Tag.a.text),
         ),
       ),
@@ -174,7 +176,7 @@ void main() {
     expect(exited, isFalse);
 
     expect(hoverable().enabled, isFalse);
-    expect(hoverable().cursor, cursor);
+    expect(hoverable().mouseCursor, cursor);
     expect(hoverable().behavior, behavior);
     expect(hoverable().opaque, isFalse);
   });

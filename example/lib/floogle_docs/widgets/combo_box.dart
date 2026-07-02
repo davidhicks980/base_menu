@@ -136,7 +136,7 @@ class _ComboBoxOptionState extends State<ComboBoxOption> {
     final body = BaseMenuItem(
       requestFocusOnHover: false,
       onPointerEnter: _handlePointerEnter,
-      onPointerLeave: _handlePointerLeave,
+      onPointerExit: _handlePointerLeave,
       onPressed: _handleSelect,
       child: ConstrainedBox(
         constraints: widget.constraints,
@@ -342,7 +342,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
 
   void _traversalSelect(int index) {
     final newValue = _indexToValue[index]!;
-    SemanticsService.announce(newValue, Directionality.of(context));
+    SemanticsService.sendAnnouncement(View.of(context), newValue, Directionality.of(context));
     widget.onSelect?.call(newValue);
   }
 

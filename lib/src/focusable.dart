@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+import 'interface.dart';
+
 /// Injects [BaseFocusable] state for type [T] into the widget tree.
 ///
 /// Use this widget to:
@@ -37,8 +39,16 @@ class BaseFocusableStateInjector<T extends Object?> extends StatelessWidget {
   }
 }
 
+/// A widget that manages focus state for type [T] and propagates it
+/// to descendants in the widget tree.
+///
+/// Descendants can subscribe to changes in focus or focus highlight visibility
+/// using [BaseFocusable.isFocusedOf] and [BaseFocusable.isFocusHighlightShownOf].
 @optionalTypeArgs
-class BaseFocusable<T extends Object?> extends StatefulWidget {
+class BaseFocusable<T extends Object?> extends StatefulWidget implements BaseFocusableInterface {
+  /// Creates a [BaseFocusable] widget.
+  ///
+  /// The [child] parameter must not be null.
   const BaseFocusable({
     super.key,
     this.autofocus = false,
@@ -48,17 +58,16 @@ class BaseFocusable<T extends Object?> extends StatefulWidget {
     required this.child,
   });
 
-  /// An optional focus node to use as the focus node for this widget.
-  ///
-  /// If a focus node is provided, it is the responsibility of the parent widget
-  /// to manage the lifecycle of the focus node, including disposing it when it
-  /// is no longer needed.
+  @override
   final FocusNode? focusNode;
 
-  /// {@macro flutter.widgets.Focus.autofocus}
+  @override
   final bool autofocus;
 
-  /// Whether the parent of this widget is interactive.
+  @override
+  final ValueChanged<bool>? onFocusChange;
+
+  /// Whether this widget is interactive.
   ///
   /// When true, this widget is always focusable.
   ///
@@ -75,27 +84,14 @@ class BaseFocusable<T extends Object?> extends StatefulWidget {
   /// [FocusHighlightMode.traditional].
   final bool enabled;
 
-  /// Handler called when the focus changes.
-  ///
-  /// Called with true if this widget's node gains focus, and false if it loses
-  /// focus.
-  ///
-  /// See also:
-  ///
-  ///  * [isFocusedOf], which will rebuild the provided [BuildContext] whenever
-  ///    the focus state of the nearest ancestor [BaseFocusable] changes.
-  ///  * [isFocusHighlightShownOf], which will rebuild the provided
-  ///    [BuildContext] whenever the focus highlight state of the nearest
-  ///    ancestor [BaseFocusable] changes.
-  final ValueChanged<bool>? onFocusChange;
-
   /// The child widget of this [BaseFocusable].
   ///
   /// {@macro flutter.widgets.ProxyWidget.child}
   final Widget child;
 
   static _FocusableScope<T>? _of<T extends Object?>(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<_FocusableScope<T>>();
+    final _FocusableScope<T>? scope = context
+        .dependOnInheritedWidgetOfExactType<_FocusableScope<T>>();
     assert(scope != null, 'No BaseFocusable of type $T found in context');
     return scope;
   }
@@ -104,7 +100,6 @@ class BaseFocusable<T extends Object?> extends StatefulWidget {
   /// `context` has input focus.
   ///
   /// {@template BaseFocusable.isFocusedOf}
-  ///
   /// Calling this method establishes a dependency that rebuilds the provided
   /// [BuildContext] whenever the ancestor gains or loses focus input.
   ///

@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:menu_utilities/menu_utilities.dart';
 
-import 'tooltip.dart';
 import '../utilities/colors.dart';
+import 'tooltip.dart';
 
 class ToolbarIconButton extends StatelessWidget {
   const ToolbarIconButton({

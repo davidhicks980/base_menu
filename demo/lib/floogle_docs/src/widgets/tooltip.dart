@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../../shared/package.dart';
@@ -7,8 +7,9 @@ import '../theme/colors.dart';
 
 const webStyle = TextStyle(
   color: FloogleColors.onDarkGray,
-  fontFamily: 'GoogleSans',
+  fontFamily: 'RobotoFlex',
   package: kPackage,
+  fontFamilyFallback: ['InterVariable'],
   fontSize: 12.0,
   fontVariations: [FontVariation.weight(500)],
   letterSpacing: 0.1,
@@ -18,8 +19,9 @@ const webStyle = TextStyle(
 
 const defaultStyle = TextStyle(
   color: FloogleColors.onDarkGray,
-  fontFamily: 'GoogleSans',
+  fontFamily: 'RobotoFlex',
   package: kPackage,
+  fontFamilyFallback: ['InterVariable'],
   fontSize: 12.0,
   fontVariations: [FontVariation.weight(425)],
   letterSpacing: 0.1,
@@ -32,96 +34,238 @@ class MenuTooltip extends StatefulWidget {
     super.key,
     required this.message,
     required this.child,
+    this.hoverDelay = const Duration(milliseconds: 300),
     this.enableSemantics = true,
   });
 
-  final bool enableSemantics;
+  /// The text content to display inside the tooltip overlay.
   final InlineSpan message;
+
+  /// The target anchor widget that triggers and aligns the tooltip.
   final Widget child;
+
+  /// Delay duration when hovered before showing the tooltip.
+  final Duration hoverDelay;
+
+  final bool enableSemantics;
 
   @override
   State<MenuTooltip> createState() => _MenuTooltipState();
 }
 
 class _MenuTooltipState extends State<MenuTooltip> {
-  bool isForwardOrComplete = false;
+  final LayerLink _layerLink = LayerLink();
+  bool _isHovered = false;
 
-  static Offset _positionDelegate(TooltipPositionContext positionContext) {
-    final anchorRect =
-        (positionContext.target - positionContext.targetSize.center(Offset.zero)) &
-        positionContext.targetSize;
-    // Center the tooltip below the anchor rect, with a small offset.
-    final tooltipOffset = Offset(
-      anchorRect.center.dx - positionContext.tooltipSize.width / 2,
-      anchorRect.bottom + 4.0,
-    );
-    return tooltipOffset;
+  bool get _isTooltipVisible => MenuTooltipScope.of(context).isTooltipVisible;
+
+  void _showTooltip() {
+    MenuTooltipScope.of(context).showTooltip(layerLink: _layerLink, message: widget.message);
   }
 
-  Widget _tooltipBuilder(BuildContext context, Animation<double> animation) {
-    final child = Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(8.0, 0.0, 8.0, 2.0),
-      constraints: const BoxConstraints(minHeight: 24),
-      decoration: BoxDecoration(
-        color: FloogleColors.darkGray,
-        border: const .fromBorderSide(BorderSide(color: FloogleColors.transparent)),
-        borderRadius: .circular(4.0),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text.rich(
-            widget.message,
-            style: kIsWeb ? webStyle : defaultStyle,
-            textAlign: TextAlign.center,
-            textHeightBehavior: const TextHeightBehavior(
-              applyHeightToFirstAscent: false,
-              leadingDistribution: .even,
-            ),
-          ),
-        ],
-      ),
-    );
+  void _hideTooltip() {
+    MenuTooltipScope.of(context).hideTooltip();
+  }
 
-    // On web, additional overlays can cause focus to drift to the root scope.
-    // This logic ensures that focus returns to the previously focused element
-    // when the tooltip appears.
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, child) {
-        if (kIsWeb && isForwardOrComplete != animation.isForwardOrCompleted) {
-          isForwardOrComplete = animation.isForwardOrCompleted;
-          final tooltip = isForwardOrComplete ? child! : const SizedBox();
-          // Prevents the root focus scope from taking focus on web.
-          final previousPrimaryFocus = FocusManager.instance.primaryFocus;
-          if (previousPrimaryFocus == null) {
-            return tooltip;
-          }
+  void _handleMouseEnter(PointerEnterEvent event) {
+    _isHovered = true;
+    if (_isTooltipVisible) {
+      _showTooltip();
+      return;
+    }
 
-          SchedulerBinding.instance.addPostFrameCallback((_) {
-            FocusManager.instance.applyFocusChangesIfNeeded();
-            if (FocusManager.instance.rootScope.hasPrimaryFocus) {
-              previousPrimaryFocus.requestFocus();
-            }
-          });
-        }
-        return isForwardOrComplete ? child! : const SizedBox();
-      },
-      child: child,
-    );
+    Future.delayed(widget.hoverDelay, () {
+      if (_isHovered && mounted) {
+        _showTooltip();
+      }
+    });
+  }
+
+  void _handleMouseExit(PointerExitEvent event) {
+    _isHovered = false;
+    _hideTooltip();
   }
 
   @override
   Widget build(BuildContext context) {
-    return RawTooltip(
-      hoverDelay: const Duration(milliseconds: 500),
-      semanticsTooltip: widget.enableSemantics
-          ? widget.message.toPlainText(includePlaceholders: false)
-          : null,
-      positionDelegate: _positionDelegate,
-      tooltipBuilder: _tooltipBuilder,
-      child: widget.child,
+    return MouseRegion(
+      onEnter: _handleMouseEnter,
+      onExit: _handleMouseExit,
+      opaque: false,
+      hitTestBehavior: HitTestBehavior.translucent,
+      child: Semantics(
+        tooltip: widget.enableSemantics ? widget.message.toPlainText() : null,
+        child: CompositedTransformTarget(link: _layerLink, child: widget.child),
+      ),
     );
+  }
+}
+
+class _MenuTooltipScope extends InheritedWidget {
+  const _MenuTooltipScope({required super.child, required this.state});
+  final MenuTooltipScopeState state;
+
+  @override
+  bool updateShouldNotify(_MenuTooltipScope oldWidget) {
+    return state != oldWidget.state;
+  }
+}
+
+abstract class MenuTooltipScopeState {
+  void showTooltip({required LayerLink layerLink, required InlineSpan message});
+  void hideTooltip();
+  bool get isTooltipVisible;
+}
+
+class MenuTooltipScope extends StatefulWidget {
+  const MenuTooltipScope({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+    this.margin,
+    this.targetAnchor = Alignment.bottomCenter,
+    this.followerAnchor = Alignment.topCenter,
+    this.offset = const Offset(0.0, 4.0),
+  });
+
+  /// The target anchor widget that triggers and aligns the tooltip.
+  final Widget child;
+
+  /// Padding around the tooltip content.
+  final EdgeInsetsGeometry padding;
+
+  /// Margin for the tooltip.
+  final EdgeInsetsGeometry? margin;
+
+  /// The anchor alignment point relative to the target (Leader).
+  final Alignment targetAnchor;
+
+  /// The anchor alignment point on the tooltip itself (Follower) that aligns with the target anchor.
+  final Alignment followerAnchor;
+
+  /// An extra coordinate offset adjustment to space the tooltip away from the anchor.
+  final Offset offset;
+
+  static MenuTooltipScopeState of(BuildContext context) {
+    return context.getInheritedWidgetOfExactType<_MenuTooltipScope>()!.state;
+  }
+
+  @override
+  State<MenuTooltipScope> createState() => _MenuTooltipScopeState();
+}
+
+class _MenuTooltipScopeState extends State<MenuTooltipScope>
+    with SingleTickerProviderStateMixin
+    implements MenuTooltipScopeState {
+  final LayerLink _layerLink = LayerLink();
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  LayerLink? _parentLayerLink;
+  InlineSpan? _currentMessage;
+  OverlayEntry? _overlayEntry;
+  @override
+  bool get isTooltipVisible =>
+      _animationController.status == AnimationStatus.completed ||
+      _animationController.status == AnimationStatus.reverse;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+    _fadeAnimation = CurvedAnimation(parent: _animationController, curve: Curves.easeOut);
+  }
+
+  void _insertOverlay() {
+    assert(_overlayEntry == null, 'Overlay entry already exists');
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned.fill(
+        child: RepaintBoundary(
+          child: IgnorePointer(
+            child: ExcludeFocus(
+              child: ExcludeSemantics(
+                child: CompositedTransformFollower(
+                  link: _parentLayerLink ?? _layerLink,
+                  showWhenUnlinked: false,
+                  targetAnchor: widget.targetAnchor,
+                  followerAnchor: widget.followerAnchor,
+                  offset: widget.offset,
+                  child: Align(
+                    alignment: .topCenter,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Padding(
+                        padding: widget.margin ?? EdgeInsets.zero,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: FloogleColors.darkGray,
+                            borderRadius: BorderRadius.circular(4.0),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x33000000),
+                                blurRadius: 4.0,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: widget.padding,
+                            child: Text.rich(
+                              _currentMessage ?? const TextSpan(),
+                              style: kIsWeb ? webStyle : defaultStyle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context, rootOverlay: true).insert(_overlayEntry!);
+  }
+
+  @override
+  void showTooltip({required LayerLink layerLink, required InlineSpan message}) {
+    if (_overlayEntry == null) {
+      _insertOverlay();
+    }
+
+    _parentLayerLink = layerLink;
+    _currentMessage = message;
+    _animationController.forward();
+    _overlayEntry?.markNeedsBuild();
+  }
+
+  @override
+  void hideTooltip() {
+    _animationController.reverse().whenComplete(() {
+      _parentLayerLink = null;
+      _currentMessage = null;
+      _overlayEntry?.markNeedsBuild();
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _parentLayerLink = null;
+    _currentMessage = null;
+    _overlayEntry?.remove();
+    _overlayEntry?.dispose();
+    _overlayEntry = null;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _MenuTooltipScope(state: this, child: widget.child);
   }
 }

@@ -63,10 +63,11 @@ class LocalizedShortcutLabeler {
 
   String getFormattedShortcutLabel(
     MenuSerializableShortcut shortcut,
-    MaterialLocalizations localizations,
-  ) {
+    MaterialLocalizations localizations, [
+    int minimumConcatenatedLength = 4,
+  ]) {
     final label = instance.getShortcutLabel(shortcut, localizations);
-    if (label.length <= 3) {
+    if (label.length < minimumConcatenatedLength) {
       return label.replaceAll(RegExp(r'\s'), '');
     } else {
       return label.replaceAll(RegExp(r'\s'), '+');

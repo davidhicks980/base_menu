@@ -20,7 +20,6 @@ analyzer:
     strict-raw-types: true
   exclude:
     - "bin/cache/**"
-      # Ignore protoc generated files
     - "dev/conductor/lib/proto/*"
     - "engine/**"
     - ".fvm/**"

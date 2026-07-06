@@ -90,16 +90,11 @@ class _SegmentedPopupButtonState extends State<SegmentedPopupButton> {
       :final Intent? intent,
     )) {
       if (shortcut != null) {
-        shortcutLabel = LocalizedShortcutLabeler.instance.getShortcutLabel(
+        shortcutLabel = LocalizedShortcutLabeler.instance.getFormattedShortcutLabel(
           shortcut,
           MaterialLocalizations.of(context),
+          2,
         );
-
-        if (shortcutLabel.length <= 3) {
-          shortcutLabel = shortcutLabel.replaceAll(RegExp(r'\s'), '');
-        } else {
-          shortcutLabel = shortcutLabel.replaceAll(RegExp(r'\s'), '+');
-        }
       }
       menuIntent = intent;
     }

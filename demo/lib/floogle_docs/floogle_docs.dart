@@ -17,6 +17,7 @@ import 'src/widgets/menus/document_menu_bar.dart';
 import 'src/widgets/title_field.dart';
 import 'src/widgets/title_icon.dart';
 import 'src/widgets/toolbar.dart';
+import 'src/widgets/tooltip.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,84 +87,86 @@ class _BodyState extends State<_Body> {
     if (_isHeaderExpanded) {
       _isHeaderVisible = true;
     }
-    final child = IconTheme(
-      data: const IconThemeData(
-        size: 18,
-        color: FloogleColors.grey,
-        // Fonts look slightly anemic on web, so compensate with a heavier weight.
-        weight: kIsWeb ? 550 : 400,
-      ),
-      child: TapRegionSurface(
-        child: ColoredBox(
-          color: FloogleColors.surfaceColor,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              FocusTraversalGroup(
-                policy: _headerTraversal,
-                child: AnimatedOpacity(
-                  opacity: _isHeaderExpanded ? 1 : 0,
-                  duration: const Duration(milliseconds: 100),
-                  onEnd: _handleHeaderAnimationEnd,
-                  child: Visibility(
-                    visible: _isHeaderVisible,
-                    maintainState: true,
-                    child: SizedBox(
-                      height: 62,
-                      child: Stack(
-                        children: [
-                          AnimatedPositionedDirectional(
-                            top: _isHeaderExpanded ? 16 : 16 - 40,
-                            start: 17,
-                            duration: const Duration(milliseconds: 100),
-                            child: const FloogleDocsLogoButton(),
-                          ),
-                          AnimatedPositionedDirectional(
-                            top: _isHeaderExpanded ? 7 : 7 - 40,
-                            start: 55,
-                            duration: const Duration(milliseconds: 100),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              spacing: 3,
-                              children: [
-                                Flexible(child: TitleField()),
-                                TitleIconButton(
-                                  tooltip: TextSpan(text: 'Star'),
-                                  child: Icon(Symbols.star_border, weight: kIsWeb ? 500 : 350),
-                                ),
-                                TitleIconButton(
-                                  tooltip: TextSpan(text: 'Add shortcut to drive'),
-                                  child: Icon(Symbols.add_to_drive),
-                                ),
-                                TitleIconButton(
-                                  tooltip: TextSpan(text: 'Document status: Saved to Drive'),
-                                  child: _CloudIcon(),
-                                ),
-                              ],
+    final child = MenuTooltipScope(
+      child: IconTheme(
+        data: const IconThemeData(
+          size: 18,
+          color: FloogleColors.grey,
+          // Fonts look slightly anemic on web, so compensate with a heavier weight.
+          weight: kIsWeb ? 550 : 400,
+        ),
+        child: TapRegionSurface(
+          child: ColoredBox(
+            color: FloogleColors.surfaceColor,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                FocusTraversalGroup(
+                  policy: _headerTraversal,
+                  child: AnimatedOpacity(
+                    opacity: _isHeaderExpanded ? 1 : 0,
+                    duration: const Duration(milliseconds: 100),
+                    onEnd: _handleHeaderAnimationEnd,
+                    child: Visibility(
+                      visible: _isHeaderVisible,
+                      maintainState: true,
+                      child: SizedBox(
+                        height: 62,
+                        child: Stack(
+                          children: [
+                            AnimatedPositionedDirectional(
+                              top: _isHeaderExpanded ? 16 : 16 - 40,
+                              start: 17,
+                              duration: const Duration(milliseconds: 100),
+                              child: const FloogleDocsLogoButton(),
                             ),
-                          ),
+                            AnimatedPositionedDirectional(
+                              top: _isHeaderExpanded ? 7 : 7 - 40,
+                              start: 55,
+                              duration: const Duration(milliseconds: 100),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                spacing: 3,
+                                children: [
+                                  Flexible(child: TitleField()),
+                                  TitleIconButton(
+                                    tooltip: TextSpan(text: 'Star'),
+                                    child: Icon(Symbols.star_border, weight: kIsWeb ? 500 : 350),
+                                  ),
+                                  TitleIconButton(
+                                    tooltip: TextSpan(text: 'Add shortcut to drive'),
+                                    child: Icon(Symbols.add_to_drive),
+                                  ),
+                                  TitleIconButton(
+                                    tooltip: TextSpan(text: 'Document status: Saved to Drive'),
+                                    child: _CloudIcon(),
+                                  ),
+                                ],
+                              ),
+                            ),
 
-                          const PositionedDirectional(
-                            top: 34,
-                            start: 54,
-                            end: 0,
-                            child: DocumentMenuBar(),
-                          ),
-                        ],
+                            const PositionedDirectional(
+                              top: 34,
+                              start: 54,
+                              end: 0,
+                              child: DocumentMenuBar(),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
 
-              const Padding(
-                padding: EdgeInsetsDirectional.only(start: 16, end: 16, bottom: 2, top: 2),
-                child: Toolbar(),
-              ),
+                const Padding(
+                  padding: EdgeInsetsDirectional.only(start: 16, end: 16, bottom: 2, top: 2),
+                  child: Toolbar(),
+                ),
 
-              const Expanded(child: EditorView()),
-            ],
+                const Expanded(child: EditorView()),
+              ],
+            ),
           ),
         ),
       ),

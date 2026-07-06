@@ -217,6 +217,9 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
     final target = delegate.targetRect!;
     if (target.contains(position)) {
       enabled = false;
+      if (_kEnableMenuAimVisualizer) {
+        handleConeUpdate();
+      }
       return false;
     }
 
@@ -226,6 +229,9 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
         enabled = false;
         if (attached) {
           markNeedsPaint();
+        }
+        if (_kEnableMenuAimVisualizer) {
+          handleConeUpdate();
         }
       });
       if (_kEnableMenuAimVisualizer) {
@@ -292,6 +298,9 @@ void _paintCone(
   final Canvas canvas = context.canvas;
   final Rect? target = delegate.targetRect;
   if (target != null && points.isNotEmpty) {
+    if (target.contains(points.last)) {
+      return;
+    }
     // Visualize Dot Product
     if (points.length >= 2) {
       final Offset origin = points.first;

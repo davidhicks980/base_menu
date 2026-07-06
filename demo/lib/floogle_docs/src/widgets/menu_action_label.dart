@@ -82,8 +82,8 @@ class MenuActionLabel extends StatelessWidget {
     fontFamily: 'RobotoFlex',
     package: kPackage,
     fontFamilyFallback: ['InterVariable'],
-    fontSize: 14,
     fontWeight: FontWeight.w500,
+    fontSize: 14,
     letterSpacing: 0.2,
     color: FloogleColors.lightGray,
     height: 20 / 14,
@@ -152,15 +152,11 @@ class _ShortcutLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var label = LocalizedShortcutLabeler.instance.getShortcutLabel(
+    final label = LocalizedShortcutLabeler.instance.getFormattedShortcutLabel(
       shortcut!,
       MaterialLocalizations.of(context),
     );
-    if (label.length <= 3) {
-      label = label.replaceAll(RegExp(r'\s'), '');
-    } else {
-      label = label.replaceAll(RegExp(r'\s'), '+');
-    }
+
     return Text(label, style: acceleratorTextStyle);
   }
 }

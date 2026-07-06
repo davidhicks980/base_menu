@@ -19,6 +19,7 @@ class MenuEntryToolbarButton extends StatelessWidget {
         ? LocalizedShortcutLabeler.instance.getFormattedShortcutLabel(
             item.shortcut!,
             MaterialLocalizations.of(context),
+            2,
           )
         : '';
     final tooltip = item.label + (shortcut.isNotEmpty ? ' ($shortcut)' : '');

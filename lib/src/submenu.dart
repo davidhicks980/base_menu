@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart';
@@ -349,9 +350,21 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
   void _handleAnchorFocusChange() {
     if (!_focusNode.hasFocus && !_isScopeFocused) {
-      _openTimer?.cancel();
       if (widget.controller.isOpen) {
         _scheduleHoverClose();
+      }
+
+      // Since web focus can drift to the root scope when a submenu is closed, a
+      // microtask is scheduled to allow the focus change to propagate before
+      // checking if the submenu anchor has focus.
+      if (kIsWeb) {
+        scheduleMicrotask(() {
+          if (!_focusNode.hasFocus) {
+            _openTimer?.cancel();
+          }
+        });
+      } else {
+        _openTimer?.cancel();
       }
     } else {
       _closeTimer?.cancel();
@@ -524,34 +537,37 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       actions: controller.isOpen
           ? {...?_anchorActions, ...?widget.anchorActions}
           : widget.anchorActions ?? const {},
-      child: BaseMenuItem(
-        focusNode: _focusNode,
-        autofocus: widget.autofocus,
-        onPressed: widget.enabled ? widget.onPressed : null,
-        onActivate: widget.enabled ? _handleActivate : null,
-        onPointerEnter: _handlePointerEnterAnchor,
-        onPointerHover: widget.onPointerHover,
-        onPointerExit: _handlePointerLeaveAnchor,
-        requestCloseOnActivate: widget.requestCloseOnActivate,
-        requestFocusOnHover: widget.requestFocusOnHover,
-        behavior: widget.behavior,
-        opaque: widget.opaque,
-        mouseCursor: widget.mouseCursor,
-        role: widget.role,
-        gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
-        gestureSemantics: widget.gestureSemantics,
-        shortcuts: _parentOrientation == .vertical
-            ? {
-                horizontalTraversalKeys.next: const EnterMenuIntent.focusFirst(),
-                if (widget.orientation == .horizontal)
-                  horizontalTraversalKeys.previous: const EnterMenuIntent.focusLast(),
-                ...?widget.shortcuts,
-              }
-            : widget.shortcuts ?? {},
-        child: ListenableBuilder(
-          listenable: _highlightNotifier,
-          builder: _buildHighlight,
-          child: widget.child,
+      child: Semantics(
+        expanded: controller.isOpen,
+        child: BaseMenuItem(
+          focusNode: _focusNode,
+          autofocus: widget.autofocus,
+          onPressed: widget.enabled ? widget.onPressed : null,
+          onActivate: widget.enabled ? _handleActivate : null,
+          onPointerEnter: _handlePointerEnterAnchor,
+          onPointerHover: widget.onPointerHover,
+          onPointerExit: _handlePointerLeaveAnchor,
+          requestCloseOnActivate: widget.requestCloseOnActivate,
+          requestFocusOnHover: widget.requestFocusOnHover,
+          behavior: widget.behavior,
+          opaque: widget.opaque,
+          mouseCursor: widget.mouseCursor,
+          role: widget.role,
+          gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
+          gestureSemantics: widget.gestureSemantics,
+          shortcuts: _parentOrientation == .vertical
+              ? {
+                  horizontalTraversalKeys.next: const EnterMenuIntent.focusFirst(),
+                  if (widget.orientation == .horizontal)
+                    horizontalTraversalKeys.previous: const EnterMenuIntent.focusLast(),
+                  ...?widget.shortcuts,
+                }
+              : widget.shortcuts ?? {},
+          child: ListenableBuilder(
+            listenable: _highlightNotifier,
+            builder: _buildHighlight,
+            child: widget.child,
+          ),
         ),
       ),
     );

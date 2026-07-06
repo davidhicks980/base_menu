@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../../../shared/package.dart';
 import '../../extensions/string.dart';
 import '../../model/enum.dart';
 import '../../model/intents.dart';
@@ -169,7 +170,7 @@ class MenuSectionHeader extends StatelessWidget {
               color: FloogleColors.darkGray,
               fontVariations: [FontVariation.weight(550)],
               fontFamily: 'RobotoFlex',
-              package: 'example',
+              package: kPackage,
               decoration: TextDecoration.none,
             ),
             child: child,
@@ -267,7 +268,7 @@ class _SubmenuOptionState extends State<_SubmenuOption> {
                         fontWeightToLabelMap[variant]!,
                         style: TextStyle(
                           fontFamily: widget.value.label,
-                          package: 'example',
+                          package: kPackage,
                           fontWeight: variant,
                         ),
                       ),
@@ -284,7 +285,7 @@ class _SubmenuOptionState extends State<_SubmenuOption> {
               widget.value.label,
               style: TextStyle(
                 fontFamily: widget.value.label,
-                package: 'example',
+                package: kPackage,
                 fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
               ),
             ),

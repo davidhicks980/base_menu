@@ -23,8 +23,8 @@ class Range extends StatefulWidget {
     this.thickness = 12.0,
     this.axis = Axis.horizontal,
     this.direction,
-  })  : assert(value >= min && value <= max),
-        assert(divisions == null || divisions > 0);
+  }) : assert(value >= min && value <= max),
+       assert(divisions == null || divisions > 0);
 
   final double value;
   final Axis axis;
@@ -87,17 +87,12 @@ class _RangeState extends State<Range> with TickerProviderStateMixin {
     return _RangeRenderObjectWidget(
       value: (widget.value - widget.min) / (widget.max - widget.min),
       divisions: widget.divisions,
-      knobPaint: widget.knobDecoration ??
-          const BoxDecoration(
-            color: CupertinoColors.white,
-          ),
-      trackPaint: widget.trackDecoration ??
+      knobPaint: widget.knobDecoration ?? const BoxDecoration(color: CupertinoColors.white),
+      trackPaint:
+          widget.trackDecoration ??
           const BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                CupertinoColors.systemGrey5,
-                CupertinoColors.systemGrey5,
-              ],
+              colors: [CupertinoColors.systemGrey5, CupertinoColors.systemGrey5],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -140,40 +135,37 @@ class _RangeRenderObjectWidget extends LeafRenderObjectWidget {
   final TickerProvider vsync;
   final SliderDirection? direction;
 
-  BoxConstraints get _constraints => BoxConstraints.tightFor(
-        width: math.max(knobRadius * 2, thickness),
-        height: 44,
-      );
+  BoxConstraints get _constraints =>
+      BoxConstraints.tightFor(width: math.max(knobRadius * 2, thickness), height: 44);
 
   @override
   _RenderRange createRenderObject(BuildContext context) {
     assert(debugCheckHasDirectionality(context));
     return _RenderRange(
-        value: value,
-        divisions: divisions,
-        // activePaint: activePaint,
-        knobDecoration: knobPaint,
-        trackDecoration: trackPaint,
-        thickness: thickness,
-        knobRadius: knobRadius,
-        additionalConstraints: _constraints,
-        onChanged: onChanged,
-        onChangeStart: onChangeStart,
-        onChangeEnd: onChangeEnd,
-        vsync: vsync,
-        cursor: kIsWeb ? SystemMouseCursors.click : MouseCursor.defer,
-        direction: direction ??
-            switch (Directionality.of(context)) {
-              TextDirection.rtl => SliderDirection.rightToLeft,
-              TextDirection.ltr => SliderDirection.leftToRight,
-            });
+      value: value,
+      divisions: divisions,
+      // activePaint: activePaint,
+      knobDecoration: knobPaint,
+      trackDecoration: trackPaint,
+      thickness: thickness,
+      knobRadius: knobRadius,
+      additionalConstraints: _constraints,
+      onChanged: onChanged,
+      onChangeStart: onChangeStart,
+      onChangeEnd: onChangeEnd,
+      vsync: vsync,
+      cursor: kIsWeb ? SystemMouseCursors.click : MouseCursor.defer,
+      direction:
+          direction ??
+          switch (Directionality.of(context)) {
+            TextDirection.rtl => SliderDirection.rightToLeft,
+            TextDirection.ltr => SliderDirection.leftToRight,
+          },
+    );
   }
 
   @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderRange renderObject,
-  ) {
+  void updateRenderObject(BuildContext context, _RenderRange renderObject) {
     assert(debugCheckHasDirectionality(context));
     renderObject
       ..value = value
@@ -187,7 +179,8 @@ class _RangeRenderObjectWidget extends LeafRenderObjectWidget {
       ..onChangeEnd = onChangeEnd
       ..thickness = thickness
       ..knobRadius = knobRadius
-      ..direction = direction ??
+      ..direction =
+          direction ??
           switch (Directionality.of(context)) {
             TextDirection.rtl => SliderDirection.rightToLeft,
             TextDirection.ltr => SliderDirection.leftToRight,
@@ -199,18 +192,11 @@ class _RangeRenderObjectWidget extends LeafRenderObjectWidget {
 
 const Duration _kDiscreteTransitionDuration = Duration(milliseconds: 500);
 
-const double _kAdjustmentUnit =
-    0.1; // Matches iOS implementation of material slider.
+const double _kAdjustmentUnit = 0.1; // Matches iOS implementation of material slider.
 
-enum SliderDirection {
-  topToBottom,
-  bottomToTop,
-  leftToRight,
-  rightToLeft,
-}
+enum SliderDirection { topToBottom, bottomToTop, leftToRight, rightToLeft }
 
-class _RenderRange extends RenderConstrainedBox
-    implements MouseTrackerAnnotation {
+class _RenderRange extends RenderConstrainedBox implements MouseTrackerAnnotation {
   _RenderRange({
     required double value,
     int? divisions,
@@ -226,26 +212,24 @@ class _RenderRange extends RenderConstrainedBox
     required TickerProvider vsync,
     MouseCursor cursor = MouseCursor.defer,
     required super.additionalConstraints,
-  })  : assert(value >= 0.0 && value <= 1.0),
-        _cursor = cursor,
-        _value = value,
-        _divisions = divisions,
-        _knobDecoration = knobDecoration,
-        _trackDecoration = trackDecoration,
-        _onChanged = onChanged,
-        _thickness = thickness,
-        _direction = direction,
-        _knobRadius = knobRadius {
+  }) : assert(value >= 0.0 && value <= 1.0),
+       _cursor = cursor,
+       _value = value,
+       _divisions = divisions,
+       _knobDecoration = knobDecoration,
+       _trackDecoration = trackDecoration,
+       _onChanged = onChanged,
+       _thickness = thickness,
+       _direction = direction,
+       _knobRadius = knobRadius {
     _updateAdditionalConstraints();
     _resetGestures(direction);
-    _position = AnimationController(
-      value: value,
-      duration: _kDiscreteTransitionDuration,
-      vsync: vsync,
-    )..addListener(() {
-        _value = _position.value;
-        markNeedsPaint();
-      });
+    _position =
+        AnimationController(value: value, duration: _kDiscreteTransitionDuration, vsync: vsync)
+          ..addListener(() {
+            _value = _position.value;
+            markNeedsPaint();
+          });
   }
 
   SliderDirection get direction => _direction;
@@ -383,41 +367,25 @@ class _RenderRange extends RenderConstrainedBox
 
   double get _crossAxisLength => math.max(_knobRadius * 2, _thickness);
   double get _mainAxisLength => switch (direction) {
-        SliderDirection.topToBottom ||
-        SliderDirection.bottomToTop =>
-          hasSize ? size.height : 0.0,
-        SliderDirection.leftToRight ||
-        SliderDirection.rightToLeft =>
-          hasSize ? size.width : 0.0,
-      };
+    SliderDirection.topToBottom || SliderDirection.bottomToTop => hasSize ? size.height : 0.0,
+    SliderDirection.leftToRight || SliderDirection.rightToLeft => hasSize ? size.width : 0.0,
+  };
 
   Size get _size => switch (direction) {
-        SliderDirection.topToBottom || SliderDirection.bottomToTop => Size(
-            _crossAxisLength,
-            _mainAxisLength,
-          ),
-        SliderDirection.leftToRight || SliderDirection.rightToLeft => Size(
-            _mainAxisLength,
-            _crossAxisLength,
-          ),
-      };
+    SliderDirection.topToBottom ||
+    SliderDirection.bottomToTop => Size(_crossAxisLength, _mainAxisLength),
+    SliderDirection.leftToRight ||
+    SliderDirection.rightToLeft => Size(_mainAxisLength, _crossAxisLength),
+  };
   double get _mainAxisStart => switch (direction) {
-        SliderDirection.topToBottom ||
-        SliderDirection.leftToRight =>
-          0.0 + _knobRadius,
-        SliderDirection.bottomToTop ||
-        SliderDirection.rightToLeft =>
-          _mainAxisLength - _knobRadius,
-      };
+    SliderDirection.topToBottom || SliderDirection.leftToRight => 0.0 + _knobRadius,
+    SliderDirection.bottomToTop || SliderDirection.rightToLeft => _mainAxisLength - _knobRadius,
+  };
 
   double get _mainAxisEnd => switch (direction) {
-        SliderDirection.bottomToTop ||
-        SliderDirection.rightToLeft =>
-          0.0 + _knobRadius,
-        SliderDirection.topToBottom ||
-        SliderDirection.leftToRight =>
-          _mainAxisLength - _knobRadius,
-      };
+    SliderDirection.bottomToTop || SliderDirection.rightToLeft => 0.0 + _knobRadius,
+    SliderDirection.topToBottom || SliderDirection.leftToRight => _mainAxisLength - _knobRadius,
+  };
 
   bool get isInteractive => onChanged != null;
 
@@ -425,10 +393,7 @@ class _RenderRange extends RenderConstrainedBox
     additionalConstraints = BoxConstraints.tightFor(width: _size.width);
   }
 
-  Future<void> _moveTo(
-    double value, {
-    double delta = 1.0,
-  }) async {
+  Future<void> _moveTo(double value, {double delta = 1.0}) async {
     if (delta > 0.1 && divisions == null) {
       try {
         _position.stop();
@@ -465,8 +430,7 @@ class _RenderRange extends RenderConstrainedBox
     }
   }
 
-  void _handleDragStart(DragStartDetails details) =>
-      _startInteraction(details.localPosition);
+  void _handleDragStart(DragStartDetails details) => _startInteraction(details.localPosition);
 
   void _handleDragUpdate(DragUpdateDetails details) {
     if (isInteractive) {
@@ -518,11 +482,7 @@ class _RenderRange extends RenderConstrainedBox
     double trackLeft;
     Offset knobCenter;
     double crossAxisMidpoint;
-    double knobMainAxisPosition = ui.lerpDouble(
-      _mainAxisStart,
-      _mainAxisEnd,
-      _position.value,
-    )!;
+    double knobMainAxisPosition = ui.lerpDouble(_mainAxisStart, _mainAxisEnd, _position.value)!;
     switch (direction) {
       case SliderDirection.topToBottom:
       case SliderDirection.bottomToTop:
@@ -531,10 +491,7 @@ class _RenderRange extends RenderConstrainedBox
         trackRight = crossAxisMidpoint + _thickness / 2.0;
         trackTop = offset.dy;
         trackBottom = offset.dy + size.height;
-        knobCenter = Offset(
-          crossAxisMidpoint,
-          trackTop + knobMainAxisPosition,
-        );
+        knobCenter = Offset(crossAxisMidpoint, trackTop + knobMainAxisPosition);
         break;
       case SliderDirection.leftToRight:
       case SliderDirection.rightToLeft:
@@ -543,10 +500,7 @@ class _RenderRange extends RenderConstrainedBox
         trackBottom = crossAxisMidpoint + _thickness / 2.0;
         trackLeft = offset.dx;
         trackRight = offset.dx + size.width;
-        knobCenter = Offset(
-          trackLeft + knobMainAxisPosition,
-          crossAxisMidpoint,
-        );
+        knobCenter = Offset(trackLeft + knobMainAxisPosition, crossAxisMidpoint);
         break;
     }
 
@@ -555,9 +509,7 @@ class _RenderRange extends RenderConstrainedBox
       _trackPainter?.paint(
         canvas,
         Offset(trackLeft, trackTop),
-        ImageConfiguration(
-          size: Size(trackRight - trackLeft, trackBottom - trackTop),
-        ),
+        ImageConfiguration(size: Size(trackRight - trackLeft, trackBottom - trackTop)),
       );
     }
 
@@ -587,8 +539,7 @@ class _RenderRange extends RenderConstrainedBox
     }
   }
 
-  double get _semanticActionUnit =>
-      divisions != null ? 1.0 / divisions! : _kAdjustmentUnit;
+  double get _semanticActionUnit => divisions != null ? 1.0 / divisions! : _kAdjustmentUnit;
 
   void _increaseAction() {
     if (isInteractive) {

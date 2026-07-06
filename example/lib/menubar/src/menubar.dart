@@ -1,6 +1,7 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 
+import '../../shared/package.dart';
 import '../../shared/theme.dart';
 
 class MenuBar extends StatefulWidget {
@@ -28,7 +29,7 @@ class _MenuBarState extends State<MenuBar> {
       child: DefaultTextStyle(
         style: const TextStyle(
           fontFamily: 'InterVariable',
-          package: 'example',
+          package: kPackage,
           fontSize: 14,
           color: Color(0xff000000),
         ),

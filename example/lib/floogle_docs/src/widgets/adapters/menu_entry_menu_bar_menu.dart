@@ -1,9 +1,12 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../../shared/package.dart';
 import '../../model/model.dart';
 import '../menu_bar_button_label.dart';
+import '../menus/document_menu_bar.dart';
 import '../web_label.dart';
 import 'menu_entry_panel.dart';
 
@@ -37,31 +40,49 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
       orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
       controller: controller,
       focusNode: anchorFocusNode,
+      requestFocusOnHover: DocumentMenuBar.isInteractiveOf(context),
       onPressed: () {
         if (controller.isOpen) {
-          controller.close();
+          DocumentMenuBar.disableInteractivityOf(context);
+          anchorFocusNode.unfocus();
         } else {
           controller.open();
+          anchorFocusNode.requestFocus();
+          DocumentMenuBar.enableInteractivityOf(context);
         }
       },
-      menu:
-          widget.panel ??
-          MenuEntryPanel(
-            onSurfaceExit: (_) {
-              if (!anchorFocusNode.hasFocus) {
-                anchorFocusNode.requestFocus();
-              }
-            },
-            menuEntry: widget.entry,
-            borderRadius: const BorderRadiusDirectional.only(
-              bottomStart: Radius.circular(4),
-              bottomEnd: Radius.circular(4),
-              topEnd: Radius.circular(4),
+      menu: TapRegion(
+        groupId: 'menu_system',
+        onTapOutside: (PointerDownEvent event) {
+          if (!DocumentMenuBar.hasAncestor(context)) {
+            return;
+          }
+
+          if (event.buttons == kSecondaryMouseButton) {
+            return;
+          }
+
+          DocumentMenuBar.disableInteractivityOf(context);
+        },
+        child:
+            widget.panel ??
+            MenuEntryPanel(
+              onSurfaceExit: (_) {
+                if (!anchorFocusNode.hasFocus) {
+                  anchorFocusNode.requestFocus();
+                }
+              },
+              menuEntry: widget.entry,
+              borderRadius: const BorderRadiusDirectional.only(
+                bottomStart: Radius.circular(4),
+                bottomEnd: Radius.circular(4),
+                topEnd: Radius.circular(4),
+              ),
+              constraints: widget.overflow
+                  ? const BoxConstraints(minWidth: 200)
+                  : const BoxConstraints(minWidth: 320),
             ),
-            constraints: widget.overflow
-                ? const BoxConstraints(minWidth: 200)
-                : const BoxConstraints(minWidth: 320),
-          ),
+      ),
       child: Builder(
         builder: (context) {
           return MenuBarButtonLabel(
@@ -73,7 +94,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
                     textStyle: const TextStyle(
                       fontFamily: 'GoogleSansFlex',
                       fontFamilyFallback: ['GoogleSans'],
-                      package: 'example',
+                      package: kPackage,
                       fontSize: 14.5,
                       fontWeight: FontWeight(460),
                       letterSpacing: 0.1,
@@ -81,7 +102,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
                     ),
                     uppercaseTextStyle: const TextStyle(
                       fontFamily: 'GoogleSans',
-                      package: 'example',
+                      package: kPackage,
                       fontSize: 14.5,
                       fontWeight: FontWeight(460),
                       letterSpacing: -0.3,

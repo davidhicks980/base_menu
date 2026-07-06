@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../checkbox_menu_item/checkbox_menu_item.dart';
+import '../checkbox_menu_item/checkbox_menu_item_app.dart';
 import '../floogle_docs/floogle_docs.dart';
 import '../floogle_docs/src/theme/colors.dart';
 import '../menu/menu_app.dart';
 import '../menubar/menubar_app.dart';
-import '../sequoia/sequoia.dart';
+import '../sequoia/sequoia_app.dart';
+import '../shared/package.dart';
 import '../submenu/submenu_app.dart';
 import 'src/aliased_border.dart';
 
@@ -120,7 +121,7 @@ class _AppState extends State<App> {
               builder: (context) {
                 final theme = ThemeData(
                   fontFamily: 'GoogleSans',
-                  package: 'example',
+                  package: kPackage,
                   dividerTheme: DividerThemeData(
                     thickness: 0.0,
                     color: destination.brightness == Brightness.dark
@@ -161,7 +162,7 @@ class _AppState extends State<App> {
                       return TextStyle(
                         fontSize: 14,
                         fontFamily: 'GoogleSans',
-                        package: 'example',
+                        package: kPackage,
 
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                         color: isSelected
@@ -229,7 +230,7 @@ class _AppRouteWrapper extends StatelessWidget {
     return Theme(
       data: Theme.of(context).copyWith(
         brightness: destination.brightness,
-        textTheme: Theme.of(context).textTheme.apply(package: 'example'),
+        textTheme: TextTheme.of(context).apply(package: kPackage),
       ),
       child: Builder(
         builder: (context) {

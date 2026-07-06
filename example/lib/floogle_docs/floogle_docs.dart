@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../shared/package.dart';
 import 'src/model/enum.dart';
 import 'src/theme/colors.dart';
 import 'src/widgets/action_reflector.dart';
@@ -42,8 +43,7 @@ class _FloogleDocsAppState extends State<FloogleDocsApp> {
       style: TextStyle(
         fontFamily: 'RobotoFlex',
         fontFamilyFallback: ['InterVariable'],
-        package: 'example',
-
+        package: kPackage,
         color: FloogleColors.grey,
         fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
       ),
@@ -161,15 +161,16 @@ class _AppState extends State<_App> {
       ),
     );
 
-    return Builder(
-      builder: (context) {
-        final documentState = AppStateManager.documentStateOf(context);
-        final isMenuAimAssistEnabled = documentState[SelectionKey.menuAimAssist] == true;
-        final isMenuAimAssistDebugPaintEnabled =
-            documentState[SelectionKey.menuAimAssistDebugPaint] == true;
-        MenuAimInterceptor.visualizeAim = isMenuAimAssistDebugPaintEnabled;
-        return MenuAimScope(enable: isMenuAimAssistEnabled, child: child);
-      },
+    return  Builder(
+        builder: (context) {
+          final documentState = AppStateManager.documentStateOf(context);
+          final isMenuAimAssistEnabled = documentState[SelectionKey.menuAimAssist] == true;
+          final isMenuAimAssistDebugPaintEnabled =
+              documentState[SelectionKey.menuAimAssistDebugPaint] == true;
+          MenuAimInterceptor.visualizeAim = isMenuAimAssistDebugPaintEnabled;
+          return MenuAimScope(enable: isMenuAimAssistEnabled, child: child);
+        },
+
     );
   }
 }

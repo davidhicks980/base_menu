@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import '../../../shared/localized_shortcut_labeler.dart';
+import '../../../shared/package.dart';
 import '../theme/colors.dart';
 
 class SubmenuActionLabel extends StatelessWidget {
@@ -66,7 +67,7 @@ class MenuActionLabel extends StatelessWidget {
 
   static const labelTextStyle = TextStyle(
     fontFamily: 'RobotoFlex',
-    package: 'example',
+    package: kPackage,
     fontSize: kIsWeb ? 14.25 : 14,
     color: FloogleColors.darkGray,
     fontWeight: kIsWeb ? FontWeight(475) : FontWeight.w400,
@@ -79,7 +80,7 @@ class MenuActionLabel extends StatelessWidget {
 
   static const _acceleratorTextStyle = TextStyle(
     fontFamily: 'RobotoFlex',
-    package: 'example',
+    package: kPackage,
     fontFamilyFallback: ['InterVariable'],
     fontSize: 14,
     fontWeight: FontWeight.w500,

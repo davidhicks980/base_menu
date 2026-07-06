@@ -1,10 +1,12 @@
 import 'package:base_menu/base_menu.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../menu_action_label.dart';
 import '../menu_panel.dart';
+import '../menus/document_menu_bar.dart';
 import 'menu_entry_panel.dart';
 
 class MenuEntrySubmenu extends StatefulWidget {
@@ -33,14 +35,6 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
     super.dispose();
   }
 
-  void _handlePressed() {
-    if (_menuController.isOpen) {
-      _menuController.close();
-    } else {
-      _menuController.open();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return BaseSubmenu(
@@ -49,16 +43,24 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
       hoverOpenDelay: widget.hoverDelay,
       hoverCloseDelay: widget.hoverDelay,
       controller: _menuController,
-      menu: MenuEntryPanel(
-        menuEntry: widget.entry,
-        constraints: widget.entry == Menu.table ? null : widget.constraints,
-        onSurfaceExit: (event) {
-          if (!_focusNode.hasFocus) {
-            _focusNode.requestFocus();
+      menu: TapRegion(
+        groupId: 'menu_system',
+        onTapOutside: (event) {
+          if (event.buttons == kSecondaryMouseButton) {
+            return;
           }
+          DocumentMenuBar.disableInteractivityOf(context);
         },
+        child: MenuEntryPanel(
+          menuEntry: widget.entry,
+          constraints: widget.entry == Menu.table ? null : widget.constraints,
+          onSurfaceExit: (event) {
+            if (!_focusNode.hasFocus) {
+              _focusNode.requestFocus();
+            }
+          },
+        ),
       ),
-      onPressed: _handlePressed,
       child: SubmenuActionLabel(
         axis: Axis.vertical,
         leading: widget.entry.child.icon != null ? Icon(widget.entry.child.icon) : null,

@@ -1,6 +1,7 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../shared/package.dart';
 import '../theme/colors.dart';
 
 class MenuBarButtonLabel extends StatelessWidget {
@@ -10,7 +11,7 @@ class MenuBarButtonLabel extends StatelessWidget {
 
   static const _textStyle = TextStyle(
     fontFamily: 'GoogleSans',
-    package: 'example',
+    package: kPackage,
     fontSize: 14,
     letterSpacing: 0.2,
     fontWeight: FontWeight.w400,

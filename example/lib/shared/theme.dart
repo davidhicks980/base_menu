@@ -2,8 +2,11 @@ import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+import 'package.dart';
+
 const Color kSeedColor = Color(0xFF4285F4);
 const Color kPressedColor = Color(0xFF174EA6);
+const Color kDarkPressedColor = Color.fromARGB(255, 10, 48, 109);
 const Color kHoverBg = Color(0xFFE8F0FE);
 const Color kFocusBg = Color(0xFFD2E3FC);
 const Color kDefaultText = Color(0xFF3C4043);
@@ -18,28 +21,11 @@ final WidgetStateProperty<BoxDecoration> demoButtonDecoration = WidgetStatePrope
     borderRadius: BorderRadius.circular(8),
     border: Border.all(color: const Color(0xFFE0E0E0), width: 3.5),
   ),
-  WidgetState.selected: BoxDecoration(
-    color: kHoverBg,
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: kSeedColor, width: 3.5),
-  ),
-  // Combination: Pressed + Focused + Hovered (Maximum prominence)
-  WidgetState.pressed & WidgetState.focused & WidgetState.hovered: BoxDecoration(
-    color: kPressedColor,
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(width: 3.5),
-    boxShadow: [BoxShadow(color: kSeedColor.withValues(alpha: 0.4), blurRadius: 4)],
-  ),
+
   WidgetState.pressed: BoxDecoration(
-    color: kPressedColor,
+    color: kDarkPressedColor,
     borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: kTransparent, width: 3.5),
-  ),
-  // Combination: Focus + Hover
-  WidgetState.focused & WidgetState.hovered: BoxDecoration(
-    color: kFocusBg,
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: kSeedColor, width: 3.5),
+    border: Border.all(color: kDarkPressedColor, width: 3.5),
   ),
   WidgetState.focused: BoxDecoration(
     color: kTransparent,
@@ -49,7 +35,7 @@ final WidgetStateProperty<BoxDecoration> demoButtonDecoration = WidgetStatePrope
   WidgetState.hovered: BoxDecoration(
     color: kSeedColor,
     borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: kSeedColor.withValues(alpha: 0.5), width: 3.5),
+    border: Border.all(color: kSeedColor, width: 3.5),
   ),
   WidgetState.any: BoxDecoration(
     color: kTransparent,
@@ -63,26 +49,10 @@ final WidgetStateProperty<BoxDecoration> demoMenuItemDecoration = WidgetStatePro
   WidgetState.pressed: BoxDecoration(
     color: kPressedColor,
     borderRadius: BorderRadius.circular(4),
-
-    border: Border.all(color: kSeedColor, width: 3.5),
-  ),
-  WidgetState.pressed & WidgetState.focused: BoxDecoration(
-    color: kPressedColor,
-    borderRadius: BorderRadius.circular(4),
-    border: Border.all(color: kSeedColor, width: 3.5),
-  ),
-  WidgetState.focused & WidgetState.hovered: BoxDecoration(
-    color: kSeedColor,
-    borderRadius: BorderRadius.circular(4),
-    border: Border.all(color: kTransparent, width: 3.5),
-  ),
-  WidgetState.hovered: BoxDecoration(
-    color: kSeedColor,
-    borderRadius: BorderRadius.circular(4),
-    border: Border.all(color: kSeedColor, width: 3.5),
+    border: Border.all(color: kPressedColor, width: 3.5),
   ),
   WidgetState.focused: BoxDecoration(
-    color: kSeedColor.withValues(alpha: 0.12),
+    color: kSeedColor,
     borderRadius: BorderRadius.circular(4),
     border: Border.all(color: kSeedColor, width: 3.5),
   ),
@@ -93,69 +63,47 @@ final WidgetStateProperty<BoxDecoration> demoMenuItemDecoration = WidgetStatePro
   ),
 });
 
-final WidgetStateProperty<TextStyle> demoTextStyle = WidgetStateProperty.fromMap({
-  WidgetState.disabled: const TextStyle(
+const WidgetStateProperty<TextStyle> demoTextStyle = WidgetStateProperty.fromMap({
+  WidgetState.disabled: TextStyle(
     color: kDisabledText,
     fontFamily: 'InterVariable',
-    package: 'example',
+    package: kPackage,
   ),
-  WidgetState.pressed: const TextStyle(
-    color: kWhite,
-    fontFamily: 'InterVariable',
-    package: 'example',
-  ),
-  WidgetState.hovered & WidgetState.pressed: const TextStyle(
-    color: kBlack,
-    fontFamily: 'InterVariable',
-    package: 'example',
-  ),
-  WidgetState.hovered: const TextStyle(
-    color: kWhite,
-    fontFamily: 'InterVariable',
-    package: 'example',
-  ),
-  WidgetState.focused: const TextStyle(
-    color: kDefaultText,
-    fontFamily: 'InterVariable',
-    package: 'example',
-  ),
-  WidgetState.any: const TextStyle(
-    color: kDefaultText,
-    fontFamily: 'InterVariable',
-    package: 'example',
-  ),
+  WidgetState.pressed: TextStyle(color: kWhite, fontFamily: 'InterVariable', package: kPackage),
+  WidgetState.focused: TextStyle(color: kWhite, fontFamily: 'InterVariable', package: kPackage),
+  WidgetState.any: TextStyle(color: kDefaultText, fontFamily: 'InterVariable', package: kPackage),
 });
 
 final WidgetStateProperty<TextStyle> demoButtonTextStyle = WidgetStateProperty.fromMap({
   WidgetState.disabled: const TextStyle(
     color: kDisabledText,
     fontFamily: 'InterVariable',
-    package: 'example',
+    package: kPackage,
   ),
   WidgetState.pressed: const TextStyle(
     color: kWhite,
     fontFamily: 'InterVariable',
-    package: 'example',
+    package: kPackage,
   ),
   (WidgetState.hovered & WidgetState.focused): const TextStyle(
     color: kDefaultText,
     fontFamily: 'InterVariable',
-    package: 'example',
+    package: kPackage,
   ),
   WidgetState.hovered: const TextStyle(
     color: kWhite,
     fontFamily: 'InterVariable',
-    package: 'example',
+    package: kPackage,
   ),
   WidgetState.focused: const TextStyle(
     color: kDefaultText,
     fontFamily: 'InterVariable',
-    package: 'example',
+    package: kPackage,
   ),
   WidgetState.any: const TextStyle(
     color: kDefaultText,
     fontFamily: 'InterVariable',
-    package: 'example',
+    package: kPackage,
   ),
 });
 
@@ -193,33 +141,46 @@ class StyledMenuBarChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final states = BaseMenuItem.statesOf(context);
+    final openTextColor = MenuController.maybeIsOpenOf(context) ?? false ? kWhite : null;
     return Container(
       decoration: MenuController.maybeIsOpenOf(context) ?? false
           ? const BoxDecoration(
               color: kPressedColor,
               border: Border.fromBorderSide(BorderSide(color: kPressedColor, width: 3.5)),
             )
-          : demoMenuItemDecoration
-                .resolve(BaseMenuItem.statesOf(context))
-                .copyWith(borderRadius: BorderRadius.zero),
+          : demoMenuItemDecoration.resolve(states).copyWith(borderRadius: BorderRadius.zero),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: IconTheme(
         data: IconThemeData(
           color: demoTextStyle
-              .resolve(BaseMenuItem.statesOf(context))
-              .copyWith(
-                fontWeight: .w500,
-                color: MenuController.maybeIsOpenOf(context) ?? false ? kWhite : null,
-              )
+              .resolve(states)
+              .copyWith(fontWeight: .w500, color: openTextColor)
               .color,
         ),
         child: DefaultTextStyle(
-          style: demoTextStyle
-              .resolve(BaseMenuItem.statesOf(context))
-              .copyWith(
-                fontWeight: .w500,
-                color: MenuController.maybeIsOpenOf(context) ?? false ? kWhite : null,
-              ),
+          style: demoTextStyle.resolve(states).copyWith(fontWeight: .w500, color: openTextColor),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class StyledSubmenuChild extends StatelessWidget {
+  const StyledSubmenuChild({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final states = BaseMenuItem.statesOf(context);
+    return Container(
+      decoration: demoMenuItemDecoration.resolve(states).copyWith(borderRadius: BorderRadius.zero),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: IconTheme(
+        data: IconThemeData(color: demoTextStyle.resolve(states).copyWith(fontWeight: .w500).color),
+        child: DefaultTextStyle(
+          style: demoTextStyle.resolve(states).copyWith(fontWeight: .w500),
           child: child,
         ),
       ),

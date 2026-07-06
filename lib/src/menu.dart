@@ -878,10 +878,11 @@ class _MenuOverlay extends StatelessWidget {
 ///   menu.
 ///
 /// The [orientation] property controls the keyboard navigation layout. By
-/// default, the menu bar is horizontal, meaning [LogicalKeyboardKey.arrowLeft]
-/// and [LogicalKeyboardKey.arrowRight] keys traverse the top-level menu items.
-/// If the menu bar is vertical, the [LogicalKeyboardKey.arrowUp] and
-/// [LogicalKeyboardKey.arrowDown] keys traverse the top-level menu items.
+/// default, the [orientation] is [Axis.horizontal], meaning that the left and
+/// right arrow keys traverse the top-level menu items. If the [orientation] is
+/// set to [Axis.vertical], the up and down arrow keys traverse the top-level
+/// menu items. Traversal respects the ambient [Directionality], so in a
+/// right-to-left context, the left and right arrow keys are reversed.
 ///
 /// ### Basic Usage Pattern
 ///
@@ -954,10 +955,10 @@ class _MenuOverlay extends StatelessWidget {
 ///);
 /// ```
 ///
-///See also:
-/// * [BaseMenu], for individual dropdown menus and context menus.
-/// * [BaseSubmenu], for nested submenus within a menu panel.
-/// * [BaseMenuPanel], the standard companion panel for laying out menu items
+/// **See also:**
+/// * [BaseMenu], for creating standalone dropdown menus and context menus.
+/// * [BaseSubmenu], for creating submenus within a [BaseMenuBar].
+/// * [BaseMenuPanel], a companion widget for laying out menu items
 class BaseMenuBar extends StatefulWidget {
   /// Creates a [BaseMenuBar].
   ///
@@ -1364,18 +1365,29 @@ class _MenuPositioner extends SingleChildRenderObjectWidget {
 class _RenderMenuPositioner extends RenderShiftedBox {
   _RenderMenuPositioner({
     RenderBox? child,
-    required this._anchorRect,
-    required this._offset,
-    required this._menuPosition,
-    required this._overlayPadding,
-    required this._avoidBounds,
-    required this._alignment,
-    required this._menuAlignment,
-    required this._textDirection,
-    required this._menuPadding,
-    required this._edgeBehavior,
-    required this._onPositioned,
-  }) : super(child);
+    required ui.Rect anchorRect,
+    required ui.Offset offset,
+    required ui.Offset? menuPosition,
+    required EdgeInsetsGeometry overlayPadding,
+    required Set<ui.Rect> avoidBounds,
+    required AlignmentGeometry alignment,
+    required AlignmentGeometry menuAlignment,
+    required TextDirection textDirection,
+    required EdgeInsetsGeometry? menuPadding,
+    required EdgeBehavior edgeBehavior,
+    required ValueChanged<ui.Rect>? onPositioned,
+  }) : _anchorRect = anchorRect,
+       _offset = offset,
+       _menuPosition = menuPosition,
+       _overlayPadding = overlayPadding,
+       _avoidBounds = avoidBounds,
+       _alignment = alignment,
+       _menuAlignment = menuAlignment,
+       _textDirection = textDirection,
+       _menuPadding = menuPadding,
+       _edgeBehavior = edgeBehavior,
+       _onPositioned = onPositioned,
+       super(child);
 
   Rect get anchorRect => _anchorRect;
   Rect _anchorRect;

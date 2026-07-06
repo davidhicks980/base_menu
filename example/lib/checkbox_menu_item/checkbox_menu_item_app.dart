@@ -1,6 +1,7 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 
+import '../shared/package.dart';
 import 'src/checkbox_menu_item.dart';
 
 class CheckboxMenuItemApp extends StatefulWidget {
@@ -24,8 +25,7 @@ class _CheckboxMenuItemAppState extends State<CheckboxMenuItemApp> {
     return DefaultTextStyle(
       style: const TextStyle(
         fontFamily: 'InterVariable',
-        package: 'example',
-
+        package: kPackage,
         fontSize: 14,
         color: Color(0xFF1A1A1A),
         height: 1.5,

@@ -2,12 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../shared/package.dart';
 import '../theme/colors.dart';
 
 const webStyle = TextStyle(
   color: FloogleColors.onDarkGray,
   fontFamily: 'GoogleSans',
-  package: 'example',
+  package: kPackage,
   fontSize: 12.0,
   fontVariations: [FontVariation.weight(500)],
   letterSpacing: 0.1,
@@ -18,7 +19,7 @@ const webStyle = TextStyle(
 const defaultStyle = TextStyle(
   color: FloogleColors.onDarkGray,
   fontFamily: 'GoogleSans',
-  package: 'example',
+  package: kPackage,
   fontSize: 12.0,
   fontVariations: [FontVariation.weight(425)],
   letterSpacing: 0.1,
@@ -44,6 +45,18 @@ class MenuTooltip extends StatefulWidget {
 
 class _MenuTooltipState extends State<MenuTooltip> {
   bool isForwardOrComplete = false;
+
+  static Offset _positionDelegate(TooltipPositionContext positionContext) {
+    final anchorRect =
+        (positionContext.target - positionContext.targetSize.center(Offset.zero)) &
+        positionContext.targetSize;
+    // Center the tooltip below the anchor rect, with a small offset.
+    final tooltipOffset = Offset(
+      anchorRect.center.dx - positionContext.tooltipSize.width / 2,
+      anchorRect.bottom + 4.0,
+    );
+    return tooltipOffset;
+  }
 
   Widget _tooltipBuilder(BuildContext context, Animation<double> animation) {
     final child = Container(
@@ -79,9 +92,17 @@ class _MenuTooltipState extends State<MenuTooltip> {
       builder: (context, child) {
         if (kIsWeb && isForwardOrComplete != animation.isForwardOrCompleted) {
           isForwardOrComplete = animation.isForwardOrCompleted;
+          final tooltip = isForwardOrComplete ? child! : const SizedBox();
+          // Prevents the root focus scope from taking focus on web.
+          final previousPrimaryFocus = FocusManager.instance.primaryFocus;
+          if (previousPrimaryFocus == null) {
+            return tooltip;
+          }
+
           SchedulerBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              primaryFocus?.requestFocus();
+            FocusManager.instance.applyFocusChangesIfNeeded();
+            if (FocusManager.instance.rootScope.hasPrimaryFocus) {
+              previousPrimaryFocus.requestFocus();
             }
           });
         }
@@ -98,6 +119,7 @@ class _MenuTooltipState extends State<MenuTooltip> {
       semanticsTooltip: widget.enableSemantics
           ? widget.message.toPlainText(includePlaceholders: false)
           : null,
+      positionDelegate: _positionDelegate,
       tooltipBuilder: _tooltipBuilder,
       ignorePointer: true,
       child: widget.child,

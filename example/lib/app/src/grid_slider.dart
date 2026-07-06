@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../shared/package.dart';
+
 const transparent = Color(0x00000000);
 const white = Color(0xFFFFFFFF);
 const black = Color(0xFF000000);
@@ -154,7 +156,7 @@ class _GridSliderState extends State<GridSlider> {
               left: 12,
               child: DefaultTextStyle(
                 style: TextStyle(
-                  package: 'example',
+                  package: kPackage,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: brightness == Brightness.dark ? white : black,
@@ -181,7 +183,7 @@ class _GridSliderState extends State<GridSlider> {
   }
 
   Widget _buildFocusOutline(BuildContext context, Widget? child) {
-    BoxDecoration outline = BoxDecoration(
+    final outline = BoxDecoration(
       border: Border.fromBorderSide(
         BorderSide(
           color: _focusNode.hasFocus ? dotColor : transparent,
@@ -211,13 +213,13 @@ class GridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final double tenthWidth = size.width / 10;
     final double tenthHeight = size.height / 10;
-    final Paint paint = Paint()
+    final paint = Paint()
       ..color = brightness == Brightness.dark ? whiteTransparent : blackTransparent
       ..strokeWidth = 0.0
       ..isAntiAlias = false;
 
     double x = 0, y = 0;
-    for (int i = 0; i <= 10; i++) {
+    for (var i = 0; i <= 10; i++) {
       if (i % 5 == 0) {
         paint.strokeWidth = 1.0;
       } else {

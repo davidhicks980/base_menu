@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
+import '../../../shared/package.dart';
 import '../theme/colors.dart';
 import 'editable.dart';
 import 'menu_action_label.dart';
@@ -199,7 +200,7 @@ class ComboBox extends StatefulWidget {
     this.focusNode,
     this.textStyle = const TextStyle(
       fontFamily: 'GoogleSans',
-      package: 'example',
+      package: kPackage,
       fontSize: 14,
       color: FloogleColors.grey,
       decoration: TextDecoration.none,
@@ -521,7 +522,7 @@ class _Anchor extends StatelessWidget {
             blurredSelectionColor: FloogleColors.transparent,
             style: defaultTextStyle.copyWith(
               color: FloogleColors.darkGray,
-              package: 'example',
+              package: kPackage,
 
               decoration: TextDecoration.none,
               fontWeight: const FontWeight(450),
@@ -531,7 +532,7 @@ class _Anchor extends StatelessWidget {
         : Padding(
             padding: const EdgeInsets.only(right: 3),
             child: ExcludeSemantics(
-              child: Text(selected, style: defaultTextStyle.copyWith(package: "example")),
+              child: Text(selected, style: defaultTextStyle.copyWith(package: kPackage)),
             ),
           );
 

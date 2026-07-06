@@ -2,6 +2,7 @@ import 'package:base_menu/base_menu.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../shared/package.dart';
 import '../theme/colors.dart';
 import 'app_state_manager.dart';
 import 'dropdown_arrow.dart';
@@ -129,7 +130,7 @@ class _SelectTextButton extends StatelessWidget {
           DefaultTextStyle.merge(
             style: const TextStyle(
               fontFamily: 'GoogleSans',
-              package: 'example',
+              package: kPackage,
               fontSize: 14,
               height: 1.2,
               letterSpacing: 0.1,

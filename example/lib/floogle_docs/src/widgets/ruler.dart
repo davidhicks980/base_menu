@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../shared/package.dart';
 import '../model/enum.dart';
 import '../model/intents.dart';
 import '../theme/colors.dart';
@@ -403,7 +404,7 @@ class _RulerPainter extends CustomPainter {
             fontSize: 11,
             fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
             fontFamily: 'GoogleSansCode',
-            package: 'example',
+            package: kPackage,
           ),
         );
         textPainter.layout();
@@ -589,7 +590,7 @@ class _VerticalRulerPainter extends CustomPainter {
             fontSize: 11,
             fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
             fontFamily: 'GoogleSansCode',
-            package: 'example',
+            package: kPackage,
           ),
         );
         textPainter.layout();

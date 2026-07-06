@@ -153,8 +153,8 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
       child: BaseSubmenu(
         controller: controller,
         focusNode: focusNode,
-        hoverOpenDelay: const Duration(milliseconds: 100),
-        hoverCloseDelay: const Duration(milliseconds: 300),
+        hoverOpenDelay: const Duration(milliseconds: 250),
+        hoverCloseDelay: const Duration(milliseconds: 250),
         positionDelegate: const DefaultMenuPositioningDelegate(
           edgeBehavior: EdgeBehavior(
             horizontal: EdgeBehaviorStrategy(flip: true),
@@ -185,7 +185,7 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
             ),
           ),
         ),
-        child: StyledMenuBarChild(
+        child: StyledSubmenuChild(
           child: Row(children: [Text(widget.label), const Spacer(), widget.submenuIcon]),
         ),
       ),

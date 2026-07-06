@@ -229,7 +229,7 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
                     topEnd: Radius.circular(5),
                   ),
                   padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 5.0),
-                  child: SequoiaTreeIcon(
+                  child: _SequoiaTreeIcon(
                     color: const Color(0xFFFFFFFF),
                     size: MediaQuery.textScalerOf(context).scale(16),
                   ),
@@ -254,8 +254,8 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
 
 /// A widget that draws a stylized Sequoia tree icon, intended for use
 /// in the main menu bar as a replacement for the system logo.
-class SequoiaTreeIcon extends StatelessWidget {
-  const SequoiaTreeIcon({super.key, this.size = 18.0, this.color});
+class _SequoiaTreeIcon extends StatelessWidget {
+  const _SequoiaTreeIcon({this.size = 18.0, this.color});
 
   final double size;
   final Color? color;

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../shared/localized_shortcut_labeler.dart';
+import '../../shared/package.dart';
 
 // Sequoia 15 Style Constants
 const double _kSequoiaMenuFontSize = 13.0;
@@ -19,14 +20,14 @@ const Color _kSequoiaShortcutDark = Color.fromARGB(90, 255, 255, 255);
 
 const _webFontStyle = TextStyle(
   fontFamily: 'Main',
-  package: 'example',
+  package: kPackage,
   decoration: .none,
   fontVariations: [FontVariation.opticalSize(16), FontVariation.weight(450)],
 );
 
 const _cupertinoFontStyle = TextStyle(
   fontFamily: 'CupertinoSystemText',
-  package: 'example',
+  package: kPackage,
   letterSpacing: -0.1, // SF Pro standard tight tracking
   height: 1.2,
   decoration: TextDecoration.none,
@@ -118,6 +119,7 @@ class SequoiaMenuActionLabel extends StatelessWidget {
             style: textStyle.copyWith(
               fontSize: _kSequoiaMenuFontSize,
               color: textColor,
+              package: kPackage,
               fontWeight: FontWeight.w400,
               decoration: TextDecoration.none,
             ),

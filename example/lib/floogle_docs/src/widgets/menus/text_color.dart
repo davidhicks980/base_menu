@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../../../../shared/package.dart';
 import '../../model/intents.dart';
 import '../../theme/colors.dart';
 import '../app_state_manager.dart';
@@ -39,7 +40,7 @@ class _TextColorButtonState extends State<TextColorButton> {
               style: TextStyle(
                 fontSize: 14,
                 fontFamily: 'RobotoFlex',
-                package: 'example',
+                package: kPackage,
                 fontWeight: FontWeight.w500,
                 color: FloogleColors.darkGray,
                 height: 1.0,

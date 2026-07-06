@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../../../shared/package.dart';
 import '../../data/entry.dart';
 import '../../data/menu.dart';
 import '../../model/model.dart';
@@ -15,7 +16,7 @@ import '../menu_action_label.dart';
 
 const defaultStyle = TextStyle(
   fontFamily: 'RobotoFlex',
-  package: 'example',
+  package: kPackage,
   fontSize: kIsWeb ? 13 : 14,
   color: placeholderColor,
   height: 1.2,
@@ -498,7 +499,7 @@ class _SearchEntry extends StatelessWidget {
                   height: 20 / 14,
                   letterSpacing: 0.2,
                   fontFamily: 'RobotoFlex',
-                  package: 'example',
+                  package: kPackage,
                   color: textColor,
                   fontVariations: kIsWeb
                       ? [FontVariation.weight(450)]

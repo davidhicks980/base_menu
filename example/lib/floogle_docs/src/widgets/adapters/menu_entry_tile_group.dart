@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../../shared/package.dart';
 import '../../model/model.dart';
 import '../../theme/colors.dart';
 import '../tile_group.dart';
@@ -207,7 +208,7 @@ class _TileLinePainter extends CustomPainter {
                 color: FloogleColors.black,
                 height: 1.0,
                 fontFamily: 'RobotoFlex',
-                package: 'example',
+                package: kPackage,
                 fontSize: 10.0,
                 letterSpacing: 1,
                 fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,

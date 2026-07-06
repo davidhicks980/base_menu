@@ -16,3 +16,4 @@ linter:
     # Disable specific rules by setting them to false:
     public_member_api_docs: false
     specify_nonobvious_property_types: false
+    avoid_redundant_argument_values: false

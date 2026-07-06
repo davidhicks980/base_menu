@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../shared/package.dart';
 import '../model/enum.dart';
 import '../theme/colors.dart';
 import 'style_segment_tree.dart';
@@ -14,7 +15,7 @@ class EditorController extends TextEditingController {
     DocumentParagraphStyle.normal: const SegmentTextStyle(
       textStyle: TextStyle(
         fontFamily: 'RobotoFlex',
-        package: 'example',
+        package: kPackage,
         fontSize: kIsWeb ? 14.5 : 14.0,
         height: 20 / 14,
         color: FloogleColors.black,

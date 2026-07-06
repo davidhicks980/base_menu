@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../shared/package.dart';
 import '../theme/colors.dart';
 import 'editable.dart';
 
@@ -59,7 +60,7 @@ class _TitleFieldState extends State<TitleField> {
       ? TextStyle(
           fontSize: 18.5,
           fontFamily: 'GoogleSansFlex',
-          package: 'example',
+          package: kPackage,
           fontFamilyFallback: ['GoogleSans'],
           height: 1.2,
           letterSpacing: -0.4,
@@ -74,7 +75,7 @@ class _TitleFieldState extends State<TitleField> {
       : TextStyle(
           fontSize: 18,
           fontFamily: 'GoogleSans',
-          package: 'example',
+          package: kPackage,
           height: 1.2,
           overflow: TextOverflow.ellipsis,
           color: FloogleColors.darkGray,

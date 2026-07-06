@@ -73,55 +73,59 @@ class _EditorViewState extends State<EditorView> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 25),
-                    child: SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      hitTestBehavior: HitTestBehavior.translucent,
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 16, bottom: 64),
-                        child: Row(
-                          textDirection: .ltr,
-                          children: [
-                            const VerticalDocumentRuler(),
-                            Expanded(
-                              child: Align(
-                                alignment: Alignment.topCenter,
-                                child: Padding(
-                                  padding: const EdgeInsetsDirectional.only(start: 64),
-                                  child: Align(
-                                    child: UnconstrainedBox(
-                                      clipBehavior: Clip.hardEdge,
-                                      constrainedAxis: Axis.vertical,
-                                      alignment: Alignment.topLeft,
-                                      child: Padding(
-                                        padding: const EdgeInsetsDirectional.only(end: 64),
-                                        child: SizedBox(
-                                          width: 96 * 8.5,
-                                          height: 96 * 11,
-                                          child: DecoratedBox(
-                                            decoration: const BoxDecoration(
-                                              border: Border.fromBorderSide(
-                                                BorderSide(color: FloogleColors.separatorColor),
+                    child: _Disclaimer(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        hitTestBehavior: HitTestBehavior.translucent,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 16, bottom: 64),
+                          child: Row(
+                            textDirection: .ltr,
+                            children: [
+                              const VerticalDocumentRuler(),
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.topCenter,
+                                  child: Padding(
+                                    padding: const EdgeInsetsDirectional.only(start: 64),
+                                    child: Align(
+                                      child: UnconstrainedBox(
+                                        clipBehavior: Clip.hardEdge,
+                                        constrainedAxis: Axis.vertical,
+                                        alignment: Alignment.topLeft,
+                                        child: Padding(
+                                          padding: const EdgeInsetsDirectional.only(end: 64),
+                                          child: SizedBox(
+                                            width: 96 * 8.5,
+                                            height: 96 * 11,
+                                            child: DecoratedBox(
+                                              decoration: const BoxDecoration(
+                                                border: Border.fromBorderSide(
+                                                  BorderSide(color: FloogleColors.separatorColor),
+                                                ),
+                                                color: FloogleColors.white,
                                               ),
-                                              color: FloogleColors.white,
-                                            ),
-                                            // This is where the margins of
-                                            // the text editor can be edited.
-                                            child: Builder(
-                                              builder: (context) {
-                                                final Map<SelectionKey, Object> editorState =
-                                                    AppStateManager.documentStateOf(context);
-                                                return Padding(
-                                                  padding: EdgeInsets.fromLTRB(
-                                                    editorState[SelectionKey.leftMargin]! as double,
-                                                    editorState[SelectionKey.topMargin]! as double,
-                                                    editorState[SelectionKey.rightMargin]!
-                                                        as double,
-                                                    editorState[SelectionKey.bottomMargin]!
-                                                        as double,
-                                                  ),
-                                                  child: child,
-                                                );
-                                              },
+                                              // This is where the margins of
+                                              // the text editor can be edited.
+                                              child: Builder(
+                                                builder: (context) {
+                                                  final Map<SelectionKey, Object> editorState =
+                                                      AppStateManager.documentStateOf(context);
+                                                  return Padding(
+                                                    padding: EdgeInsets.fromLTRB(
+                                                      editorState[SelectionKey.leftMargin]!
+                                                          as double,
+                                                      editorState[SelectionKey.topMargin]!
+                                                          as double,
+                                                      editorState[SelectionKey.rightMargin]!
+                                                          as double,
+                                                      editorState[SelectionKey.bottomMargin]!
+                                                          as double,
+                                                    ),
+                                                    child: child,
+                                                  );
+                                                },
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -130,8 +134,8 @@ class _EditorViewState extends State<EditorView> {
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -176,6 +180,37 @@ class _EditorWidget extends StatelessWidget {
       textAlign: AppStateManager.selectedTextStyleOf(context)?.textAlign ?? TextAlign.start,
       maxLines: null, // Allows multiline
       expands: true,
+    );
+  }
+}
+
+// I've been asked more than once if this is affiliated with an organization, so
+// let's make it clear that it is not.
+class _Disclaimer extends StatelessWidget {
+  const _Disclaimer({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        child,
+        const Positioned(
+          left: 0,
+          right: 0,
+          bottom: 16,
+          child: Center(
+            child: Text(
+              'This project is not affiliated with any organization.',
+              style: TextStyle(
+                fontSize: 12,
+                color: FloogleColors.rulerTextColor,
+                fontWeight: .w400,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

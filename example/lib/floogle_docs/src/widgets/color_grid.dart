@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../../shared/package.dart';
 import '../theme/colors.dart';
 import 'menu_action_label.dart';
 
@@ -447,7 +448,7 @@ class _ColorPickerPanelState extends State<ColorPickerPanel> {
                           'CUSTOM',
                           style: TextStyle(
                             fontFamily: 'RobotoFlex',
-                            package: 'example',
+                            package: kPackage,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.8,

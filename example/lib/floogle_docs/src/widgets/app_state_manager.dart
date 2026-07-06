@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../shared/package.dart';
 import '../data/entry.dart';
 import '../data/menu.dart';
 import '../extensions/string.dart';
@@ -104,8 +105,8 @@ class AppStateManager extends StatefulWidget {
 class _AppStateManagerState extends State<AppStateManager> implements AppStateInterface {
   final controller = EditorController(
     text:
-        'This application demonstrates a menu system built using menu_utilities.\n\n'
-        'The editor itself is only a demonstration, and has limited functionality.\n\n'
+        'This application demonstrates a menu system built using menu_utilities. '
+        'The editor itself is only a demonstration, and has limited functionality. '
         'No Material or Cupertino widgets are used in this example.',
   );
 
@@ -365,7 +366,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
             TextStyle(
               fontWeight: FontWeight.normal,
               fontFamily: FontFamily.roboto.label,
-              package: 'example',
+              package: kPackage,
             );
 
         controller.applyStyle(

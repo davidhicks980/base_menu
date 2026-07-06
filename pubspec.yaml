@@ -7,6 +7,10 @@ issue_tracker: https://github.com/davidhicks980/base_menu/issues
 topics:
   - menus
   - ui
+workspace:
+  - samples
+  - deployments/base_menu
+  - deployments/floogle_docs
 
 environment:
   sdk: ^3.11.4

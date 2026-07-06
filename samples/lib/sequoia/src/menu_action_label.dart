@@ -19,7 +19,7 @@ const Color _kSequoiaTextDark = Color(0xFFFFFFFF);
 const Color _kSequoiaShortcutDark = Color.fromARGB(90, 255, 255, 255);
 
 const _webFontStyle = TextStyle(
-  fontFamily: 'Main',
+  fontFamily: 'InterVariable',
   package: kPackage,
   decoration: .none,
   fontVariations: [FontVariation.opticalSize(16), FontVariation.weight(450)],

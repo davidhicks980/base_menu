@@ -66,13 +66,14 @@ abstract class Tag {
 
 @immutable
 class NestedTag extends Tag {
-  const NestedTag(String name, {this._prefix, this.level = 0})
+  const NestedTag(String name, {Tag? prefix, this.level = 0})
     : assert(
         // Limit the nesting level to prevent stack overflow.
         level < 9,
         'NestedTag.level must be less than 9 (was $level).',
       ),
-      _name = name;
+      _name = name,
+      _prefix = prefix;
 
   @override
   final String _name;
@@ -147,12 +148,13 @@ class Button extends StatefulWidget {
     this.focusNode,
     this.autofocus = false,
     this.onFocusChange,
-    this._focusNodeLabel,
+    String? focusNodeLabel,
     BoxConstraints? constraints,
     this.role,
     this.requestFocusOnHover = false,
     this.requestCloseOnActivate = false,
-  }) : constraints = constraints ?? const BoxConstraints.tightFor(width: 225, height: 32);
+  }) : constraints = constraints ?? const BoxConstraints.tightFor(width: 225, height: 32),
+       _focusNodeLabel = focusNodeLabel;
 
   factory Button.text(
     String text, {
@@ -215,11 +217,8 @@ class Button extends StatefulWidget {
   final bool autofocus;
   final BoxConstraints constraints;
   final String? _focusNodeLabel;
-
   final SemanticsRole? role;
-
   final bool requestFocusOnHover;
-
   final bool requestCloseOnActivate;
 
   static void _defaultCallback() {}

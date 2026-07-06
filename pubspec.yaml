@@ -8,7 +8,7 @@ topics:
   - menus
   - ui
 workspace:
-  - samples
+  - demo
   - deployments/base_menu
   - deployments/floogle_docs
 

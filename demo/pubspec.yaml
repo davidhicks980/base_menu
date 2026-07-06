@@ -1,4 +1,4 @@
-name: base_menu_samples
+name: base_menu_demo
 description: "A set of example applications demonstrating the use of the base_menu package."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 resolution: workspace

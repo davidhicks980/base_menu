@@ -1859,6 +1859,66 @@ void main() {
       );
     });
 
+    testWidgets('hover open timer is canceled if focus leaves before delay expires', (
+      WidgetTester tester,
+    ) async {
+      const openDelay = Duration(milliseconds: 500);
+      final anchorFocusNode = FocusNode(debugLabel: Tag.anchor.focusNode);
+      final outsideFocusNode = FocusNode(debugLabel: Tag.outside.focusNode);
+      addTearDown(anchorFocusNode.dispose);
+      addTearDown(outsideFocusNode.dispose);
+
+      await tester.pumpWidget(
+        App(
+          Column(
+            children: [
+              BaseControl(
+                onPressed: () {},
+                focusNode: outsideFocusNode,
+                child: const Text('Outside'),
+              ),
+              BaseSubmenu(
+                role: null,
+                controller: controller,
+                focusNode: anchorFocusNode,
+                hoverOpenDelay: openDelay,
+                menu: const SizedBox(width: 100, height: 100),
+                child: const SubmenuChild(tag: Tag.anchor),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      expect(controller.isOpen, isFalse);
+
+      // Hover the anchor to start the open timer.
+      final TestGesture gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+      addTearDown(gesture.removePointer);
+      await gesture.addPointer(location: Offset.zero);
+      await gesture.moveTo(tester.getCenter(find.text(Tag.anchor.text)));
+      await tester.pump();
+
+      expect(anchorFocusNode.hasFocus, isTrue);
+
+      await tester.pump(const Duration(milliseconds: 250));
+
+      expect(controller.isOpen, isFalse);
+
+      outsideFocusNode.requestFocus();
+      await tester.pump();
+
+      expect(anchorFocusNode.hasFocus, isFalse);
+
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(
+        controller.isOpen,
+        isFalse,
+        reason: 'Submenu should not open since the focus left the anchor before delay expired.',
+      );
+    });
+
     testWidgets('rapid enter/leave sequence manages timers correctly without exceptions', (
       WidgetTester tester,
     ) async {

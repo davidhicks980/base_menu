@@ -1870,22 +1870,24 @@ void main() {
 
       await tester.pumpWidget(
         App(
-          Column(
-            children: [
-              BaseControl(
-                onPressed: () {},
-                focusNode: outsideFocusNode,
-                child: const Text('Outside'),
-              ),
-              BaseSubmenu(
-                role: null,
-                controller: controller,
-                focusNode: anchorFocusNode,
-                hoverOpenDelay: openDelay,
-                menu: const SizedBox(width: 100, height: 100),
-                child: const SubmenuChild(tag: Tag.anchor),
-              ),
-            ],
+          BaseMenuBar(
+            child: BaseMenuPanel(
+              children: [
+                BaseControl(
+                  onPressed: () {},
+                  focusNode: outsideFocusNode,
+                  child: Text(Tag.outside.text),
+                ),
+                BaseSubmenu(
+                  role: null,
+                  controller: controller,
+                  focusNode: anchorFocusNode,
+                  hoverOpenDelay: openDelay,
+                  menu: const SizedBox(width: 100, height: 100),
+                  child: const SubmenuChild(tag: Tag.anchor),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -1905,10 +1907,11 @@ void main() {
 
       expect(controller.isOpen, isFalse);
 
-      outsideFocusNode.requestFocus();
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
       await tester.pump();
 
       expect(anchorFocusNode.hasFocus, isFalse);
+      expect(outsideFocusNode.hasFocus, isTrue);
 
       await tester.pump(const Duration(milliseconds: 400));
 

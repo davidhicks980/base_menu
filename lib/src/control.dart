@@ -413,7 +413,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
   }
 
   void _handleFocusChange(bool focused) {
-    if (_activationSource == .keyboard) {
+    if (!focused && _activationSource == .keyboard) {
       _activationSource = null;
       if (_isPressed) {
         setState(() {
@@ -421,6 +421,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
         });
       }
     }
+
     widget.onFocusChange?.call(focused);
   }
 

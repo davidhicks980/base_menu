@@ -349,10 +349,9 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
 
   void _handleAnchorFocusChange() {
     if (!_focusNode.hasFocus && !_isScopeFocused) {
+      _openTimer?.cancel();
       if (widget.controller.isOpen) {
         _scheduleHoverClose();
-      } else {
-        _openTimer?.cancel();
       }
     } else {
       _closeTimer?.cancel();
@@ -510,12 +509,15 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       );
     }
 
-    final (
-      SingleActivator horizontalArrowNext,
-      SingleActivator horizontalArrowPrevious,
-    ) = switch (Directionality.maybeOf(context) ?? .ltr) {
-      .ltr => (const SingleActivator(.arrowRight), const SingleActivator(.arrowLeft)),
-      .rtl => (const SingleActivator(.arrowLeft), const SingleActivator(.arrowRight)),
+    final horizontalTraversalKeys = switch (Directionality.maybeOf(context) ?? .ltr) {
+      .ltr => (
+        next: const SingleActivator(.arrowRight),
+        previous: const SingleActivator(.arrowLeft),
+      ),
+      .rtl => (
+        next: const SingleActivator(.arrowLeft),
+        previous: const SingleActivator(.arrowRight),
+      ),
     };
 
     return Actions(
@@ -540,9 +542,9 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
         gestureSemantics: widget.gestureSemantics,
         shortcuts: _parentOrientation == .vertical
             ? {
-                horizontalArrowNext: const EnterMenuIntent.focusFirst(),
+                horizontalTraversalKeys.next: const EnterMenuIntent.focusFirst(),
                 if (widget.orientation == .horizontal)
-                  horizontalArrowPrevious: const EnterMenuIntent.focusLast(),
+                  horizontalTraversalKeys.previous: const EnterMenuIntent.focusLast(),
                 ...?widget.shortcuts,
               }
             : widget.shortcuts ?? {},

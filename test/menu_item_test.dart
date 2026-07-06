@@ -552,8 +552,16 @@ void main() {
     void verifyStates<T extends Object?>(WidgetTester tester, Set<WidgetState> expected) {
       final context = tester.element(find.byKey(Tag.c.key));
       expect(BaseMenuItem.statesOf<T>(context), equals(expected));
-      expect(BaseMenuItem.isHoveredOf<T>(context), expected.contains(WidgetState.hovered));
+      expect(
+        BaseMenuItem.isHoverHighlightShownOf<T>(context),
+        expected.contains(WidgetState.hovered),
+      );
+      expect(
+        BaseMenuItem.isFocusHighlightShownOf<T>(context),
+        expected.contains(WidgetState.focused),
+      );
       expect(BaseMenuItem.isFocusedOf<T>(context), expected.contains(WidgetState.focused));
+      expect(BaseMenuItem.isHoveredOf<T>(context), expected.contains(WidgetState.hovered));
       expect(BaseMenuItem.isPressedOf<T>(context), expected.contains(WidgetState.pressed));
       expect(BaseMenuItem.isDisabledOf<T>(context), expected.contains(WidgetState.disabled));
     }

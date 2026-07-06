@@ -2115,16 +2115,12 @@ void main() {
                     child: BaseSubmenu(
                       focusNode: bFocusNode,
                       controller: controller,
-                      onClose: () {
-                        print('Submenu closed');
-                      },
+                      onClose: () {},
                       menu: BaseMenuPanel(
                         children: <Widget>[
                           Button.tag(Tag.b.a),
                           BaseSubmenu(
-                            onClose: () {
-                              print('Nested submenu closed');
-                            },
+                            onClose: () {},
                             controller: nestedController,
                             menu: BaseMenuPanel(
                               children: <Widget>[

@@ -452,11 +452,7 @@ class MenuSystem extends StatelessWidget {
                   requestFocusOnHover: true,
                   requestCloseOnActivate: true,
                   autofocus: autofocus == tag && depth == 0,
-                  onPressed: disabledItems.contains(tag)
-                      ? null
-                      : () {
-                          print('Pressed ${tag.text}');
-                        },
+                  onPressed: disabledItems.contains(tag) ? null : () {},
                 ),
             ?trailing,
           ],

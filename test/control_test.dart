@@ -487,6 +487,45 @@ void main() {
     expect(pressedCount, 0);
   });
 
+  testWidgets('isPressedOf is cleared when focus is lost during keyboard activation', (
+    WidgetTester tester,
+  ) async {
+    final focusNode = FocusNode();
+    final otherNode = FocusNode();
+    addTearDown(() {
+      focusNode.dispose();
+      otherNode.dispose();
+    });
+
+    await tester.pumpWidget(
+      App(
+        Column(
+          children: [
+            BaseControl<void>(focusNode: focusNode, onPressed: () {}, child: Text(Tag.a.text)),
+            Focus(focusNode: otherNode, child: const Text('other')),
+          ],
+        ),
+      ),
+    );
+
+    focusNode.requestFocus();
+    await tester.pump();
+
+    Element element() => tester.element(find.text(Tag.a.text));
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+
+    expect(BaseControl.isPressedOf<void>(element()), isTrue);
+
+    otherNode.requestFocus();
+    await tester.pump();
+    await tester.pump();
+
+    expect(BaseControl.isPressedOf<void>(element()), isFalse);
+    expect(focusNode.hasFocus, isFalse);
+  });
+
   testWidgets('onPressed is triggered by tap up', (WidgetTester tester) async {
     var pressedCount = 0;
 
@@ -602,6 +641,47 @@ void main() {
     addTearDown(gesture.removePointer);
     await tester.pump();
     await gesture.moveBy(const Offset(500, 500));
+    await tester.pump();
+
+    expect(pressedCount, 0);
+  });
+
+  testWidgets('onPressed is NOT triggered when focus is lost during keyboard activation', (
+    WidgetTester tester,
+  ) async {
+    var pressedCount = 0;
+    final focusNode = FocusNode();
+    final otherNode = FocusNode();
+    addTearDown(() {
+      focusNode.dispose();
+      otherNode.dispose();
+    });
+
+    await tester.pumpWidget(
+      App(
+        Column(
+          children: [
+            BaseControl<void>(
+              focusNode: focusNode,
+              onPressed: () => pressedCount++,
+              child: Text(Tag.a.text),
+            ),
+            Focus(focusNode: otherNode, child: const Text('other')),
+          ],
+        ),
+      ),
+    );
+
+    focusNode.requestFocus();
+    await tester.pump();
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+
+    otherNode.requestFocus();
+    await tester.pump();
+
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.space);
     await tester.pump();
 
     expect(pressedCount, 0);

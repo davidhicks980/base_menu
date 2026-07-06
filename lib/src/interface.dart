@@ -330,9 +330,6 @@ typedef MenuOverlayChildBuilder = Widget Function(BuildContext context, Widget c
 
 /// A delegate that builds a widget that positions the menu panel of a [BaseMenu].
 abstract interface class MenuPositioningDelegate {
-  /// Creates a [MenuPositioningDelegate].
-  const MenuPositioningDelegate();
-
   /// Builds a widget that positions the menu panel `child` using the provided
   /// `position` information.
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child);

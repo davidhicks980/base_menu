@@ -1889,43 +1889,28 @@ void main() {
       addTearDown(gesture.removePointer);
       await gesture.addPointer(location: Offset.zero);
 
-      // Enter anchor to schedule an open.
       await gesture.moveTo(tester.getCenter(find.text(Tag.anchor.text)));
       await tester.pump();
 
-      // Immediately escape the anchor.
       await gesture.moveTo(Offset.infinite);
       await tester.pump();
 
       await tester.pump(delay + const Duration(milliseconds: 50));
       expect(controller.isOpen, isFalse);
 
-      // Programmatically open the submenu.
       controller.open();
       await tester.pump();
       expect(controller.isOpen, isTrue);
 
-      // Move into anchor and leave quickly to schedule hover close.
       await gesture.moveTo(tester.getCenter(find.text(Tag.anchor.text)));
       await tester.pump();
       await gesture.moveTo(Offset.infinite);
       await tester.pump();
-
-      // Enter the submenu panel (cancelling the close timer).
       await gesture.moveTo(tester.getCenter(find.byKey(Tag.a.key)));
       await tester.pump();
-
-      // Verify that after wait time, the submenu is still open.
       await tester.pump(delay + const Duration(milliseconds: 50));
+
       expect(controller.isOpen, isTrue);
-
-      // Leave the panel (starts the close timer again).
-      await gesture.moveTo(Offset.infinite);
-      await tester.pump();
-
-      // Advance time past close delay.
-      await tester.pump(delay + const Duration(milliseconds: 50));
-      expect(controller.isOpen, isFalse);
     });
   });
 

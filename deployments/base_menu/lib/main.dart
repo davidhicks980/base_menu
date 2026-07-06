@@ -1,4 +1,4 @@
-import 'package:base_menu_samples/app/app.dart';
+import 'package:base_menu_samples/main.dart';
 import 'package:base_menu_samples_explorer/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/rendering.dart';

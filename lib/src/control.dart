@@ -412,6 +412,18 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
     );
   }
 
+  void _handleFocusChange(bool focused) {
+    if (_activationSource == .keyboard) {
+      _activationSource = null;
+      if (_isPressed) {
+        setState(() {
+          _isPressed = false;
+        });
+      }
+    }
+    widget.onFocusChange?.call(focused);
+  }
+
   @override
   Widget build(BuildContext context) {
     final DeviceGestureSettings? newGestureSettings = MediaQuery.maybeGestureSettingsOf(context);
@@ -442,7 +454,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
           child: _EnabledScope<T>(
             enabled: widget.enabled,
             child: BaseFocusable<T>(
-              onFocusChange: widget.onFocusChange,
+              onFocusChange: _handleFocusChange,
               focusNode: widget.focusNode,
               autofocus: widget.autofocus,
               enabled: widget.enabled,

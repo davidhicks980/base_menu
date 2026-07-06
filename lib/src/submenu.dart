@@ -227,7 +227,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       _internalFocusNode = FocusNode(debugLabel: widget.debugMenuFocusNodeLabel);
     }
 
-    _focusNode.addListener(_handleFocusChange);
+    _focusNode.addListener(_handleAnchorFocusChange);
   }
 
   @override
@@ -250,7 +250,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     }
 
     if (oldWidget.focusNode != widget.focusNode) {
-      oldWidget.focusNode?.removeListener(_handleFocusChange);
+      oldWidget.focusNode?.removeListener(_handleAnchorFocusChange);
       if (widget.focusNode == null) {
         assert(_internalFocusNode == null);
         _internalFocusNode = FocusNode(debugLabel: widget.debugMenuFocusNodeLabel);
@@ -258,7 +258,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
         _internalFocusNode?.dispose();
         _internalFocusNode = null;
       }
-      _focusNode.addListener(_handleFocusChange);
+      _focusNode.addListener(_handleAnchorFocusChange);
     }
 
     assert(() {
@@ -278,7 +278,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     _openTimer = null;
     _closeTimer?.cancel();
     _closeTimer = null;
-    _focusNode.removeListener(_handleFocusChange);
+    _focusNode.removeListener(_handleAnchorFocusChange);
     _internalFocusNode?.dispose();
     _internalFocusNode = null;
     _highlightNotifier.dispose();
@@ -291,16 +291,6 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     } else {
       _highlightNotifier.value = null;
     }
-  }
-
-  void _handleFocusChange() {
-    if (!_focusNode.hasFocus && !_isScopeFocused && widget.controller.isOpen) {
-      _scheduleHoverClose();
-    } else {
-      _closeTimer?.cancel();
-    }
-
-    _updateHighlight();
   }
 
   void _scheduleHoverClose() {
@@ -355,6 +345,20 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
     if (!_focusNode.hasFocus) {
       _focusNode.requestFocus();
     }
+  }
+
+  void _handleAnchorFocusChange() {
+    if (!_focusNode.hasFocus && !_isScopeFocused) {
+      if (widget.controller.isOpen) {
+        _scheduleHoverClose();
+      } else {
+        _openTimer?.cancel();
+      }
+    } else {
+      _closeTimer?.cancel();
+    }
+
+    _updateHighlight();
   }
 
   void _handleScopeFocusChange(bool focused) {

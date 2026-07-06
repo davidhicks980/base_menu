@@ -113,7 +113,7 @@ class _MenuTooltipScope extends InheritedWidget {
 
 abstract class MenuTooltipScopeState {
   void showTooltip({required LayerLink layerLink, required InlineSpan message});
-  void hideTooltip();
+  void hideTooltip({bool sync = false});
   bool get isTooltipVisible;
 }
 
@@ -163,6 +163,7 @@ class _MenuTooltipScopeState extends State<MenuTooltipScope>
   LayerLink? _parentLayerLink;
   InlineSpan? _currentMessage;
   OverlayEntry? _overlayEntry;
+
   @override
   bool get isTooltipVisible =>
       _animationController.status == AnimationStatus.completed ||
@@ -245,12 +246,19 @@ class _MenuTooltipScopeState extends State<MenuTooltipScope>
   }
 
   @override
-  void hideTooltip() {
-    _animationController.reverse().whenComplete(() {
+  void hideTooltip({bool sync = false}) {
+    if (sync) {
+      _animationController.value = 0.0;
       _parentLayerLink = null;
       _currentMessage = null;
       _overlayEntry?.markNeedsBuild();
-    });
+    } else {
+      _animationController.reverse().whenComplete(() {
+        _parentLayerLink = null;
+        _currentMessage = null;
+        _overlayEntry?.markNeedsBuild();
+      });
+    }
   }
 
   @override

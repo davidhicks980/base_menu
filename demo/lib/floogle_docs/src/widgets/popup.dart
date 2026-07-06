@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import '../theme/colors.dart';
 import 'icon_button.dart';
 import 'menu_panel.dart';
+import 'tooltip.dart';
 
 class Popup extends StatelessWidget {
   const Popup({
@@ -41,7 +42,8 @@ class Popup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = MenuController();
-    return BaseMenu(
+    final body = BaseSubmenu(
+      requestFocusOnHover: false,
       controller: controller,
       orientation: orientation,
       menu: panel,
@@ -51,38 +53,30 @@ class Popup extends StatelessWidget {
       ),
       onOpen: onOpen,
       onClose: onClose,
-      onFocusChange: (bool value) {
-        if (!value && (focusNode != null && !focusNode!.hasFocus)) {
+      onPressed: () {
+        if (controller.isOpen) {
           controller.close();
+        } else {
+          controller.open();
+          MenuTooltipScope.of(context).hideTooltip(sync: true);
         }
       },
+      focusNode: focusNode,
       child: Builder(
         builder: (context) {
-          return ToolbarIconButton(
-            enableTooltipSemantics: enableTooltipSemantics,
-            focusNode: focusNode,
+          return ToolbarIconLabel(
             decoration:
                 buttonDecoration ??
                 (MenuController.maybeIsOpenOf(context) == true ? openDecoration : null),
             constraints: buttonConstraints,
-            tooltip: tooltip?.toPlainText(includePlaceholders: false),
-            onPressed: () {
-              if (controller.isOpen) {
-                controller.close();
-              } else {
-                controller.open();
-              }
-            },
             child: child,
           );
         },
       ),
-      builder: (context, controller, button) {
-        final isOpen = MenuController.maybeIsOpenOf(context);
-        return MergeSemantics(
-          child: Semantics(expanded: isOpen, child: button),
-        );
-      },
     );
+    if (tooltip == null) {
+      return body;
+    }
+    return MenuTooltip(enableSemantics: enableTooltipSemantics, message: tooltip!, child: body);
   }
 }

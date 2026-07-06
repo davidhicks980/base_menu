@@ -90,12 +90,12 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    _semanticsHandle = SemanticsBinding.instance.ensureSemantics();
+    // _semanticsHandle = SemanticsBinding.instance.ensureSemantics();
   }
 
   @override
   void dispose() {
-    _semanticsHandle.dispose();
+    // _semanticsHandle.dispose();
     super.dispose();
   }
 

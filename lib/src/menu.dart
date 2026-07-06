@@ -668,10 +668,13 @@ class _BaseMenuState extends State<BaseMenu> {
               const SingleActivator(LogicalKeyboardKey.arrowUp): const EnterMenuIntent.focusLast(),
           },
         },
-        child:
-            widget.builder?.call(context, controller, widget.child) ??
-            widget.child ??
-            const SizedBox(),
+        child: Builder(
+          builder: (context) {
+            return widget.builder?.call(context, controller, widget.child) ??
+                widget.child ??
+                const SizedBox();
+          },
+        ),
       ),
     );
   }

@@ -110,6 +110,52 @@
                 "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
             ]
         },
+           {
+            "name": "base_menu_deployment",
+            "cwd": "deployments/base_menu",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+            ]
+
+        },
+        {
+            "name": "base_menu_deployment (WASM)",
+            "cwd": "deployments/base_menu",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+
+            "args": [
+                "--wasm",
+                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+
+            ]
+        },
+        {
+            "name": "base_menu_deployment (profile mode)",
+            "cwd": "deployments/base_menu",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "flutterMode": "profile",
+            "args": [
+                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+            ]
+        },
+        {
+            "name": "base_menu_deployment (release mode)",
+            "cwd": "deployments/base_menu",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "flutterMode": "release",
+            "args": [
+                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+            ]
+        },
 
              {
             "name": "floogle_docs",

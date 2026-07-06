@@ -41,7 +41,7 @@ class ToolbarIconButton extends StatelessWidget {
       role: null,
       requestCloseOnActivate: false,
       requestFocusOnHover: requestFocusOnHover,
-      child: _IconLabel(decoration: decoration, constraints: constraints, child: child),
+      child: ToolbarIconLabel(decoration: decoration, constraints: constraints, child: child),
     );
 
     if (tooltip == null) {
@@ -56,8 +56,9 @@ class ToolbarIconButton extends StatelessWidget {
   }
 }
 
-class _IconLabel extends StatelessWidget {
-  const _IconLabel({
+class ToolbarIconLabel extends StatelessWidget {
+  const ToolbarIconLabel({
+    super.key,
     this.decoration,
     this.constraints = const BoxConstraints.tightFor(width: 30, height: 30),
     required this.child,

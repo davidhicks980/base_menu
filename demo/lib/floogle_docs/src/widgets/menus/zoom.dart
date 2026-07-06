@@ -107,7 +107,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
         enableSemantics: false,
         message: const TextSpan(text: 'Zoom'),
         child: ComboBox(
-          onOpen: RawTooltip.dismissAllToolTips,
+          onOpen: () => MenuTooltipScope.of(context).hideTooltip(sync: true),
           semanticsLabel: 'Zoom',
           inputConstraints: const BoxConstraints(
             minHeight: 29.25,

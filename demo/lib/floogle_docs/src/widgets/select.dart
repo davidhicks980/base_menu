@@ -7,6 +7,7 @@ import '../theme/colors.dart';
 import 'app_state_manager.dart';
 import 'dropdown_arrow.dart';
 import 'menu_panel.dart';
+import 'tooltip.dart';
 
 class Select extends StatefulWidget {
   const Select({
@@ -63,13 +64,21 @@ class _SelectState extends State<Select> {
   }
 
   void _handleOpen() {
-    RawTooltip.dismissAllToolTips();
+    MenuTooltipScope.of(context).hideTooltip(sync: true);
     widget.focusNode.requestFocus();
+  }
+
+  void _handlePressed() {
+    if (widget.menuController.isOpen) {
+      widget.menuController.close();
+    } else {
+      widget.menuController.open();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BaseMenu(
+    return BaseSubmenu(
       controller: widget.menuController,
       onFocusChange: _handleScopeFocusChange,
       onOpen: _handleOpen,
@@ -82,13 +91,17 @@ class _SelectState extends State<Select> {
               overlayPadding: EdgeInsets.only(top: 37, bottom: 8),
               padding: MenuPanel.defaultPadding,
             ),
+      requestFocusOnHover: false,
       menu: widget.panel,
+      focusNode: widget.focusNode,
+      mouseCursor: WidgetStateMouseCursor.clickable,
+      onPressed: _handlePressed,
+      onAnchorFocusChange: _handleAnchorFocusChange,
       child: _SelectTextButton(
         onFocusChange: _handleAnchorFocusChange,
         focusNode: widget.focusNode,
         padding: widget.buttonPadding,
         radius: widget.buttonRadius,
-        controller: widget.menuController,
         child: widget.child,
       ),
     );
@@ -97,7 +110,6 @@ class _SelectState extends State<Select> {
 
 class _SelectTextButton extends StatelessWidget {
   const _SelectTextButton({
-    required this.controller,
     required this.padding,
     required this.radius,
     required this.focusNode,
@@ -105,19 +117,10 @@ class _SelectTextButton extends StatelessWidget {
     required this.child,
   });
   final EdgeInsetsGeometry padding;
-  final MenuController controller;
   final FocusNode focusNode;
   final BorderRadiusGeometry radius;
   final Widget child;
   final ValueChanged<bool> onFocusChange;
-
-  void _handlePressed() {
-    if (controller.isOpen) {
-      controller.close();
-    } else {
-      controller.open();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,37 +156,20 @@ class _SelectTextButton extends StatelessWidget {
           style: TextStyle(color: isOpen ? FloogleColors.grey : FloogleColors.selectTextColor),
           child: SizedBox(
             height: 30,
-            child: MergeSemantics(
-              child: Semantics(
-                expanded: isOpen,
-                child: BaseMenuItem(
-                  role: null,
-                  focusNode: focusNode,
-                  mouseCursor: WidgetStateMouseCursor.clickable,
-                  requestCloseOnActivate: false,
-                  requestFocusOnHover: false,
-                  onPressed: _handlePressed,
-                  onFocusChange: onFocusChange,
-                  child: Builder(
-                    builder: (context) {
-                      return DecoratedBox(
-                        decoration: isOpen
-                            ? BoxDecoration(
-                                color: FloogleColors.toolbarItemPressed,
-                                borderRadius: radius,
-                              )
-                            : BaseMenuItem.isFocusedOf(context) || BaseMenuItem.isHoveredOf(context)
-                            ? BoxDecoration(
-                                color: FloogleColors.toolbarItemHoverFocus,
-                                borderRadius: radius,
-                              )
-                            : const BoxDecoration(),
-                        child: label,
-                      );
-                    },
-                  ),
-                ),
-              ),
+            child: Builder(
+              builder: (context) {
+                return DecoratedBox(
+                  decoration: isOpen
+                      ? BoxDecoration(color: FloogleColors.toolbarItemPressed, borderRadius: radius)
+                      : BaseMenuItem.isFocusedOf(context) || BaseMenuItem.isHoveredOf(context)
+                      ? BoxDecoration(
+                          color: FloogleColors.toolbarItemHoverFocus,
+                          borderRadius: radius,
+                        )
+                      : const BoxDecoration(),
+                  child: label,
+                );
+              },
             ),
           ),
         );

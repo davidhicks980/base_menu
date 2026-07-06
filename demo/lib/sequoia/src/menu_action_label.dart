@@ -5,14 +5,12 @@ import 'package:flutter/material.dart';
 import '../../shared/localized_shortcut_labeler.dart';
 import '../../shared/package.dart';
 
-// Sequoia 15 Style Constants
 const double _kSequoiaMenuFontSize = 13.0;
 const double _kSequoiaMenuIconSize = 14.0;
 const EdgeInsets _kSequoiaMenuItemPadding = EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.5);
 const BorderRadius _kSequoiaMenuBorderRadius = BorderRadius.all(Radius.circular(4.0));
 
-// Colors
-const Color _kSequoiaHighlightBackground = Color.fromRGBO(21, 99, 185, 1); // Sequoia Accent Blue
+const Color _kSequoiaHighlightBackground = Color.fromRGBO(21, 99, 185, 1);
 const Color _kSequoiaForegroundHighlighted = Colors.white;
 
 const Color _kSequoiaTextDark = Color(0xFFFFFFFF);
@@ -98,17 +96,10 @@ class SequoiaMenuActionLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Rely on your framework's state methods to check if highlighted
     final states = BaseMenuItem.statesOf(context);
-
-    // Swap all foreground colors to white when highlighted
-    // final textColor = states ? _kSequoiaForegroundHighlighted :
-    // _kSequoiaTextDefault;
     final textColor = _kSequoiaTextColorDark.resolve(states);
     final secondaryColor = _kSequoiaSecondaryColorDark.resolve(states);
-
     final backgroundColor = _kSequoiaBackgroundColor.resolve(states);
-
     return DecoratedBox(
       decoration: BoxDecoration(color: backgroundColor, borderRadius: _kSequoiaMenuBorderRadius),
       child: Padding(
@@ -174,7 +165,6 @@ class _SequoiaShortcutLabel extends StatelessWidget {
       MaterialLocalizations.of(context),
     );
 
-    // Sequoia symbols usually sit densely next to each other
     label = label.replaceAll(RegExp(r'\s'), ' ');
 
     return Text(
@@ -203,7 +193,7 @@ class _SequoiaSubmenuChevron extends StatelessWidget {
           scaleFactor,
         ),
         child: const CustomPaint(
-          size: Size(6, 10), // Precise geometry for Sequoia SF Symbol chevron
+          size: Size(6, 10),
           painter: _SequoiaChevronPainter(color: color),
         ),
       ),
@@ -221,13 +211,11 @@ class _SequoiaChevronPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth =
-          1.5 // Finer weight to match SF Pro Regular at 13pt
+      ..strokeWidth = 1.5
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..isAntiAlias = true;
 
-    // Geometry adjusted to better reflect the 'chevron.right' SF Symbol
     final path = Path()
       ..moveTo(1.0, 1.0)
       ..lineTo(size.width - 1.0, size.height / 2)
@@ -254,8 +242,6 @@ class SequoiaMenuBarActionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isFocused = BaseMenuItem.isFocusHighlightShownOf(context);
-
-    // Sequoia Menu Bar Specific Colors
     const textColor = Color(0xFFFFFFFF);
 
     return CustomPaint(
@@ -292,14 +278,25 @@ class MenuBarHighlightPainter extends CustomPainter {
       ..isAntiAlias = true;
 
     final rect = Rect.fromLTWH(-4, 0, size.width + 8, size.height);
-    final rrect = RSuperellipse.fromRectAndCorners(
-      rect,
-      bottomLeft: radius.bottomLeft,
-      bottomRight: radius.bottomRight,
-      topLeft: radius.topLeft,
-      topRight: radius.topRight,
-    );
-    canvas.drawRSuperellipse(rrect, paint);
+    if (kIsWeb) {
+      final rrect = RRect.fromRectAndCorners(
+        rect,
+        bottomLeft: radius.bottomLeft,
+        bottomRight: radius.bottomRight,
+        topLeft: radius.topLeft,
+        topRight: radius.topRight,
+      );
+      canvas.drawRRect(rrect, paint);
+    } else {
+      final rrect = RSuperellipse.fromRectAndCorners(
+        rect,
+        bottomLeft: radius.bottomLeft,
+        bottomRight: radius.bottomRight,
+        topLeft: radius.topLeft,
+        topRight: radius.topRight,
+      );
+      canvas.drawRSuperellipse(rrect, paint);
+    }
   }
 
   @override

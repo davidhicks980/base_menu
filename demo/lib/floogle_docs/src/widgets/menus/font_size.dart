@@ -80,6 +80,7 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
           alignment: Alignment.center,
           menuController: _menuController,
           onSelect: (value) => _emitValue(double.parse(value)),
+          onOpen: () => MenuTooltipScope.of(context).hideTooltip(sync: true),
           onSubmit: _handleSubmit,
           focusNode: _focusNode,
           inputConstraints: const BoxConstraints(

@@ -64,6 +64,97 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
+        },
+
+        {
+            "name": "floogle_docs_deployment",
+            "cwd": "deployments/floogle_docs",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+            ]
+
+        },
+        {
+            "name": "floogle_docs_deployment (WASM)",
+            "cwd": "deployments/floogle_docs",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+
+            "args": [
+                "--wasm"
+            ]
+        },
+        {
+            "name": "floogle_docs_deployment (profile mode)",
+            "cwd": "deployments/floogle_docs",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "flutterMode": "profile",
+            "args": [
+                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+            ]
+        },
+        {
+            "name": "floogle_docs_deployment (release mode)",
+            "cwd": "deployments/floogle_docs",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "flutterMode": "release",
+            "args": [
+                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+            ]
+        },
+
+             {
+            "name": "floogle_docs",
+            "cwd": "demo",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/floogle_docs/floogle_docs.dart",
+            "args": [
+                "--dart-define=VISUALIZE_MENU_AIM=true"
+            ]
+
+        },
+        {
+            "name": "floogle_docs (WASM)",
+            "cwd": "demo",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/floogle_docs/floogle_docs.dart",
+
+            "args": [
+                  "--dart-define=VISUALIZE_MENU_AIM=true",
+                "--wasm"
+            ]
+        },
+        {
+            "name": "floogle_docs (profile mode)",
+            "cwd": "demo",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/floogle_docs/floogle_docs.dart",
+            "flutterMode": "profile",
+            "args": [
+                "--dart-define=VISUALIZE_MENU_AIM=true"
+            ]
+        },
+        {
+            "name": "floogle_docs (release mode)",
+            "cwd": "demo",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/floogle_docs/floogle_docs.dart",
+            "flutterMode": "release",
+            "args": [
+                "--dart-define=VISUALIZE_MENU_AIM=true"
+            ]
         }
     ]
 }

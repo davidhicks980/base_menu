@@ -226,7 +226,9 @@ class _BaseMenuItemState<T extends Object?> extends State<BaseMenuItem<T>> {
   }
 
   void _handleHoverEnter(PointerEnterEvent event) {
-    _focusNode.requestFocus();
+    if (widget.requestFocusOnHover) {
+      _focusNode.requestFocus();
+    }
     widget.onPointerEnter?.call(event);
   }
 

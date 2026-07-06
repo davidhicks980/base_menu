@@ -727,8 +727,7 @@ class _BaseMenuState extends State<BaseMenu> {
       return;
     }
 
-    final isOpen = _menuController.isOpen;
-    if (!isOpen && _isScopeFocused) {
+    if (!_menuController.isOpen && _isScopeFocused) {
       assert(!_menuScopeNode.hasFocus);
       _isScopeFocused = _menuScopeNode.hasFocus;
       widget.onFocusChange?.call(_isScopeFocused);
@@ -744,7 +743,7 @@ class _BaseMenuState extends State<BaseMenu> {
       return;
     }
 
-    if (isOpen) {
+    if (_menuController.isOpen) {
       previousPrimaryFocus.requestFocus();
       return;
     }
@@ -838,6 +837,7 @@ class _MenuOverlay extends StatelessWidget {
         groupId: position.tapRegionGroupId,
         consumeOutsideTaps: consumeOutsideTaps,
         onTapOutside: (PointerDownEvent event) {
+          assert(false);
           menuController.close();
         },
         child: _InlineMenu(

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element_parameter
+
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +17,12 @@ import 'src/widgets/menus/document_menu_bar.dart';
 import 'src/widgets/title_field.dart';
 import 'src/widgets/title_icon.dart';
 import 'src/widgets/toolbar.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SemanticsBinding.instance.ensureSemantics();
+  runApp(const _App(FloogleDocsApp()));
+}
 
 class FloogleDocsApp extends StatefulWidget {
   const FloogleDocsApp({super.key});
@@ -47,19 +55,19 @@ class _FloogleDocsAppState extends State<FloogleDocsApp> {
         color: FloogleColors.grey,
         fontWeight: kIsWeb ? FontWeight.w500 : FontWeight.w400,
       ),
-      child: ActionReflector(child: AppStateManager(child: _App())),
+      child: ActionReflector(child: AppStateManager(child: _Body())),
     );
   }
 }
 
-class _App extends StatefulWidget {
-  const _App();
+class _Body extends StatefulWidget {
+  const _Body();
 
   @override
-  State<_App> createState() => _AppState();
+  State<_Body> createState() => _BodyState();
 }
 
-class _AppState extends State<_App> {
+class _BodyState extends State<_Body> {
   final WidgetOrderTraversalPolicy _headerTraversal = WidgetOrderTraversalPolicy();
   bool _isHeaderExpanded = true;
   bool _isHeaderVisible = true;
@@ -161,16 +169,15 @@ class _AppState extends State<_App> {
       ),
     );
 
-    return  Builder(
-        builder: (context) {
-          final documentState = AppStateManager.documentStateOf(context);
-          final isMenuAimAssistEnabled = documentState[SelectionKey.menuAimAssist] == true;
-          final isMenuAimAssistDebugPaintEnabled =
-              documentState[SelectionKey.menuAimAssistDebugPaint] == true;
-          MenuAimInterceptor.visualizeAim = isMenuAimAssistDebugPaintEnabled;
-          return MenuAimScope(enable: isMenuAimAssistEnabled, child: child);
-        },
-
+    return Builder(
+      builder: (context) {
+        final documentState = AppStateManager.documentStateOf(context);
+        final isMenuAimAssistEnabled = documentState[SelectionKey.menuAimAssist] == true;
+        final isMenuAimAssistDebugPaintEnabled =
+            documentState[SelectionKey.menuAimAssistDebugPaint] == true;
+        MenuAimInterceptor.visualizeAim = isMenuAimAssistDebugPaintEnabled;
+        return MenuAimScope(enable: isMenuAimAssistEnabled, child: child);
+      },
     );
   }
 }
@@ -189,6 +196,70 @@ class _CloudIcon extends StatelessWidget {
           child: Icon(Symbols.check, opticalSize: 20, size: 10, weight: kIsWeb ? 800 : 600),
         ),
       ],
+    );
+  }
+}
+
+class _App extends StatefulWidget {
+  const _App(
+    this.child, {
+    super.key,
+    this.textDirection,
+    this.alignment = Alignment.center,
+    this.actions,
+    this.shortcuts,
+    this.backgroundColor = const Color(0xff000000),
+  });
+  final Widget child;
+  final TextDirection? textDirection;
+  final AlignmentGeometry alignment;
+  final Map<Type, Action<Intent>>? actions;
+  final Map<ShortcutActivator, Intent>? shortcuts;
+  final Color backgroundColor;
+
+  @override
+  State<_App> createState() => _AppState();
+}
+
+class _AppState extends State<_App> {
+  TextDirection? _directionality;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _directionality = Directionality.maybeOf(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: widget.backgroundColor,
+      child: FocusScope(
+        autofocus: true,
+        child: WidgetsApp(
+          localizationsDelegates: const [
+            DefaultMaterialLocalizations.delegate,
+            DefaultWidgetsLocalizations.delegate,
+          ],
+          actions: widget.actions ?? WidgetsApp.defaultActions,
+          shortcuts: widget.shortcuts ?? WidgetsApp.defaultShortcuts,
+          color: widget.backgroundColor,
+          onGenerateRoute: (RouteSettings settings) {
+            return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return Directionality(
+      textDirection: widget.textDirection ?? _directionality ?? TextDirection.ltr,
+      child: Align(alignment: widget.alignment, child: widget.child),
     );
   }
 }

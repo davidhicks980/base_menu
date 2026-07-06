@@ -121,7 +121,6 @@ class _MenuTooltipState extends State<MenuTooltip> {
           : null,
       positionDelegate: _positionDelegate,
       tooltipBuilder: _tooltipBuilder,
-      ignorePointer: true,
       child: widget.child,
     );
   }

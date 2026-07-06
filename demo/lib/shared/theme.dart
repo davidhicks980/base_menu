@@ -297,7 +297,7 @@ class PhysicalPixelDivider extends StatelessWidget {
 }
 
 class _PixelSnapPainter extends CustomPainter {
-  _PixelSnapPainter({
+  const _PixelSnapPainter({
     required this.orientation,
     required this.color,
     required this.thickness,

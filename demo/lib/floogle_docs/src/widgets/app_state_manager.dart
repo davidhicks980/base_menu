@@ -375,7 +375,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
               textStyle.fontFamily?.withSpaceAfterCapitals.split('_')[0] ?? FontFamily.roboto.label,
               fontWeight: fontWeight,
               textStyle: textStyle,
-            ),
+            ).copyWith(package: null),
           ),
         );
         editorFocusNode.requestFocus();
@@ -495,7 +495,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
               intent.value.family.label,
               textStyle: controller.selectedTextStyle?.textStyle,
               fontWeight: intent.value.weight,
-            ),
+            ).copyWith(package: null),
           ),
         );
         editorFocusNode.requestFocus();

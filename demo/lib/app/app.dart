@@ -10,7 +10,6 @@ import '../menubar/menubar_app.dart';
 import '../sequoia/sequoia_app.dart';
 import '../shared/package.dart';
 import '../submenu/submenu_app.dart';
-import 'src/aliased_border.dart';
 
 const _kLightBorderColor = Color.fromARGB(255, 121, 121, 121);
 const _kDarkBorderColor = Color.fromARGB(255, 76, 76, 76);
@@ -315,8 +314,8 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
                 child: DecoratedBox(
                   position: DecorationPosition.foreground,
                   decoration: BoxDecoration(
-                    border: AliasedBorder(
-                      right: BorderSide(color: ColorScheme.of(context).outlineVariant),
+                    border: BorderDirectional(
+                      end: BorderSide(color: ColorScheme.of(context).outlineVariant),
                     ),
                   ),
                   child: ClipRect(

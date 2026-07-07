@@ -11,9 +11,9 @@ const EdgeInsets _kSequoiaMenuItemPadding = EdgeInsets.symmetric(horizontal: 6.0
 const BorderRadius _kSequoiaMenuBorderRadius = BorderRadius.all(Radius.circular(4.0));
 
 const Color _kSequoiaHighlightBackground = Color.fromRGBO(21, 99, 185, 1);
-const Color _kSequoiaForegroundHighlighted = Colors.white;
 
-const Color _kSequoiaTextDark = Color(0xFFFFFFFF);
+const Color _kSequoiaText = Color.fromARGB(255, 244, 244, 244);
+const Color _kSequoiaTextFocused = Color(0xFFFFFFFF);
 const Color _kSequoiaShortcutDark = Color.fromARGB(90, 255, 255, 255);
 
 const _webFontStyle = TextStyle(
@@ -81,12 +81,12 @@ class SequoiaMenuActionLabel extends StatelessWidget {
   final Widget child;
 
   static const WidgetStateProperty<Color> _kSequoiaTextColorDark = WidgetStateProperty.fromMap({
-    WidgetState.focused: _kSequoiaForegroundHighlighted,
-    WidgetState.any: _kSequoiaTextDark,
+    WidgetState.focused: _kSequoiaTextFocused,
+    WidgetState.any: _kSequoiaText,
   });
 
   static const WidgetStateProperty<Color> _kSequoiaSecondaryColorDark = WidgetStateProperty.fromMap(
-    {WidgetState.focused: _kSequoiaForegroundHighlighted, WidgetState.any: _kSequoiaShortcutDark},
+    {WidgetState.focused: _kSequoiaTextFocused, WidgetState.any: _kSequoiaShortcutDark},
   );
 
   static const WidgetStateProperty<Color> _kSequoiaBackgroundColor = WidgetStateProperty.fromMap({
@@ -179,7 +179,7 @@ class _SequoiaSubmenuChevron extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const color = _kSequoiaTextDark;
+    const color = _kSequoiaTextFocused;
 
     final flipX = Directionality.of(context) == TextDirection.rtl;
     final scaleFactor = MediaQuery.textScalerOf(context).scale(1);

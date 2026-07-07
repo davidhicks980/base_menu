@@ -11,9 +11,57 @@ class SequoiaMenuSurface extends StatelessWidget {
   final Widget child;
   final BorderRadius borderRadius;
 
+  // The [ColorFilter] matrix used to saturate widgets underlying a
+  // [CupertinoPopupSurface] when the ambient [CupertinoThemeData.brightness] is
+  // [Brightness.dark].
+  //
+  // To derive this matrix, the saturation matrix was taken from
+  // https://docs.rainmeter.net/tips/colormatrix-guide/ and was tweaked to
+  // resemble the iOS 17 simulator.
+  //
+  // The matrix can be derived from the following function:
+  // static List<double> get _darkSaturationMatrix {
+  //    const double additive = 0.3;
+  //    const double darkLumR = 0.45;
+  //    const double darkLumG = 0.8;
+  //    const double darkLumB = 0.16;
+  //    const double saturation = 1.7;
+  //    const double sr = (1 - saturation) * darkLumR;
+  //    const double sg = (1 - saturation) * darkLumG;
+  //    const double sb = (1 - saturation) * darkLumB;
+  //    return <double>[
+  //      sr + saturation, sg, sb, 0.0, additive,
+  //      sr, sg + saturation, sb, 0.0, additive,
+  //      sr, sg, sb + saturation, 0.0, additive,
+  //      0.0, 0.0, 0.0, 1.0, 0.0,
+  //    ];
+  //  }
+  static const List<double> _darkSaturationMatrix = <double>[
+    1.39,
+    -0.56,
+    -0.11,
+    0.00,
+    0.30,
+    -0.32,
+    1.14,
+    -0.11,
+    0.00,
+    0.30,
+    -0.32,
+    -0.56,
+    1.59,
+    0.00,
+    0.30,
+    0.00,
+    0.00,
+    0.00,
+    1.00,
+    0.00,
+  ];
+
   @override
   Widget build(BuildContext context) {
-    const backgroundColor = Color.fromARGB(191, 50, 50, 50);
+    const backgroundColor = Color(0xA82F3133);
     const borderColor = Color(0x38FFFFFF);
     final physicalPixel = 1.0 / View.of(context).devicePixelRatio;
 
@@ -23,10 +71,11 @@ class SequoiaMenuSurface extends StatelessWidget {
         borderRadius: borderRadius,
         child: BackdropFilter(
           blendMode: kIsWeb ? .src : .srcOver,
-          filterConfig: const .blur(sigmaX: 20.0, sigmaY: 20.0),
+          filterConfig: const ImageFilterConfig.compose(
+            inner: ImageFilterConfig(ColorFilter.matrix(_darkSaturationMatrix)),
+            outer: ImageFilterConfig.blur(sigmaX: 20, sigmaY: 20),
+          ),
           child: Padding(
-            // Add 3 physical pixels of padding to ensure the border is not
-            // clipped
             padding: EdgeInsets.all(3.0 * physicalPixel),
             child: CustomPaint(
               painter: _BorderPainter(
@@ -104,31 +153,25 @@ class _ShadowPainter extends CustomPainter {
     final rect = Offset.zero & size;
     final rrect = borderRadius.toRRect(rect);
 
-    // Matches SequoiaMenuSurface opacity logic
     const mainOpacity = 0.35;
     const edgeOpacity = 0.1;
 
-    // The mask: A large rectangle with the menu shape cut out.
-    // This stops the shadow from being painted underneath the translucent menu.
     final maskPath = Path()
       ..fillType = PathFillType.evenOdd
-      ..addRect(rect.inflate(100.0)) // Enough room for the 20px blur
+      ..addRect(rect.inflate(100.0))
       ..addRRect(rrect);
 
     canvas.save();
     canvas.clipPath(maskPath);
 
-    // 1. REPLICATE: BoxShadow(blurRadius: 20.0, offset: Offset(0, 10))
-    // Note: sigma = blurRadius / 2
     final mainShadowPaint = Paint()
-      ..color = Colors.black.withOpacity(mainOpacity)
+      ..color = const Color(0xFF000000).withValues(alpha: mainOpacity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10.0);
 
     canvas.drawRRect(rrect.shift(const Offset(0, 10.0)), mainShadowPaint);
 
-    // 2. REPLICATE: BoxShadow(blurRadius: 1.0, spreadRadius: 1.0)
     final edgeShadowPaint = Paint()
-      ..color = Colors.black.withOpacity(edgeOpacity)
+      ..color = const Color(0xFF000000).withValues(alpha: edgeOpacity)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.5);
 
     canvas.drawRRect(rrect.inflate(1.0), edgeShadowPaint);

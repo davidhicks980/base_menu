@@ -1,5 +1,4 @@
 import 'package:base_menu/base_menu.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package.dart';

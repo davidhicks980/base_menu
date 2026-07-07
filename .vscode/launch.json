@@ -142,6 +142,7 @@
             "program": "lib/main.dart",
             "flutterMode": "profile",
             "args": [
+                "--wasm",
                 "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
             ]
         },
@@ -153,7 +154,10 @@
             "program": "lib/main.dart",
             "flutterMode": "release",
             "args": [
-                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--wasm",
+                "--dart-define=VISUALIZE_MENU_AIM=true", 
+                "--dart-define=FONT_PACKAGE=base_menu_demo",
+                "--release"
             ]
         },
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide MenuBar;
 
+import '../shared/theme.dart';
 import 'src/menubar.dart';
 
 class MenuBarApp extends StatelessWidget {
@@ -7,11 +8,11 @@ class MenuBarApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       children: [
-        const Expanded(child: MenuBar(orientation: Axis.vertical)),
-        Container(height: 1, color: ColorScheme.of(context).outlineVariant),
-        const Expanded(child: MenuBar(orientation: Axis.horizontal)),
+        Expanded(child: MenuBar(orientation: Axis.vertical)),
+        MenuDivider.horizontal(),
+        Expanded(child: MenuBar(orientation: Axis.horizontal)),
       ],
     );
   }

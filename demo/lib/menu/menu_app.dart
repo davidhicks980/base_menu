@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../shared/theme.dart';
 import 'src/menu.dart';
 
 class MenuApp extends StatelessWidget {
@@ -7,13 +8,13 @@ class MenuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       children: [
-        const Expanded(
+        Expanded(
           child: Center(child: Popup(orientation: Axis.vertical)),
         ),
-        Container(height: 1, color: ColorScheme.of(context).outlineVariant),
-        const Expanded(
+        MenuDivider.horizontal(),
+        Expanded(
           child: Center(child: Popup(orientation: Axis.horizontal)),
         ),
       ],

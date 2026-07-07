@@ -1,17 +1,20 @@
-import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+
+import '../../shared/theme.dart';
 
 class SequoiaMenuDivider extends StatelessWidget {
   const SequoiaMenuDivider({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final physicalPixel = 2.0 / View.of(context).devicePixelRatio;
-
-    return IgnorePointer(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 10.0),
-        child: Container(height: physicalPixel, color: const Color(0x38FFFFFF)),
+    return const IgnorePointer(
+      child: PhysicalPixelDivider(
+        orientation: Axis.horizontal,
+        color: Color(0x38FFFFFF),
+        thickness: 2,
+        crossAxisExtent: 8,
+        indent: 10,
+        endIndent: 10,
       ),
     );
   }

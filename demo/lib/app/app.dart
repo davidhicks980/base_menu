@@ -292,7 +292,6 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
                   return AnimatedPositioned(
                     duration: const Duration(milliseconds: 800),
                     left: offset + 4,
-
                     width: size.width - offset,
                     curve: Curves.easeOutQuint,
                     top: 0,

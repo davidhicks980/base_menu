@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app/app.dart';
 import 'src/context_menu.dart';
 import 'src/menu.dart';
 import 'src/model.dart';
@@ -69,7 +70,7 @@ class _SequoiaAppState extends State<SequoiaApp> {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: const Color(0x0fffffff),
-                border: Border.all(color: ColorScheme.of(context).outlineVariant),
+                border: Border.all(color: AppColorScheme.of(context).outlineVariant),
               ),
             ),
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../app/app.dart';
 import '../shared/theme.dart';
 import 'src/submenu.dart';
 
@@ -13,7 +14,7 @@ class SubmenuApp extends StatelessWidget {
         const Expanded(
           child: Center(child: Submenu(orientation: Axis.vertical)),
         ),
-        MenuDivider.horizontal(),
+        Separator.horizontal(color: AppColorScheme.of(context).outlineVariant, thickness: 2),
         const Expanded(
           child: Center(child: Submenu(orientation: Axis.horizontal)),
         ),

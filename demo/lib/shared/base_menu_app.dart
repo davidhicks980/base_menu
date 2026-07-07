@@ -1,54 +1,61 @@
 import 'package:flutter/material.dart';
 
 class BaseMenuApp extends StatefulWidget {
-  const BaseMenuApp(
-    this.child, {
+  const BaseMenuApp({
     super.key,
     this.textDirection,
     this.alignment = Alignment.topLeft,
     this.backgroundColor = const Color(0xff000000),
+    required this.title,
+    required this.initialRoute,
+    required this.routes,
+    this.textStyle,
   });
-  final Widget child;
+
   final TextDirection? textDirection;
   final AlignmentGeometry alignment;
   final Color backgroundColor;
+  final String title;
+  final String initialRoute;
+  final Map<String, WidgetBuilder> routes;
+  final TextStyle? textStyle;
 
   @override
   State<BaseMenuApp> createState() => _BaseMenuAppState();
 }
 
 class _BaseMenuAppState extends State<BaseMenuApp> {
-  TextDirection? _directionality;
-
   @override
   Widget build(BuildContext context) {
-    _directionality = Directionality.maybeOf(context);
-    return ColoredBox(
-      color: widget.backgroundColor,
-      child: FocusScope(
-        autofocus: true,
-        child: WidgetsApp(
-          localizationsDelegates: const [
-            DefaultMaterialLocalizations.delegate,
-            DefaultWidgetsLocalizations.delegate,
-          ],
-          color: widget.backgroundColor,
-          onGenerateRoute: (RouteSettings settings) {
-            return PageRouteBuilder<void>(settings: settings, pageBuilder: _buildPage);
-          },
+    return Directionality(
+      textDirection: widget.textDirection ?? Directionality.maybeOf(context) ?? TextDirection.ltr,
+      child: ColoredBox(
+        color: widget.backgroundColor,
+        child: FocusScope(
+          autofocus: true,
+          child: WidgetsApp(
+            pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) =>
+                PageRouteBuilder<T>(
+                  settings: settings,
+                  pageBuilder:
+                      (
+                        BuildContext context,
+                        Animation<double> animation,
+                        Animation<double> secondaryAnimation,
+                      ) => builder(context),
+                ),
+            title: widget.title,
+            routes: widget.routes,
+            initialRoute: widget.initialRoute,
+            localizationsDelegates: const [
+              DefaultMaterialLocalizations.delegate,
+              DefaultWidgetsLocalizations.delegate,
+            ],
+            textStyle: widget.textStyle,
+            color: widget.backgroundColor,
+          ),
         ),
       ),
-    );
-  }
-
-  Widget _buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    return Directionality(
-      textDirection: widget.textDirection ?? _directionality ?? TextDirection.ltr,
-      child: widget.child,
     );
   }
 }

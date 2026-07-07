@@ -255,18 +255,16 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
 /// A widget that draws a stylized Sequoia tree icon, intended for use
 /// in the main menu bar as a replacement for the system logo.
 class _SequoiaTreeIcon extends StatelessWidget {
-  const _SequoiaTreeIcon({this.size = 18.0, this.color});
+  const _SequoiaTreeIcon({this.size = 18.0, required this.color});
 
   final double size;
-  final Color? color;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
       size: Size(size, size),
-      painter: _SequoiaTreePainter(
-        color: IconTheme.of(context).color ?? color ?? const Color(0xFFFFFFFF),
-      ),
+      painter: _SequoiaTreePainter(color: color),
     );
   }
 }

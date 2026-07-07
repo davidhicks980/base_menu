@@ -1,5 +1,7 @@
 import 'package:base_menu/base_menu.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../shared/package.dart';
 import '../../shared/theme.dart';
@@ -41,7 +43,13 @@ class _MenuBarState extends State<MenuBar> {
               borderRadius: const BorderRadius.all(Radius.circular(4)),
               child: BaseMenuPanel(
                 onPointerExit: (event) {
-                  focusScopeNode.requestScopeFocus();
+                  if (kIsWeb) {
+                    SchedulerBinding.instance.addPostFrameCallback((_) {
+                      if (!focusScopeNode.hasPrimaryFocus) {
+                        focusScopeNode.requestScopeFocus();
+                      }
+                    });
+                  }
                 },
                 constraints: const BoxConstraints(minWidth: 150),
                 orientation: widget.orientation,
@@ -145,19 +153,12 @@ class _SubmenuState extends State<_Submenu> with SingleTickerProviderStateMixin 
           padding: EdgeInsets.all(4.0),
         ),
         onPressed: () {
-          if (controller.isOpen) {
-            controller.close();
-          } else {
+          if (!controller.isOpen) {
             controller.open();
             focusNode.requestFocus();
           }
         },
         menu: StyledMenuPanel(
-          borderRadius: const BorderRadiusDirectional.only(
-            topEnd: Radius.circular(4),
-            bottomEnd: Radius.circular(4),
-            bottomStart: Radius.circular(4),
-          ),
           child: BaseMenuPanel(
             clipBehavior: .hardEdge,
             padding: const EdgeInsets.all(4.0),

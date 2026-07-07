@@ -1,6 +1,7 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/widgets.dart';
 
+import '../floogle_docs/src/theme/colors.dart';
 import 'package.dart';
 
 const Color kSeedColor = Color(0xFF4285F4);
@@ -11,8 +12,105 @@ const Color kFocusBg = Color(0xFFD2E3FC);
 const Color kDefaultText = Color(0xFF3C4043);
 const Color kDisabledText = Color(0xFF9AA0A6);
 const Color kTransparent = Color(0x00000000);
+const Color kTransparentLight = Color(0x00FFFFFF);
 const Color kBlack = Color(0xFF000000);
 const Color kWhite = Color(0xFFFFFFFF);
+
+@immutable
+class AppTheme {
+  const AppTheme({
+    required this.brightness,
+    required this.surface,
+    required this.elevatedSurface,
+    required this.separator,
+    required this.text,
+    required this.mutedText,
+    required this.selection,
+    required this.focus,
+    required this.hover,
+    required this.highlight,
+    required this.transparent,
+  });
+
+  final Brightness brightness;
+  final Color surface;
+  final Color elevatedSurface;
+  final Color separator;
+  final Color text;
+  final Color mutedText;
+  final Color selection;
+  final Color focus;
+  final Color hover;
+  final Color highlight;
+  final Color transparent;
+
+  Color get shade => brightness == Brightness.light ? kWhite : kBlack;
+
+  // Light theme based on FloogleColors
+  static const AppTheme light = AppTheme(
+    brightness: Brightness.light,
+    surface: FloogleColors.surfaceColor,
+    elevatedSurface: FloogleColors.elevatedSurfaceColor,
+    separator: FloogleColors.lightSeparatorColor,
+    text: FloogleColors.black,
+    mutedText: FloogleColors.grey,
+    selection: FloogleColors.selectedButtonBackground,
+    focus: FloogleColors.toolbarItemHoverFocus, // Add to FloogleColors if missing
+    hover: FloogleColors.toolbarItemHoverFocus,
+    highlight: Color.fromARGB(255, 66, 133, 244),
+    transparent: kTransparentLight,
+  );
+
+  // Dark theme based on Sequoia (macOS dark-mode inspired)
+  static const AppTheme dark = AppTheme(
+    brightness: Brightness.dark,
+    surface: Color(0xA82F3133), // From Sequoia surface
+    elevatedSurface: Color(0xFF1F1F1F),
+    separator: Color(0x38FFFFFF), // From Sequoia divider
+    text: Color(0xFFFFFFFF),
+    mutedText: Color(0xB3FFFFFF), // White with 70% opacity
+    selection: Color.fromARGB(255, 0, 119, 255),
+    focus: Color(0x1AFFFFFF),
+    hover: Color(0x0AFFFFFF),
+    highlight: Color.fromARGB(255, 0, 119, 255),
+    transparent: Color(0x00000000),
+  );
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    return other is AppTheme &&
+        other.brightness == brightness &&
+        other.surface == surface &&
+        other.elevatedSurface == elevatedSurface &&
+        other.separator == separator &&
+        other.text == text &&
+        other.mutedText == mutedText &&
+        other.selection == selection &&
+        other.focus == focus &&
+        other.hover == hover &&
+        other.highlight == highlight &&
+        other.transparent == transparent;
+  }
+
+  @override
+  int get hashCode {
+    return brightness.hashCode ^
+        surface.hashCode ^
+        elevatedSurface.hashCode ^
+        separator.hashCode ^
+        text.hashCode ^
+        mutedText.hashCode ^
+        selection.hashCode ^
+        focus.hashCode ^
+        hover.hashCode ^
+        highlight.hashCode ^
+        transparent.hashCode;
+  }
+}
 
 final WidgetStateProperty<BoxDecoration> demoButtonDecoration = WidgetStateProperty.fromMap({
   WidgetState.disabled: BoxDecoration(
@@ -141,24 +239,13 @@ class StyledMenuBarChild extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final states = BaseMenuItem.statesOf(context);
-    final openTextColor = MenuController.maybeIsOpenOf(context) ?? false ? kWhite : null;
     return Container(
-      decoration: MenuController.maybeIsOpenOf(context) ?? false
-          ? const BoxDecoration(
-              color: kPressedColor,
-              border: Border.fromBorderSide(BorderSide(color: kPressedColor, width: 3.5)),
-            )
-          : demoMenuItemDecoration.resolve(states).copyWith(borderRadius: BorderRadius.zero),
+      decoration: demoMenuItemDecoration.resolve(states).copyWith(borderRadius: BorderRadius.zero),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: IconTheme(
-        data: IconThemeData(
-          color: demoTextStyle
-              .resolve(states)
-              .copyWith(fontWeight: .w500, color: openTextColor)
-              .color,
-        ),
+        data: IconThemeData(color: demoTextStyle.resolve(states).copyWith(fontWeight: .w500).color),
         child: DefaultTextStyle(
-          style: demoTextStyle.resolve(states).copyWith(fontWeight: .w500, color: openTextColor),
+          style: demoTextStyle.resolve(states).copyWith(fontWeight: .w500),
           child: child,
         ),
       ),
@@ -167,14 +254,17 @@ class StyledMenuBarChild extends StatelessWidget {
 }
 
 class StyledSubmenuChild extends StatelessWidget {
-  const StyledSubmenuChild({super.key, required this.child});
+  const StyledSubmenuChild({super.key, required this.child, this.decoration});
   final Widget child;
+  final WidgetStateProperty<BoxDecoration>? decoration;
 
   @override
   Widget build(BuildContext context) {
     final states = BaseMenuItem.statesOf(context);
     return Container(
-      decoration: demoMenuItemDecoration.resolve(states).copyWith(borderRadius: BorderRadius.zero),
+      decoration: (decoration ?? demoMenuItemDecoration)
+          .resolve(states)
+          .copyWith(borderRadius: BorderRadius.zero),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: IconTheme(
         data: IconThemeData(color: demoTextStyle.resolve(states).copyWith(fontWeight: .w500).color),
@@ -253,6 +343,28 @@ class StyledMenuPanel extends StatelessWidget {
         borderRadius: borderRadius.resolve(Directionality.of(context)),
       ),
       child: child,
+    );
+  }
+}
+
+class Separator extends StatelessWidget {
+  const Separator.horizontal({super.key, required this.color, required this.thickness})
+    : orientation = Axis.horizontal;
+  const Separator.vertical({super.key, required this.color, required this.thickness})
+    : orientation = Axis.vertical;
+  final Axis orientation;
+  final Color color;
+  final int thickness;
+
+  @override
+  Widget build(BuildContext context) {
+    return PhysicalPixelDivider(
+      orientation: orientation,
+      color: color,
+      thickness: thickness,
+      crossAxisExtent: thickness.toDouble(),
+      indent: 0,
+      endIndent: 0,
     );
   }
 }

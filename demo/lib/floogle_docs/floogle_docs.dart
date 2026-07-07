@@ -23,7 +23,25 @@ import 'src/widgets/tooltip.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SemanticsBinding.instance.ensureSemantics();
-  runApp(const BaseMenuApp(FloogleDocsApp()));
+  runApp(const _FloogleDocsMain());
+}
+
+class _FloogleDocsMain extends StatefulWidget {
+  const _FloogleDocsMain({super.key});
+
+  @override
+  State<_FloogleDocsMain> createState() => _FloogleDocsMainState();
+}
+
+class _FloogleDocsMainState extends State<_FloogleDocsMain> {
+  @override
+  Widget build(BuildContext context) {
+    return BaseMenuApp(
+      title: 'Floogle Docs',
+      initialRoute: '/',
+      routes: {'/': (context) => const FloogleDocsApp()},
+    );
+  }
 }
 
 class FloogleDocsApp extends StatefulWidget {

@@ -160,12 +160,10 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
             horizontal: EdgeBehaviorStrategy(flip: true),
             vertical: EdgeBehaviorStrategy(constrain: true),
           ),
-          padding: EdgeInsets.all(4.0),
+          padding: EdgeInsets.all(2.0),
         ),
         onPressed: () {
-          if (controller.isOpen) {
-            controller.close();
-          } else {
+          if (!controller.isOpen) {
             controller.open();
             focusNode.requestFocus();
           }
@@ -174,7 +172,7 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
           borderRadius: const BorderRadius.all(Radius.circular(4)),
           child: StyledMenuPanel(
             child: BaseMenuPanel(
-              padding: const EdgeInsets.all(4.0),
+              padding: const EdgeInsets.all(2.0),
               onPointerExit: (event) {
                 if (!focusNode.hasFocus) {
                   focusNode.requestFocus();

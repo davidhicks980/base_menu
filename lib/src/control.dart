@@ -388,17 +388,22 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
       behavior: widget.behavior,
       opaque: widget.opaque,
       onPointerEnter: (PointerEnterEvent event) {
-        setState(() {
-          isHovered = true;
-        });
+        if (!isHovered) {
+          setState(() {
+            isHovered = true;
+          });
+        }
+
         widget.onPointerEnter?.call(event);
       },
       onPointerHover: widget.onPointerHover,
       onPointerExit: (PointerExitEvent event) {
         widget.onPointerExit?.call(event);
-        setState(() {
-          isHovered = false;
-        });
+        if (isHovered) {
+          setState(() {
+            isHovered = false;
+          });
+        }
       },
       mouseCursor: hasMouseCursor
           ? widget.mouseCursor!.resolve({
@@ -462,6 +467,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
               child: RawGestureDetector(
                 excludeFromSemantics: !widget.gestureSemanticsEnabled,
                 semantics: widget.gestureSemantics,
+                behavior: .deferToChild,
                 gestures: widget.enabled ? _gestures! : const <Type, GestureRecognizerFactory>{},
                 child: _PressableScope<T>(
                   pressed: _isPressed,

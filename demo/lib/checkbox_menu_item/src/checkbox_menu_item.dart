@@ -39,11 +39,19 @@ final checkboxDecoration = {
 };
 
 /// A menu item that hides BaseMenuItem internals
-class WebCheckboxMenuItem extends StatefulWidget {
-  const WebCheckboxMenuItem({super.key, required this.child, required this.checkbox});
+class WebCheckboxMenuItem extends StatelessWidget {
+  const WebCheckboxMenuItem({
+    super.key,
+    required this.child,
+    required this.checkbox,
+    required this.isChecked,
+    this.onChange,
+  });
 
   final Widget child;
   final Widget checkbox;
+  final bool isChecked;
+  final ValueChanged<bool>? onChange;
 
   static Set<WidgetState> statesOf(BuildContext context) {
     return {
@@ -63,13 +71,6 @@ class WebCheckboxMenuItem extends StatefulWidget {
   // ... Other state getters ...
 
   @override
-  State<WebCheckboxMenuItem> createState() => _WebCheckboxMenuItemState();
-}
-
-class _WebCheckboxMenuItemState extends State<WebCheckboxMenuItem> {
-  bool checked = false;
-
-  @override
   Widget build(BuildContext context) {
     final body = MergeSemantics(
       child: SizedBox(
@@ -82,24 +83,24 @@ class _WebCheckboxMenuItemState extends State<WebCheckboxMenuItem> {
               ExcludeFocus(
                 child: AbsorbPointer(
                   child: Semantics(
-                    checked: checked,
+                    checked: isChecked,
                     child: Builder(
                       builder: (context) {
-                        final states = WebCheckboxMenuItem.statesOf(context);
+                        final states = statesOf(context);
                         return Container(
                           width: 13,
                           height: 13,
                           decoration: WidgetStateProperty.fromMap(
                             checkboxDecoration,
                           ).resolve(states),
-                          child: widget.checkbox,
+                          child: checkbox,
                         );
                       },
                     ),
                   ),
                 ),
               ),
-              Padding(padding: const EdgeInsets.only(bottom: 2.0), child: widget.child),
+              Padding(padding: const EdgeInsets.only(bottom: 2.0), child: child),
             ],
           ),
         ),
@@ -109,17 +110,17 @@ class _WebCheckboxMenuItemState extends State<WebCheckboxMenuItem> {
     return BaseMenuItem<WebCheckboxMenuItem>(
       role: .menuItemCheckbox,
       requestCloseOnActivate: false,
-      onPressed: () {
-        setState(() {
-          checked = !checked;
-        });
-      },
+      onPressed: onChange != null
+          ? () {
+              onChange!(!isChecked);
+            }
+          : null,
       child: _CheckedScope<WebCheckboxMenuItem>(
-        isChecked: checked,
+        isChecked: isChecked,
         child: Builder(
           builder: (context) {
             return DecoratedBox(
-              decoration: WebCheckboxMenuItem.isFocusedOf(context)
+              decoration: isFocusedOf(context)
                   ? const BoxDecoration(color: Color(0xFFEDEDED))
                   : const BoxDecoration(color: Color(0x00000000)),
               child: body,
@@ -138,7 +139,7 @@ class _CheckedScope<T> extends InheritedWidget {
 
   static bool isCheckedOf<T>(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<_CheckedScope<T>>();
-    assert(scope != null, 'No DesignSystemCheckbox of type $T found in context. \n');
+    assert(scope != null, 'No WebCheckboxMenuItem of type $T found in context. \n');
     return scope!.isChecked;
   }
 
@@ -146,28 +147,4 @@ class _CheckedScope<T> extends InheritedWidget {
   bool updateShouldNotify(_CheckedScope<T> oldWidget) {
     return oldWidget.isChecked != isChecked;
   }
-}
-
-class WebCheckboxPainter extends CustomPainter {
-  const WebCheckboxPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFFFFFFF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..strokeJoin = StrokeJoin.miter
-      ..strokeCap = StrokeCap.square;
-
-    final path = Path()
-      ..moveTo(size.width * 0.2, size.height * (7.0 / 13.0))
-      ..lineTo(size.width * 0.4, size.height * (9.5 / 13.0))
-      ..lineTo(size.width * 0.8, size.height * 0.2);
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(WebCheckboxPainter oldDelegate) => false;
 }

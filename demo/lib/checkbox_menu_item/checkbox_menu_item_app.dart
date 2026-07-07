@@ -1,8 +1,11 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 
+import '../shared/checkbox.dart';
 import '../shared/package.dart';
 import 'src/checkbox_menu_item.dart';
+
+export 'src/checkbox_menu_item.dart';
 
 class CheckboxMenuItemApp extends StatefulWidget {
   const CheckboxMenuItemApp({super.key});
@@ -45,10 +48,10 @@ class _CheckboxMenuItemAppState extends State<CheckboxMenuItemApp> {
               },
               constraints: const BoxConstraints(minWidth: 100),
               children: const [
-                WebCheckboxMenuItem(checkbox: _Checkbox(), child: Text('Play with cat')),
-                WebCheckboxMenuItem(checkbox: _Checkbox(), child: Text('Pet cat')),
-                WebCheckboxMenuItem(checkbox: _Checkbox(), child: Text('Feed cat')),
-                WebCheckboxMenuItem(checkbox: _Checkbox(), child: Text('Get bit by cat')),
+                _CheckboxMenuItem(child: Text('Play with cat')),
+                _CheckboxMenuItem(child: Text('Pet cat')),
+                _CheckboxMenuItem(child: Text('Feed cat')),
+                _CheckboxMenuItem(child: Text('Get bit by cat')),
               ],
             ),
           ),
@@ -59,12 +62,27 @@ class _CheckboxMenuItemAppState extends State<CheckboxMenuItemApp> {
   }
 }
 
-class _Checkbox extends StatelessWidget {
-  const _Checkbox();
+class _CheckboxMenuItem extends StatefulWidget {
+  const _CheckboxMenuItem({required this.child});
+  final Widget child;
 
   @override
+  State<_CheckboxMenuItem> createState() => _CheckboxMenuItemState();
+}
+
+class _CheckboxMenuItemState extends State<_CheckboxMenuItem> {
+  bool isChecked = false;
+  @override
   Widget build(BuildContext context) {
-    final bool isChecked = WebCheckboxMenuItem.isCheckedOf(context);
-    return isChecked ? const CustomPaint(painter: WebCheckboxPainter()) : const SizedBox();
+    return WebCheckboxMenuItem(
+      checkbox: const WebCheckbox(),
+      isChecked: isChecked,
+      onChange: (value) {
+        setState(() {
+          isChecked = value;
+        });
+      },
+      child: widget.child,
+    );
   }
 }

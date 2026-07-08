@@ -15,10 +15,10 @@ import 'menu_item.dart';
 
 /// A widget that displays a hierarchical submenu when opened.
 ///
-/// The [BaseSubmenu] widget is optimized specifically for hierarchical nested
-/// submenus. It includes built-in hover delay timing ([hoverOpenDelay] and
-/// [hoverCloseDelay]), synchronized pseudo-focus highlighting across submenu
-/// levels, and orientation-aware keyboard navigation.
+/// The [BaseSubmenu] widget is optimized specifically for nested submenus. It
+/// includes built-in hover delay timing ([hoverOpenDelay] and
+/// [hoverCloseDelay]), visual focus emulation across submenu levels, and
+/// orientation-aware keyboard navigation.
 ///
 /// The [child] widget should only handle visual representation. Focus,
 /// activation, and hover interactions should be handled through the
@@ -29,12 +29,20 @@ import 'menu_item.dart';
 /// property. The overlay's [Actions] can be customized by wrapping the [menu]
 /// in an [Actions] widget.
 ///
+/// ## Scope
+///
+/// The optional type parameter [T] can be used to scope the internal
+/// [BaseMenuItem] state selectors to a specific type.
+///
 /// **See also**:
-///  * [BaseMenu], which is used internally to manage the submenu's overlay.
-///  * [BaseMenuItem], which is used internally to manage the submenu's anchor.
-///  * [BaseMenuBar], which can used to group multiple [BaseSubmenu] widgets
-///    into a menu bar.
-class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuItemInterface {
+///  * [BaseMenu], a companion widget for creating standalone dropdown menus and
+///    context menus.
+///  * [BaseMenuItem], a companion widget for creating menu items that can be
+///    used within a [BaseMenu] or [BaseSubmenu].
+///  * [BaseMenuBar], which groups multiple [BaseSubmenu] widgets into an
+///    accessible menu bar.
+class BaseSubmenu<T extends Object?> extends StatefulWidget
+    implements BaseMenuInterface, BaseMenuItemInterface {
   /// Creates a [BaseSubmenu].
   ///
   /// The [child], [menu], and [controller] parameters are required.
@@ -77,6 +85,7 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
     this.enabled = true,
     this.anchorActions,
     this.requestFocusOnHover = true,
+    this.requestOpenOnHover = true,
   });
 
   @override
@@ -195,6 +204,11 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
   @override
   final bool requestFocusOnHover;
 
+  /// Whether the submenu should open when hovered.
+  ///
+  /// Defaults to true.
+  final bool requestOpenOnHover;
+
   @override
   bool get requestCloseOnActivate => false;
 
@@ -203,10 +217,10 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
   String get debugMenuFocusNodeLabel => 'BaseSubmenu FocusNode${key != null ? ' ($key)' : ''}';
 
   @override
-  State<BaseSubmenu> createState() => _BaseSubmenuState();
+  State<BaseSubmenu<T>> createState() => _BaseSubmenuState<T>();
 }
 
-class _BaseSubmenuState extends State<BaseSubmenu> {
+class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
   // Notifier to track whether the submenu or its button has focus.
   //
   // This is used to apply a pseudo focus highlight on ancestor submenu anchors.
@@ -245,14 +259,15 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   @override
-  void didUpdateWidget(BaseSubmenu oldWidget) {
+  void didUpdateWidget(BaseSubmenu<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.enabled && !widget.enabled && widget.controller.isOpen) {
       widget.controller.close();
     }
 
     if (oldWidget.focusNode != widget.focusNode) {
-      oldWidget.focusNode?.removeListener(_handleAnchorFocusChange);
+      final oldFocusNode = oldWidget.focusNode ?? _internalFocusNode;
+      oldFocusNode?.removeListener(_handleAnchorFocusChange);
       if (widget.focusNode == null) {
         assert(_internalFocusNode == null);
         _internalFocusNode = FocusNode(debugLabel: widget.debugMenuFocusNodeLabel);
@@ -316,11 +331,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   }
 
   void _handlePointerEnterAnchor(PointerEnterEvent event) {
-    if (!widget.requestFocusOnHover) {
-      return;
-    }
-
-    if (!widget.controller.isOpen) {
+    if (widget.requestOpenOnHover && !widget.controller.isOpen) {
       _scheduleHoverOpen();
     }
     _closeTimer?.cancel();
@@ -473,7 +484,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
       };
 
   Widget _buildHighlight(BuildContext context, Widget? child) =>
-      BaseFocusableStateInjector<BaseMenuItem>(
+      BaseFocusableStateInjector<BaseMenuItem<T>>(
         showFocusHighlight: _highlightNotifier.value,
         child: child!,
       );
@@ -540,7 +551,7 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
           : widget.anchorActions ?? const {},
       child: Semantics(
         expanded: controller.isOpen,
-        child: BaseMenuItem(
+        child: BaseMenuItem<T>(
           focusNode: _focusNode,
           autofocus: widget.autofocus,
           onPressed: widget.enabled ? widget.onPressed : null,

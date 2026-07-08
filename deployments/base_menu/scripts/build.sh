@@ -18,7 +18,8 @@ done
 # Require build number
 if [[ -z "$USER_BUILD_NUMBER" ]]; then
   echo "Error: --build-number is required."
-  echo "Usage: $0 --build-number <number>"
+  echo "Usage: $0 --build-number v<integer>"
+  echo "Example: $0 --build-number v50"
   exit 1
 fi
 

@@ -41,6 +41,7 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
       controller: controller,
       focusNode: anchorFocusNode,
       requestFocusOnHover: DocumentMenuBar.isInteractiveOf(context),
+      requestOpenOnHover: DocumentMenuBar.isInteractiveOf(context),
       onPressed: () {
         if (controller.isOpen) {
           DocumentMenuBar.disableInteractivityOf(context);

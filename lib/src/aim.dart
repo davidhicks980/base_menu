@@ -30,7 +30,7 @@ class MenuAimScope extends InheritedWidget {
 
   /// A boolean flag indicating whether menu aim assist is enabled.
   ///
-  /// When set to `true`, menu aim assist be enabled by default for all
+  /// When set to `true`, menu aim assist is enabled by default for all
   /// [BaseMenu] and [BaseSubmenu] descendants in the widget tree. When set to
   /// `false`, menu aim assist behavior is disabled.
   final bool enable;
@@ -48,22 +48,20 @@ class MenuAimScope extends InheritedWidget {
   bool updateShouldNotify(MenuAimScope oldWidget) => enable != oldWidget.enable;
 }
 
-/// A widget that intercepts pointer hit-tests when the cursor is moving
-/// diagonally from an active menu item towards a submenu.
+/// A widget that intercepts pointer hit-tests when the pointer moves
+/// diagonally from a menu item toward a submenu.
 ///
-/// It prevents premature submenu closures when the mouse travels diagonally
-/// over other sibling menu items on its way to the submenu
-/// [MenuAimGeometry.targetRect].
+/// This prevents premature submenu closures when the pointer travels diagonally
+/// over sibling menu items on its way to the [MenuAimGeometry.targetRect].
 ///
-/// Under the hood, this widget:
-/// 1. Maintains a queue of pointer [Offset]s to calculate path trajectories.
-/// 2. Performs a dot-product check to confirm movement is towards the target
-///    area.
-/// 3. Validates that the cursor falls within an angular cone projected from the
-///    movement point to the boundaries of the sub-menu.
-/// 4. Intercepts hit-tests to prevent sibling menu items from receiving pointer
-///    events until the cursor either enters the target area or exits the cone
-///    of movement.
+/// The algorithm performs the following:
+/// 1. Maintains a queue of [Offset] samples to calculate trajectory.
+/// 2. Performs a dot-product check to confirm movement is directed toward
+///    the target.
+/// 3. Validates that the pointer remains within an angular projection
+///    extending from the origin of movement to the submenu's boundaries.
+/// 4. Intercepts hit-tests to prevent sibling items from gaining focus
+///    until the pointer enters the target area or exits the projection cone.
 ///
 /// Set [MenuAimInterceptor.visualizeAim] to `true` to draw the active tracking
 /// lines and cone overlays directly on the canvas for visual testing in debug
@@ -113,6 +111,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
   _RenderMenuAimListener(this.delegate);
   static const exitDuration = Duration(milliseconds: 300);
   static const int sampleCount = 15;
+  static const double minimumDistanceSquared = 15.0;
   final ListQueue<Offset> points = ListQueue(sampleCount);
 
   MenuAimGeometry delegate;
@@ -139,7 +138,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
   static bool _isMovingTowardsTarget(Offset start, Offset end, Rect target) {
     final Offset movement = end - start;
 
-    if (movement.distanceSquared < 15.0) {
+    if (movement.distanceSquared < minimumDistanceSquared) {
       return false;
     }
 
@@ -197,7 +196,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
       return false;
     }
 
-    if (points.length == 15) {
+    if (points.length == sampleCount) {
       points.removeFirst();
     }
     points.add(position);

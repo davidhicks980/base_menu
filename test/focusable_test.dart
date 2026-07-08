@@ -1,7 +1,7 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:base_menu/src/focusable.dart' show BaseFocusableStateInjector;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'utilities.dart';
@@ -551,7 +551,12 @@ void main() {
             child: BaseFocusable<String>(
               focusNode: stringNode,
               enabled: enabled,
-              child: Container(key: Tag.c.key, height: 100, width: 100, color: Colors.red),
+              child: Container(
+                key: Tag.c.key,
+                height: 100,
+                width: 100,
+                color: const Color(0xFFFF0000),
+              ),
             ),
           ),
         ),

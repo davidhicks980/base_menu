@@ -44,6 +44,7 @@ class Popup extends StatelessWidget {
     final controller = MenuController();
     final body = BaseSubmenu(
       requestFocusOnHover: false,
+      requestOpenOnHover: false,
       controller: controller,
       orientation: orientation,
       menu: panel,

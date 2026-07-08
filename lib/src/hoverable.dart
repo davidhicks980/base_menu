@@ -15,11 +15,11 @@ import 'interface.dart';
 class BaseHoverableStateInjector<T extends Object?> extends StatelessWidget {
   const BaseHoverableStateInjector({super.key, this.showHoverHighlight, required this.child});
 
-  /// A value used to override the value of
-  /// [BaseFocusable.isFocusHighlightShownOf] for descendant widgets.
+  /// A property used to override the hover highlight visibility of descendant
+  /// widgets.
   ///
   /// To stop overriding the value and revert to the default behavior, set
-  /// [showFocusHighlight] to null.
+  /// [showHoverHighlight] to null.
   ///
   /// Defaults to null.
   final bool? showHoverHighlight;
@@ -47,9 +47,6 @@ class BaseHoverableStateInjector<T extends Object?> extends StatelessWidget {
 @optionalTypeArgs
 class BaseHoverable<T extends Object?> extends StatefulWidget implements BaseHoverableInterface {
   /// Creates a widget that forwards mouse events to callbacks.
-  ///
-  /// By default, all callbacks are empty, [mouseCursor] is [MouseCursor.defer], and
-  /// [opaque] is true.
   const BaseHoverable({
     super.key,
     this.onPointerHover,
@@ -127,12 +124,12 @@ class BaseHoverable<T extends Object?> extends StatefulWidget implements BaseHov
   ///
   /// On most platforms, hover highlights are only shown when using a mouse
   /// ([FocusHighlightMode.traditional]). The exception is web, where Flutter
-  /// often defaults to ([FocusHighlightMode.touch]) mode on first interaction,
+  /// often defaults to [FocusHighlightMode.touch] mode on first interaction,
   /// even when a mouse is being used. To account for this, web platforms always
   /// use [FocusHighlightMode.traditional] when determining whether to show a
   /// hover highlight.
   ///
-  /// This method will always return true when [isHoveredOf] is true, but
+  /// This method will only return true when [isHoveredOf] is true, but
   /// [isHoveredOf] may return true when this method returns false. In this
   /// case, the widget is hovered but the platform has indicated that a hover
   /// highlight is not appropriate for the current input method.
@@ -165,7 +162,7 @@ class _BaseHoverableState<T extends Object?> extends State<BaseHoverable<T>> {
   void _handleHighlightModeChange(FocusHighlightMode _) {
     setState(() {
       // Update the highlight mode to trigger a rebuild, which will update the
-      // focus highlight if needed.
+      // hover highlight if needed.
     });
   }
 

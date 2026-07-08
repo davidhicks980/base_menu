@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart' hide MenuBar;
 
 import '../app/app.dart';
-import '../shared/theme.dart';
+import '../shared/separator.dart';
 import 'src/menubar.dart';
 
 class MenuBarApp extends StatelessWidget {

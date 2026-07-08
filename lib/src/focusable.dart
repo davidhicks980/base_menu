@@ -47,8 +47,6 @@ class BaseFocusableStateInjector<T extends Object?> extends StatelessWidget {
 @optionalTypeArgs
 class BaseFocusable<T extends Object?> extends StatefulWidget implements BaseFocusableInterface {
   /// Creates a [BaseFocusable] widget.
-  ///
-  /// The [child] parameter must not be null.
   const BaseFocusable({
     super.key,
     this.autofocus = false,
@@ -79,7 +77,7 @@ class BaseFocusable<T extends Object?> extends StatefulWidget implements BaseFoc
   ///    * This is common on television interfaces, where focusing disabled
   ///      controls provides additional information.
   ///
-  /// When this widget is focused, focus highlight is requested on web and on
+  /// When this widget is focused, a focus highlight is requested on web and on
   /// platforms where the [FocusHighlightMode] is
   /// [FocusHighlightMode.traditional].
   final bool enabled;
@@ -97,7 +95,7 @@ class BaseFocusable<T extends Object?> extends StatefulWidget implements BaseFoc
   }
 
   /// Returns whether the ancestor [BaseFocusable] nearest to the provided
-  /// `context` has input focus.
+  /// [context] has input focus.
   ///
   /// {@template BaseFocusable.isFocusedOf}
   /// Calling this method establishes a dependency that rebuilds the provided
@@ -119,7 +117,7 @@ class BaseFocusable<T extends Object?> extends StatefulWidget implements BaseFoc
   }
 
   /// Returns whether the ancestor [BaseFocusable] nearest to the provided
-  /// `context` should have a focus highlight.
+  /// [context] should have a focus highlight.
   ///
   /// {@template BaseFocusable.isFocusHighlightShownOf}
   ///
@@ -134,7 +132,7 @@ class BaseFocusable<T extends Object?> extends StatefulWidget implements BaseFoc
   /// [FocusHighlightMode.traditional] when determining whether to show a focus
   /// highlight.
   ///
-  /// This method will always return true when [isFocusedOf] is true, but
+  /// This method will only return true when [isFocusedOf] is true, but
   /// [isFocusedOf] may return true when this method returns false. In this
   /// case, the ancestor is focused but the platform has indicated that a focus
   /// highlight is not appropriate for the current input method.

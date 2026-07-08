@@ -1,6 +1,7 @@
 import 'package:base_menu/base_menu.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show ColorScheme;
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../checkbox_menu_item/checkbox_menu_item_app.dart';
@@ -13,13 +14,14 @@ import '../sequoia/sequoia_app.dart';
 import '../shared/base_menu_app.dart';
 import '../shared/browser_context_menu_blocker.dart';
 import '../shared/package.dart';
+import '../shared/separator.dart';
 import '../shared/theme.dart';
 import '../submenu/submenu_app.dart';
 import 'src/navigation_menu.dart';
 
 enum AppSection {
-  api('API'),
-  examples('DEMOS');
+  api('INTERFACE'),
+  examples('EXAMPLES');
 
   const AppSection(this.label);
   final String label;
@@ -192,14 +194,14 @@ class _AppRouteWrapper extends StatelessWidget {
               surfaceContainerHigh: FloogleColors.elevatedSurfaceColor,
               outlineVariant: FloogleColors.separatorColor,
               onSurface: FloogleColors.grey,
-              secondaryContainer: FloogleColors.selectedButtonBackground,
-              onSecondaryContainer: FloogleColors.selectedButton,
+              primaryContainer: FloogleColors.selectedButtonBackground,
+              onPrimaryContainer: FloogleColors.selectedButton,
             ),
       child: Builder(
         builder: (context) {
           return DefaultTextStyle(
             style: TextStyle(
-              fontFamily: 'GoogleSans',
+              fontFamily: 'InterVariable',
               package: kPackage,
               color: AppColorScheme.of(context).onSurface,
             ),
@@ -253,72 +255,79 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
                 bottom: 0,
                 duration: const Duration(milliseconds: 800),
                 curve: Curves.easeOutQuint,
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: CustomScrollView(
-                        slivers: [
-                          PinnedHeaderSliver(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.max,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                                        child: Text(
-                                          'Base Menu',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: -0.5,
-                                            fontSize: 24,
-                                            color: AppColorScheme.of(context).onSurface,
+                child: ColoredBox(
+                  color: AppColorScheme.of(context).brightness == Brightness.light
+                      ? const Color.fromARGB(4, 28, 27, 31)
+                      : kTransparent,
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: CustomScrollView(
+                          slivers: [
+                            PinnedHeaderSliver(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Row(
+                                      mainAxisSize: MainAxisSize.max,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                                          child: Text(
+                                            'Base Menu',
+                                            style: TextStyle(
+                                              fontVariations: const [FontVariation.weight(800)],
+                                              letterSpacing: -0.5,
+                                              fontSize: 24,
+                                              fontFamily: 'InterVariable',
+                                              package: kPackage,
+                                              color: AppColorScheme.of(context).onSurface,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsetsDirectional.only(end: 1),
-                                        child: MenuButton(
-                                          isOpen: showNavigationDrawer,
-                                          onPressed: toggleDrawer,
+                                        Padding(
+                                          padding: const EdgeInsetsDirectional.only(end: 1),
+                                          child: MenuButton(
+                                            isOpen: showNavigationDrawer,
+                                            onPressed: toggleDrawer,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
 
-                          SliverToBoxAdapter(
-                            child: ExcludeFocus(
-                              excluding: !showNavigationDrawer,
-                              child: ExcludeSemantics(
+                            SliverToBoxAdapter(
+                              child: ExcludeFocus(
                                 excluding: !showNavigationDrawer,
-                                child: IgnorePointer(
-                                  ignoring: !showNavigationDrawer,
-                                  child: AnimatedOpacity(
-                                    duration: const Duration(milliseconds: 800),
-                                    curve: Curves.easeOutQuint,
-                                    opacity: showNavigationDrawer ? 1 : 0,
-                                    child: const _Sidenav(),
+                                child: ExcludeSemantics(
+                                  excluding: !showNavigationDrawer,
+                                  child: IgnorePointer(
+                                    ignoring: !showNavigationDrawer,
+                                    child: AnimatedOpacity(
+                                      duration: const Duration(milliseconds: 800),
+                                      curve: Curves.easeOutQuint,
+                                      opacity: showNavigationDrawer ? 1 : 0,
+                                      child: const _Sidenav(),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    Separator.vertical(
-                      color: AppColorScheme.of(context).outlineVariant,
-                      thickness: 2,
-                    ),
-                  ],
+                      Separator.vertical(
+                        color: AppColorScheme.of(context).outlineVariant,
+                        thickness: 2,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Builder(
@@ -366,8 +375,8 @@ class _Sidenav extends StatelessWidget {
         label: 'Main',
         children: [
           NavigationMenuGroup(
-            header: const _DrawerHeader(title: 'API'),
-            groupLabel: 'API',
+            header: _DrawerHeader(title: AppSection.api.label),
+            groupLabel: AppSection.api.label,
             children: [
               for (final destination in AppDestination.values.where(
                 (d) => d.section == AppSection.api,
@@ -379,10 +388,10 @@ class _Sidenav extends StatelessWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.only(top: 8.0),
+            padding: const EdgeInsets.only(top: 12.0),
             child: NavigationMenuGroup(
-              header: const _DrawerHeader(title: 'EXAMPLES'),
-              groupLabel: 'EXAMPLES',
+              header: _DrawerHeader(title: AppSection.examples.label),
+              groupLabel: AppSection.examples.label,
               children: [
                 for (final destination in AppDestination.values.where(
                   (d) => d.section == AppSection.examples,
@@ -437,7 +446,10 @@ class MenuButton extends StatelessWidget {
     return Semantics(
       container: true,
       button: true,
-      label: isOpen ? 'Close navigation menu' : 'Open navigation menu',
+      expanded: isOpen,
+      label: isOpen ? 'Collapse navigation menu' : 'Expand navigation menu',
+      onExpand: isOpen ? null : onPressed,
+      onCollapse: isOpen ? onPressed : null,
       child: BaseControl(
         onPressed: onPressed,
         child: Builder(
@@ -476,9 +488,11 @@ class _DrawerHeader extends StatelessWidget {
       child: Text(
         title,
         style: TextStyle(
-          color: AppColorScheme.of(context).onSurfaceVariant.withValues(alpha: 0.6),
+          color: AppColorScheme.of(context).onSurface.withValues(alpha: 0.7),
           fontWeight: FontWeight.w700,
-          fontSize: 11.0,
+          fontSize: 11.5,
+          fontFamily: 'InterVariable',
+          package: kPackage,
           letterSpacing: 0.5,
           height: 1.4,
           leadingDistribution: TextLeadingDistribution.even,
@@ -493,8 +507,19 @@ class _DestinationLabel extends StatelessWidget {
   final AppDestination destination;
 
   static const WidgetStateProperty<TextStyle> textStyle = WidgetStateProperty.fromMap({
-    WidgetState.selected: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: -0.2),
-    WidgetState.any: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+    WidgetState.selected: TextStyle(
+      fontWeight: FontWeight.w700,
+      fontSize: 14,
+      letterSpacing: -0.1,
+      fontFamily: 'InterVariable',
+      package: kPackage,
+    ),
+    WidgetState.any: TextStyle(
+      fontVariations: [FontVariation.weight(550)],
+      fontSize: 14,
+      fontFamily: 'InterVariable',
+      package: kPackage,
+    ),
   });
 
   static const WidgetStateProperty<Color> lightBackgroundColor = WidgetStateProperty.fromMap({
@@ -517,9 +542,9 @@ class _DestinationLabel extends StatelessWidget {
     final brightness = AppColorScheme.of(context).brightness;
     final ColorScheme colorScheme = AppColorScheme.of(context);
 
-    final Color itemColor = isSelected ? colorScheme.onSecondaryContainer : colorScheme.onSurface;
+    final Color itemColor = isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurface;
     final Color backgroundColor = isSelected
-        ? colorScheme.secondaryContainer
+        ? colorScheme.primaryContainer
         : switch (brightness) {
             Brightness.dark => darkBackgroundColor.resolve(states),
             Brightness.light => lightBackgroundColor.resolve(states),
@@ -527,9 +552,9 @@ class _DestinationLabel extends StatelessWidget {
 
     return RepaintBoundary(
       child: Container(
-        height: 38,
+        height: 40,
         width: 232,
-        padding: const EdgeInsetsDirectional.only(start: 16, end: 8),
+        padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: const BorderRadius.only(
@@ -554,7 +579,7 @@ class _DestinationLabel extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsetsDirectional.only(start: 16),
+              padding: const EdgeInsetsDirectional.only(start: 12),
               child: Text(
                 destination.label,
                 style: textStyle.resolve(states).copyWith(color: itemColor),

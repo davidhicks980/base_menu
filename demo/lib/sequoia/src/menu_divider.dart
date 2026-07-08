@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import '../../shared/theme.dart';
+import '../../shared/separator.dart';
 
 class SequoiaMenuDivider extends StatelessWidget {
   const SequoiaMenuDivider({super.key});

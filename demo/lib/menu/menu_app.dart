@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app/app.dart';
-import '../shared/theme.dart';
+import '../shared/separator.dart';
 import 'src/menu.dart';
 
 class MenuApp extends StatelessWidget {

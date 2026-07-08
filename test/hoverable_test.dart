@@ -2,7 +2,7 @@ import 'package:base_menu/base_menu.dart';
 import 'package:base_menu/src/hoverable.dart' show BaseHoverableStateInjector;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'utilities.dart';
@@ -34,15 +34,11 @@ void main() {
     var entered = false;
     await tester.pumpWidget(
       App(
-        Scaffold(
-          body: Center(
-            child: BaseHoverable<void>(
-              onPointerEnter: (_) {
-                entered = true;
-              },
-              child: Text(Tag.a.text),
-            ),
-          ),
+        BaseHoverable<void>(
+          onPointerEnter: (_) {
+            entered = true;
+          },
+          child: Text(Tag.a.text),
         ),
       ),
     );
@@ -66,15 +62,11 @@ void main() {
     var hoverCount = 0;
     await tester.pumpWidget(
       App(
-        Scaffold(
-          body: Center(
-            child: BaseHoverable<void>(
-              onPointerHover: (_) {
-                hoverCount++;
-              },
-              child: Text(Tag.a.text),
-            ),
-          ),
+        BaseHoverable<void>(
+          onPointerHover: (_) {
+            hoverCount++;
+          },
+          child: Text(Tag.a.text),
         ),
       ),
     );
@@ -97,15 +89,11 @@ void main() {
     var exited = false;
     await tester.pumpWidget(
       App(
-        Scaffold(
-          body: Center(
-            child: BaseHoverable<void>(
-              onPointerExit: (_) {
-                exited = true;
-              },
-              child: Text(Tag.a.text),
-            ),
-          ),
+        BaseHoverable<void>(
+          onPointerExit: (_) {
+            exited = true;
+          },
+          child: Text(Tag.a.text),
         ),
       ),
     );
@@ -182,7 +170,7 @@ void main() {
             return Column(
               children: [
                 BaseHoverable<void>(enabled: enabled, child: Text(Tag.a.text)),
-                ElevatedButton(
+                BaseControl(
                   onPressed: () {
                     setState(() {
                       enabled = false;
@@ -577,7 +565,12 @@ void main() {
                 color: const Color(0xFF0011FF),
                 child: BaseHoverable<String>(
                   enabled: enabled,
-                  child: Container(key: Tag.c.key, height: 100, width: 100, color: Colors.red),
+                  child: Container(
+                    key: Tag.c.key,
+                    height: 100,
+                    width: 100,
+                    color: const Color(0xFFFF0000),
+                  ),
                 ),
               ),
             ),
@@ -724,18 +717,14 @@ void main() {
     testWidgets('Falls back to ancestor when override is null', (WidgetTester tester) async {
       await tester.pumpWidget(
         App(
-          Scaffold(
-            body: Center(
-              child: BaseHoverable<String>(
-                child: BaseHoverableStateInjector<String>(
-                  child: Builder(
-                    builder: (BuildContext context) {
-                      return Text(
-                        'Highlight: ${BaseHoverable.isHoverHighlightShownOf<String>(context)}',
-                      );
-                    },
-                  ),
-                ),
+          BaseHoverable<String>(
+            child: BaseHoverableStateInjector<String>(
+              child: Builder(
+                builder: (BuildContext context) {
+                  return Text(
+                    'Highlight: ${BaseHoverable.isHoverHighlightShownOf<String>(context)}',
+                  );
+                },
               ),
             ),
           ),

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -57,8 +55,8 @@ abstract interface class BaseFocusableInterface {
 
   /// Handler called when the focus changes.
   ///
-  /// Called with true if this widget's node gains focus, and false if it loses
-  /// focus.
+  /// Invoked with true when this widget or a descendant widget acquires focus,
+  /// and false when it resigns it.
   ///
   /// See also:
   ///
@@ -168,8 +166,9 @@ abstract interface class BaseMenuInterface {
   /// The behavior to use when focus reaches the edge of the menu overlay while
   /// using directional focus traversal.
   ///
-  /// Defaults to using [TraversalEdgeBehavior.stop] when [Platform.isMacOS] or
-  /// [Platform.isIOS], and [TraversalEdgeBehavior.closedLoop] otherwise.
+  /// Defaults to using [TraversalEdgeBehavior.stop] when
+  /// [defaultTargetPlatform] is [TargetPlatform.macOS] or
+  /// [TargetPlatform.iOS], and [TraversalEdgeBehavior.closedLoop] otherwise.
   TraversalEdgeBehavior? get directionalFocusEdgeBehavior;
 
   /// An optional [MenuController] that allows opening and closing of the menu
@@ -191,7 +190,7 @@ abstract interface class BaseMenuInterface {
   /// Defaults to false.
   bool get consumeOutsideTaps;
 
-  /// Called when the menu is opened.
+  /// Called when the menu overlay is shown.
   ///
   /// If no close requests are made, the menu will be mounted in the next frame.
   VoidCallback? get onOpen;
@@ -218,8 +217,8 @@ abstract interface class BaseMenuInterface {
   /// animation, the themed menu should show the overlay before starting the
   /// opening animation, since the animation plays on the overlay itself.
   ///
-  /// The `position` argument is the `position` that [MenuController.open] was
-  /// called with.
+  /// The callback's `position` argument is the `position` that
+  /// [MenuController.open] was called with.
   ///
   /// A typical [onOpenRequested] consists of the following steps:
   ///
@@ -230,7 +229,7 @@ abstract interface class BaseMenuInterface {
   /// Defaults to a callback that immediately shows the menu.
   RawMenuAnchorOpenRequestedCallback get onOpenRequest;
 
-  /// Called when the menu overlay will close.
+  /// Called when the menu overlay will be hidden.
   ///
   /// The menu will be unmounted in the next frame unless the menu is reopened.
   VoidCallback? get onClose;
@@ -330,7 +329,7 @@ typedef MenuOverlayChildBuilder = Widget Function(BuildContext context, Widget c
 
 /// A delegate that builds a widget that positions the menu panel of a [BaseMenu].
 abstract interface class MenuPositioningDelegate {
-  /// Builds a widget that positions the menu panel `child` using the provided
-  /// `position` information.
+  /// Builds a widget that positions the menu panel [child] using the provided
+  /// [position] information.
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child);
 }

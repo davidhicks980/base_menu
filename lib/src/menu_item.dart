@@ -21,8 +21,6 @@ import 'interface.dart';
 @optionalTypeArgs
 class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenuItemInterface {
   /// Creates a [BaseMenuItem] widget.
-  ///
-  /// The [child] parameter must not be null.
   const BaseMenuItem({
     super.key,
     this.onPressed,
@@ -45,7 +43,7 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
     required this.child,
   }) : assert(
          gestureSemanticsEnabled || gestureSemantics == null,
-         'If excludeGestureSemantics is true, semanticsGestureDelegate must not be provided.',
+         'If gestureSemanticsEnabled is false, gestureSemantics must not be provided.',
        );
 
   @override
@@ -106,7 +104,7 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
   bool get enabled => onPressed != null || onActivate != null;
 
   /// Returns the [WidgetState]s of the ancestor [BaseMenuItem] of type [T]
-  /// nearest to the provided `context`.
+  /// nearest to the provided [context].
   ///
   /// {@macro BaseControl.statesOf}
   @optionalTypeArgs
@@ -115,7 +113,7 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
   }
 
   /// Returns whether the ancestor [BaseMenuItem] of type [T] nearest to the
-  /// provided `context` is hovered.
+  /// provided [context] is hovered.
   ///
   /// {@macro BaseHoverable.isHoveredOf}
   ///
@@ -130,7 +128,7 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
   }
 
   /// Returns whether the ancestor [BaseMenuItem] of type [T] nearest to the
-  /// provided `context` has input focus.
+  /// provided [context] is pressed.
   ///
   /// {@macro BaseControl.isPressedOf}
   @optionalTypeArgs
@@ -139,7 +137,7 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
   }
 
   /// Returns whether the ancestor [BaseMenuItem] of type [T] nearest to the provided
-  /// `context` has input focus.
+  /// [context] has input focus.
   ///
   /// {@macro BaseFocusable.isFocusedOf}
   @optionalTypeArgs
@@ -148,7 +146,7 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
   }
 
   /// Returns whether the ancestor [BaseMenuItem] of type [T] nearest to
-  /// the provided `context` is disabled.
+  /// the provided [context] is disabled.
   ///
   /// {@macro BaseControl.isDisabledOf}
   @optionalTypeArgs
@@ -156,8 +154,8 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
     return BaseControl.isDisabledOf<BaseMenuItem<T>>(context);
   }
 
-  /// Returns whether the ancestor [BaseMenuItem] nearest to the provided
-  /// `context` should show a visual focus highlight.
+  /// Returns whether the ancestor [BaseMenuItem] of type [T] nearest to the
+  /// provided [context] should show a visual focus highlight.
   ///
   /// {@macro BaseFocusable.isFocusHighlightShownOf}
   ///
@@ -167,8 +165,8 @@ class BaseMenuItem<T extends Object?> extends StatefulWidget implements BaseMenu
     return BaseControl.isFocusHighlightShownOf<BaseMenuItem<T>>(context);
   }
 
-  /// Returns whether the ancestor [BaseMenuItem] nearest to the provided
-  /// `context` should show a visual hover highlight.
+  /// Returns whether the ancestor [BaseMenuItem] of type [T] nearest to the
+  /// provided [context] should show a visual hover highlight.
   ///
   /// {@macro BaseHoverable.isHoverHighlightShownOf}
   ///

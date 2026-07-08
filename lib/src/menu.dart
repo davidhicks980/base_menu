@@ -144,22 +144,21 @@ class EdgeBehaviorStrategy {
   /// Creates an [EdgeBehaviorStrategy].
   const EdgeBehaviorStrategy({this.shift = false, this.flip = false, this.constrain = false});
 
-  /// The menu will be shifted to stay within the screen boundaries,
-  /// potentially covering the anchor.
+  /// The menu will shift to stay within the screen boundaries, potentially
+  /// covering the anchor.
   final bool shift;
 
-  /// The menu will be flipped across the anchor midpoint point if it overflows.
+  /// The menu will flip across the anchor midpoint if it overflows.
   final bool flip;
 
-  /// The menu will be resized to fit within the available space between the
-  /// anchor and the screen edge. This is ideal for scrollable menus.
+  /// The menu will resize to fit within the available space between the anchor
+  /// and the screen edge. This is ideal for scrollable menus.
   ///
   /// Note that if [constrain] is true while [shift] is false, a two-pass layout
-  /// will occur. The first pass measures the menu based on its unconstrained
-  /// size and calculates a position, and the second pass constrains the menu to
-  /// fit within the available space. The menu is not repositioned after the
-  /// second pass, so the menu will be pinned to its natural position based on
-  /// its unconstrained size.
+  /// occurs. The first pass calculates the menu's position based on its
+  /// unconstrained size; the second pass then constrains the menu to the
+  /// available space without repositioning its origin. This ensures the menu
+  /// remains anchored to the point determined by its preferred dimensions.
   final bool constrain;
 
   @override
@@ -225,14 +224,14 @@ class EdgeBehavior {
 /// Otherwise, the offset is applied as-is, regardless of the ambient
 /// [Directionality].
 ///
-/// When the menu is opened with a `position` argument, the [anchorAlignment],
+/// When the menu is opened with a `position` argument, the [anchorAlignment]
 /// and [offset] are ignored, and the menu is positioned at the provided
 /// [RawMenuOverlayInfo.position].
 ///
 /// If the menu panel has padding applied, the [padding] parameter can be used
 /// to ensure that the menu panel is offset from the anchor by the same amount
-/// of padding, which is useful for aligning submenus with their parent menu
-/// items.
+/// of padding, which is useful for maintaining visual alignment between a
+/// submenu's items and its parent anchor.
 ///
 /// The [overlayPadding] defines a minimum distance to apply between the menu
 /// overlay and the edges of the screen when the menu is open.
@@ -260,9 +259,7 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
   /// Unlike [anchorAlignment] and [offset], the [menuAlignment] will be
   /// applied when the menu is opened with a `position` argument.
   ///
-  /// Defaults to [AlignmentDirectional.topEnd] if this menu's parent has a
-  /// [Axis.vertical] orientation, and [AlignmentDirectional.bottomStart]
-  /// otherwise.
+  /// Defaults to [AlignmentDirectional.topStart].
   final AlignmentGeometry? menuAlignment;
 
   /// The point on the anchor surface that attaches to the menu.
@@ -270,12 +267,11 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
   /// The [anchorAlignment] is ignored if a `position` argument is provided to
   /// [MenuController.open].
   ///
-  /// Defaults to [AlignmentDirectional.bottomStart] if this is a root menu, and
-  /// [AlignmentDirectional.topEnd] if this is a submenu.
+  /// Defaults to [AlignmentDirectional.topEnd] if this menu's anchor is in a
+  /// vertical menu, and [AlignmentDirectional.bottomStart] otherwise.
   ///
   /// If [edgeBehavior] has [EdgeBehaviorStrategy.flip] enabled on an axis, the
-  /// [anchorAlignment] will be flipped over the midpoint of the anchor on that
-  /// axis.
+  /// [anchorAlignment] will flip over the midpoint of the anchor on that axis.
   final AlignmentGeometry? anchorAlignment;
 
   /// The offset applied to the menu relative to the anchor attachment point.
@@ -342,11 +338,10 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
 
     final enableAim = enableAimAssist ?? MenuAimScope.isEnabledOf(context);
     if (enableAim) {
-      final geometry = MenuAimGeometry()..anchorRect = position.anchorRect;
-      return Stack(
-        textDirection: .ltr,
-        children: [
-          _MenuPositioner(
+      return _AimAssistBuilder(
+        builder: (context, geometry) {
+          geometry.anchorRect = position.anchorRect;
+          return _MenuPositioner(
             overlayPadding: overlayPadding,
             menuPadding: padding,
             anchorRect: position.anchorRect,
@@ -359,9 +354,8 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
               geometry.targetRect = targetRect;
             },
             child: child,
-          ),
-          MenuAimInterceptor(geometry: geometry),
-        ],
+          );
+        },
       );
     } else {
       return _MenuPositioner(
@@ -376,6 +370,30 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
         child: child,
       );
     }
+  }
+}
+
+class _AimAssistBuilder extends StatefulWidget {
+  const _AimAssistBuilder({required this.builder});
+
+  final Widget Function(BuildContext, MenuAimGeometry) builder;
+
+  @override
+  State<_AimAssistBuilder> createState() => _AimAssistBuilderState();
+}
+
+class _AimAssistBuilderState extends State<_AimAssistBuilder> {
+  final geometry = MenuAimGeometry();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      textDirection: .ltr,
+      children: [
+        widget.builder(context, geometry),
+        MenuAimInterceptor(geometry: geometry),
+      ],
+    );
   }
 }
 
@@ -396,8 +414,9 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
 ///   [MenuController.maybeIsOpenOf].
 /// * The nearest ancestor [MenuController] can be read using
 ///   [MenuController.maybeOf].
-/// * Tapping outside the menu/anchor or pressing [LogicalKeyboardKey.escape]
-///   will emit a [DismissIntent] that closes the menu.
+/// * Tapping outside the menu or its anchor or pressing
+///   [LogicalKeyboardKey.escape] will emit a [DismissIntent] that closes the
+///   menu.
 /// * The [consumeOutsideTaps] property can be set to true to prevent tap events
 ///   from propagating to underlying widgets when the menu is open.
 ///
@@ -494,7 +513,7 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
   /// Typically, this is a button used to open the menu by calling
   /// [MenuController.open] on the `controller` passed to the builder.
   ///
-  /// If not supplied, then the [BaseMenu] will be the size that its parent
+  /// If not supplied, then the [BaseMenu] will match the size that its parent
   /// allocates for it.
   final RawMenuAnchorChildBuilder? builder;
 
@@ -880,13 +899,12 @@ class _MenuOverlay extends StatelessWidget {
   }
 }
 
-/// A widget that groups a collection of [BaseMenu]s into an accessible menu
-/// bar.
+/// A widget that groups [BaseMenu]s into an accessible menu bar.
 ///
-/// [BaseMenuBar] coordinates a series of hierarchical menus, typically
-/// presented as a horizontal row atop an application window (such as "File",
-/// "Edit", "View"). When one menu in the bar is opened, any other open menu in
-/// that same bar is automatically closed.
+/// [BaseMenuBar] coordinates a series of hierarchical menus typically presented
+/// as a horizontal row at the top of an application window. When one menu in
+/// the bar is opened, any other open menu in that same bar is automatically
+/// closed.
 ///
 /// [BaseMenuBar] can be managed using the [MenuController] API:
 /// * The nearest ancestor [BaseMenuBar] open/close state can be observed using
@@ -907,7 +925,7 @@ class _MenuOverlay extends StatelessWidget {
 /// **See also:**
 /// * [BaseMenu], for creating standalone dropdown menus and context menus.
 /// * [BaseSubmenu], for creating submenus within a [BaseMenuBar].
-/// * [BaseMenuPanel], a companion widget for laying out menu items
+/// * [BaseMenuPanel], a companion widget for laying out menu items.
 class BaseMenuBar extends StatefulWidget {
   /// Creates a [BaseMenuBar].
   ///
@@ -944,7 +962,7 @@ class BaseMenuBar extends StatefulWidget {
   /// maintained automatically.
   final FocusScopeNode? focusScopeNode;
 
-  /// The [SemanticsProperties] applied to the [BaseMenuBar]'s semantic node.
+  /// The [SemanticsProperties] applied to the menu's semantic node.
   ///
   /// Defaults to describing a [SemanticsRole.menuBar] route scope.
   final SemanticsProperties semanticProperties;
@@ -1204,8 +1222,8 @@ class _TraversePreviousAction<T extends _TraversalIntent> extends Action<T> {
   final FocusScopeNode focusScopeNode;
   @override
   void invoke(T intent) {
-    final isFocusRequested = focusScopeNode.previousFocus();
-    if (isFocusRequested) {
+    focusScopeNode.requestFocus();
+    if (focusScopeNode.previousFocus()) {
       FocusManager.instance.applyFocusChangesIfNeeded();
       if (primaryFocus == focusScopeNode.focusedChild &&
           focusScopeNode.focusedChild!.context != null) {
@@ -1235,31 +1253,33 @@ class _MenuPositioner extends SingleChildRenderObjectWidget {
   // Rectangle of the button anchoring the menu overlay.
   final ui.Rect anchorRect;
 
-  // The offset applied to the menu position after aligning the menu and anchor
-  // based on [alignment] and [menuAlignment].
+  /// The [Offset] applied to the menu position after aligning the menu and anchor
+  /// based on [alignment] and [menuAlignment].
   final ui.Offset offset;
 
-  // The offset of the menu relative to the top-left corner of the anchor.
+  /// The [Offset] of the menu relative to the top-left corner of the anchor.
   final ui.Offset? menuPosition;
 
-  // The padding obtained from calling [MediaQuery.paddingOf].
-  //
-  // Used to prevent the menu from being obstructed by system UI.
+  /// The padding between the menu and the edges of the overlay.
+  ///
+  /// Used to prevent the menu from being obstructed by system UI.
   final EdgeInsetsGeometry overlayPadding;
 
-  // Padding applied to the menu surface.
+  /// The padding applied to the menu surface.
   final EdgeInsetsGeometry? menuPadding;
 
-  // The alignment of the menu attachment point relative to the anchor button.
+  /// The alignment of the menu attachment point relative to the anchor area.
   final AlignmentGeometry alignment;
 
-  // The alignment of the menu attachment point relative to the menu surface.
+  /// The alignment of the menu attachment point relative to the menu surface.
   final AlignmentGeometry menuAlignment;
 
-  // The axis or axes on which the menu should be flipped across the anchor's
-  // midpoint if it overflows the edge of the screen.
+  /// The axis or axes on which the menu should be flipped across the anchor's
+  /// midpoint if it overflows the edge of the screen.
   final EdgeBehavior edgeBehavior;
 
+  /// A callback that is invoked when the menu is positioned, providing the
+  /// final [Rect] of the menu in the overlay's coordinate space.
   final ValueChanged<Rect>? onPositioned;
 
   static Set<ui.Rect> _avoidBounds(List<ui.DisplayFeature> displayFeatures) {
@@ -1532,7 +1552,7 @@ class _RenderMenuPositioner extends RenderShiftedBox {
 
     final parentData = child!.parentData! as BoxParentData;
     parentData.offset = position;
-    onPositioned?.call(position & childSize);
+    onPositioned?.call(position & child!.size);
     size = constraints.biggest;
   }
 
@@ -1540,9 +1560,8 @@ class _RenderMenuPositioner extends RenderShiftedBox {
   //
   // The closest screen is defined as the screen whose center is closest to the
   // anchor position.
-  // Finds the closest screen to the anchor point.
   //
-  // This algorithm is different than the algorithms for PopupMenuButton and MenuAnchor,
+  // This algorithm is different from the algorithms for PopupMenuButton and MenuAnchor,
   // since those widgets calculate the closest screen based on the center of the
   // overlay.
   Rect _findClosestScreen(Size parentSize, Offset point, Set<Rect> avoidBounds) {

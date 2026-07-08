@@ -168,6 +168,7 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
         anchorActions: actions,
         focusNode: focusNode,
         requestFocusOnHover: _dismissHandler.isInteractive,
+        requestOpenOnHover: _dismissHandler.isInteractive,
         onOpen: widget.onOpen,
         onPressed: () {
           if (controller.isOpen) {

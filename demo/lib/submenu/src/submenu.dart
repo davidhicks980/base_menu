@@ -190,7 +190,7 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
             ),
           ),
         ),
-        child: StyledSubmenuChild(
+        child: StyledMenuItemChild(
           child: Row(children: [Text(widget.label), const Spacer(), widget.submenuIcon]),
         ),
       ),

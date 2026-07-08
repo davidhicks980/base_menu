@@ -178,7 +178,7 @@ class _SubmenuState extends State<_Submenu> with SingleTickerProviderStateMixin 
             ),
           ),
         ),
-        child: StyledMenuBarChild(
+        child: StyledMenuItemChild(
           child: Row(children: [Text(widget.label), const Spacer(), widget.submenuIcon]),
         ),
       ),

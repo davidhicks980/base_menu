@@ -76,7 +76,7 @@ class BaseMenuPanel extends StatelessWidget {
   /// space. This value controls whether to maximize or minimize the amount of
   /// free space, subject to the incoming layout constraints.
   ///
-  /// If some children have a non-zero flex factors (and none have a fit of
+  /// If some children have non-zero flex factors (and none have a fit of
   /// [FlexFit.loose]), they will expand to consume all the available space and
   /// there will be no remaining free space to maximize or minimize, making this
   /// value irrelevant to the final layout.
@@ -100,19 +100,19 @@ class BaseMenuPanel extends StatelessWidget {
   ///
   /// Defaults to [VerticalDirection.down].
   ///
-  /// If the [direction] is [Axis.vertical], this controls which order children
+  /// If the [orientation] is [Axis.vertical], this controls which order children
   /// are painted in (down or up), the meaning of the [mainAxisAlignment]
   /// property's [MainAxisAlignment.start] and [MainAxisAlignment.end] values.
   ///
-  /// If the [direction] is [Axis.vertical], and either the [mainAxisAlignment]
-  /// is either [MainAxisAlignment.start] or [MainAxisAlignment.end], or there's
+  /// If the [orientation] is [Axis.vertical] and the [mainAxisAlignment] is
+  /// either [MainAxisAlignment.start] or [MainAxisAlignment.end], or there's
   /// more than one child, then the [verticalDirection] must not be null.
   ///
-  /// If the [direction] is [Axis.horizontal], this controls the meaning of the
+  /// If the [orientation] is [Axis.horizontal], this controls the meaning of the
   /// [crossAxisAlignment] property's [CrossAxisAlignment.start] and
   /// [CrossAxisAlignment.end] values.
   ///
-  /// If the [direction] is [Axis.horizontal], and the [crossAxisAlignment] is
+  /// If the [orientation] is [Axis.horizontal], and the [crossAxisAlignment] is
   /// either [CrossAxisAlignment.start] or [CrossAxisAlignment.end], then the
   /// [verticalDirection] must not be null.
   final VerticalDirection verticalDirection;
@@ -130,7 +130,7 @@ class BaseMenuPanel extends StatelessWidget {
   /// amount of [padding] to the [BaseMenu.positionDelegate]. This is useful
   /// when aligning a submenu with its anchor.
   ///
-  /// Defaults to null, which applies no padding.
+  /// Defaults to [EdgeInsets.zero], which applies no padding.
   final EdgeInsetsGeometry padding;
 
   /// The [EdgeInsetsGeometry] applied within the scrollable area of the menu
@@ -146,9 +146,16 @@ class BaseMenuPanel extends StatelessWidget {
   final double spacing;
 
   /// The orientation in which the menu items are displayed.
+  ///
+  /// If null, the [orientation] of the nearest ancestor [BaseMenu] is used. If
+  /// there is no ancestor [BaseMenu], the [orientation] defaults to
+  /// [Axis.vertical].
   final Axis? orientation;
 
-  /// The [ui.Clip] applied to the panel's scrollable.
+  /// The [ui.Clip] applied to the panel's scrollable or its bounding box if
+  /// [scrollable] is false.
+  ///
+  /// Defaults to [ui.Clip.none], which applies no clipping.
   final ui.Clip clipBehavior;
 
   /// Called when a pointer enters any hit-testable member of [children].
@@ -167,8 +174,8 @@ class BaseMenuPanel extends StatelessWidget {
   /// Called when a pointer hovers over a hit-testable member of [children].
   final PointerHoverEventListener? onPointerHover;
 
-  /// Whether the menu panel should be scrollable when its contents exceed the
-  /// available space within the overlay.
+  /// Whether the menu panel should be scrollable when its contents exceed its
+  /// constraints on its main axis.
   final bool scrollable;
 
   @override

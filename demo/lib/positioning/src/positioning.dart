@@ -196,7 +196,7 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
                   border: Border.fromBorderSide(BorderSide(color: kBlack, width: 3.5)),
                 )
               : const BoxDecoration(),
-          child: StyledSubmenuChild(
+          child: StyledMenuItemChild(
             child: Row(children: [Text(widget.label), const Spacer(), widget.submenuIcon]),
           ),
         ),

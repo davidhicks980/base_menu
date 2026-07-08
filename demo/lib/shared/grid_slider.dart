@@ -423,8 +423,8 @@ class _NumberFieldState extends State<NumberField> {
       ? TextStyle(
           fontSize: 11,
           fontFamily: 'GoogleSansCode',
-          package: kPackage,
           fontFamilyFallback: ['InterVariable'],
+          package: kPackage,
           height: 1.2,
           letterSpacing: -0.4,
           overflow: TextOverflow.ellipsis,

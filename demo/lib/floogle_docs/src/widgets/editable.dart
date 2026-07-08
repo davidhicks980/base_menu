@@ -92,6 +92,8 @@ class Editable extends StatefulWidget {
     this.selectionColor = FloogleColors.editorSelectionColor,
     this.blurredSelectionColor = FloogleColors.editorBlurredSelectionColor,
     this.selectAllOnFocus = false,
+    this.semanticsLabel,
+    this.semanticsHint,
   });
 
   final TextEditingController? textController;
@@ -141,6 +143,8 @@ class Editable extends StatefulWidget {
   final Color selectionColor;
   final Color blurredSelectionColor;
   final bool selectAllOnFocus;
+  final String? semanticsLabel;
+  final String? semanticsHint;
 
   bool get selectionEnabled => enableInteractiveSelection ?? true;
 
@@ -369,6 +373,8 @@ class _EditableState extends State<Editable>
   Widget _buildSemantics(BuildContext context, Widget? child) {
     return Semantics(
       enabled: _isEnabled,
+      label: widget.semanticsLabel,
+      hint: widget.semanticsHint,
       maxValueLength: widget.maxLength,
       currentValueLength: _effectiveController.text.length,
       onTap: widget.readOnly ? null : _handleTap,
@@ -400,6 +406,7 @@ class _EditableState extends State<Editable>
               showSelectionHandles: _showSelectionHandles,
               controller: _effectiveController,
               focusNode: _effectiveFocusNode,
+              mouseCursor: widget.mouseCursor ?? SystemMouseCursors.text,
               undoController: widget.undoController,
               keyboardType: widget.keyboardType ?? TextInputType.text,
               textInputAction: widget.textInputAction,
@@ -450,6 +457,7 @@ class _EditableState extends State<Editable>
 
     return MouseRegion(
       cursor: widget.mouseCursor ?? SystemMouseCursors.text,
+
       child: TextFieldTapRegion(
         child: IgnorePointer(
           ignoring: !_isEnabled,

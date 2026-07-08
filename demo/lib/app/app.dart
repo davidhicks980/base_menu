@@ -208,6 +208,7 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
   bool showNavigationDrawer = true;
 
   void toggleDrawer() {
+    print('toggleDrawer');
     setState(() {
       showNavigationDrawer = !showNavigationDrawer;
     });
@@ -219,89 +220,85 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
     return ColoredBox(
       color: AppColorScheme.of(context).surfaceContainerLow,
       child: SafeArea(
-        child: Center(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Builder(
-                builder: (context) {
-                  final size = MediaQuery.sizeOf(context);
-                  final offset = showNavigationDrawer ? 250.0 : 50.0;
-                  return AnimatedPositioned(
-                    duration: const Duration(milliseconds: 800),
-                    left: offset,
-                    width: size.width - offset,
-                    curve: Curves.easeOutQuint,
-                    top: 0,
-                    bottom: 0,
-                    child: MediaQuery(
-                      data: MediaQuery.of(
-                        context,
-                      ).copyWith(size: Size(size.width - offset, size.height)),
-                      child: child,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            AnimatedPositioned(
+              left: showNavigationDrawer ? 0 : -200,
+              width: 250,
+              top: 0,
+              bottom: 0,
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeOutQuint,
+              child: FocusTraversalGroup(
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 2,
+                      height: 50,
+                      width: 50,
+                      right: 0,
+                      child: Center(
+                        child: MenuButton(isOpen: showNavigationDrawer, onPressed: toggleDrawer),
+                      ),
                     ),
-                  );
-                },
-              ),
-              AnimatedPositioned(
-                left: showNavigationDrawer ? 0 : -200,
-                width: 250,
-                top: 0,
-                bottom: 0,
-                duration: const Duration(milliseconds: 800),
-                curve: Curves.easeOutQuint,
-                child: RepaintBoundary(
-                  child: FocusTraversalGroup(
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          top: 2,
-                          height: 50,
-                          width: 50,
-                          right: 0,
-                          child: Center(
-                            child: MenuButton(
-                              isOpen: showNavigationDrawer,
-                              onPressed: toggleDrawer,
+                    Positioned(
+                      top: 0,
+                      bottom: 0,
+                      left: 0,
+                      child: ExcludeFocus(
+                        excluding: !showNavigationDrawer,
+                        child: ExcludeSemantics(
+                          excluding: !showNavigationDrawer,
+                          child: IgnorePointer(
+                            ignoring: !showNavigationDrawer,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 800),
+                              curve: Curves.easeOutQuint,
+                              opacity: showNavigationDrawer ? 1 : 0,
+                              child: const _Sidenav(),
                             ),
                           ),
                         ),
-                        Positioned(
-                          top: 0,
-                          bottom: 0,
-                          left: 0,
-                          child: ExcludeFocus(
-                            excluding: !showNavigationDrawer,
-                            child: ExcludeSemantics(
-                              excluding: !showNavigationDrawer,
-                              child: IgnorePointer(
-                                ignoring: !showNavigationDrawer,
-                                child: AnimatedOpacity(
-                                  duration: const Duration(milliseconds: 800),
-                                  curve: Curves.easeOutQuint,
-                                  opacity: showNavigationDrawer ? 1 : 0,
-                                  child: const _Sidenav(),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 0,
-                          bottom: 0,
-                          right: 0,
-                          child: Separator.vertical(
-                            color: AppColorScheme.of(context).outlineVariant,
-                            thickness: 2,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    Positioned(
+                      top: 0,
+                      bottom: 0,
+                      right: 0,
+                      child: Separator.vertical(
+                        color: AppColorScheme.of(context).outlineVariant,
+                        thickness: 2,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            Builder(
+              builder: (context) {
+                final size = MediaQuery.sizeOf(context);
+                final offset = showNavigationDrawer ? 250.0 : 50.0;
+                return AnimatedPositioned(
+                  duration: const Duration(milliseconds: 800),
+                  left: offset,
+                  width: size.width - offset,
+                  curve: Curves.easeOutQuint,
+                  top: 0,
+                  bottom: 0,
+                  child: MediaQuery(
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(size: Size(size.width - offset, size.height)),
+                    child: ColoredBox(
+                      color: AppColorScheme.of(context).surfaceContainerLow,
+                      child: child,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -314,39 +311,33 @@ class _Sidenav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MediaQuery.withNoTextScaling(
-      child: DefaultTextStyle.merge(
-        child: CustomDrawer(
-          onDestinationSelected: (int selectedIndex) {
-            if (selectedIndex != -1) {
-              Navigator.pushReplacementNamed(context, Destination.values[selectedIndex].route);
-            }
-          },
-          selectedIndex: Destination.values.indexOf(
-            Destination.fromRoute(ModalRoute.of(context)!.settings.name),
-          ),
-          header: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                child: Text(
-                  'Base Menu',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
-                    fontSize: 24,
-                    color: AppColorScheme.of(context).onSurface,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          label: 'Main',
-          children: <Widget>[
-            const _DrawerHeader(title: 'EXAMPLES'),
-            for (final destination in Destination.values)
-              AppDestination(child: DestinationLabel(destination: destination)),
-          ],
+      child: CustomDrawer(
+        onDestinationSelected: (int selectedIndex) {
+          if (selectedIndex != -1) {
+            Navigator.pushReplacementNamed(context, Destination.values[selectedIndex].route);
+          }
+        },
+        selectedIndex: Destination.values.indexOf(
+          Destination.fromRoute(ModalRoute.of(context)!.settings.name),
         ),
+        header: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Text(
+            'Base Menu',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+              fontSize: 24,
+              color: AppColorScheme.of(context).onSurface,
+            ),
+          ),
+        ),
+        label: 'Main',
+        children: <Widget>[
+          const _DrawerHeader(title: 'EXAMPLES'),
+          for (final destination in Destination.values)
+            AppDestination(child: DestinationLabel(destination: destination)),
+        ],
       ),
     );
   }
@@ -376,27 +367,31 @@ class MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseControl(
-      onPressed: onPressed,
-      child: Builder(
-        builder: (context) {
-          return Container(
-            alignment: Alignment.center,
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppColorScheme.of(context).brightness == .light
-                  ? lightBackgroundColor.resolve(BaseControl.statesOf(context))
-                  : darkBackgroundColor.resolve(BaseControl.statesOf(context)),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isOpen ? Symbols.menu_open_rounded : Symbols.menu_rounded,
-              size: 24,
-              color: AppColorScheme.of(context).onSurfaceVariant,
-            ),
-          );
-        },
+    return Semantics(
+      container: true,
+      button: true,
+      child: BaseControl(
+        onPressed: onPressed,
+        child: Builder(
+          builder: (context) {
+            return Container(
+              alignment: Alignment.center,
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppColorScheme.of(context).brightness == .light
+                    ? lightBackgroundColor.resolve(BaseControl.statesOf(context))
+                    : darkBackgroundColor.resolve(BaseControl.statesOf(context)),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isOpen ? Symbols.menu_open_rounded : Symbols.menu_rounded,
+                size: 24,
+                color: AppColorScheme.of(context).onSurfaceVariant,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -610,7 +605,6 @@ class AppDestination extends StatelessWidget {
     final _DestinationData info = _DestinationData.of(context);
     return _DestinationSemantics(
       child: BaseControl(
-        autofocus: info.isSelected,
         onPressed: enabled ? info.onSelect : null,
         mouseCursor: WidgetStateMouseCursor.adaptiveClickable,
         child: child,
@@ -631,8 +625,7 @@ class _DestinationSemantics extends StatelessWidget {
   Widget build(BuildContext context) {
     final MaterialLocalizations localizations = MaterialLocalizations.of(context);
     final _DestinationData destinationInfo = _DestinationData.of(context);
-    // The AnimationStatusBuilder will make sure that the semantics update to
-    // "selected" when the animation status changes.
+
     return MergeSemantics(
       child: Semantics(
         selected: destinationInfo.isSelected,

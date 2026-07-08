@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
-import 'package:base_menu/base_menu.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../app/app.dart';
+import '../floogle_docs/src/widgets/editable.dart';
+import 'package.dart';
+import 'theme.dart';
 
 const transparent = Color(0x00000000);
 const white = Color(0xFFFFFFFF);
@@ -34,6 +36,7 @@ class GridSlider extends StatefulWidget {
     this.x = 0,
     this.y = 0,
     this.size = const Size(150, 150),
+    this.formatter = const GridSliderFormatter.alignment(),
   });
 
   final double x;
@@ -41,65 +44,38 @@ class GridSlider extends StatefulWidget {
   final void Function(double x, double y)? onChange;
   final Size size;
   final InlineSpan title;
+  final GridSliderFormatter formatter;
 
   @override
   State<GridSlider> createState() => _GridSliderState();
 }
 
 class _GridSliderState extends State<GridSlider> {
-  Alignment _position = Alignment.center;
   final FocusNode _focusNode = FocusNode();
   Timer? _debounce;
-  bool _showTextInputRow = false;
-  final TextEditingController _xController = TextEditingController();
-  final TextEditingController _yController = TextEditingController();
+  late final TextEditingController _xController;
+  late final TextEditingController _yController;
+  final xFocusNode = FocusNode();
+  final yFocusNode = FocusNode();
   static const Color dotColor = Color(0xFF1C64FF);
-
-  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    Alignment? amount = switch (event.logicalKey) {
-      LogicalKeyboardKey.arrowUp => const Alignment(0.00, -0.05),
-      LogicalKeyboardKey.arrowDown => const Alignment(0.00, 0.05),
-      LogicalKeyboardKey.arrowLeft => const Alignment(-0.05, 0.00),
-      LogicalKeyboardKey.arrowRight => const Alignment(0.05, 0.00),
-      _ => null,
-    };
-
-    if (amount == null) {
-      return KeyEventResult.ignored;
-    }
-
-    if (_debounce != null) {
-      return KeyEventResult.handled;
-    }
-
-    _debounce = Timer(const Duration(milliseconds: 80), () {
-      _debounce = null;
-    });
-
-    if (HardwareKeyboard.instance.isShiftPressed) {
-      amount *= 4;
-    } else if (HardwareKeyboard.instance.isMetaPressed) {
-      amount *= 0.25;
-    }
-
-    setState(() {
-      _position = (_position + amount!).clamp(-1, 1);
-      widget.onChange?.call(_position.x, _position.y);
-    });
-    return KeyEventResult.handled;
-  }
+  late double x = widget.x;
+  late double y = widget.y;
 
   @override
   void initState() {
     super.initState();
-    _position = Alignment(widget.x, widget.y);
+    _xController = TextEditingController(text: widget.formatter.format(widget.x));
+    _yController = TextEditingController(text: widget.formatter.format(widget.y));
   }
 
   @override
   void didUpdateWidget(covariant GridSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.x != oldWidget.x || widget.y != oldWidget.y) {
-      _position = Alignment(widget.x, widget.y);
+      x = widget.x;
+      y = widget.y;
+      _xController.value = TextEditingValue(text: widget.formatter.format(x));
+      _yController.value = TextEditingValue(text: widget.formatter.format(y));
     }
   }
 
@@ -108,178 +84,216 @@ class _GridSliderState extends State<GridSlider> {
     _focusNode.dispose();
     _xController.dispose();
     _yController.dispose();
+    _debounce?.cancel();
+    xFocusNode.dispose();
+    yFocusNode.dispose();
     super.dispose();
   }
 
-  void _moveTo(Alignment position) {
-    if (_position != position) {
-      setState(() {
-        _position = position;
-        widget.onChange?.call(position.x, position.y);
-      });
-    }
-
-    if (!_focusNode.hasFocus) {
-      _focusNode.requestFocus();
+  void _moveTo(double xCoord, double yCoord) {
+    if (x != xCoord || y != yCoord) {
+      x = ui.clampDouble(xCoord, -1, 1);
+      y = ui.clampDouble(yCoord, -1, 1);
+      widget.onChange?.call(x, y);
     }
   }
 
-  void _moveBy(double dx, double dy) {
-    _moveTo(Alignment(_position.x + dx, _position.y + dy).clamp(-1, 1));
+  void _moveToOffset(Offset offset) {
+    _moveTo((offset.dx / widget.size.width) * 2 - 1, (offset.dy / widget.size.height) * 2 - 1);
+  }
+
+  bool _moveBy(_GridSliderIntent intent) {
+    _moveTo((x + intent.dx), (y + intent.dy));
+    return true;
   }
 
   void _handleManualInput() {
     final double? xPercent = double.tryParse(_xController.text);
     final double? yPercent = double.tryParse(_yController.text);
-
     if (xPercent != null && yPercent != null) {
       final double xCoord = ((xPercent.clamp(0, 100) / 100) * 2) - 1;
       final double yCoord = ((yPercent.clamp(0, 100) / 100) * 2) - 1;
-
-      setState(() {
-        _position = Alignment(xCoord, yCoord);
-        widget.onChange?.call(xCoord, yCoord);
-      });
+      _moveTo(xCoord, yCoord);
     }
   }
+
+  static const step = 0.05;
+  static const stepLarge = 0.2;
+  static const stepSmall = 0.01;
 
   @override
   Widget build(BuildContext context) {
     final Brightness brightness = AppColorScheme.of(context).brightness;
-    return Material(
-      type: .transparency,
+    final alignment = Alignment(x, y);
+    return Actions(
+      actions: {
+        _IncrementIntent: CallbackAction<_IncrementIntent>(onInvoke: _moveBy),
+        _DecrementIntent: CallbackAction<_DecrementIntent>(onInvoke: _moveBy),
+      },
       child: Column(
+        mainAxisSize: .min,
         children: [
-          Row(
-            mainAxisSize: .min,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ExcludeSemantics(
-                child: DefaultTextStyle(
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black,
-                  ),
-                  child: Text.rich(widget.title, textAlign: TextAlign.start),
-                ),
+          ExcludeSemantics(
+            child: DefaultTextStyle(
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
               ),
-              Tooltip(
-                message: _showTextInputRow ? 'Show grid visualizer' : 'Type position manually',
-                child: BaseControl(
-                  onPressed: () {
-                    setState(() {
-                      _showTextInputRow = !_showTextInputRow;
-                    });
-                  },
-                  child: Icon(_showTextInputRow ? Icons.grid_on : Icons.keyboard),
-                ),
-              ),
-            ],
+              child: Text.rich(widget.title, textAlign: TextAlign.start),
+            ),
           ),
-          Focus(
-            focusNode: _focusNode,
-            onKeyEvent: _handleKeyEvent,
-            child: Semantics.fromProperties(
-              container: true,
-              properties: SemanticsProperties(
-                label: '2D Grid Position Picker for ${widget.title.toPlainText()}',
-                value:
-                    'Horizontal: ${(_position.x * 100).round()}%, Vertical: ${(_position.y * 100).round()}%',
-                slider: true,
-                onIncrease: () => _moveBy(0.1, 0.0),
-                onDecrease: () => _moveBy(-0.1, 0.0),
-                hint:
-                    'Double tap to activate. Enter numbers separated by a space to type explicit horizontal and vertical values.',
 
-                customSemanticsActions: {
-                  const CustomSemanticsAction(label: 'Move Up'): () => _moveBy(0.0, -0.1),
-                  const CustomSemanticsAction(label: 'Move Down'): () => _moveBy(0.0, 0.1),
-                },
-              ),
-              child: SizedBox.fromSize(
-                size: widget.size,
-                child: Stack(
-                  alignment: .center,
-                  children: <Widget>[
-                    CustomPaint(
-                      painter: GridPainter(_position, brightness),
-                      size: Size(widget.size.width - 16, widget.size.height - 16),
-                    ),
-                    Align(
-                      alignment: _position,
-                      child: ListenableBuilder(
-                        listenable: _focusNode,
-                        builder: _buildFocusOutline,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(color: dotColor, shape: BoxShape.circle),
+          Shortcuts(
+            shortcuts: const {
+              SingleActivator(.arrowUp): _DecrementIntent(0, step),
+              SingleActivator(.arrowUp, shift: true): _DecrementIntent(0, stepLarge),
+              SingleActivator(.arrowUp, meta: true): _DecrementIntent(0, stepSmall),
+              SingleActivator(.arrowDown): _IncrementIntent(0, step),
+              SingleActivator(.arrowDown, shift: true): _IncrementIntent(0, stepLarge),
+              SingleActivator(.arrowDown, meta: true): _IncrementIntent(0, stepSmall),
+              SingleActivator(.arrowLeft): _DecrementIntent(step, 0),
+              SingleActivator(.arrowLeft, shift: true): _DecrementIntent(stepLarge, 0),
+              SingleActivator(.arrowLeft, meta: true): _DecrementIntent(stepSmall, 0),
+              SingleActivator(.arrowRight): _IncrementIntent(step, 0),
+              SingleActivator(.arrowRight, meta: true): _IncrementIntent(stepSmall, 0),
+              SingleActivator(.arrowRight, shift: true): _IncrementIntent(stepLarge, 0),
+            },
+            child: Focus(
+              focusNode: _focusNode,
+              includeSemantics: false,
+              child: ExcludeSemantics(
+                excluding: true,
+                child: SizedBox.fromSize(
+                  size: widget.size,
+                  child: Stack(
+                    alignment: .center,
+                    children: <Widget>[
+                      CustomPaint(
+                        painter: GridPainter(alignment, brightness),
+                        size: Size(widget.size.width - 16, widget.size.height - 16),
+                      ),
+                      Align(
+                        alignment: alignment,
+                        child: ListenableBuilder(
+                          listenable: _focusNode,
+                          builder: _buildFocusOutline,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: dotColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    Positioned.fill(
-                      child: GestureDetector(
-                        excludeFromSemantics: true,
-                        onPanUpdate: _handlePanUpdate,
-                        onTapDown: _handleTapDown,
-                        behavior: .opaque,
-                        dragStartBehavior: .down,
-                        child: const ColoredBox(color: transparent, child: SizedBox.expand()),
+                      Positioned.fill(
+                        child: GestureDetector(
+                          excludeFromSemantics: true,
+                          onPanUpdate: _handlePanUpdate,
+                          onTapDown: _handleTapDown,
+                          behavior: .opaque,
+                          dragStartBehavior: .down,
+                          child: const ColoredBox(color: transparent, child: SizedBox.expand()),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _xController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Horizontal Position (0-100%)',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          SizedBox(
+            width: widget.size.width,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                mainAxisSize: .min,
+                spacing: 4,
+                children: [
+                  Expanded(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        border: Border.all(color: const Color(0xFFCCCCCC), width: 1.0),
+                      ),
+                      child: Shortcuts(
+                        shortcuts: const {
+                          SingleActivator(.arrowUp): _IncrementIntent(step, 0),
+                          SingleActivator(.arrowUp, shift: true): _IncrementIntent(stepLarge, 0),
+                          SingleActivator(.arrowUp, meta: true): _IncrementIntent(stepSmall, 0),
+                          SingleActivator(.arrowDown): _DecrementIntent(step, 0),
+                          SingleActivator(.arrowDown, shift: true): _DecrementIntent(stepLarge, 0),
+                          SingleActivator(.arrowDown, meta: true): _DecrementIntent(stepSmall, 0),
+                        },
+                        child: NumberField(
+                          focusNode: xFocusNode,
+                          textEditingController: _xController,
+                          semanticsLabel: widget.formatter.semanticsLabel(.horizontal),
+                          semanticsHint: widget.formatter.semanticsHint(.horizontal),
+                          formatters: widget.formatter.inputFormatters,
+                          onChanged: _handleManualInput,
+                        ),
+                      ),
+                    ),
                   ),
-                  onChanged: (_) => _handleManualInput(),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: TextFormField(
-                  controller: _yController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Vertical Position (0-100%)',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  Text(
+                    'x',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColorScheme.of(context).onSurface.withValues(alpha: 0.8),
+                    ),
                   ),
-                  onChanged: (_) => _handleManualInput(),
-                ),
+                  Expanded(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5F5F5),
+                        border: Border.all(color: const Color(0xFFCCCCCC), width: 1.0),
+                      ),
+                      child: Shortcuts(
+                        shortcuts: const {
+                          SingleActivator(.arrowUp): _IncrementIntent(0, step),
+                          SingleActivator(.arrowUp, shift: true): _IncrementIntent(0, stepLarge),
+                          SingleActivator(.arrowUp, meta: true): _IncrementIntent(0, stepSmall),
+                          SingleActivator(.arrowDown): _DecrementIntent(0, step),
+                          SingleActivator(.arrowDown, shift: true): _DecrementIntent(0, stepLarge),
+                          SingleActivator(.arrowDown, meta: true): _DecrementIntent(0, stepSmall),
+                        },
+                        child: NumberField(
+                          focusNode: yFocusNode,
+                          textEditingController: _yController,
+                          onChanged: _handleManualInput,
+                          semanticsLabel: widget.formatter.semanticsLabel(.vertical),
+                          semanticsHint: widget.formatter.semanticsHint(.vertical),
+                          formatters: widget.formatter.inputFormatters,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  // void _handleTapUp(TapUpDetails details) {
-  //   _moveTo(details.localPosition.relativeTo(widget.size).clamp(-1, 1));
-  // }
-
   void _handleTapDown(TapDownDetails details) {
-    _moveTo(details.localPosition.relativeTo(widget.size).clamp(-1, 1));
+    final localPosition = details.localPosition;
+    _moveToOffset(localPosition);
+    if (!_focusNode.hasFocus) {
+      _focusNode.requestFocus();
+    }
   }
 
   void _handlePanUpdate(DragUpdateDetails details) {
-    _moveTo(details.localPosition.relativeTo(widget.size).clamp(-1, 1));
+    final localPosition = details.localPosition;
+    _moveToOffset(localPosition);
+    if (!_focusNode.hasFocus) {
+      _focusNode.requestFocus();
+    }
   }
 
   Widget _buildFocusOutline(BuildContext context, Widget? child) {
@@ -336,4 +350,237 @@ class GridPainter extends CustomPainter {
   bool shouldRepaint(GridPainter oldDelegate) {
     return oldDelegate.dotAlignment != dotAlignment || oldDelegate.brightness != brightness;
   }
+}
+
+class _GridSliderIntent extends Intent {
+  const _GridSliderIntent(this.dx, this.dy);
+  final double dx;
+  final double dy;
+}
+
+class _IncrementIntent extends _GridSliderIntent {
+  const _IncrementIntent(super.dx, super.dy);
+}
+
+class _DecrementIntent extends _GridSliderIntent {
+  const _DecrementIntent(double dx, double dy) : super(-dx, -dy);
+}
+
+class NumberField extends StatefulWidget {
+  const NumberField({
+    super.key,
+    this.semanticsLabel,
+    this.semanticsHint,
+    required this.textEditingController,
+    required this.onChanged,
+    required this.focusNode,
+    this.keyboardType = TextInputType.number,
+    this.formatters,
+  });
+  final String? semanticsLabel;
+  final String? semanticsHint;
+  final TextEditingController textEditingController;
+  final VoidCallback onChanged;
+  final FocusNode focusNode;
+  final TextInputType keyboardType;
+  final List<TextInputFormatter>? formatters;
+
+  @override
+  State<NumberField> createState() => _NumberFieldState();
+}
+
+class _NumberFieldState extends State<NumberField> {
+  final WidgetStatesController _widgetStatesController = WidgetStatesController();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.addListener(_handleFocusChange);
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.removeListener(_handleFocusChange);
+    _widgetStatesController.dispose();
+    super.dispose();
+  }
+
+  void _handleFocusChange() {
+    _widgetStatesController.update(WidgetState.focused, widget.focusNode.hasFocus);
+  }
+
+  static const _inputDecoration = WidgetStateProperty<BoxDecoration>.fromMap({
+    WidgetState.focused: BoxDecoration(
+      borderRadius: BorderRadius.all(Radius.circular(4.0)),
+      border: Border.fromBorderSide(BorderSide(color: kBlack, width: 2)),
+    ),
+    WidgetState.any: BoxDecoration(),
+  });
+
+  static const _textStyle = kIsWeb
+      ? TextStyle(
+          fontSize: 11,
+          fontFamily: 'GoogleSansCode',
+          package: kPackage,
+          fontFamilyFallback: ['InterVariable'],
+          height: 1.2,
+          letterSpacing: -0.4,
+          overflow: TextOverflow.ellipsis,
+          color: kBlack,
+          fontVariations: [
+            FontVariation.weight(470),
+            FontVariation.opticalSize(17),
+            FontVariation.width(95),
+          ],
+        )
+      : TextStyle(
+          fontSize: 10.5,
+          fontFamily: 'GoogleSansCode',
+          fontFamilyFallback: ['InterVariable'],
+          package: kPackage,
+          height: 1.2,
+          color: kBlack,
+
+          overflow: TextOverflow.ellipsis,
+        );
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: ListenableBuilder(
+        listenable: _widgetStatesController,
+        builder: (context, child) {
+          return DecoratedBox(
+            decoration: _inputDecoration.resolve(_widgetStatesController.value),
+            child: child,
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+          child: ListenableBuilder(
+            listenable: widget.focusNode,
+            builder: (context, child) {
+              return Stack(
+                textDirection: .ltr,
+                children: [
+                  if (!widget.focusNode.hasFocus)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      child: Text(
+                        widget.textEditingController.text,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: .center,
+                        style: _textStyle.copyWith(color: kBlack.withValues(alpha: 0.6)),
+                      ),
+                    ),
+                  Opacity(
+                    opacity: widget.focusNode.hasFocus ? 1.0 : 0.0,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 3),
+                      child: Editable(
+                        onChanged: (_) => widget.onChanged(),
+                        semanticsLabel: widget.semanticsLabel,
+                        semanticsHint: widget.semanticsHint,
+                        inputFormatters: widget.formatters,
+                        textController: widget.textEditingController,
+                        keyboardType: widget.keyboardType,
+                        focusNode: widget.focusNode,
+                        style: _textStyle,
+                        textAlign: .center,
+                        forceLine: true,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+abstract class GridSliderFormatter {
+  const GridSliderFormatter._();
+  const factory GridSliderFormatter.pixel({required double magnitude}) = _PixelGridSliderFormatter;
+  const factory GridSliderFormatter.alignment() = _AlignmentGridSliderFormatter;
+
+  /// Converts internal [-1, 1] value to display string (e.g., "10.0").
+  String format(double value);
+
+  /// Parses display string back to internal [-1, 1] value.
+  double? parse(String text);
+
+  /// Validation: restricts what the user can type (e.g., only numbers).
+  List<TextInputFormatter>? get inputFormatters => null;
+
+  /// Accessibility: screen reader label for the axis.
+  String semanticsLabel(Axis axis);
+
+  /// Accessibility: instructions for the screen reader.
+  String semanticsHint(Axis axis);
+
+  TextInputType get keyboardType => TextInputType.text;
+}
+
+class _PixelGridSliderFormatter extends GridSliderFormatter {
+  const _PixelGridSliderFormatter({required this.magnitude}) : super._();
+  final double magnitude;
+
+  @override
+  String format(double value) => (value * magnitude).toStringAsFixed(0);
+
+  @override
+  double? parse(String text) {
+    final px = double.tryParse(text);
+    if (px == null) {
+      return null;
+    }
+    return ui.clampDouble(px, -magnitude, magnitude) / magnitude;
+  }
+
+  @override
+  List<TextInputFormatter>? get inputFormatters => [
+    FilteringTextInputFormatter.allow(RegExp(r'^-?\d*$')),
+  ];
+
+  @override
+  TextInputType get keyboardType =>
+      const TextInputType.numberWithOptions(decimal: false, signed: true);
+
+  @override
+  String semanticsLabel(Axis axis) =>
+      '${axis == Axis.horizontal ? 'Horizontal' : 'Vertical'} alignment offset in pixels';
+
+  @override
+  String semanticsHint(Axis axis) => 'Enter a value between -${magnitude}px and ${magnitude}px';
+}
+
+class _AlignmentGridSliderFormatter extends GridSliderFormatter {
+  const _AlignmentGridSliderFormatter() : super._();
+
+  @override
+  String format(double value) => value.toStringAsFixed(2);
+
+  @override
+  double? parse(String text) => double.tryParse(text);
+
+  @override
+  List<TextInputFormatter>? get inputFormatters => [
+    FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*$')),
+  ];
+
+  @override
+  TextInputType get keyboardType =>
+      const TextInputType.numberWithOptions(decimal: true, signed: true);
+
+  @override
+  String semanticsLabel(Axis axis) =>
+      '${axis == Axis.horizontal ? 'Horizontal' : 'Vertical'} alignment between -1 and 1';
+
+  @override
+  String semanticsHint(Axis axis) => 'Enter a value between -1 and 1';
 }

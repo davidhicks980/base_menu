@@ -24,6 +24,14 @@ class _SubmenuState extends State<Submenu> {
   final focusNode = FocusNode();
 
   @override
+  void initState() {
+    super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      widget.controller.open();
+    });
+  }
+
+  @override
   void dispose() {
     focusNode.dispose();
     super.dispose();
@@ -92,7 +100,7 @@ class _SubmenuState extends State<Submenu> {
             constraints: const BoxConstraints(minWidth: 150),
             orientation: widget.orientation,
             clipBehavior: .hardEdge,
-            children: _buildRecursiveMenuItems([], 3, 5),
+            children: _buildRecursiveMenuItems([], 2, 5),
           ),
         ),
       ),

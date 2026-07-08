@@ -68,6 +68,10 @@ class WebCheckboxMenuItem extends StatelessWidget {
     return BaseMenuItem.isFocusedOf<WebCheckboxMenuItem>(context);
   }
 
+  static bool isHoveredOf(BuildContext context) {
+    return BaseMenuItem.isHoveredOf<WebCheckboxMenuItem>(context);
+  }
+
   // ... Other state getters ...
 
   @override
@@ -120,7 +124,7 @@ class WebCheckboxMenuItem extends StatelessWidget {
         child: Builder(
           builder: (context) {
             return DecoratedBox(
-              decoration: isFocusedOf(context)
+              decoration: isFocusedOf(context) || isHoveredOf(context)
                   ? const BoxDecoration(color: Color(0xFFEDEDED))
                   : const BoxDecoration(color: Color(0x00000000)),
               child: body,

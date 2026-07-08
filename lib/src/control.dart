@@ -388,22 +388,21 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
       behavior: widget.behavior,
       opaque: widget.opaque,
       onPointerEnter: (PointerEnterEvent event) {
+        widget.onPointerEnter?.call(event);
         if (!isHovered) {
           setState(() {
             isHovered = true;
           });
         }
-
-        widget.onPointerEnter?.call(event);
       },
       onPointerHover: widget.onPointerHover,
       onPointerExit: (PointerExitEvent event) {
-        widget.onPointerExit?.call(event);
         if (isHovered) {
           setState(() {
             isHovered = false;
           });
         }
+        widget.onPointerExit?.call(event);
       },
       mouseCursor: hasMouseCursor
           ? widget.mouseCursor!.resolve({

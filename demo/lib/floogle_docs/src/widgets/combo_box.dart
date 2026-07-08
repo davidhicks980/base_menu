@@ -300,7 +300,7 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
   void didUpdateWidget(ComboBox oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
-      _textController.text = widget.value;
+      _textController.value = TextEditingValue(text: widget.value);
       _textController.selection = TextSelection(baseOffset: 0, extentOffset: widget.value.length);
       _highlightValue = widget.value;
     }
@@ -478,8 +478,8 @@ class _Anchor extends StatelessWidget {
   final TextStyle textStyle;
 
   static const _shortcuts = {
-    SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(), // Add this
-    SingleActivator(LogicalKeyboardKey.numpadEnter): ActivateIntent(), // Add this
+    SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+    SingleActivator(LogicalKeyboardKey.numpadEnter): ActivateIntent(),
     SingleActivator(LogicalKeyboardKey.arrowDown, alt: true): ActivateIntent(),
     SingleActivator(LogicalKeyboardKey.arrowUp): _MovePreviousIntent(),
     SingleActivator(LogicalKeyboardKey.arrowDown): _MoveNextIntent(),

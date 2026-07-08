@@ -48,28 +48,33 @@ class _PopupState extends State<Popup> {
         );
       },
       menu: StyledMenuPanel(
-        child: BaseMenuPanel(
-          onPointerExit: (_) {
-            if (!focusNode.hasFocus) {
-              focusNode.requestFocus();
-            }
-          },
-          constraints: const BoxConstraints(minWidth: 150),
-          orientation: widget.orientation,
-          padding: const EdgeInsets.all(4.0),
-          children: [
-            const MenuItem(label: 'Undo'),
-            const MenuItem(label: 'Redo'),
-            switch (widget.orientation) {
-              Axis.vertical => const MenuDivider.horizontal(),
-              Axis.horizontal => const MenuDivider.vertical(),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: BaseMenuPanel(
+            onPointerExit: (_) {
+              if (!focusNode.hasFocus) {
+                focusNode.requestFocus();
+              }
             },
-            const MenuItem(label: 'Cut'),
-            const MenuItem(label: 'Copy'),
-            const MenuItem(label: 'Paste'),
-            const MenuItem(label: 'Select All'),
-            const MenuItem(label: 'Delete'),
-          ],
+            padding: widget.orientation == .horizontal
+                ? EdgeInsets.zero
+                : const EdgeInsets.symmetric(vertical: 6.0),
+            constraints: const BoxConstraints(minWidth: 172),
+            orientation: widget.orientation,
+            children: [
+              const MenuItem(label: 'Undo'),
+              const MenuItem(label: 'Redo'),
+              switch (widget.orientation) {
+                Axis.vertical => const MenuDivider.horizontal(),
+                Axis.horizontal => const MenuDivider.vertical(),
+              },
+              const MenuItem(label: 'Cut'),
+              const MenuItem(label: 'Copy'),
+              const MenuItem(label: 'Paste'),
+              const MenuItem(label: 'Select All'),
+              const MenuItem(label: 'Delete'),
+            ],
+          ),
         ),
       ),
       child: StyledMenuButtonChild(

@@ -1,5 +1,6 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../shared/theme.dart';
 
@@ -23,11 +24,11 @@ class _SubmenuState extends State<Submenu> {
   @override
   Widget build(BuildContext context) {
     final submenuIcon = widget.orientation == Axis.vertical
-        ? const Icon(Icons.arrow_right, size: 16)
-        : const Icon(Icons.arrow_drop_down, size: 16);
+        ? const Icon(Symbols.arrow_right, size: 16)
+        : const Icon(Symbols.arrow_drop_down, size: 16);
     return BaseMenu(
       orientation: widget.orientation,
-      positionDelegate: const DefaultMenuPositioningDelegate(offset: Offset(0, 4)),
+      positionDelegate: const DefaultMenuPositioningDelegate(offset: Offset(0, 2)),
       builder: (context, controller, child) {
         return MergeSemantics(
           child: Semantics(
@@ -48,9 +49,9 @@ class _SubmenuState extends State<Submenu> {
           ),
         );
       },
-      menu: ClipRRect(
-        borderRadius: BorderRadius.circular(4.0),
-        child: StyledMenuPanel(
+      menu: StyledMenuPanel(
+        child: ClipRRect(
+          borderRadius: const BorderRadius.all(Radius.circular(4)),
           child: BaseMenuPanel(
             onPointerExit: (_) {
               if (!focusNode.hasFocus) {
@@ -155,12 +156,14 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
         focusNode: focusNode,
         hoverOpenDelay: const Duration(milliseconds: 250),
         hoverCloseDelay: const Duration(milliseconds: 250),
-        positionDelegate: const DefaultMenuPositioningDelegate(
-          edgeBehavior: EdgeBehavior(
+        positionDelegate: DefaultMenuPositioningDelegate(
+          edgeBehavior: const EdgeBehavior(
             horizontal: EdgeBehaviorStrategy(flip: true),
             vertical: EdgeBehaviorStrategy(constrain: true),
           ),
-          padding: EdgeInsets.all(2.0),
+          offset: BaseMenuScope.maybeOf(context)?.orientation == Axis.vertical
+              ? const Offset(-4, 0)
+              : Offset.zero,
         ),
         onPressed: () {
           if (!controller.isOpen) {
@@ -168,11 +171,10 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
             focusNode.requestFocus();
           }
         },
-        menu: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(4)),
-          child: StyledMenuPanel(
+        menu: StyledMenuPanel(
+          child: ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(4)),
             child: BaseMenuPanel(
-              padding: const EdgeInsets.all(2.0),
               onPointerExit: (event) {
                 if (!focusNode.hasFocus) {
                   focusNode.requestFocus();

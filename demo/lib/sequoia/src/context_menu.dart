@@ -7,106 +7,54 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../shared/browser_context_menu_blocker.dart';
 import 'dismiss.dart';
 import 'menu.dart';
 import 'model.dart';
 import 'surface.dart';
 
-class SequoiaContextMenuRegion extends StatefulWidget {
-  const SequoiaContextMenuRegion({super.key, required this.child, required this.item});
+class SequoiaContextMenu extends StatefulWidget {
+  const SequoiaContextMenu({
+    super.key,
+    required this.child,
+    required this.item,
+    required this.controller,
+  });
 
   final Widget child;
   final List<MenuItem> item;
+  final MenuController controller;
 
   @override
-  State<SequoiaContextMenuRegion> createState() => _SequoiaContextMenuRegionState();
+  State<SequoiaContextMenu> createState() => _SequoiaContextMenuState();
 }
 
-class _SequoiaContextMenuRegionState extends State<SequoiaContextMenuRegion> {
+class _SequoiaContextMenuState extends State<SequoiaContextMenu> {
   final _focusNode = FocusNode();
-  bool _wasBrowserContextMenuEnabled = false;
-  final MenuController _menuController = MenuController();
-
-  @override
-  void initState() {
-    super.initState();
-    _wasBrowserContextMenuEnabled = kIsWeb && BrowserContextMenu.enabled;
-  }
+  bool _deferClose = false;
 
   @override
   void dispose() {
-    if (_wasBrowserContextMenuEnabled) {
-      _enableContextMenu();
-    }
     _focusNode.dispose();
     super.dispose();
   }
 
-  Future<void>? _contextMenuStatus;
-  Future<void> _disableContextMenu() async {
-    assert(_wasBrowserContextMenuEnabled);
-
-    if (_contextMenuStatus != null) {
-      // If a context menu status change is already in progress, wait for it to complete before starting a new one.
-      await _contextMenuStatus;
-    }
-
-    if (!BrowserContextMenu.enabled) {
-      return;
-    }
-
-    _contextMenuStatus = BrowserContextMenu.disableContextMenu();
-  }
-
-  Future<void> _enableContextMenu() async {
-    assert(_wasBrowserContextMenuEnabled);
-
-    if (_contextMenuStatus != null) {
-      // If a context menu status change is already in progress, wait for it to complete before starting a new one.
-      await _contextMenuStatus;
-    }
-
-    if (BrowserContextMenu.enabled) {
-      return;
-    }
-
-    _contextMenuStatus = BrowserContextMenu.enableContextMenu();
-  }
-
-  bool _handleKeyEvent(KeyEvent event) {
-    assert(kIsWeb);
-    switch (event) {
-      case KeyDownEvent(logicalKey: LogicalKeyboardKey.shiftLeft || LogicalKeyboardKey.shiftRight):
-        _enableContextMenu();
-      case KeyUpEvent(logicalKey: LogicalKeyboardKey.shiftLeft || LogicalKeyboardKey.shiftRight):
-        _disableContextMenu();
-    }
-
-    return false;
-  }
-
-  void _onHoverEnter(PointerEnterEvent event) {
-    WidgetsBinding.instance.keyboard.addHandler(_handleKeyEvent);
-    _disableContextMenu();
-  }
-
-  void _onHoverExit(PointerExitEvent event) {
-    _enableContextMenu();
-    WidgetsBinding.instance.keyboard.removeHandler(_handleKeyEvent);
-  }
-
   void _handlePointerDown(PointerDownEvent event) {
-    if (event.buttons == kSecondaryMouseButton) {
-      if (kIsWeb && BrowserContextMenu.enabled) {
-        return;
-      }
-
-      _menuController.open(position: event.localPosition);
+    if (widget.controller.isOpen && event.buttons == kPrimaryMouseButton) {
+      widget.controller.close();
       return;
     }
 
-    if (_menuController.isOpen) {
-      _menuController.close();
+    if (kIsWeb && ContextMenuBlocker.isEnabledOf(context)) {
+      return;
+    }
+
+    if (event.buttons == kSecondaryMouseButton) {
+      _deferClose = true;
+      widget.controller.open(position: event.localPosition);
+      scheduleMicrotask(() {
+        _deferClose = false;
+      });
       return;
     }
 
@@ -119,13 +67,8 @@ class _SequoiaContextMenuRegionState extends State<SequoiaContextMenuRegion> {
           break;
         case TargetPlatform.iOS:
         case TargetPlatform.macOS:
-          if (HardwareKeyboard.instance.logicalKeysPressed.contains(
-                LogicalKeyboardKey.controlLeft,
-              ) ||
-              HardwareKeyboard.instance.logicalKeysPressed.contains(
-                LogicalKeyboardKey.controlRight,
-              )) {
-            _menuController.open(position: event.localPosition);
+          if (HardwareKeyboard.instance.isControlPressed) {
+            widget.controller.open(position: event.localPosition);
           }
       }
     }
@@ -133,11 +76,14 @@ class _SequoiaContextMenuRegionState extends State<SequoiaContextMenuRegion> {
 
   @override
   Widget build(BuildContext context) {
-    final child = SequoiaMenuDismissCoordinator(
-      controller: _menuController,
+    return SequoiaMenuDismissCoordinator(
+      controller: widget.controller,
       isInteractive: true,
       child: SequoiaContextSubmenu(
         item: widget.item,
+        allowCloseRequest: () {
+          return !_deferClose;
+        },
         focusNode: _focusNode,
         onOpen: () {
           SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -146,13 +92,13 @@ class _SequoiaContextMenuRegionState extends State<SequoiaContextMenuRegion> {
             }
           });
         },
-        controller: _menuController,
+        controller: widget.controller,
         child: Focus(
           focusNode: _focusNode,
           child: Semantics(
             onLongPress: () {
               // Semantic equivalent for right-click / context menu
-              _menuController.open();
+              widget.controller.open();
             },
             child: Listener(
               onPointerDown: _handlePointerDown,
@@ -162,17 +108,6 @@ class _SequoiaContextMenuRegionState extends State<SequoiaContextMenuRegion> {
           ),
         ),
       ),
-    );
-
-    if (!_wasBrowserContextMenuEnabled) {
-      return child;
-    }
-
-    return MouseRegion(
-      onEnter: _onHoverEnter,
-      onExit: _onHoverExit,
-      hitTestBehavior: .translucent,
-      child: child,
     );
   }
 }
@@ -185,12 +120,14 @@ class SequoiaContextSubmenu extends StatefulWidget {
     required this.controller,
     required this.onOpen,
     required this.focusNode,
+    required this.allowCloseRequest,
   });
 
   final List<MenuItem> item;
   final MenuController controller;
   final VoidCallback onOpen;
   final FocusNode focusNode;
+  final bool Function() allowCloseRequest;
   final Widget child;
 
   @override
@@ -216,8 +153,11 @@ class _SequoiaContextSubmenuState extends State<SequoiaContextSubmenu> {
   }
 
   void _handleCloseRequest(VoidCallback hideOverlay) {
+    if (!widget.allowCloseRequest()) {
+      return;
+    }
     scheduleMicrotask(() {
-      if (!_dismissHandler.isAnimating) {
+      if (!_dismissHandler.isAnimatingOut) {
         hideOverlay();
       } else {
         setState(() {
@@ -261,7 +201,7 @@ class _SequoiaContextSubmenuState extends State<SequoiaContextSubmenu> {
               child: IgnorePointer(
                 ignoring: _isClosing,
                 child: TapRegion(
-                  groupId: 'menu_system',
+                  groupId: 'context',
                   onTapOutside: (event) {
                     if (event.buttons == kSecondaryMouseButton) {
                       return;
@@ -282,7 +222,8 @@ class _SequoiaContextSubmenuState extends State<SequoiaContextSubmenu> {
                           orientation: Axis.vertical,
                           padding: const EdgeInsets.all(4),
                           children: [
-                            for (final child in widget.item) SequoiaMenuBar.buildItem(child, false),
+                            for (final child in widget.item)
+                              SequoiaSubmenu.buildItem(child, false, 'context'),
                           ],
                         ),
                       ),

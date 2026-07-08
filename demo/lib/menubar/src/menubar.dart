@@ -1,7 +1,7 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../shared/package.dart';
 import '../../shared/theme.dart';
@@ -25,8 +25,8 @@ class _MenuBarState extends State<MenuBar> {
   @override
   Widget build(BuildContext context) {
     final submenuIcon = widget.orientation == Axis.vertical
-        ? const Icon(Icons.arrow_right, size: 16)
-        : const Icon(Icons.arrow_drop_down, size: 16);
+        ? const Icon(Symbols.arrow_right, size: 16)
+        : const Icon(Symbols.arrow_drop_down, size: 16);
     return Center(
       child: DefaultTextStyle(
         style: const TextStyle(
@@ -44,11 +44,9 @@ class _MenuBarState extends State<MenuBar> {
               child: BaseMenuPanel(
                 onPointerExit: (event) {
                   if (kIsWeb) {
-                    SchedulerBinding.instance.addPostFrameCallback((_) {
-                      if (!focusScopeNode.hasPrimaryFocus) {
-                        focusScopeNode.requestScopeFocus();
-                      }
-                    });
+                    if (!focusScopeNode.hasPrimaryFocus) {
+                      focusScopeNode.requestScopeFocus();
+                    }
                   }
                 },
                 constraints: const BoxConstraints(minWidth: 150),
@@ -145,12 +143,14 @@ class _SubmenuState extends State<_Submenu> with SingleTickerProviderStateMixin 
       child: BaseSubmenu(
         controller: controller,
         focusNode: focusNode,
-        positionDelegate: const DefaultMenuPositioningDelegate(
-          edgeBehavior: EdgeBehavior(
+        positionDelegate: DefaultMenuPositioningDelegate(
+          edgeBehavior: const EdgeBehavior(
             horizontal: EdgeBehaviorStrategy(flip: true),
             vertical: EdgeBehaviorStrategy(constrain: true),
           ),
-          padding: EdgeInsets.all(4.0),
+          offset: BaseMenuScope.maybeOf(context)?.orientation == Axis.horizontal
+              ? const Offset(0, 4)
+              : Offset.zero,
         ),
         onPressed: () {
           if (!controller.isOpen) {
@@ -161,7 +161,6 @@ class _SubmenuState extends State<_Submenu> with SingleTickerProviderStateMixin 
         menu: StyledMenuPanel(
           child: BaseMenuPanel(
             clipBehavior: .hardEdge,
-            padding: const EdgeInsets.all(4.0),
             onPointerExit: (event) {
               if (!focusNode.hasFocus) {
                 focusNode.requestFocus();

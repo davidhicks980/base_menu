@@ -86,7 +86,7 @@ void main() {
     await tester.pumpWidget(
       const App(
         BaseMenuScope(
-          axis: Axis.vertical,
+          orientation: Axis.vertical,
           isSubmenu: false,
           child: BaseMenuPanel(orientation: Axis.horizontal, children: <Widget>[Text('Item 1')]),
         ),
@@ -99,7 +99,7 @@ void main() {
       const App(
         BaseMenuScope(
           isSubmenu: false,
-          axis: Axis.horizontal,
+          orientation: Axis.horizontal,
           child: BaseMenuPanel(children: <Widget>[Text('Item 1')]),
         ),
       ),

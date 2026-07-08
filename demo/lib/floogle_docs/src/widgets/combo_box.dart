@@ -523,7 +523,7 @@ class _Anchor extends StatelessWidget {
             style: defaultTextStyle.copyWith(
               color: FloogleColors.darkGray,
               package: kPackage,
-
+              fontFamily: 'GoogleSans',
               decoration: TextDecoration.none,
               fontWeight: const FontWeight(450),
             ),
@@ -532,7 +532,10 @@ class _Anchor extends StatelessWidget {
         : Padding(
             padding: const EdgeInsets.only(right: 3),
             child: ExcludeSemantics(
-              child: Text(selected, style: defaultTextStyle.copyWith(package: kPackage)),
+              child: Text(
+                selected,
+                style: defaultTextStyle.copyWith(package: kPackage, fontFamily: 'GoogleSans'),
+              ),
             ),
           );
 
@@ -608,6 +611,7 @@ class _Anchor extends StatelessWidget {
             explicitChildNodes: true,
             properties: SemanticsProperties(
               role: .none,
+              // ignore: deprecated_member_use
               focusable: true,
               focused: focusNode.hasFocus,
               expanded: isOpen,

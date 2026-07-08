@@ -27,6 +27,7 @@ class SequoiaMenuItem extends StatelessWidget {
     final hasSubmenu = isExpanded != null;
     final item = BaseMenuItem(
       onPressed: onTap,
+      opaque: false,
       child: hasSubmenu
           ? SequoiaSubmenuActionLabel(leading: leading, shortcut: shortcut, child: child)
           : SequoiaMenuActionLabel(leading: leading, shortcut: shortcut, child: child),

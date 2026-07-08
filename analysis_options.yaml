@@ -18,6 +18,7 @@ analyzer:
     strict-casts: true
     strict-inference: true
     strict-raw-types: true
+  
   exclude:
     - "bin/cache/**"
     - "dev/conductor/lib/proto/*"
@@ -33,6 +34,7 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    - doc/**
 formatter:
   page_width: 100
 

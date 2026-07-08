@@ -1,7 +1,7 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/widgets.dart';
 
-final checkboxDecoration = {
+final _checkboxDecoration = {
   WidgetState.selected & WidgetState.pressed: const BoxDecoration(
     color: Color(0xFF003EAA),
     border: Border.fromBorderSide(BorderSide(color: Color(0xFF003EAA))),
@@ -18,7 +18,7 @@ final checkboxDecoration = {
     borderRadius: BorderRadius.all(Radius.circular(2)),
   ),
   WidgetState.selected: const BoxDecoration(
-    color: Color(0xFF0075FF), // Standard Chromium blue
+    color: Color(0xFF0075FF),
     border: Border.fromBorderSide(BorderSide(color: Color(0xFF0075FF))),
     borderRadius: BorderRadius.all(Radius.circular(2)),
   ),
@@ -95,7 +95,7 @@ class WebCheckboxMenuItem extends StatelessWidget {
                           width: 13,
                           height: 13,
                           decoration: WidgetStateProperty.fromMap(
-                            checkboxDecoration,
+                            _checkboxDecoration,
                           ).resolve(states),
                           child: checkbox,
                         );
@@ -114,6 +114,7 @@ class WebCheckboxMenuItem extends StatelessWidget {
     return BaseMenuItem<WebCheckboxMenuItem>(
       role: .menuItemCheckbox,
       requestCloseOnActivate: false,
+      requestFocusOnHover: false,
       onPressed: onChange != null
           ? () {
               onChange!(!isChecked);
@@ -124,9 +125,19 @@ class WebCheckboxMenuItem extends StatelessWidget {
         child: Builder(
           builder: (context) {
             return DecoratedBox(
-              decoration: isFocusedOf(context) || isHoveredOf(context)
-                  ? const BoxDecoration(color: Color(0xFFEDEDED))
-                  : const BoxDecoration(color: Color(0x00000000)),
+              decoration: isHoveredOf(context)
+                  ? BoxDecoration(
+                      color: const Color(0xFFEDEDED),
+                      border: isFocusedOf(context)
+                          ? Border.all(color: const Color(0xFF0075FF), width: 2.0)
+                          : null,
+                    )
+                  : BoxDecoration(
+                      color: const Color(0x00000000),
+                      border: isFocusedOf(context)
+                          ? Border.all(color: const Color(0xFF0075FF), width: 2.0)
+                          : null,
+                    ),
               child: body,
             );
           },

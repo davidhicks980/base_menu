@@ -1,8 +1,8 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
-import '../../app/app.dart';
 import '../../shared/theme.dart';
 
 class Submenu extends StatefulWidget {
@@ -44,8 +44,8 @@ class _SubmenuState extends State<Submenu> {
       ];
     }
     final submenuIcon = widget.orientation == Axis.vertical
-        ? const Icon(Icons.arrow_right, size: 16)
-        : const Icon(Icons.arrow_drop_down, size: 16);
+        ? const Icon(Symbols.arrow_right, size: 16)
+        : const Icon(Symbols.arrow_drop_down, size: 16);
     return [
       for (var i = 0; i < childCount; i++)
         if (i == childCount - 1)
@@ -88,20 +88,17 @@ class _SubmenuState extends State<Submenu> {
           ),
         );
       },
-      menu: ClipRRect(
-        borderRadius: BorderRadius.circular(4.0),
-        child: StyledMenuPanel(
-          child: BaseMenuPanel(
-            onPointerExit: (_) {
-              if (!focusNode.hasFocus) {
-                focusNode.requestFocus();
-              }
-            },
-            constraints: const BoxConstraints(minWidth: 150),
-            orientation: widget.orientation,
-            clipBehavior: .hardEdge,
-            children: _buildRecursiveMenuItems([], 2, 5),
-          ),
+      menu: StyledMenuPanel(
+        child: BaseMenuPanel(
+          onPointerExit: (_) {
+            if (!focusNode.hasFocus) {
+              focusNode.requestFocus();
+            }
+          },
+          constraints: const BoxConstraints(minWidth: 150),
+          orientation: widget.orientation,
+          clipBehavior: .hardEdge,
+          children: _buildRecursiveMenuItems([], 3, 5),
         ),
       ),
       child: StyledMenuButtonChild(
@@ -149,19 +146,6 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
   final focusNode = FocusNode();
 
   @override
-  void initState() {
-    super.initState();
-    if (widget.isOpen) {
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (!controller.isOpen && mounted) {
-          controller.open();
-          focusNode.requestFocus();
-        }
-      });
-    }
-  }
-
-  @override
   void dispose() {
     focusNode.dispose();
     super.dispose();
@@ -194,17 +178,9 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
             focusNode.requestFocus();
           }
         },
-        menu: Container(
-          constraints: const BoxConstraints(minWidth: 150),
-          decoration: const BoxDecoration(
-            color: kWhite,
-            boxShadow: [
-              BoxShadow(color: Color.fromARGB(75, 0, 0, 0), blurRadius: 2, offset: Offset(0, 2)),
-              BoxShadow(color: Color.fromARGB(50, 0, 0, 0), blurRadius: 4, offset: Offset(0, 4)),
-              BoxShadow(color: Color.fromARGB(25, 0, 0, 0), blurRadius: 8, offset: Offset(0, 8)),
-            ],
-          ),
+        menu: StyledMenuPanel(
           child: BaseMenuPanel(
+            constraints: const BoxConstraints(minWidth: 150),
             onPointerExit: (event) {
               if (!focusNode.hasFocus) {
                 focusNode.requestFocus();
@@ -214,19 +190,14 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
             children: widget.children,
           ),
         ),
-        child: StyledSubmenuChild(
-          decoration: WidgetStatePropertyAll(
-            BoxDecoration(
-              color: AppColorScheme.of(context).primaryContainer,
-              border: Border.all(color: kTransparent, width: 3.5),
-            ),
-          ),
-          child: Row(
-            children: [
-              Text(widget.label, style: const TextStyle(color: kBlack)),
-              const Spacer(),
-              widget.submenuIcon,
-            ],
+        child: DecoratedBox(
+          decoration: widget.isOpen
+              ? const BoxDecoration(
+                  border: Border.fromBorderSide(BorderSide(color: kBlack, width: 3.5)),
+                )
+              : const BoxDecoration(),
+          child: StyledSubmenuChild(
+            child: Row(children: [Text(widget.label), const Spacer(), widget.submenuIcon]),
           ),
         ),
       ),

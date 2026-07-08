@@ -69,7 +69,7 @@ class _FontSizeMenuState extends State<FontSizeMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final child = DefaultTextStyle(
+    final child = DefaultTextStyle.merge(
       textAlign: TextAlign.center,
       style: const TextStyle(height: 1.3),
       child: MenuTooltip(

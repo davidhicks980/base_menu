@@ -239,8 +239,8 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final BaseMenuScope? scope = BaseMenuScope.maybeOf(context);
-    if (scope?.axis != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
-      _parentOrientation = scope?.axis;
+    if (scope?.orientation != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
+      _parentOrientation = scope?.orientation;
       _parentIsSubmenu = scope?.isSubmenu ?? false;
       _overlayActions = null;
       _anchorActions = null;

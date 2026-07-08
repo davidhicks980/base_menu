@@ -7,6 +7,7 @@ import 'package:flutter/semantics.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../shared/base_menu_app.dart';
+import '../shared/browser_context_menu_blocker.dart';
 import '../shared/package.dart';
 import 'src/model/enum.dart';
 import 'src/theme/colors.dart';
@@ -36,10 +37,12 @@ class _FloogleDocsMain extends StatefulWidget {
 class _FloogleDocsMainState extends State<_FloogleDocsMain> {
   @override
   Widget build(BuildContext context) {
-    return BaseMenuApp(
-      title: 'Floogle Docs',
-      initialRoute: '/',
-      routes: {'/': (context) => const FloogleDocsApp()},
+    return ContextMenuBlocker(
+      child: BaseMenuApp(
+        title: 'Floogle Docs',
+        initialRoute: '/',
+        routes: {'/': (context) => const FloogleDocsApp()},
+      ),
     );
   }
 }

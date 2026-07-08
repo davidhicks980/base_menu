@@ -180,7 +180,6 @@ class _SequoiaSubmenuChevron extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const color = _kSequoiaTextFocused;
-
     final flipX = Directionality.of(context) == TextDirection.rtl;
     final scaleFactor = MediaQuery.textScalerOf(context).scale(1);
     return Padding(
@@ -245,7 +244,7 @@ class SequoiaMenuBarActionLabel extends StatelessWidget {
     const textColor = Color(0xFFFFFFFF);
 
     return CustomPaint(
-      painter: MenuBarHighlightPainter(
+      painter: _MenuBarHighlightPainter(
         enabled: isFocused,
         radius: radius.resolve(Directionality.of(context)),
       ),
@@ -260,8 +259,8 @@ class SequoiaMenuBarActionLabel extends StatelessWidget {
   }
 }
 
-class MenuBarHighlightPainter extends CustomPainter {
-  const MenuBarHighlightPainter({required this.enabled, required this.radius});
+class _MenuBarHighlightPainter extends CustomPainter {
+  const _MenuBarHighlightPainter({required this.enabled, required this.radius});
 
   final bool enabled;
   final BorderRadius radius;
@@ -300,9 +299,9 @@ class MenuBarHighlightPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(MenuBarHighlightPainter oldDelegate) =>
+  bool shouldRepaint(_MenuBarHighlightPainter oldDelegate) =>
       enabled != oldDelegate.enabled || radius != oldDelegate.radius;
 
   @override
-  bool shouldRebuildSemantics(MenuBarHighlightPainter oldDelegate) => false;
+  bool shouldRebuildSemantics(_MenuBarHighlightPainter oldDelegate) => false;
 }

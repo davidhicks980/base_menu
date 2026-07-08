@@ -25,7 +25,7 @@ fi
 
 PATH_KEY="${USER_BUILD_NUMBER:-$(date +%s)}"
 
-flutter build web --dart-define=VISUALIZE_MENU_AIM=true --dart-define=FONT_PACKAGE=base_menu_demo --source-maps --wasm --release --tree-shake-icons -O4 -o "build/web/$PATH_KEY" --base-href "/$PATH_KEY/"
+flutter build web --dart-define=VISUALIZE_MENU_AIM=true --dart-define=FONT_PACKAGE=base_menu_demo --wasm --release --tree-shake-icons -O4 -o "build/web/$PATH_KEY" --base-href "/$PATH_KEY/"
 
 cp "build/web/$PATH_KEY/index.html" "build/web/index.html"
 

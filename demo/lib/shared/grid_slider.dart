@@ -161,6 +161,8 @@ class _GridSliderState extends State<GridSlider> {
             },
             child: Focus(
               focusNode: _focusNode,
+              skipTraversal: true,
+              descendantsAreTraversable: false,
               includeSemantics: false,
               child: ExcludeSemantics(
                 excluding: true,

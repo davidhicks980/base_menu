@@ -326,7 +326,7 @@ void main() {
               Actions(
                 actions: traversalCaptureActions,
                 child: BaseMenuScope(
-                  axis: parentAxis,
+                  orientation: parentAxis,
                   isSubmenu: true,
                   child: BaseSubmenu(
                     role: null,
@@ -889,7 +889,7 @@ void main() {
         await tester.pumpWidget(
           App(
             BaseMenuScope(
-              axis: Axis.vertical,
+              orientation: Axis.vertical,
               isSubmenu: false,
               child: BaseSubmenu(
                 role: null,
@@ -922,7 +922,7 @@ void main() {
         await tester.pumpWidget(
           App(
             BaseMenuScope(
-              axis: Axis.horizontal,
+              orientation: Axis.horizontal,
               isSubmenu: false,
               child: BaseSubmenu(
                 role: null,
@@ -960,7 +960,7 @@ void main() {
             Actions(
               actions: traversalCaptureActions,
               child: BaseMenuScope(
-                axis: Axis.vertical,
+                orientation: Axis.vertical,
                 isSubmenu: false,
                 child: BaseSubmenu(
                   role: null,
@@ -998,7 +998,7 @@ void main() {
             Actions(
               actions: traversalCaptureActions,
               child: BaseMenuScope(
-                axis: .horizontal,
+                orientation: .horizontal,
                 isSubmenu: false,
                 child: BaseSubmenu(
                   role: null,
@@ -1085,7 +1085,7 @@ void main() {
         await tester.pumpWidget(
           App(
             BaseMenuScope(
-              axis: .horizontal,
+              orientation: .horizontal,
               isSubmenu: true,
               child: BaseSubmenu(
                 role: null,
@@ -1111,7 +1111,7 @@ void main() {
         await tester.pumpWidget(
           App(
             BaseMenuScope(
-              axis: .vertical,
+              orientation: .vertical,
               isSubmenu: true,
               child: BaseSubmenu(
                 role: null,
@@ -1142,7 +1142,7 @@ void main() {
               actions: traversalCaptureActions,
               child: App(
                 BaseMenuScope(
-                  axis: .horizontal,
+                  orientation: .horizontal,
                   isSubmenu: true,
                   child: BaseSubmenu(
                     role: null,
@@ -1174,7 +1174,7 @@ void main() {
               actions: traversalCaptureActions,
               child: App(
                 BaseMenuScope(
-                  axis: .vertical,
+                  orientation: .vertical,
                   isSubmenu: true,
                   child: BaseSubmenu(
                     role: null,

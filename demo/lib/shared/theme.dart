@@ -1,143 +1,50 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/widgets.dart';
 
-import '../floogle_docs/src/theme/colors.dart';
 import 'package.dart';
 
-const Color kSeedColor = Color(0xFF4285F4);
-const Color kPressedColor = Color(0xFF174EA6);
-const Color kDarkPressedColor = Color.fromARGB(255, 10, 48, 109);
-const Color kHoverBg = Color(0xFFE8F0FE);
-const Color kFocusBg = Color(0xFFD2E3FC);
-const Color kDefaultText = Color(0xFF3C4043);
-const Color kDisabledText = Color(0xFF9AA0A6);
+// Updated Constants
+const Color kSeedColor = Color(0xFF445E91); // Primary
+const Color kPressedColor = Color(0xFF2B4678); // onPrimaryContainer
+const Color kDarkPressedColor = Color(0xFF1B2E55); // Darker version of primary
+const Color kHoverBg = Color(0xFFD8E2FF); // primaryContainer
+const Color kFocusBg = Color(0xFFDBE2F9); // secondaryContainer
+const Color kDefaultText = Color(0xFF1A1B20); // onSurface
+const Color kDisabledText = Color(0xFF74777F); // outline
 const Color kTransparent = Color(0x00000000);
 const Color kTransparentLight = Color(0x00FFFFFF);
 const Color kBlack = Color(0xFF000000);
 const Color kWhite = Color(0xFFFFFFFF);
 
-@immutable
-class AppTheme {
-  const AppTheme({
-    required this.brightness,
-    required this.surface,
-    required this.elevatedSurface,
-    required this.separator,
-    required this.text,
-    required this.mutedText,
-    required this.selection,
-    required this.focus,
-    required this.hover,
-    required this.highlight,
-    required this.transparent,
-  });
-
-  final Brightness brightness;
-  final Color surface;
-  final Color elevatedSurface;
-  final Color separator;
-  final Color text;
-  final Color mutedText;
-  final Color selection;
-  final Color focus;
-  final Color hover;
-  final Color highlight;
-  final Color transparent;
-
-  Color get shade => brightness == Brightness.light ? kWhite : kBlack;
-
-  // Light theme based on FloogleColors
-  static const AppTheme light = AppTheme(
-    brightness: Brightness.light,
-    surface: FloogleColors.surfaceColor,
-    elevatedSurface: FloogleColors.elevatedSurfaceColor,
-    separator: FloogleColors.lightSeparatorColor,
-    text: FloogleColors.black,
-    mutedText: FloogleColors.grey,
-    selection: FloogleColors.selectedButtonBackground,
-    focus: FloogleColors.toolbarItemHoverFocus, // Add to FloogleColors if missing
-    hover: FloogleColors.toolbarItemHoverFocus,
-    highlight: Color.fromARGB(255, 66, 133, 244),
-    transparent: kTransparentLight,
-  );
-
-  // Dark theme based on Sequoia (macOS dark-mode inspired)
-  static const AppTheme dark = AppTheme(
-    brightness: Brightness.dark,
-    surface: Color(0xA82F3133), // From Sequoia surface
-    elevatedSurface: Color(0xFF1F1F1F),
-    separator: Color(0x38FFFFFF), // From Sequoia divider
-    text: Color(0xFFFFFFFF),
-    mutedText: Color(0xB3FFFFFF), // White with 70% opacity
-    selection: Color.fromARGB(255, 0, 119, 255),
-    focus: Color(0x1AFFFFFF),
-    hover: Color(0x0AFFFFFF),
-    highlight: Color.fromARGB(255, 0, 119, 255),
-    transparent: Color(0x00000000),
-  );
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-
-    return other is AppTheme &&
-        other.brightness == brightness &&
-        other.surface == surface &&
-        other.elevatedSurface == elevatedSurface &&
-        other.separator == separator &&
-        other.text == text &&
-        other.mutedText == mutedText &&
-        other.selection == selection &&
-        other.focus == focus &&
-        other.hover == hover &&
-        other.highlight == highlight &&
-        other.transparent == transparent;
-  }
-
-  @override
-  int get hashCode {
-    return brightness.hashCode ^
-        surface.hashCode ^
-        elevatedSurface.hashCode ^
-        separator.hashCode ^
-        text.hashCode ^
-        mutedText.hashCode ^
-        selection.hashCode ^
-        focus.hashCode ^
-        hover.hashCode ^
-        highlight.hashCode ^
-        transparent.hashCode;
-  }
-}
-
-final WidgetStateProperty<BoxDecoration> demoButtonDecoration = WidgetStateProperty.fromMap({
+const WidgetStateProperty<BoxDecoration> demoButtonDecoration = WidgetStateProperty.fromMap({
   WidgetState.disabled: BoxDecoration(
-    color: const Color(0xFFF1F3F4),
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: const Color(0xFFE0E0E0), width: 3.5),
+    color: const Color(0xFFEDEDF4), // surfaceContainer
+    borderRadius: BorderRadius.all(Radius.circular(4)),
+    border: Border.fromBorderSide(
+      BorderSide(color: const Color(0xFFC4C6D0), width: 2),
+    ), // outlineVariant
   ),
-
   WidgetState.pressed: BoxDecoration(
     color: kDarkPressedColor,
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: kDarkPressedColor, width: 3.5),
+    borderRadius: BorderRadius.all(Radius.circular(4)),
+    border: Border.fromBorderSide(BorderSide(color: kDarkPressedColor, width: 2)),
   ),
   WidgetState.focused: BoxDecoration(
     color: kTransparent,
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: kSeedColor, width: 3.5),
+    borderRadius: BorderRadius.all(Radius.circular(4)),
+    border: Border.fromBorderSide(BorderSide(color: kSeedColor, width: 2)),
   ),
   WidgetState.hovered: BoxDecoration(
     color: kSeedColor,
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: kSeedColor, width: 3.5),
+    borderRadius: BorderRadius.all(Radius.circular(4)),
+    border: Border.fromBorderSide(BorderSide(color: kSeedColor, width: 2)),
   ),
   WidgetState.any: BoxDecoration(
     color: kTransparent,
-    borderRadius: BorderRadius.circular(8),
-    border: Border.all(color: const Color(0xFFDADCE0), width: 3.5),
+    borderRadius: BorderRadius.all(Radius.circular(4)),
+    border: Border.fromBorderSide(
+      BorderSide(color: const Color(0xFFC4C6D0), width: 2),
+    ), // outlineVariant
   ),
 });
 
@@ -145,18 +52,15 @@ final WidgetStateProperty<BoxDecoration> demoMenuItemDecoration = WidgetStatePro
   WidgetState.disabled: const BoxDecoration(color: kTransparent),
   WidgetState.pressed: BoxDecoration(
     color: kPressedColor,
-    borderRadius: BorderRadius.circular(4),
-    border: Border.all(color: kPressedColor, width: 3.5),
+    border: Border.all(color: kPressedColor, width: 1.5),
   ),
   WidgetState.focused: BoxDecoration(
     color: kSeedColor,
-    borderRadius: BorderRadius.circular(4),
-    border: Border.all(color: kSeedColor, width: 3.5),
+    border: Border.all(color: kSeedColor, width: 1.5),
   ),
   WidgetState.any: const BoxDecoration(
     color: kTransparent,
-    borderRadius: BorderRadius.all(Radius.circular(4)),
-    border: Border.fromBorderSide(BorderSide(color: kTransparent, width: 3.5)),
+    border: Border.fromBorderSide(BorderSide(color: kTransparent, width: 1.5)),
   ),
 });
 
@@ -214,8 +118,8 @@ class StyledMenuButtonChild extends StatelessWidget {
       decoration: MenuController.maybeIsOpenOf(context) ?? false
           ? const BoxDecoration(
               color: kPressedColor,
-              border: Border.fromBorderSide(BorderSide(color: kPressedColor, width: 3.5)),
-              borderRadius: BorderRadius.all(Radius.circular(8)),
+              border: Border.fromBorderSide(BorderSide(color: kPressedColor, width: 1.5)),
+              borderRadius: BorderRadius.all(Radius.circular(4)),
             )
           : demoButtonDecoration.resolve(BaseControl.statesOf(context)),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -254,18 +158,17 @@ class StyledMenuBarChild extends StatelessWidget {
 }
 
 class StyledSubmenuChild extends StatelessWidget {
-  const StyledSubmenuChild({super.key, required this.child, this.decoration});
+  const StyledSubmenuChild({super.key, required this.child});
   final Widget child;
-  final WidgetStateProperty<BoxDecoration>? decoration;
 
   @override
   Widget build(BuildContext context) {
     final states = BaseMenuItem.statesOf(context);
     return Container(
-      decoration: (decoration ?? demoMenuItemDecoration)
+      decoration: (demoMenuItemDecoration)
           .resolve(states)
           .copyWith(borderRadius: BorderRadius.zero),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: IconTheme(
         data: IconThemeData(color: demoTextStyle.resolve(states).copyWith(fontWeight: .w500).color),
         child: DefaultTextStyle(
@@ -286,7 +189,7 @@ class StyledMenuItemChild extends StatelessWidget {
     final states = BaseMenuItem.statesOf(context);
     return Container(
       decoration: demoMenuItemDecoration.resolve(states),
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
       child: DefaultTextStyle(
         style: demoTextStyle.resolve(states).copyWith(fontWeight: FontWeight.w500),
         child: child,
@@ -309,8 +212,8 @@ class MenuDivider extends StatelessWidget {
           color: Color(0xFFE0E0E0),
           thickness: 2,
           crossAxisExtent: 4,
-          indent: 4,
-          endIndent: 4,
+          indent: 8,
+          endIndent: 8,
         ),
         Axis.horizontal => const PhysicalPixelDivider(
           orientation: Axis.horizontal,
@@ -321,6 +224,28 @@ class MenuDivider extends StatelessWidget {
           endIndent: 14,
         ),
       },
+    );
+  }
+}
+
+class StyledMenuBar extends StatelessWidget {
+  const StyledMenuBar({
+    super.key,
+    required this.child,
+    this.borderRadius = const BorderRadius.all(Radius.circular(4)),
+  });
+  final Widget child;
+  final BorderRadiusGeometry borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xffffffff),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+        borderRadius: borderRadius.resolve(Directionality.of(context)),
+      ),
+      child: child,
     );
   }
 }
@@ -341,6 +266,18 @@ class StyledMenuPanel extends StatelessWidget {
         color: const Color(0xffffffff),
         border: Border.all(color: const Color(0xFFE0E0E0)),
         borderRadius: borderRadius.resolve(Directionality.of(context)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF000000).withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: const Color(0xFF000000).withValues(alpha: 0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: child,
     );
@@ -389,7 +326,7 @@ class PhysicalPixelDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double dpr = MediaQuery.devicePixelRatioOf(context);
+    final double pixelRatio = MediaQuery.devicePixelRatioOf(context);
     return SizedBox(
       width: orientation == Axis.vertical ? crossAxisExtent : double.infinity,
       height: orientation == Axis.horizontal ? crossAxisExtent : double.infinity,
@@ -400,7 +337,7 @@ class PhysicalPixelDivider extends StatelessWidget {
           thickness: thickness,
           indent: indent,
           endIndent: endIndent,
-          dpr: dpr,
+          pixelRatio: pixelRatio,
         ),
       ),
     );
@@ -414,7 +351,7 @@ class _PixelSnapPainter extends CustomPainter {
     required this.thickness,
     required this.indent,
     required this.endIndent,
-    required this.dpr,
+    required this.pixelRatio,
   });
 
   final Axis orientation;
@@ -422,7 +359,7 @@ class _PixelSnapPainter extends CustomPainter {
   final int thickness;
   final double indent;
   final double endIndent;
-  final double dpr;
+  final double pixelRatio;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -430,18 +367,18 @@ class _PixelSnapPainter extends CustomPainter {
       ..color = color
       ..isAntiAlias = false;
 
-    final double logicalThickness = thickness / dpr;
+    final double logicalThickness = thickness / pixelRatio;
 
     if (orientation == Axis.horizontal) {
       // Horizontal line: Indent affects the X axis (left/right)
-      final double top = ((size.height * dpr - thickness) / 2.0).round() / dpr;
+      final double top = ((size.height * pixelRatio - thickness) / 2.0).round() / pixelRatio;
       canvas.drawRect(
         Rect.fromLTWH(indent, top, size.width - indent - endIndent, logicalThickness),
         paint,
       );
     } else {
       // Vertical line: Indent affects the Y axis (top/bottom)
-      final double left = ((size.width * dpr - thickness) / 2.0).round() / dpr;
+      final double left = ((size.width * pixelRatio - thickness) / 2.0).round() / pixelRatio;
       canvas.drawRect(
         Rect.fromLTWH(left, indent, logicalThickness, size.height - indent - endIndent),
         paint,
@@ -452,7 +389,7 @@ class _PixelSnapPainter extends CustomPainter {
   @override
   bool shouldRepaint(_PixelSnapPainter old) =>
       old.color != color ||
-      old.dpr != dpr ||
+      old.pixelRatio != pixelRatio ||
       old.orientation != orientation ||
       old.indent != indent ||
       old.endIndent != endIndent;

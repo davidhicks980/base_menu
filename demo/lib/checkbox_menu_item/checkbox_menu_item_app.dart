@@ -15,14 +15,6 @@ class CheckboxMenuItemApp extends StatefulWidget {
 }
 
 class _CheckboxMenuItemAppState extends State<CheckboxMenuItemApp> {
-  final focusScopeNode = FocusScopeNode();
-
-  @override
-  void dispose() {
-    focusScopeNode.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return DefaultTextStyle(
@@ -40,12 +32,8 @@ class _CheckboxMenuItemAppState extends State<CheckboxMenuItemApp> {
           const Spacer(),
           const Text('Todo List', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           BaseMenuBar(
-            focusScopeNode: focusScopeNode,
             orientation: .vertical,
             child: BaseMenuPanel(
-              onPointerExit: (_) {
-                focusScopeNode.requestScopeFocus();
-              },
               constraints: const BoxConstraints(minWidth: 100),
               children: const [
                 _CheckboxMenuItem(child: Text('Play with cat')),

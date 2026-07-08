@@ -35,7 +35,7 @@ flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
-  uses-material-design: true
+  uses-material-design: false
 
 
 
@@ -56,7 +56,7 @@ flutter:
         - asset: assets/InterVariable.ttf
     - family: RobotoFlex
       fonts:
-        - asset: assets/Roboto.ttf
+        - asset: assets/Roboto_Flex.ttf
     - family: GoogleSans
       fonts:
         - asset: assets/GoogleSans.ttf

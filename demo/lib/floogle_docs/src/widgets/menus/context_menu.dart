@@ -6,103 +6,48 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../../shared/browser_context_menu_blocker.dart';
 import '../../data/menu.dart';
 import '../adapters/menu_entry_panel.dart';
 
-class EditorContextMenuWrapper extends StatefulWidget {
-  const EditorContextMenuWrapper({super.key, required this.child, required this.menuController});
+class EditorContextMenu extends StatefulWidget {
+  const EditorContextMenu({super.key, required this.child, required this.menuController});
 
   final Widget child;
   final MenuController menuController;
+  static void showMenuAtPointer(BuildContext context, PointerDownEvent event) {
+    context.findAncestorStateOfType<_EditorContextMenuState>()!._handlePointerDown(event);
+  }
 
   @override
-  State<EditorContextMenuWrapper> createState() => _EditorContextMenuWrapperState();
+  State<EditorContextMenu> createState() => _EditorContextMenuState();
 }
 
-class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
+class _EditorContextMenuState extends State<EditorContextMenu> {
   final TextEditingController _controller = TextEditingController(
     text: 'Click here to start editing...',
   );
   final _focusNode = FocusNode();
-  bool _wasBrowserContextMenuEnabled = false;
   bool _deferClose = false;
 
   @override
-  void initState() {
-    super.initState();
-    _wasBrowserContextMenuEnabled = kIsWeb && BrowserContextMenu.enabled;
-  }
-
-  @override
   void dispose() {
-    if (_wasBrowserContextMenuEnabled) {
-      _enableContextMenu();
-    }
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
   }
 
-  Future<void>? _contextMenuStatus;
-  Future<void> _disableContextMenu() async {
-    assert(_wasBrowserContextMenuEnabled);
-
-    if (_contextMenuStatus != null) {
-      // If a context menu status change is already in progress, wait for it to complete before starting a new one.
-      await _contextMenuStatus;
-    }
-
-    if (!BrowserContextMenu.enabled) {
-      return;
-    }
-
-    _contextMenuStatus = BrowserContextMenu.disableContextMenu();
-  }
-
-  Future<void> _enableContextMenu() async {
-    assert(_wasBrowserContextMenuEnabled);
-
-    if (_contextMenuStatus != null) {
-      // If a context menu status change is already in progress, wait for it to complete before starting a new one.
-      await _contextMenuStatus;
-    }
-
-    if (BrowserContextMenu.enabled) {
-      return;
-    }
-
-    _contextMenuStatus = BrowserContextMenu.enableContextMenu();
-  }
-
-  bool _handleKeyEvent(KeyEvent event) {
-    assert(kIsWeb);
-    switch (event) {
-      case KeyDownEvent(logicalKey: LogicalKeyboardKey.shiftLeft || LogicalKeyboardKey.shiftRight):
-        _enableContextMenu();
-      case KeyUpEvent(logicalKey: LogicalKeyboardKey.shiftLeft || LogicalKeyboardKey.shiftRight):
-        _disableContextMenu();
-    }
-
-    return false;
-  }
-
-  void _onHoverEnter(PointerEnterEvent event) {
-    WidgetsBinding.instance.keyboard.addHandler(_handleKeyEvent);
-    _disableContextMenu();
-  }
-
-  void _onHoverExit(PointerExitEvent event) {
-    _enableContextMenu();
-    WidgetsBinding.instance.keyboard.removeHandler(_handleKeyEvent);
-  }
-
   void _handlePointerDown(PointerDownEvent event) {
-    // 1. Right Click
-    if (event.buttons == kSecondaryMouseButton) {
-      if (kIsWeb && BrowserContextMenu.enabled) {
-        return;
-      }
+    if (widget.menuController.isOpen && event.buttons == kPrimaryMouseButton) {
+      widget.menuController.close();
+      return;
+    }
 
+    if (kIsWeb && ContextMenuBlocker.isEnabledOf(context)) {
+      return;
+    }
+
+    if (event.buttons == kSecondaryMouseButton) {
       _deferClose = true;
       widget.menuController.open(position: event.localPosition);
       scheduleMicrotask(() {
@@ -111,13 +56,6 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
       return;
     }
 
-    // 2. Left Click - Close the menu if open
-    if (widget.menuController.isOpen) {
-      widget.menuController.close();
-      return;
-    }
-
-    // 3. Left Click (Ctrl+Click context menu on macOS/iOS)
     if (event.buttons == kPrimaryMouseButton) {
       switch (defaultTargetPlatform) {
         case TargetPlatform.android:
@@ -127,12 +65,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
           break;
         case TargetPlatform.iOS:
         case TargetPlatform.macOS:
-          if (HardwareKeyboard.instance.logicalKeysPressed.contains(
-                LogicalKeyboardKey.controlLeft,
-              ) ||
-              HardwareKeyboard.instance.logicalKeysPressed.contains(
-                LogicalKeyboardKey.controlRight,
-              )) {
+          if (HardwareKeyboard.instance.isControlPressed) {
             widget.menuController.open(position: event.localPosition);
           }
       }
@@ -141,7 +74,7 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    final child = BaseMenu(
+    return BaseMenu(
       positionDelegate: const DefaultMenuPositioningDelegate(
         padding: EdgeInsets.symmetric(vertical: 6),
       ),
@@ -153,21 +86,14 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
       onOpen: () {
         _focusNode.requestFocus();
       },
-      menu: MouseRegion(
-        onExit: (_) {
+      menu: MenuEntryPanel(
+        menuEntry: Menu.context,
+        constraints: const BoxConstraints(minWidth: 320),
+        onSurfaceExit: (_) {
           if (!_focusNode.hasFocus) {
             _focusNode.requestFocus();
           }
         },
-        child: MenuEntryPanel(
-          menuEntry: Menu.context,
-          constraints: const BoxConstraints(minWidth: 320),
-          onSurfaceExit: (_) {
-            if (!_focusNode.hasFocus) {
-              _focusNode.requestFocus();
-            }
-          },
-        ),
       ),
       controller: widget.menuController,
       child: Focus(
@@ -177,24 +103,9 @@ class _EditorContextMenuWrapperState extends State<EditorContextMenuWrapper> {
             // Semantic equivalent for right-click / context menu
             widget.menuController.open();
           },
-          child: Listener(
-            onPointerDown: _handlePointerDown,
-            behavior: .translucent,
-            child: widget.child,
-          ),
+          child: widget.child,
         ),
       ),
-    );
-
-    if (!_wasBrowserContextMenuEnabled) {
-      return child;
-    }
-
-    return MouseRegion(
-      onEnter: _onHoverEnter,
-      onExit: _onHoverExit,
-      hitTestBehavior: .translucent,
-      child: child,
     );
   }
 }

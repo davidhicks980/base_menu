@@ -169,6 +169,7 @@
             "program": "lib/floogle_docs/floogle_docs.dart",
             "args": [
                 "--dart-define=VISUALIZE_MENU_AIM=true"
+                
             ]
 
         },

@@ -101,7 +101,7 @@ class _ZoomMenuState extends State<ZoomMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final child = DefaultTextStyle(
+    final child = DefaultTextStyle.merge(
       style: const TextStyle(height: 1.5),
       child: MenuTooltip(
         enableSemantics: false,

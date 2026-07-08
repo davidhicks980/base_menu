@@ -77,7 +77,7 @@ class _AlignmentTemplateState extends State<AlignmentTemplate> {
                                 size: const Size(110, 110),
                                 x: _anchorPosition.$1,
                                 y: _anchorPosition.$2,
-                                title: const TextSpan(text: 'Anchor Position'),
+                                title: const TextSpan(text: 'Button Alignment'),
                                 onChange: (double x, double y) {
                                   setState(() {
                                     _anchorPosition = (x, y);
@@ -93,7 +93,7 @@ class _AlignmentTemplateState extends State<AlignmentTemplate> {
                                 size: const Size(110, 110),
                                 x: _menuPosition.$1,
                                 y: _menuPosition.$2,
-                                title: const TextSpan(text: 'Controller Position'),
+                                title: const TextSpan(text: 'Controller Offset'),
                                 formatter: const GridSliderFormatter.pixel(magnitude: 200),
                                 onChange: (double x, double y) {
                                   setState(() {
@@ -111,7 +111,7 @@ class _AlignmentTemplateState extends State<AlignmentTemplate> {
                                 size: const Size(110, 110),
                                 x: _anchorAttachment.$1,
                                 y: _anchorAttachment.$2,
-                                title: const TextSpan(text: 'Alignment'),
+                                title: const TextSpan(text: 'Anchor Alignment'),
                                 onChange: (double x, double y) {
                                   setState(() {
                                     _anchorAttachment = (x, y);

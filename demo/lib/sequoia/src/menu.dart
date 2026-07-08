@@ -12,24 +12,13 @@ import 'model.dart';
 import 'surface.dart';
 
 class SequoiaMenuBar extends StatefulWidget {
-  const SequoiaMenuBar({super.key, required this.items});
+  const SequoiaMenuBar({super.key, required this.items, this.onOpen});
 
   final List<MenuItem> items;
+  final VoidCallback? onOpen;
 
   @override
   State<SequoiaMenuBar> createState() => _SequoiaMenuBarState();
-
-  static Widget buildItem(MenuItem item, bool isTopLevel) {
-    if (item case MenuDividerItem()) {
-      return const SequoiaMenuDivider();
-    }
-
-    if (item.children.isEmpty) {
-      return SequoiaMenuItem(shortcut: item.shortcut, child: Text(item.label));
-    }
-
-    return SequoiaSubmenu(item: item, isTopLevel: isTopLevel);
-  }
 }
 
 class _SequoiaMenuBarState extends State<SequoiaMenuBar> {
@@ -52,28 +41,27 @@ class _SequoiaMenuBarState extends State<SequoiaMenuBar> {
       child: Builder(
         builder: (context) {
           return TapRegion(
-            groupId: 'menu_system',
+            groupId: controller,
             onTapOutside: (event) {
               SequoiaMenuDismissHandler.of(context).fadeMenuOut();
             },
-            child: MouseRegion(
-              onExit: (event) {
-                if (!controller.isOpen) {
-                  focusScopeNode.requestScopeFocus();
-                }
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: BaseMenuBar(
-                  controller: controller,
-                  focusScopeNode: focusScopeNode,
-                  child: BaseMenuPanel(
-                    orientation: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    children: widget.items
-                        .map((item) => SequoiaMenuBar.buildItem(item, true))
-                        .toList(),
-                  ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: BaseMenuBar(
+                controller: controller,
+                focusScopeNode: focusScopeNode,
+                child: BaseMenuPanel(
+                  onPointerExit: (event) {
+                    if (focusScopeNode.hasFocus) {
+                      focusScopeNode.requestScopeFocus();
+                    }
+                  },
+                  orientation: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  children: [
+                    for (final child in widget.items)
+                      SequoiaSubmenu.buildItem(child, true, controller, onOpen: widget.onOpen),
+                  ],
                 ),
               ),
             ),
@@ -85,10 +73,30 @@ class _SequoiaMenuBarState extends State<SequoiaMenuBar> {
 }
 
 class SequoiaSubmenu extends StatefulWidget {
-  const SequoiaSubmenu({super.key, required this.item, required this.isTopLevel});
+  const SequoiaSubmenu({
+    super.key,
+    required this.item,
+    required this.isTopLevel,
+    required this.groupId,
+    this.onOpen,
+  });
 
   final MenuItem item;
   final bool isTopLevel;
+  final Object groupId;
+  final VoidCallback? onOpen;
+
+  static Widget buildItem(MenuItem item, bool isTopLevel, Object groupId, {VoidCallback? onOpen}) {
+    if (item case MenuDividerItem()) {
+      return const SequoiaMenuDivider();
+    }
+
+    if (item.children.isEmpty) {
+      return SequoiaMenuItem(shortcut: item.shortcut, child: Text(item.label));
+    }
+
+    return SequoiaSubmenu(item: item, isTopLevel: isTopLevel, groupId: groupId, onOpen: onOpen);
+  }
 
   @override
   State<SequoiaSubmenu> createState() => _SequoiaSubmenuState();
@@ -122,7 +130,7 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
 
   void _handleCloseRequest(VoidCallback hideOverlay) {
     scheduleMicrotask(() {
-      if (!_dismissHandler.isAnimating) {
+      if (!_dismissHandler.isAnimatingOut) {
         hideOverlay();
       } else {
         setState(() {
@@ -160,6 +168,7 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
         anchorActions: actions,
         focusNode: focusNode,
         requestFocusOnHover: _dismissHandler.isInteractive,
+        onOpen: widget.onOpen,
         onPressed: () {
           if (controller.isOpen) {
             if (widget.isTopLevel) {
@@ -181,7 +190,7 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
               child: IgnorePointer(
                 ignoring: _isClosing,
                 child: TapRegion(
-                  groupId: 'menu_system',
+                  groupId: widget.groupId,
                   onTapOutside: (event) {
                     if (event.buttons == kSecondaryMouseButton) {
                       return;
@@ -207,7 +216,7 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
                             padding: const EdgeInsets.all(4),
                             children: [
                               for (final child in widget.item.children)
-                                SequoiaMenuBar.buildItem(child, false),
+                                SequoiaSubmenu.buildItem(child, false, widget.groupId),
                             ],
                           ),
                         ),

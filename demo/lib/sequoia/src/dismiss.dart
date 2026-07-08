@@ -48,7 +48,7 @@ class SequoiaMenuDismissCoordinator extends StatefulWidget {
 
 class SequoiaMenuDismissCoordinatorState extends State<SequoiaMenuDismissCoordinator>
     with SingleTickerProviderStateMixin {
-  bool isAnimating = false;
+  bool isAnimatingOut = false;
   late bool isInteractive = widget.isInteractive;
 
   late final AnimationController animation = AnimationController(
@@ -74,18 +74,18 @@ class SequoiaMenuDismissCoordinatorState extends State<SequoiaMenuDismissCoordin
   }
 
   void fadeMenuOut() {
-    if (isAnimating) {
+    if (isAnimatingOut || !mounted || !widget.controller.isOpen) {
       return;
     }
 
     widget.onFadeOutBegin?.call();
-    isAnimating = true;
+    isAnimatingOut = true;
     animation.duration = const Duration(milliseconds: 125);
     animation.reverse().whenComplete(() {
       widget.controller.close();
       animation.duration = Duration.zero;
       animation.value = 1;
-      isAnimating = false;
+      isAnimatingOut = false;
       setState(() {
         isInteractive = widget.isInteractive;
       });
@@ -103,7 +103,7 @@ class SequoiaMenuDismissCoordinatorState extends State<SequoiaMenuDismissCoordin
     return SequoiaMenuDismissHandler(
       state: this,
       isInteractive: isInteractive,
-      isAnimating: isAnimating,
+      isAnimating: isAnimatingOut,
       child: widget.child,
     );
   }

@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../shared/package.dart';
 import '../data/entry.dart';
 import '../data/menu.dart';
 import '../extensions/string.dart';
@@ -361,13 +360,14 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
 
         final fontWeight = isBold ? FontWeight.normal : FontWeight.bold;
 
-        final textStyle =
-            controller.selectedTextStyle?.textStyle ??
-            TextStyle(
-              fontWeight: FontWeight.normal,
-              fontFamily: FontFamily.roboto.label,
-              package: kPackage,
-            );
+        TextStyle textStyle =
+            (controller.selectedTextStyle?.textStyle ??
+            TextStyle(fontWeight: FontWeight.normal, fontFamily: FontFamily.roboto.label));
+
+        textStyle = textStyle.copyWith(
+          package: null,
+          fontFamily: textStyle.fontFamily?.split(r'/').lastOrNull ?? FontFamily.roboto.label,
+        );
 
         controller.applyStyle(
           SegmentTextStyle(
@@ -375,7 +375,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
               textStyle.fontFamily?.withSpaceAfterCapitals.split('_')[0] ?? FontFamily.roboto.label,
               fontWeight: fontWeight,
               textStyle: textStyle,
-            ).copyWith(package: null),
+            ),
           ),
         );
         editorFocusNode.requestFocus();
@@ -493,9 +493,12 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
           SegmentTextStyle(
             textStyle: GoogleFonts.getFont(
               intent.value.family.label,
-              textStyle: controller.selectedTextStyle?.textStyle,
+              textStyle: controller.selectedTextStyle?.textStyle?.copyWith(
+                package: null,
+                fontFamily: intent.value.family.label,
+              ),
               fontWeight: intent.value.weight,
-            ).copyWith(package: null),
+            ),
           ),
         );
         editorFocusNode.requestFocus();

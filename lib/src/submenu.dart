@@ -52,7 +52,6 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
     this.useRootOverlay = false,
     this.consumeOutsideTaps = false,
     this.onFocusChange,
-    this.onAnchorFocusChange,
     this.directionalFocusEdgeBehavior,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
@@ -115,9 +114,6 @@ class BaseSubmenu extends StatefulWidget implements BaseMenuInterface, BaseMenuI
 
   @override
   final ValueChanged<bool>? onFocusChange;
-
-  /// Called when the submenu anchor gains or loses focus.
-  final ValueChanged<bool>? onAnchorFocusChange;
 
   @override
   final TraversalEdgeBehavior? directionalFocusEdgeBehavior;
@@ -238,10 +234,11 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final BaseMenuScope? scope = BaseMenuScope.maybeOf(context);
-    if (scope?.orientation != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
-      _parentOrientation = scope?.orientation;
-      _parentIsSubmenu = scope?.isSubmenu ?? false;
+    final orientation = BaseMenu.maybeOrientationOf(context);
+    final isSubmenu = BaseMenu.maybeIsSubmenuOf(context) ?? false;
+    if (orientation != _parentOrientation || isSubmenu != _parentIsSubmenu) {
+      _parentOrientation = orientation;
+      _parentIsSubmenu = isSubmenu;
       _overlayActions = null;
       _anchorActions = null;
     }
@@ -553,7 +550,6 @@ class _BaseSubmenuState extends State<BaseSubmenu> {
           onPointerExit: _handlePointerLeaveAnchor,
           requestCloseOnActivate: widget.requestCloseOnActivate,
           requestFocusOnHover: widget.requestFocusOnHover,
-          onFocusChange: widget.onAnchorFocusChange,
           behavior: widget.behavior,
           opaque: widget.opaque,
           mouseCursor: widget.mouseCursor,

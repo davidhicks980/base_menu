@@ -499,7 +499,6 @@ void main() {
       );
 
       expect(semantics.properties.role, SemanticsRole.menuItem);
-      print(tester.getSemantics(find.byType(BaseMenuItem<void>)).toStringDeep());
       expect(
         tester.getSemantics(find.byType(BaseMenuItem<void>)),
         matchesSemantics(

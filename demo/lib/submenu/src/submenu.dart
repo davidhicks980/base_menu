@@ -60,6 +60,9 @@ class _SubmenuState extends State<Submenu> {
             },
             constraints: const BoxConstraints(minWidth: 150),
             orientation: widget.orientation,
+            padding: widget.orientation == Axis.vertical
+                ? const EdgeInsets.symmetric(vertical: 6)
+                : EdgeInsets.zero,
             clipBehavior: .hardEdge,
             children: [
               _SubmenuItem(
@@ -161,9 +164,10 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
             horizontal: EdgeBehaviorStrategy(flip: true),
             vertical: EdgeBehaviorStrategy(constrain: true),
           ),
-          offset: BaseMenuScope.maybeOf(context)?.orientation == Axis.vertical
+          offset: BaseMenu.maybeOrientationOf(context) == Axis.vertical
               ? const Offset(-4, 0)
-              : Offset.zero,
+              : const Offset(0, 6),
+          padding: const EdgeInsets.symmetric(vertical: 6),
         ),
         onPressed: () {
           if (!controller.isOpen) {
@@ -175,6 +179,7 @@ class _SubmenuItemState extends State<_SubmenuItem> with SingleTickerProviderSta
           child: ClipRRect(
             borderRadius: const BorderRadius.all(Radius.circular(4)),
             child: BaseMenuPanel(
+              padding: const EdgeInsets.symmetric(vertical: 6),
               onPointerExit: (event) {
                 if (!focusNode.hasFocus) {
                   focusNode.requestFocus();

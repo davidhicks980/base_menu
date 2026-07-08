@@ -49,6 +49,9 @@ class _MenuBarState extends State<MenuBar> {
                     }
                   }
                 },
+                padding: widget.orientation == Axis.vertical
+                    ? const EdgeInsets.symmetric(vertical: 6)
+                    : EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 150),
                 orientation: widget.orientation,
                 children: [
@@ -148,9 +151,10 @@ class _SubmenuState extends State<_Submenu> with SingleTickerProviderStateMixin 
             horizontal: EdgeBehaviorStrategy(flip: true),
             vertical: EdgeBehaviorStrategy(constrain: true),
           ),
-          offset: BaseMenuScope.maybeOf(context)?.orientation == Axis.horizontal
-              ? const Offset(0, 4)
-              : Offset.zero,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          offset: BaseMenu.maybeOrientationOf(context) == Axis.vertical
+              ? const Offset(-4, 0)
+              : const Offset(0, 6),
         ),
         onPressed: () {
           if (!controller.isOpen) {
@@ -159,15 +163,19 @@ class _SubmenuState extends State<_Submenu> with SingleTickerProviderStateMixin 
           }
         },
         menu: StyledMenuPanel(
-          child: BaseMenuPanel(
-            clipBehavior: .hardEdge,
-            onPointerExit: (event) {
-              if (!focusNode.hasFocus) {
-                focusNode.requestFocus();
-              }
-            },
-            orientation: Axis.vertical,
-            children: widget.children,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.all(Radius.circular(4)),
+            child: BaseMenuPanel(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              clipBehavior: .hardEdge,
+              onPointerExit: (event) {
+                if (!focusNode.hasFocus) {
+                  focusNode.requestFocus();
+                }
+              },
+              orientation: Axis.vertical,
+              children: widget.children,
+            ),
           ),
         ),
         child: StyledMenuBarChild(

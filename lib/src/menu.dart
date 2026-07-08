@@ -104,10 +104,10 @@ class EnterMenuIntent extends Intent {
 ///
 /// This is used by [BaseMenu], [BaseMenuBar], and [BaseSubmenu] to determine
 /// the appropriate keyboard navigation behavior for their menu items.
+@visibleForTesting
 class BaseMenuScope extends InheritedWidget {
   /// Creates a [BaseMenuScope] that provides the [orientation] and [isSubmenu] status of a
   /// menu to its descendants.
-  @visibleForTesting
   const BaseMenuScope({
     super.key,
     required super.child,
@@ -123,12 +123,6 @@ class BaseMenuScope extends InheritedWidget {
   /// Root menus (like a [BaseMenuBar] or a top-level context menu) have this set
   /// to false.
   final bool isSubmenu;
-
-  /// Returns the nearest widget of the given type [BaseMenuScope] and creates a
-  /// dependency on it, or null if no appropriate widget is found.
-  static BaseMenuScope? maybeOf(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<BaseMenuScope>();
-  }
 
   @override
   bool updateShouldNotify(BaseMenuScope oldWidget) {
@@ -337,7 +331,7 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child) {
     final alignment =
         anchorAlignment ??
-        switch (BaseMenuScope.maybeOf(context)?.orientation) {
+        switch (BaseMenu.maybeOrientationOf(context)) {
           Axis.vertical => AlignmentDirectional.topEnd,
           _ => AlignmentDirectional.bottomStart,
         };
@@ -541,6 +535,28 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
     hideOverlay();
   }
 
+  /// Returns whether the nearest ancestor [BaseMenu], [BaseMenuBar], or
+  /// [BaseSubmenu] is a submenu of another menu, or null if no ancestor menu is
+  /// found.
+  ///
+  /// Calling this method establishes a dependency that will cause the provided
+  /// [BuildContext] to rebuild if the ancestor menu changes from being a
+  /// submenu to a root menu, or the reverse.
+  static bool? maybeIsSubmenuOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<BaseMenuScope>()?.isSubmenu;
+  }
+
+  /// Returns the [orientation] of the nearest ancestor [BaseMenu],
+  /// [BaseMenuBar], or [BaseSubmenu], or null if no appropriate widget is
+  /// found.
+  ///
+  /// Calling this method establishes a dependency that will cause the provided
+  /// [BuildContext] to rebuild whenever the ancestor menu's [orientation]
+  /// changes.
+  static Axis? maybeOrientationOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<BaseMenuScope>()?.orientation;
+  }
+
   @override
   State<BaseMenu> createState() => _BaseMenuState();
 
@@ -592,10 +608,11 @@ class _BaseMenuState extends State<BaseMenu> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _textDirection = Directionality.maybeOf(context) ?? TextDirection.ltr;
-    final scope = BaseMenuScope.maybeOf(context);
-    if (scope?.orientation != _parentOrientation || scope?.isSubmenu != _parentIsSubmenu) {
-      _parentOrientation = scope?.orientation;
-      _parentIsSubmenu = scope?.isSubmenu ?? false;
+    final orientation = BaseMenu.maybeOrientationOf(context);
+    final isSubmenu = BaseMenu.maybeIsSubmenuOf(context);
+    if (orientation != _parentOrientation || isSubmenu != _parentIsSubmenu) {
+      _parentOrientation = orientation;
+      _parentIsSubmenu = isSubmenu ?? false;
     }
   }
 
@@ -886,77 +903,6 @@ class _MenuOverlay extends StatelessWidget {
 /// set to [Axis.vertical], the up and down arrow keys traverse the top-level
 /// menu items. Traversal respects the ambient [Directionality], so in a
 /// right-to-left context, the left and right arrow keys are reversed.
-///
-/// ### Basic Usage Pattern
-///
-/// ```dart
-/// BaseMenuBar(
-///   child: BaseMenuPanel(
-///     constraints: const BoxConstraints(height: 30),
-///     children: <Widget>[
-///       BaseSubmenu(
-///         controller: controller,
-///         menu: ColoredBox(
-///           color: const Color(0xFFFFFFFF),
-///           child: BaseMenuPanel(
-///             padding: const EdgeInsets.all(10),
-///             children: <Widget>[
-///               BaseMenuItem(
-///                 onPressed: () {
-///                   print('New');
-///                 },
-///                 child: const Text('New'),
-///               ),
-///               BaseMenuItem(
-///                 onPressed: () {
-///                   print('Open');
-///                 },
-///                 child: const Text('Open...'),
-///               ),
-///             ],
-///           ),
-///         ),
-///         child: Container(
-///           padding: const EdgeInsets.symmetric(horizontal: 30),
-///           color: const Color(0xFF61FF71),
-///           alignment: .center,
-///           child: const Text('File'),
-///         ),
-///       ),
-///       BaseSubmenu(
-///         controller: nestedController,
-///         menu: ColoredBox(
-///           color: const Color(0xFFFFFFFF),
-///           child: BaseMenuPanel(
-///             padding: const EdgeInsets.all(10),
-///             children: <Widget>[
-///               BaseMenuItem(
-///                 onPressed: () {
-///                   print('Undo');
-///                 },
-///                 child: const Text('Undo'),
-///               ),
-///               BaseMenuItem(
-///                 onPressed: () {
-///                   print('Redo');
-///                 },
-///                 child: const Text('Redo'),
-///               ),
-///             ],
-///           ),
-///         ),
-///         child: Container(
-///           padding: const EdgeInsets.symmetric(horizontal: 30),
-///           color: const Color(0xFF619BFF),
-///           alignment: .center,
-///           child: const Text('Edit'),
-///          ),
-///        ),
-///      ],
-///    ),
-///  ),
-///);
-/// ```
 ///
 /// **See also:**
 /// * [BaseMenu], for creating standalone dropdown menus and context menus.

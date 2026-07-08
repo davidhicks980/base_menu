@@ -18,32 +18,32 @@ const Color kWhite = Color(0xFFFFFFFF);
 
 const WidgetStateProperty<BoxDecoration> demoButtonDecoration = WidgetStateProperty.fromMap({
   WidgetState.disabled: BoxDecoration(
-    color: const Color(0xFFEDEDF4), // surfaceContainer
+    color: Color(0xFFEDEDF4), // surfaceContainer
     borderRadius: BorderRadius.all(Radius.circular(4)),
     border: Border.fromBorderSide(
-      BorderSide(color: const Color(0xFFC4C6D0), width: 2),
+      BorderSide(color: Color(0xFFC4C6D0), width: 1.5),
     ), // outlineVariant
   ),
   WidgetState.pressed: BoxDecoration(
     color: kDarkPressedColor,
     borderRadius: BorderRadius.all(Radius.circular(4)),
-    border: Border.fromBorderSide(BorderSide(color: kDarkPressedColor, width: 2)),
+    border: Border.fromBorderSide(BorderSide(color: kDarkPressedColor, width: 1.5)),
   ),
   WidgetState.focused: BoxDecoration(
     color: kTransparent,
     borderRadius: BorderRadius.all(Radius.circular(4)),
-    border: Border.fromBorderSide(BorderSide(color: kSeedColor, width: 2)),
+    border: Border.fromBorderSide(BorderSide(color: kSeedColor, width: 1.5)),
   ),
   WidgetState.hovered: BoxDecoration(
     color: kSeedColor,
     borderRadius: BorderRadius.all(Radius.circular(4)),
-    border: Border.fromBorderSide(BorderSide(color: kSeedColor, width: 2)),
+    border: Border.fromBorderSide(BorderSide(color: kSeedColor, width: 1.5)),
   ),
   WidgetState.any: BoxDecoration(
     color: kTransparent,
     borderRadius: BorderRadius.all(Radius.circular(4)),
     border: Border.fromBorderSide(
-      BorderSide(color: const Color(0xFFC4C6D0), width: 2),
+      BorderSide(color: Color(0xFFC4C6D0), width: 1.5),
     ), // outlineVariant
   ),
 });
@@ -145,7 +145,7 @@ class StyledMenuBarChild extends StatelessWidget {
     final states = BaseMenuItem.statesOf(context);
     return Container(
       decoration: demoMenuItemDecoration.resolve(states).copyWith(borderRadius: BorderRadius.zero),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: IconTheme(
         data: IconThemeData(color: demoTextStyle.resolve(states).copyWith(fontWeight: .w500).color),
         child: DefaultTextStyle(
@@ -264,7 +264,7 @@ class StyledMenuPanel extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xffffffff),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: const Color(0xFFFFFFFF)),
         borderRadius: borderRadius.resolve(Directionality.of(context)),
         boxShadow: [
           BoxShadow(

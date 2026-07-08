@@ -59,7 +59,7 @@ class _PopupState extends State<Popup> {
             padding: widget.orientation == .horizontal
                 ? EdgeInsets.zero
                 : const EdgeInsets.symmetric(vertical: 6.0),
-            constraints: const BoxConstraints(minWidth: 172),
+            constraints: const BoxConstraints(minWidth: 150),
             orientation: widget.orientation,
             children: [
               const MenuItem(label: 'Undo'),

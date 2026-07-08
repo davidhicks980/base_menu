@@ -36,6 +36,27 @@ class _SelectState extends State<Select> {
   bool _buttonHasFocus = false;
   bool _isFrameScheduled = false;
 
+  @override
+  void initState() {
+    super.initState();
+    widget.focusNode.addListener(_handleAnchorFocusChange);
+  }
+
+  @override
+  void didUpdateWidget(Select oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      oldWidget.focusNode.removeListener(_handleAnchorFocusChange);
+      widget.focusNode.addListener(_handleAnchorFocusChange);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.removeListener(_handleAnchorFocusChange);
+    super.dispose();
+  }
+
   void _resolveFocus() {
     if (_isFrameScheduled) {
       return;
@@ -49,9 +70,9 @@ class _SelectState extends State<Select> {
     });
   }
 
-  void _handleAnchorFocusChange(bool value) {
-    _buttonHasFocus = value;
-    if (!value) {
+  void _handleAnchorFocusChange() {
+    _buttonHasFocus = widget.focusNode.hasFocus;
+    if (!_buttonHasFocus) {
       _resolveFocus();
     }
   }
@@ -96,10 +117,7 @@ class _SelectState extends State<Select> {
       focusNode: widget.focusNode,
       mouseCursor: WidgetStateMouseCursor.clickable,
       onPressed: _handlePressed,
-      onAnchorFocusChange: _handleAnchorFocusChange,
       child: _SelectTextButton(
-        onFocusChange: _handleAnchorFocusChange,
-        focusNode: widget.focusNode,
         padding: widget.buttonPadding,
         radius: widget.buttonRadius,
         child: widget.child,
@@ -109,18 +127,10 @@ class _SelectState extends State<Select> {
 }
 
 class _SelectTextButton extends StatelessWidget {
-  const _SelectTextButton({
-    required this.padding,
-    required this.radius,
-    required this.focusNode,
-    required this.onFocusChange,
-    required this.child,
-  });
+  const _SelectTextButton({required this.padding, required this.radius, required this.child});
   final EdgeInsetsGeometry padding;
-  final FocusNode focusNode;
   final BorderRadiusGeometry radius;
   final Widget child;
-  final ValueChanged<bool> onFocusChange;
 
   @override
   Widget build(BuildContext context) {

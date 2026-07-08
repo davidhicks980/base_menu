@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
-import '../../../shared/package.dart';
 import '../model/enum.dart';
 import '../theme/colors.dart';
 import 'style_segment_tree.dart';
@@ -14,8 +13,7 @@ class EditorController extends TextEditingController {
   Map<DocumentParagraphStyle, SegmentTextStyle> paragraphStyles = {
     DocumentParagraphStyle.normal: const SegmentTextStyle(
       textStyle: TextStyle(
-        fontFamily: 'RobotoFlex',
-        package: kPackage,
+        inherit: false,
         fontSize: kIsWeb ? 14.5 : 14.0,
         height: 20 / 14,
         color: FloogleColors.black,
@@ -23,10 +21,16 @@ class EditorController extends TextEditingController {
       ),
     ),
     DocumentParagraphStyle.title: const SegmentTextStyle(
-      textStyle: TextStyle(fontSize: 36, height: 32 / 26, fontWeight: FontWeight.w500),
+      textStyle: TextStyle(
+        inherit: false,
+        fontSize: 36,
+        height: 32 / 26,
+        fontWeight: FontWeight.w500,
+      ),
     ),
     DocumentParagraphStyle.subtitle: const SegmentTextStyle(
       textStyle: TextStyle(
+        inherit: false,
         fontSize: 18,
         height: 28 / 18,
         fontStyle: FontStyle.italic,
@@ -34,13 +38,28 @@ class EditorController extends TextEditingController {
       ),
     ),
     DocumentParagraphStyle.heading1: const SegmentTextStyle(
-      textStyle: TextStyle(fontSize: 28, height: 28 / 22, fontWeight: FontWeight.w500),
+      textStyle: TextStyle(
+        inherit: false,
+        fontSize: 28,
+        height: 28 / 22,
+        fontWeight: FontWeight.w500,
+      ),
     ),
     DocumentParagraphStyle.heading2: const SegmentTextStyle(
-      textStyle: TextStyle(fontSize: 24, height: 24 / 16, fontWeight: FontWeight.w500),
+      textStyle: TextStyle(
+        inherit: false,
+        fontSize: 24,
+        height: 24 / 16,
+        fontWeight: FontWeight.w500,
+      ),
     ),
     DocumentParagraphStyle.heading3: const SegmentTextStyle(
-      textStyle: TextStyle(fontSize: 20, height: 20 / 14, fontWeight: FontWeight.w400),
+      textStyle: TextStyle(
+        inherit: false,
+        fontSize: 20,
+        height: 20 / 14,
+        fontWeight: FontWeight.w400,
+      ),
     ),
   };
 
@@ -223,7 +242,10 @@ class EditorController extends TextEditingController {
       }
 
       final paragraphStyle = paragraphStyles[paragraph]!;
-      final mergedStyle = paragraphStyle.merge(currentStyle);
+      SegmentTextStyle mergedStyle = paragraphStyle.merge(currentStyle);
+      mergedStyle = mergedStyle.copyWith(
+        textStyle: mergedStyle.textStyle?.copyWith(package: null, inherit: false),
+      );
       if (currentStyle.isSuperscript == true || currentStyle.isSubscript == true) {
         final double fontSize = mergedStyle.textStyle?.fontSize ?? 14.0;
         const scaleFactor = 0.7;

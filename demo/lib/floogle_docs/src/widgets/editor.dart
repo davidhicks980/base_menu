@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -191,18 +190,6 @@ class _EditorWidget extends StatelessWidget {
       forceLine: true,
       enableInteractiveSelection: true,
       autofocus: true,
-      onTapOutside: (event) {
-        MenuController.maybeOf(context)?.close();
-      },
-      onSingleLongTapStart: (details) {
-        if (kIsWeb && BrowserContextMenu.enabled) {
-          return;
-        }
-        MenuController.maybeOf(context)?.open(position: details.globalPosition);
-      },
-      onTap: () {
-        MenuController.maybeOf(context)?.close();
-      },
       focusNode: AppStateManager.editorFocusNodeOf(context),
       textController: AppStateManager.controllerOf(context),
       textAlign: AppStateManager.selectedTextStyleOf(context)?.textAlign ?? TextAlign.start,

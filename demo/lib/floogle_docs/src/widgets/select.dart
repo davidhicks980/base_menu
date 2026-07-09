@@ -113,7 +113,7 @@ class _SelectState extends State<Select> {
               padding: MenuPanel.defaultPadding,
             ),
       requestFocusOnHover: false,
-      requestOpenOnHover: false,
+      enableHoverTraversal: false,
       menu: widget.panel,
       focusNode: widget.focusNode,
       mouseCursor: WidgetStateMouseCursor.clickable,

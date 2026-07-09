@@ -1,11 +1,11 @@
 {
-    "name": "floogle_docs",
-    "short_name": "floogle_docs",
+    "name": "Floogle Docs",
+    "short_name": "Floogle Docs",
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Floogle Docs",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -35,18 +35,15 @@ class _SequoiaMenuBarState extends State<SequoiaMenuBar> {
   Widget build(BuildContext context) {
     return SequoiaMenuDismissCoordinator(
       controller: controller,
-      onFadeOutBegin: () {
-        focusScopeNode.requestScopeFocus();
-      },
       child: Builder(
         builder: (context) {
-          return TapRegion(
-            groupId: controller,
-            onTapOutside: (event) {
-              SequoiaMenuDismissHandler.of(context).fadeMenuOut();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+          return ExcludeFocus(
+            excluding: SequoiaMenuDismissHandler.of(context).isAnimatingOut,
+            child: TapRegion(
+              groupId: controller,
+              onTapOutside: (event) {
+                SequoiaMenuDismissHandler.of(context).fadeMenuOut();
+              },
               child: BaseMenuBar(
                 controller: controller,
                 focusScopeNode: focusScopeNode,
@@ -168,13 +165,12 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
         anchorActions: actions,
         focusNode: focusNode,
         requestFocusOnHover: _dismissHandler.isInteractive,
-        requestOpenOnHover: _dismissHandler.isInteractive,
+        enableHoverTraversal: _dismissHandler.isInteractive,
         onOpen: widget.onOpen,
         onPressed: () {
           if (controller.isOpen) {
             if (widget.isTopLevel) {
               _dismissHandler.fadeMenuOut();
-              focusNode.unfocus();
             }
           } else {
             controller.open();

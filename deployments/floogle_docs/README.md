@@ -1,3 +1,3 @@
-# floogle_docs
+# Floogle Docs
 
-A new Flutter project.
+A rich text editor demo demonstrating how to use the Base Menu Library.

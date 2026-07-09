@@ -44,20 +44,19 @@ class _MenuEntryPopupState extends State<MenuEntryPopup> {
       buttonDecoration: widget.buttonDecoration,
       tooltip: widget.tooltip,
       onOpen: () {
-        focusNode.requestFocus();
+        if (!focusNode.hasFocus) {
+          focusNode.requestFocus();
+        }
         widget.onOpen?.call();
       },
       onClose: widget.onClose,
-      panel: Builder(
-        builder: (context) {
-          return MenuEntryPanel(
-            constraints: widget.constraints,
-            menuEntry: widget.model,
-            onSurfaceExit: (_) {
-              focusNode.requestFocus();
-              MenuController.maybeOf(context)?.open();
-            },
-          );
+      panel: MenuEntryPanel(
+        constraints: widget.constraints,
+        menuEntry: widget.model,
+        onSurfaceExit: (_) {
+          if (!focusNode.hasFocus) {
+            focusNode.requestFocus();
+          }
         },
       ),
       child: Icon(widget.model.child.icon),

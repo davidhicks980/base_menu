@@ -85,7 +85,7 @@ class BaseSubmenu<T extends Object?> extends StatefulWidget
     this.enabled = true,
     this.anchorActions,
     this.requestFocusOnHover = true,
-    this.requestOpenOnHover = true,
+    this.enableHoverTraversal = true,
   });
 
   @override
@@ -207,7 +207,7 @@ class BaseSubmenu<T extends Object?> extends StatefulWidget
   /// Whether the submenu should open when hovered.
   ///
   /// Defaults to true.
-  final bool requestOpenOnHover;
+  final bool enableHoverTraversal;
 
   @override
   bool get requestCloseOnActivate => false;
@@ -331,7 +331,7 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
   }
 
   void _handlePointerEnterAnchor(PointerEnterEvent event) {
-    if (widget.requestOpenOnHover && !widget.controller.isOpen) {
+    if (widget.enableHoverTraversal && !widget.controller.isOpen) {
       _scheduleHoverOpen();
     }
     _closeTimer?.cancel();
@@ -340,7 +340,7 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
 
   void _handlePointerLeaveAnchor(PointerExitEvent event) {
     _openTimer?.cancel();
-    if (widget.controller.isOpen && !_isScopeFocused) {
+    if (widget.controller.isOpen && !_isScopeFocused && widget.enableHoverTraversal) {
       _scheduleHoverClose();
     }
 
@@ -350,7 +350,9 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
 
   void _handlePointerEnterPanel(PointerEvent event) {
     _closeTimer?.cancel();
-    _focusNode.requestFocus();
+    if (!_focusNode.hasFocus) {
+      _focusNode.requestFocus();
+    }
     _updateHighlight();
   }
 

@@ -20,11 +20,42 @@
     ],
     "rewrites": [
       {
-        "source": "**",
+        "source": "/v*/**",
+        "destination": "/index.html"
+      },
+      {
+        "source": "**/!(*.*)",
         "destination": "/index.html"
       }
     ],
     "headers": [
+      {
+        "source": "index.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "v*/flutter_service_worker.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "v*/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=0, must-revalidate"
+          }
+        ]
+      },
       {
         "source": "**",
         "headers": [
@@ -35,19 +66,6 @@
           {
             "key": "Cross-Origin-Opener-Policy",
             "value": "same-origin"
-          },
-          {
-            "key": "Cache-Control",
-            "value": "max-age=3600,s-maxage=3600"
-          }
-        ]
-      },
-      {
-        "source": "**/index.html",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate"
           }
         ]
       }

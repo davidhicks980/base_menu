@@ -72,6 +72,8 @@ class SequoiaMenuActionLabel extends StatelessWidget {
     this.leadingContentWidth = 20,
     this.trailing,
     this.shortcut,
+    this.backgroundColor,
+    this.foregroundColor,
   });
 
   final Widget? leading;
@@ -79,6 +81,8 @@ class SequoiaMenuActionLabel extends StatelessWidget {
   final Widget? trailing;
   final MenuSerializableShortcut? shortcut;
   final Widget child;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
 
   static const WidgetStateProperty<Color> _kSequoiaTextColorDark = WidgetStateProperty.fromMap({
     WidgetState.focused: _kSequoiaTextFocused,
@@ -97,11 +101,11 @@ class SequoiaMenuActionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final states = BaseMenuItem.statesOf(context);
-    final textColor = _kSequoiaTextColorDark.resolve(states);
-    final secondaryColor = _kSequoiaSecondaryColorDark.resolve(states);
-    final backgroundColor = _kSequoiaBackgroundColor.resolve(states);
+    final textColor = foregroundColor ?? _kSequoiaTextColorDark.resolve(states);
+    final secondaryColor = foregroundColor ?? _kSequoiaSecondaryColorDark.resolve(states);
+    final background = backgroundColor ?? _kSequoiaBackgroundColor.resolve(states);
     return DecoratedBox(
-      decoration: BoxDecoration(color: backgroundColor, borderRadius: _kSequoiaMenuBorderRadius),
+      decoration: BoxDecoration(color: background, borderRadius: _kSequoiaMenuBorderRadius),
       child: Padding(
         padding: _kSequoiaMenuItemPadding,
         child: IconTheme.merge(
@@ -232,7 +236,7 @@ class SequoiaMenuBarActionLabel extends StatelessWidget {
     super.key,
     required this.child,
     this.radius = const BorderRadius.all(Radius.circular(5.0)),
-    this.padding = const EdgeInsets.fromLTRB(12.0, 4.0, 12.0, 5.0),
+    this.padding = const EdgeInsets.fromLTRB(12.0, 4.0, 12.0, 4.0),
   });
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -243,16 +247,26 @@ class SequoiaMenuBarActionLabel extends StatelessWidget {
     final isFocused = BaseMenuItem.isFocusHighlightShownOf(context);
     const textColor = Color(0xFFFFFFFF);
 
-    return CustomPaint(
-      painter: _MenuBarHighlightPainter(
-        enabled: isFocused,
-        radius: radius.resolve(Directionality.of(context)),
-      ),
+    return ColoredBox(
+      color: const Color(0x00000000),
       child: Padding(
-        padding: padding,
-        child: DefaultTextStyle.merge(
-          style: textStyle.copyWith(fontSize: 13.5, color: textColor, fontWeight: FontWeight.w400),
-          child: child,
+        padding: const EdgeInsets.only(top: 4.0),
+        child: CustomPaint(
+          painter: _MenuBarHighlightPainter(
+            enabled: isFocused,
+            radius: radius.resolve(Directionality.of(context)),
+          ),
+          child: Padding(
+            padding: padding,
+            child: DefaultTextStyle.merge(
+              style: textStyle.copyWith(
+                fontSize: 13.5,
+                color: textColor,
+                fontWeight: FontWeight.w400,
+              ),
+              child: child,
+            ),
+          ),
         ),
       ),
     );
@@ -272,30 +286,19 @@ class _MenuBarHighlightPainter extends CustomPainter {
     }
 
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.1)
+      ..color = const Color.fromRGBO(255, 255, 255, 0.1)
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
     final rect = Rect.fromLTWH(-4, 0, size.width + 8, size.height);
-    if (kIsWeb) {
-      final rrect = RRect.fromRectAndCorners(
-        rect,
-        bottomLeft: radius.bottomLeft,
-        bottomRight: radius.bottomRight,
-        topLeft: radius.topLeft,
-        topRight: radius.topRight,
-      );
-      canvas.drawRRect(rrect, paint);
-    } else {
-      final rrect = RSuperellipse.fromRectAndCorners(
-        rect,
-        bottomLeft: radius.bottomLeft,
-        bottomRight: radius.bottomRight,
-        topLeft: radius.topLeft,
-        topRight: radius.topRight,
-      );
-      canvas.drawRSuperellipse(rrect, paint);
-    }
+    final rrect = RSuperellipse.fromRectAndCorners(
+      rect,
+      bottomLeft: radius.bottomLeft,
+      bottomRight: radius.bottomRight,
+      topLeft: radius.topLeft,
+      topRight: radius.topRight,
+    );
+    canvas.drawRSuperellipse(rrect, paint);
   }
 
   @override

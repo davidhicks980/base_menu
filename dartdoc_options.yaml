@@ -1,7 +1,4 @@
 dartdoc:
   linkToSource:
-    # The root of your repository (relative to this file)
     root: '.'
-    # The URL template for GitHub
-    # %f% is the file path, %l% is the line number
     uriTemplate: 'https://github.com/davidhicks980/base_menu/blob/main/%f%#L%l%'

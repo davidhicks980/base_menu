@@ -1,18 +1,3 @@
-# Specify analysis options.
-#
-# For a list of lints, see: https://dart.dev/tools/linter-rules
-# For guidelines on configuring static analysis, see:
-# https://dart.dev/tools/analysis
-#
-# There are other similar analysis options files in the flutter repos,
-# which should be kept in sync with this file:
-#
-#   - analysis_options.yaml (this file)
-#   - https://github.com/flutter/packages/blob/main/analysis_options.yaml
-#
-# This file contains the analysis options used for code in the flutter/flutter
-# repository.
-
 analyzer:
   language:
     strict-casts: true
@@ -60,7 +45,6 @@ linter:
     - avoid_equals_and_hash_code_on_mutable_classes
     - avoid_escaping_inner_quotes
     - avoid_field_initializers_in_const_classes
-    # TODO(kallentu): Remove this lint once the Dart SDK in Flutter is on version 3.13.
     - avoid_final_parameters
     - avoid_function_literals_in_foreach_calls
     # - avoid_futureor_void # not yet tested
@@ -270,7 +254,5 @@ linter:
     # - use_to_and_as_if_applicable # has false positives, so we prefer to catch this by code-review
     - use_truncating_division
     - valid_regexps
-    # TODO(kallentu): Remove this lint once the Dart SDK in Flutter is on version 3.13.
-    # - var_with_no_type_annotation
     - void_checks
     - no_runtimeType_toString # use objectRuntimeType from package:foundation

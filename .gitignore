@@ -27,11 +27,11 @@ migrate_working_dir/
 **/doc/api/
 .dart_tool/
 .flutter-plugins-dependencies
-/build/
-/coverage/
+build/
+coverage/
 
 .fvm/
 .fvmrc
 .vscode/copilot-instructions.md
 .vscode/settings.json
-bust.sh
+doc/

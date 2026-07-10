@@ -1,2 +1,5 @@
 deployments/
 demo/
+build/
+coverage/
+doc/

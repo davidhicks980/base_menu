@@ -9,6 +9,7 @@ import '../../data/entry.dart';
 import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../../theme/colors.dart';
+import '../../utilities/exclusive_menu_manager.dart';
 import '../adapters/menu_entry_toolbar_button.dart';
 import '../app_state_manager.dart';
 import '../editable.dart';
@@ -263,6 +264,7 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
   }
 
   void _handleClose() {
+    ExclusiveMenuManager.of(context).setInactive(menuController);
     setState(() {
       menuController.close();
       _textController.clear();
@@ -287,6 +289,9 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
         anchorAttachment: .topStart,
         menuAttachment: .topStart,
       ),
+      onOpen: () {
+        ExclusiveMenuManager.of(context).setActive(menuController);
+      },
       onClose: _handleClose,
       onFocusChange: _handleFocusChange,
       menu: BaseMenuPanel(

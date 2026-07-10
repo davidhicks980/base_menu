@@ -19,13 +19,24 @@ Future<void> main() async {
       final fileName = entry.key;
       final dimension = entry.value;
 
-      final iconWidth = dimension * 0.75;
-      final iconHeight = dimension;
+      double iconHeight;
+      double iconWidth;
+      // Scale height to 85% of the total dimension to create a margin
+      if (fileName.contains("favicon")) {
+        iconHeight = dimension;
+        iconWidth = iconHeight * 0.75;
+      } else {
+        iconHeight = dimension * 0.7;
+        iconWidth = iconHeight * 0.75;
+      }
 
       final recorder = PictureRecorder();
       final canvas = Canvas(recorder);
 
-      canvas.translate((dimension - iconWidth) / 2, 0);
+      // Center the icon both horizontally and vertically
+      final dx = (dimension - iconWidth) / 2;
+      final dy = (dimension - iconHeight) / 2;
+      canvas.translate(dx, dy);
 
       FloogleDocsPainter().paint(canvas, Size(iconWidth, iconHeight));
 

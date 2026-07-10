@@ -1,3 +1,7 @@
+/// @docImport 'interface.dart';
+/// @docImport 'menu.dart';
+library;
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
@@ -30,8 +34,8 @@ class MenuAimScope extends InheritedWidget {
     required this.enable,
     required super.child,
     this.sampleCount = MenuAimInterceptor.defaultSampleCount,
-    this.minimumDistanceSquared = MenuAimInterceptor.defaultMinimumDistanceSquared,
-    this.exitDuration = MenuAimInterceptor.defaultExitDuration,
+    this.movementThreshold = MenuAimInterceptor.defaultMovementThreshold,
+    this.aimTimeout = MenuAimInterceptor.defaultAimTimeout,
   });
 
   /// A boolean flag indicating whether menu aim assist is enabled.
@@ -39,24 +43,37 @@ class MenuAimScope extends InheritedWidget {
   /// When set to `true`, menu aim assist is enabled by default for all
   /// [BaseMenu] and [BaseSubmenu] descendants in the widget tree. When set to
   /// `false`, menu aim assist behavior is disabled.
+  ///
+  /// If a custom [MenuPositioningDelegate] is used to position a menu, the
+  /// delegate must implement menu aim assist behavior for this flag to have an
+  /// effect. See [DefaultMenuPositioningDelegate] for an example of how to
+  /// implement menu aim assist in a custom delegate.
   final bool enable;
 
-  /// {@template MenuAimInterceptor.sampleCount}
-  /// The number of pointer position samples to maintain for trajectory calculations.
-  /// {@endtemplate}
+  /// The number of pointer events in the sliding window used to determine the
+  /// pointer trajectory and velocity.
+  ///
+  /// A larger sample count increases trajectory stability by averaging movement
+  /// over a longer period, but can cause the aim-assist projection to lag
+  /// behind the pointer after a sharp directional change. A smaller count is
+  /// more responsive to sudden turns but more susceptible to input noise
+  /// (jitter).
   final int sampleCount;
 
-  /// {@template MenuAimInterceptor.minimumDistanceSquared}
-  /// The minimum squared distance between the first and last pointer position
-  /// to consider the pointer as moving towards the target.
-  /// {@endtemplate}
-  final double minimumDistanceSquared;
+  /// The minimum pointer velocity required to trigger and maintain aim-assist
+  /// protection.
+  ///
+  /// This is the minimum distance the pointer must travel within the current
+  /// [sampleCount] window. Increasing it requires the user to move more quickly
+  /// and deliberately to maintain aim-assist.
+  final double movementThreshold;
 
-  /// {@template MenuAimInterceptor.exitDuration}
-  /// The duration for the exit timer that disables menu aim assist after the
-  /// pointer leaves the anchor area.
-  /// {@endtemplate}
-  final Duration exitDuration;
+  /// The duration that aim-assist protection remains active after a valid
+  /// trajectory was last detected.
+  ///
+  /// This ensures the projected triangle doesn't flicker off if the user pauses
+  /// briefly while navigating toward the submenu.
+  final Duration aimTimeout;
 
   /// Returns `true` if menu aim assist is enabled in the current context.
   ///
@@ -70,29 +87,34 @@ class MenuAimScope extends InheritedWidget {
   bool updateShouldNotify(MenuAimScope oldWidget) {
     return enable != oldWidget.enable ||
         sampleCount != oldWidget.sampleCount ||
-        minimumDistanceSquared != oldWidget.minimumDistanceSquared ||
-        exitDuration != oldWidget.exitDuration;
+        movementThreshold != oldWidget.movementThreshold ||
+        aimTimeout != oldWidget.aimTimeout;
   }
 }
 
-/// A widget that intercepts pointer hit-tests when the pointer moves
-/// diagonally from a menu item toward a submenu.
+/// A widget that intercepts pointer hit-tests when the pointer moves diagonally
+/// from a menu item toward a submenu.
 ///
 /// This prevents premature submenu closures when the pointer travels diagonally
 /// over sibling menu items on its way to the [MenuAimGeometry.targetRect].
 ///
-/// The algorithm performs the following:
+/// The algorithm:
 /// 1. Maintains a queue of [Offset] samples to calculate trajectory.
-/// 2. Performs a dot-product check to confirm movement is directed toward
-///    the target.
-/// 3. Validates that the pointer remains within an angular projection
-///    extending from the origin of movement to the submenu's boundaries.
-/// 4. Intercepts hit-tests to prevent sibling items from gaining focus
-///    until the pointer enters the target area or exits the projection cone.
+/// 2. Performs a dot-product check to confirm movement is directed toward the
+///    target.
+/// 3. Validates that the pointer remains within an angular projection extending
+///    from the origin of movement to the submenu's boundaries.
+/// 4. Intercepts hit-tests to prevent sibling items from gaining focus until
+///    the pointer enters the target area or exits the projected triangle.
 ///
-/// Set [MenuAimInterceptor.visualizeAim] to `true` to draw the active tracking
-/// lines and cone overlays directly on the canvas for visual testing in debug
-/// builds.
+/// Setting [MenuAimInterceptor.visualizeAim] to true draws the trajectory in
+/// debug builds. To enable visualization in production builds, set the
+/// environment variable `VISUALIZE_MENU_AIM` to true.
+///
+/// To implement menu aim assist in a custom [MenuPositioningDelegate], place
+/// the [MenuAimInterceptor] widget in front of the menu overlay in a [Stack],
+/// and provide a [MenuAimGeometry] object that defines the anchor and target
+/// rectangles. See [DefaultMenuPositioningDelegate] for an example.
 class MenuAimInterceptor extends StatelessWidget {
   /// Creates a [MenuAimInterceptor] that wraps its child.
   ///
@@ -105,26 +127,26 @@ class MenuAimInterceptor extends StatelessWidget {
   final MenuAimGeometry geometry;
 
   /// A static flag to enable or disable visualization of the aim assist
-  /// behavior. When set to `true`, the widget will draw lines and cones on the
-  /// canvas to illustrate the current pointer trajectory and the target area.
+  /// behavior. When set to `true`, the widget will draw lines and triangles on
+  /// the canvas to illustrate the current pointer trajectory and the target
+  /// area.
   ///
-  ///
-  /// This flag has no effect in release builds and is intended for debugging
-  /// and testing purposes only. To enable this feature in production builds,
-  /// set the environment variable `VISUALIZE_MENU_AIM` to `true` at compile
-  /// time.
+  /// Aim visualization is intended for debugging and is ignored in release
+  /// builds by default. To enable this feature in production builds, set the
+  /// environment variable `VISUALIZE_MENU_AIM` to `true` at compile time.
   static bool visualizeAim = false;
 
-  /// The default duration for the exit timer that disables menu aim assist after
+  /// The default duration for the aim timeout that disables menu aim assist after
   /// the pointer leaves the anchor area.
-  static const defaultExitDuration = Duration(milliseconds: 300);
+  static const defaultAimTimeout = Duration(milliseconds: 300);
 
-  /// The default number of pointer position samples to maintain for trajectory calculations.
+  /// The default number of pointer position samples to maintain for trajectory
+  /// calculations.
   static const int defaultSampleCount = 15;
 
-  /// The default minimum squared distance between the first and last pointer
-  /// position samples to consider the pointer as moving towards the target.
-  static const double defaultMinimumDistanceSquared = 15.0;
+  /// The default distance the pointer must travel within the [sampleCount]
+  /// window to trigger aim-assist protection.
+  static const double defaultMovementThreshold = 3.8;
 
   /// Returns the class name of the private widget used for menu aim.
   @visibleForTesting
@@ -135,24 +157,24 @@ class MenuAimInterceptor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scope = MenuAimScope.maybeOf(context);
-    if (scope != null && !scope.enable) {
-      return const SizedBox.shrink();
-    }
+    final sampleCount = scope?.sampleCount ?? defaultSampleCount;
+    final movementThreshold = scope?.movementThreshold ?? defaultMovementThreshold;
+    final aimTimeout = scope?.aimTimeout ?? defaultAimTimeout;
 
     if (_kEnableMenuAimVisualizer && visualizeAim) {
       return _MenuAimVisualizer(
         geometry: geometry,
-        sampleCount: scope?.sampleCount ?? defaultSampleCount,
-        minimumDistanceSquared: scope?.minimumDistanceSquared ?? defaultMinimumDistanceSquared,
-        exitDuration: scope?.exitDuration ?? defaultExitDuration,
+        sampleCount: sampleCount,
+        movementThreshold: movementThreshold,
+        aimTimeout: aimTimeout,
       );
     }
 
     return _MenuAimListener(
       geometry: geometry,
-      sampleCount: scope?.sampleCount ?? defaultSampleCount,
-      minimumDistanceSquared: scope?.minimumDistanceSquared ?? defaultMinimumDistanceSquared,
-      exitDuration: scope?.exitDuration ?? defaultExitDuration,
+      sampleCount: sampleCount,
+      movementThreshold: movementThreshold,
+      aimTimeout: aimTimeout,
     );
   }
 }
@@ -161,21 +183,21 @@ class _MenuAimListener extends LeafRenderObjectWidget {
   const _MenuAimListener({
     required this.geometry,
     required this.sampleCount,
-    required this.minimumDistanceSquared,
-    required this.exitDuration,
+    required this.movementThreshold,
+    required this.aimTimeout,
   });
   final MenuAimGeometry geometry;
   final int sampleCount;
-  final double minimumDistanceSquared;
-  final Duration exitDuration;
+  final double movementThreshold;
+  final Duration aimTimeout;
 
   @override
   _RenderMenuAimListener createRenderObject(BuildContext context) {
     return _RenderMenuAimListener(
       geometry: geometry,
       sampleCount: sampleCount,
-      minimumDistanceSquared: minimumDistanceSquared,
-      exitDuration: exitDuration,
+      movementThreshold: movementThreshold,
+      aimTimeout: aimTimeout,
     );
   }
 
@@ -184,15 +206,15 @@ class _MenuAimListener extends LeafRenderObjectWidget {
     renderObject
       ..geometry = geometry
       ..sampleCount = sampleCount
-      ..minimumDistanceSquared = minimumDistanceSquared
-      ..exitDuration = exitDuration;
+      ..movementThreshold = movementThreshold
+      ..aimTimeout = aimTimeout;
   }
 }
 
 class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
   _RenderMenuAimListener({
-    required this.exitDuration,
-    required this.minimumDistanceSquared,
+    required this.aimTimeout,
+    required this.movementThreshold,
     required this.geometry,
     required int sampleCount,
   }) : _sampleCount = sampleCount;
@@ -200,9 +222,9 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
   late final ListQueue<Offset> points = ListQueue(_sampleCount);
   MenuAimGeometry geometry;
   bool enabled = true;
-  Timer? exitTimer;
-  Duration exitDuration;
-  double minimumDistanceSquared;
+  Timer? aimTimeoutTimer;
+  Duration aimTimeout;
+  double movementThreshold;
   int get sampleCount => _sampleCount;
   int _sampleCount;
   set sampleCount(int value) {
@@ -218,14 +240,14 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
 
   @override
   void detach() {
-    exitTimer?.cancel();
-    exitTimer = null;
+    aimTimeoutTimer?.cancel();
+    aimTimeoutTimer = null;
     super.detach();
   }
 
   // coverage:ignore-start
   @protected
-  void handleConeUpdate() {
+  void handleTriangleUpdate() {
     assert(() {
       if (attached && debugPaintSizeEnabled) {
         markNeedsPaint();
@@ -239,11 +261,11 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
     Offset start,
     Offset end,
     Rect target,
-    double minimumDistanceSquared,
+    double movementThreshold,
   ) {
     final Offset movement = end - start;
 
-    if (movement.distanceSquared < minimumDistanceSquared) {
+    if (movement.distanceSquared < movementThreshold * movementThreshold) {
       return false;
     }
 
@@ -259,7 +281,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
       return false;
     }
 
-    // Verify movement vector falls within the cone formed by the target's corners
+    // Verify movement vector falls within the triangle formed by the target's corners
     final List<Offset> corners = [
       target.topLeft,
       target.topRight,
@@ -286,15 +308,16 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
       }
     }
 
-    // If the movement direction is bounded by the outermost angle differences, it is inside the cone
+    // If the movement direction is bounded by the outermost angle differences,
+    // it is inside the triangle
     return minAngleDiff <= 0 && maxAngleDiff >= 0;
   }
 
   @override
   bool hitTest(BoxHitTestResult result, {required Offset position}) {
-    if (exitTimer != null) {
-      exitTimer!.cancel();
-      exitTimer = null;
+    if (aimTimeoutTimer != null) {
+      aimTimeoutTimer!.cancel();
+      aimTimeoutTimer = null;
     }
 
     if (geometry.targetRect == null || geometry.anchorRect == null) {
@@ -309,7 +332,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
     if (geometry.anchorRect!.contains(position) || points.length < 2) {
       enabled = true;
       if (_kEnableMenuAimVisualizer) {
-        handleConeUpdate();
+        handleTriangleUpdate();
       }
       return false;
     }
@@ -322,24 +345,24 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
     if (target.contains(position)) {
       enabled = false;
       if (_kEnableMenuAimVisualizer) {
-        handleConeUpdate();
+        handleTriangleUpdate();
       }
       return false;
     }
 
-    if (_isMovingTowardsTarget(points.first, points.last, target, minimumDistanceSquared)) {
+    if (_isMovingTowardsTarget(points.first, points.last, target, movementThreshold)) {
       result.add(BoxHitTestEntry(this, position));
-      exitTimer = Timer(exitDuration, () {
+      aimTimeoutTimer = Timer(aimTimeout, () {
         enabled = false;
         if (attached) {
           markNeedsPaint();
         }
         if (_kEnableMenuAimVisualizer) {
-          handleConeUpdate();
+          handleTriangleUpdate();
         }
       });
       if (_kEnableMenuAimVisualizer) {
-        handleConeUpdate();
+        handleTriangleUpdate();
       }
       return true;
     }
@@ -354,7 +377,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
     super.debugPaintSize(context, offset);
     assert(() {
       if (enabled) {
-        _paintCone(context, offset, points, geometry);
+        _paintTriangle(context, offset, points, geometry);
       }
       return true;
     }());
@@ -367,8 +390,8 @@ class _MenuAimVisualizer extends _MenuAimListener {
   const _MenuAimVisualizer({
     required super.geometry,
     required super.sampleCount,
-    required super.minimumDistanceSquared,
-    required super.exitDuration,
+    required super.movementThreshold,
+    required super.aimTimeout,
   });
 
   @override
@@ -376,8 +399,8 @@ class _MenuAimVisualizer extends _MenuAimListener {
     return _RenderMenuAimVisualizer(
       geometry: geometry,
       sampleCount: sampleCount,
-      minimumDistanceSquared: minimumDistanceSquared,
-      exitDuration: exitDuration,
+      movementThreshold: movementThreshold,
+      aimTimeout: aimTimeout,
     );
   }
 
@@ -385,21 +408,21 @@ class _MenuAimVisualizer extends _MenuAimListener {
   void updateRenderObject(BuildContext context, _RenderMenuAimVisualizer renderObject) {
     renderObject.geometry = geometry;
     renderObject.sampleCount = sampleCount;
-    renderObject.minimumDistanceSquared = minimumDistanceSquared;
-    renderObject.exitDuration = exitDuration;
+    renderObject.movementThreshold = movementThreshold;
+    renderObject.aimTimeout = aimTimeout;
   }
 }
 
 class _RenderMenuAimVisualizer extends _RenderMenuAimListener {
   _RenderMenuAimVisualizer({
-    required super.exitDuration,
-    required super.minimumDistanceSquared,
+    required super.aimTimeout,
+    required super.movementThreshold,
     required super.geometry,
     required super.sampleCount,
   });
 
   @override
-  void handleConeUpdate() {
+  void handleTriangleUpdate() {
     if (attached) {
       markNeedsPaint();
     }
@@ -409,12 +432,12 @@ class _RenderMenuAimVisualizer extends _RenderMenuAimListener {
   void paint(PaintingContext context, ui.Offset offset) {
     super.paint(context, offset);
     if (enabled) {
-      _paintCone(context, offset, points, geometry);
+      _paintTriangle(context, offset, points, geometry);
     }
   }
 }
 
-void _paintCone(
+void _paintTriangle(
   PaintingContext context,
   ui.Offset offset,
   ListQueue<Offset> points,
@@ -460,16 +483,16 @@ void _paintCone(
         }
       }
 
-      final conePaint = Paint()
+      final trianglePaint = Paint()
         ..color = const Color(0xFFFF00FF)
         ..strokeWidth = 1.0
         ..style = PaintingStyle.stroke;
 
       if (minCorner != null) {
-        canvas.drawLine(origin, minCorner, conePaint);
+        canvas.drawLine(origin, minCorner, trianglePaint);
       }
       if (maxCorner != null && maxCorner != minCorner) {
-        canvas.drawLine(origin, maxCorner, conePaint);
+        canvas.drawLine(origin, maxCorner, trianglePaint);
       }
       final rect = delegate.targetRect!;
       final double clampedX = ui.clampDouble(p1.dx, rect.left, rect.right);

@@ -613,15 +613,15 @@ void main() {
     // Check defaults
     expect(scopeData.enable, isTrue);
     expect(scopeData.sampleCount, MenuAimInterceptor.defaultSampleCount);
-    expect(scopeData.minimumDistanceSquared, MenuAimInterceptor.defaultMinimumDistanceSquared);
-    expect(scopeData.exitDuration, MenuAimInterceptor.defaultExitDuration);
+    expect(scopeData.movementThreshold, MenuAimInterceptor.defaultMovementThreshold);
+    expect(scopeData.aimTimeout, MenuAimInterceptor.defaultAimTimeout);
 
     await tester.pumpWidget(
       MenuAimScope(
         enable: false,
         sampleCount: 10,
-        minimumDistanceSquared: 100.0,
-        exitDuration: const Duration(milliseconds: 500),
+        movementThreshold: 100.0,
+        aimTimeout: const Duration(milliseconds: 500),
         child: Builder(
           builder: (context) {
             scopeData = MenuAimScope.maybeOf(context)!;
@@ -634,8 +634,8 @@ void main() {
 
     expect(scopeData.enable, isFalse);
     expect(scopeData.sampleCount, 10);
-    expect(scopeData.minimumDistanceSquared, 100.0);
-    expect(scopeData.exitDuration, const Duration(milliseconds: 500));
+    expect(scopeData.movementThreshold, 100.0);
+    expect(scopeData.aimTimeout, const Duration(milliseconds: 500));
   });
 
   testWidgets('dynamically updating sampleCount trims excess points on render object', (
@@ -647,13 +647,7 @@ void main() {
 
     // Render with large sampleCount
     await tester.pumpWidget(
-      App(
-        MenuAimScope(
-          enable: true,
-          sampleCount: 10,
-          child: AimTester(geometry: geometry, onHoverChanged: (_) {}),
-        ),
-      ),
+      App(AimTester(geometry: geometry, onHoverChanged: (_) {}, sampleCount: 10)),
     );
 
     final TestGesture gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
@@ -676,13 +670,7 @@ void main() {
 
     // Rebuild with custom scope asserting a smaller sampleCount
     await tester.pumpWidget(
-      App(
-        MenuAimScope(
-          enable: true,
-          sampleCount: 3,
-          child: AimTester(geometry: geometry, onHoverChanged: (_) {}),
-        ),
-      ),
+      App(AimTester(sampleCount: 3, geometry: geometry, onHoverChanged: (_) {})),
     );
 
     // Verify queue is trimmed down immediately on render object update
@@ -703,15 +691,13 @@ void main() {
     // Use a very short custom exit duration of 50ms
     await tester.pumpWidget(
       App(
-        MenuAimScope(
-          enable: true,
-          exitDuration: const Duration(milliseconds: 50),
-          child: AimTester(
-            geometry: geometry,
-            onHoverChanged: (hovered) {
-              intercepted = !hovered;
-            },
-          ),
+        AimTester(
+          aimTimeout: const Duration(milliseconds: 50),
+
+          geometry: geometry,
+          onHoverChanged: (hovered) {
+            intercepted = !hovered;
+          },
         ),
       ),
     );
@@ -740,7 +726,7 @@ void main() {
     expect(intercepted, isFalse);
   });
 
-  testWidgets('custom minimumDistanceSquared limits small gestures from intercepting', (
+  testWidgets('custom minimumDistance limits small gestures from intercepting', (
     WidgetTester tester,
   ) async {
     final geometry = MenuAimGeometry()
@@ -752,15 +738,12 @@ void main() {
     // Use a custom scope with a very high minimum distance squared (e.g. 500.0)
     await tester.pumpWidget(
       App(
-        MenuAimScope(
-          enable: true,
-          minimumDistanceSquared: 500.0,
-          child: AimTester(
-            geometry: geometry,
-            onHoverChanged: (hovered) {
-              intercepted = !hovered;
-            },
-          ),
+        AimTester(
+          minimumDistance: 25,
+          geometry: geometry,
+          onHoverChanged: (hovered) {
+            intercepted = !hovered;
+          },
         ),
       ),
     );
@@ -788,15 +771,12 @@ void main() {
     // Reset points queue
     await tester.pumpWidget(
       App(
-        MenuAimScope(
-          enable: true,
+        AimTester(
           sampleCount: 0,
-          child: AimTester(
-            geometry: geometry,
-            onHoverChanged: (hovered) {
-              intercepted = !hovered;
-            },
-          ),
+          geometry: geometry,
+          onHoverChanged: (hovered) {
+            intercepted = !hovered;
+          },
         ),
       ),
     );
@@ -806,8 +786,8 @@ void main() {
       App(
         MenuAimScope(
           enable: true,
-          minimumDistanceSquared: 10,
           child: AimTester(
+            minimumDistance: 3,
             geometry: geometry,
             onHoverChanged: (hovered) {
               intercepted = !hovered;
@@ -844,56 +824,68 @@ class AimTester extends StatelessWidget {
     required this.onHoverChanged,
     this.showAnchor = false,
     this.showTarget = false,
+    this.sampleCount,
+    this.minimumDistance,
+    this.aimTimeout,
   });
 
   final MenuAimGeometry geometry;
   final ValueChanged<bool> onHoverChanged;
   final bool showAnchor;
   final bool showTarget;
+  final int? sampleCount;
+  final double? minimumDistance;
+  final Duration? aimTimeout;
 
   @override
   Widget build(BuildContext context) {
     var isHovered = false;
-    return SizedBox(
-      height: 600,
-      width: 800,
-      child: Stack(
-        children: [
-          Positioned(
-            child: StatefulBuilder(
-              builder: (context, setState) {
-                return MouseRegion(
-                  onEnter: (_) {
-                    onHoverChanged(true);
-                    setState(() {
-                      isHovered = true;
-                    });
-                  },
-                  onExit: (event) {
-                    onHoverChanged(false);
-                    setState(() {
-                      isHovered = false;
-                    });
-                  },
-                  child: Container(
-                    color: isHovered ? const Color(0xFF00FF00) : const Color(0xFF0000FF),
-                  ),
-                );
-              },
+    return MenuAimScope(
+      enable: true,
+      sampleCount: sampleCount ?? MenuAimInterceptor.defaultSampleCount,
+      movementThreshold: minimumDistance ?? MenuAimInterceptor.defaultMovementThreshold,
+      aimTimeout: aimTimeout ?? MenuAimInterceptor.defaultAimTimeout,
+      child: SizedBox(
+        height: 600,
+        width: 800,
+        child: Stack(
+          children: [
+            Positioned(
+              child: StatefulBuilder(
+                builder: (context, setState) {
+                  return MouseRegion(
+                    onEnter: (_) {
+                      onHoverChanged(true);
+                      setState(() {
+                        isHovered = true;
+                      });
+                    },
+                    onExit: (event) {
+                      onHoverChanged(false);
+                      setState(() {
+                        isHovered = false;
+                      });
+                    },
+                    child: Container(
+                      color: isHovered ? const Color(0xFF00FF00) : const Color(0xFF0000FF),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-          if (showAnchor)
-            Positioned.fromRect(
-              rect: geometry.anchorRect!,
-              child: const ColoredBox(color: Color(0xFFFFFF00)),
-            ),
-          if (showTarget)
-            Positioned.fromRect(
-              rect: geometry.targetRect!,
-              child: const ColoredBox(color: Color.fromARGB(255, 225, 0, 255)),
-            ),
-          MenuAimInterceptor(geometry: geometry),
-        ],
+            if (showAnchor)
+              Positioned.fromRect(
+                rect: geometry.anchorRect!,
+                child: const ColoredBox(color: Color(0xFFFFFF00)),
+              ),
+            if (showTarget)
+              Positioned.fromRect(
+                rect: geometry.targetRect!,
+                child: const ColoredBox(color: Color.fromARGB(255, 225, 0, 255)),
+              ),
+            MenuAimInterceptor(geometry: geometry),
+          ],
+        ),
       ),
     );
   }

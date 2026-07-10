@@ -1,5 +1,7 @@
 # Base Menu
 
+![Base Menu Sequoia Demo](assets/images/base_menu.png)
+
 Composable widgets for building menu systems.
 
 [Demos](https://base-menu-library.web.app/) · [Floogle Docs](https://floogle-docs.web.app/)

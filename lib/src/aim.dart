@@ -21,11 +21,8 @@ class MenuAimGeometry {
   Rect? targetRect;
 }
 
-/// An inherited widget that provides a boolean flag indicating whether menu aim
-/// assist is enabled.
-///
-/// This can be used to conditionally enable or disable menu aim assist behavior for
-/// all [BaseMenu] and [BaseSubmenu] descendants in the widget tree.
+/// An inherited widget used to configure menu aim assist behavior for all
+/// [BaseMenu] and [BaseSubmenu] descendants in the widget tree.
 class MenuAimScope extends InheritedWidget {
   /// Creates a [MenuAimScope] that wraps its child and provides the [enable] flag.
   const MenuAimScope({

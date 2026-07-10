@@ -10,6 +10,85 @@ import 'utilities.dart';
 
 void main() {
   group('BaseMenuItem', () {
+    testWidgets('configures BaseControl properties correctly', (WidgetTester tester) async {
+      final node = FocusNode();
+      addTearDown(node.dispose);
+      const cursor = WidgetStateMouseCursor.clickable;
+      final gestureSemantics = MockSemanticsGestureDelegate();
+      var didCallOnPressed = false;
+      var didCallOnActivate = false;
+
+      void mockOnPressed() {
+        expect(didCallOnPressed, isFalse, reason: 'onPressed should only be called once');
+        didCallOnPressed = true;
+      }
+
+      void mockOnActivate() {
+        expect(didCallOnActivate, isFalse, reason: 'onActivate should only be called once');
+        didCallOnActivate = true;
+      }
+
+      void mockOnPointerEnter(PointerEnterEvent event) {}
+      void mockOnPointerHover(PointerHoverEvent event) {}
+      void mockOnPointerLeave(PointerExitEvent event) {}
+      void mockOnFocusChange(bool focused) {}
+
+      await tester.pumpWidget(
+        App(
+          BaseMenuItem<void>(
+            onPressed: mockOnPressed,
+            onActivate: mockOnActivate,
+            onPointerEnter: mockOnPointerEnter,
+            onPointerHover: mockOnPointerHover,
+            onPointerExit: mockOnPointerLeave,
+            onFocusChange: mockOnFocusChange,
+            role: null,
+            focusNode: node,
+            autofocus: true,
+            behavior: HitTestBehavior.opaque,
+            mouseCursor: cursor,
+            requestCloseOnActivate: false,
+            requestFocusOnHover: false,
+            gestureSemantics: gestureSemantics,
+            child: Text(Tag.a.text),
+          ),
+        ),
+      );
+
+      final controlFinder = find.byType(BaseControl<BaseMenuItem<void>>);
+      var control = tester.widget<BaseControl<BaseMenuItem<void>>>(controlFinder);
+
+      expect(control.focusNode, node);
+      expect(control.autofocus, isTrue);
+      expect(control.behavior, HitTestBehavior.opaque);
+      expect(control.mouseCursor, cursor);
+      expect(control.onPointerEnter, mockOnPointerEnter);
+      expect(control.onPointerHover, mockOnPointerHover);
+      expect(control.onPointerExit, mockOnPointerLeave);
+      expect(control.onFocusChange, mockOnFocusChange);
+      expect(control.gestureSemanticsEnabled, isTrue);
+      expect(control.gestureSemantics, gestureSemantics);
+
+      await tester.tap(find.text(Tag.a.text));
+      expect(didCallOnPressed, isTrue);
+      expect(didCallOnActivate, isFalse);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+
+      expect(didCallOnActivate, isTrue);
+
+      await tester.pumpWidget(
+        App(
+          BaseMenuItem<void>(role: null, gestureSemanticsEnabled: false, child: Text(Tag.a.text)),
+        ),
+      );
+
+      control = tester.widget<BaseControl<BaseMenuItem<void>>>(controlFinder);
+      expect(control.gestureSemanticsEnabled, isFalse);
+      expect(control.gestureSemantics, isNull);
+    });
+
     testWidgets('Initial state is idle', (WidgetTester tester) async {
       await tester.pumpWidget(
         App(BaseMenuItem<void>(onPressed: () {}, role: null, child: Text(Tag.a.text))),
@@ -515,18 +594,20 @@ void main() {
 
       handle.dispose();
     });
-  });
 
-  testWidgets('role can be changed', skip: !kIsWeb, (WidgetTester tester) async {
-    await tester.pumpWidget(
-      App(BaseMenuItem<void>(onPressed: () {}, role: null, child: Text(Tag.a.text))),
-    );
+    testWidgets('role can be changed', skip: !kIsWeb, (WidgetTester tester) async {
+      await tester.pumpWidget(
+        App(BaseMenuItem<void>(onPressed: () {}, role: null, child: Text(Tag.a.text))),
+      );
 
-    final semantics = tester.widget<Semantics>(
-      find.descendant(of: find.byType(BaseMenuItem<void>), matching: find.byType(Semantics)).first,
-    );
+      final semantics = tester.widget<Semantics>(
+        find
+            .descendant(of: find.byType(BaseMenuItem<void>), matching: find.byType(Semantics))
+            .first,
+      );
 
-    expect(semantics.properties.role, isNull);
+      expect(semantics.properties.role, isNull);
+    });
   });
 
   group('Inheritance', () {
@@ -710,82 +791,5 @@ void main() {
       verifyStates<int>(tester, {WidgetState.disabled});
       verifyStates<String>(tester, {WidgetState.disabled});
     });
-  });
-
-  testWidgets('configures BaseControl properties correctly', (WidgetTester tester) async {
-    final node = FocusNode();
-    addTearDown(node.dispose);
-    const cursor = WidgetStateMouseCursor.clickable;
-    final gestureSemantics = MockSemanticsGestureDelegate();
-    var didCallOnPressed = false;
-    var didCallOnActivate = false;
-
-    void mockOnPressed() {
-      expect(didCallOnPressed, isFalse, reason: 'onPressed should only be called once');
-      didCallOnPressed = true;
-    }
-
-    void mockOnActivate() {
-      expect(didCallOnActivate, isFalse, reason: 'onActivate should only be called once');
-      didCallOnActivate = true;
-    }
-
-    void mockOnPointerEnter(PointerEnterEvent event) {}
-    void mockOnPointerHover(PointerHoverEvent event) {}
-    void mockOnPointerLeave(PointerExitEvent event) {}
-    void mockOnFocusChange(bool focused) {}
-
-    await tester.pumpWidget(
-      App(
-        BaseMenuItem<void>(
-          onPressed: mockOnPressed,
-          onActivate: mockOnActivate,
-          onPointerEnter: mockOnPointerEnter,
-          onPointerHover: mockOnPointerHover,
-          onPointerExit: mockOnPointerLeave,
-          onFocusChange: mockOnFocusChange,
-          role: null,
-          focusNode: node,
-          autofocus: true,
-          behavior: HitTestBehavior.opaque,
-          mouseCursor: cursor,
-          requestCloseOnActivate: false,
-          requestFocusOnHover: false,
-          gestureSemantics: gestureSemantics,
-          child: Text(Tag.a.text),
-        ),
-      ),
-    );
-
-    final controlFinder = find.byType(BaseControl<BaseMenuItem<void>>);
-    var control = tester.widget<BaseControl<BaseMenuItem<void>>>(controlFinder);
-
-    expect(control.focusNode, node);
-    expect(control.autofocus, isTrue);
-    expect(control.behavior, HitTestBehavior.opaque);
-    expect(control.mouseCursor, cursor);
-    expect(control.onPointerEnter, mockOnPointerEnter);
-    expect(control.onPointerHover, mockOnPointerHover);
-    expect(control.onPointerExit, mockOnPointerLeave);
-    expect(control.onFocusChange, mockOnFocusChange);
-    expect(control.gestureSemanticsEnabled, isTrue);
-    expect(control.gestureSemantics, gestureSemantics);
-
-    await tester.tap(find.text(Tag.a.text));
-    expect(didCallOnPressed, isTrue);
-    expect(didCallOnActivate, isFalse);
-
-    await tester.sendKeyEvent(LogicalKeyboardKey.space);
-    await tester.pump();
-
-    expect(didCallOnActivate, isTrue);
-
-    await tester.pumpWidget(
-      App(BaseMenuItem<void>(role: null, gestureSemanticsEnabled: false, child: Text(Tag.a.text))),
-    );
-
-    control = tester.widget<BaseControl<BaseMenuItem<void>>>(controlFinder);
-    expect(control.gestureSemanticsEnabled, isFalse);
-    expect(control.gestureSemantics, isNull);
   });
 }

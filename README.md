@@ -22,7 +22,7 @@ Add the package to your `pubspec.yaml` and import it into your project:
 import 'package:base_menu/base_menu.dart';
 ```
 
-### Basic usage:
+### Example:
 
 ```dart
 class BaseMenuApp extends StatefulWidget {
@@ -137,6 +137,7 @@ class Label extends StatelessWidget {
     this.alignment = .centerStart,
     this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
   });
+  
   final Widget child;
   final Color? color;
   final AlignmentGeometry alignment;

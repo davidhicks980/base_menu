@@ -1,0 +1,20 @@
+include: ../analysis_options.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+
+# Additional information about this file can be found at
+# https://dart.dev/guides/language/analysis-options
+linter:
+  rules:
+    public_member_api_docs: false
+    specify_nonobvious_property_types: false
+    avoid_redundant_argument_values: false
+    avoid_print: false

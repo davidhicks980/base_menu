@@ -9,7 +9,7 @@ topics:
   - menus
   - ui
 workspace:
-  - demo
+  - gallery
   - deployments/base_menu
   - deployments/floogle_docs
   - example

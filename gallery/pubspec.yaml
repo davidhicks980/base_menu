@@ -1,5 +1,5 @@
-name: base_menu_demo
-description: "Demos demonstrating the use of the base_menu package."
+name: base_menu_gallery
+description: "A collection of demos showcasing the features of the Base Menu package."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 resolution: workspace
 version: 1.0.1+3

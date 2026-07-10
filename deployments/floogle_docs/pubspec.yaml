@@ -1,5 +1,5 @@
 name: floogle_docs
-description: "A rich text editor demo demonstrating how to use the Base Menu Library."
+description: "A demonstration using the Base Menu Library to create menus for a rich text editor."
 publish_to: 'none'
 version: 0.1.0+1
 resolution: workspace
@@ -10,8 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  base_menu_demo:
-    path: ../../demo
+  base_menu_gallery:
+    path: ../../gallery
   firebase_core: ^4.11.0
 
 dev_dependencies:

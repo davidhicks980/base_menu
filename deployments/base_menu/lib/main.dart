@@ -1,5 +1,5 @@
-import 'package:base_menu_demo/main.dart';
-import 'package:base_menu_samples_explorer/firebase_options.dart';
+import 'package:base_menu_gallery/main.dart';
+import 'package:base_menu_gallery_deployment/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';

@@ -2,7 +2,9 @@
 
 Composable widgets for building menu systems.
 
-[Demos](https://base-menu-library.web.app/) · [Floogle Docs Standalone](https://floogle-docs.web.app/)
+[Demos](https://base-menu-library.web.app/) · [Floogle Docs](https://floogle-docs.web.app/)
+· [API Reference](https://pub.dev/documentation/base_menu/latest/) · [Pub.dev](https://pub.dev/packages/base_menu)
+
 
 ## Motivation
 

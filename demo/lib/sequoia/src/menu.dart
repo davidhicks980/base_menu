@@ -42,7 +42,6 @@ class _SequoiaMenuBarState extends State<SequoiaMenuBar> {
             child: TapRegion(
               groupId: controller,
               onTapOutside: (event) {
-                print('Tap outside: ${event.localPosition}, buttons: ${event.buttons}');
                 SequoiaMenuDismissHandler.of(context).fadeMenuOut();
               },
               child: BaseMenuBar(

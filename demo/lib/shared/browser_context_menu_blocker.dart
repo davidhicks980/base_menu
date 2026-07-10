@@ -129,10 +129,6 @@ class _ContextMenuBlockerState extends State<ContextMenuBlocker> {
 
   @override
   Widget build(BuildContext context) {
-    if (!kIsWeb) {
-      return widget.child;
-    }
-
     return _ContextMenuBlockerScope(
       state: this,
       isEnabled: BrowserContextMenu.enabled,

@@ -73,6 +73,7 @@ class _SelectState extends State<Select> {
       requestCloseOnPointerExit: false,
       menu: widget.panel,
       focusNode: widget.focusNode,
+      role: null,
       mouseCursor: WidgetStateMouseCursor.clickable,
       onPressed: _handlePressed,
       child: _SelectTextButton(

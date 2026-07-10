@@ -1,7 +1,5 @@
 # Base Menu
 
-
-
 Composable widgets for building menu systems.
 
 [Demos](https://base-menu-library.web.app/) · [Floogle
@@ -9,8 +7,18 @@ Docs](https://floogle-docs.web.app/) · [API
 Reference](https://pub.dev/documentation/base_menu/latest/) ·
 [Pub.dev](https://pub.dev/packages/base_menu)
 
-![Base Menu Sequoia Demo](assets/images/sequoia.png)
+<p align="center">
+  <img src="assets/images/sequoia.png" width="560" alt="Base Menu Sequoia Demo">
+</p>
 
+## Features
+
+* Menu aim assist
+* [WAI-ARIA](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/) compliant keyboard navigation
+* Robust menu positioning with support for custom positioning delegates
+* Extensive test suite with >98% coverage
+* No dependency on Material or Cupertino 
+* Compatibility with RawMenuAnchor and the MenuController API
 
 ## Motivation
 

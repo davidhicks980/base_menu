@@ -7,7 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-const bool _kEnableMenuAimVisualizer = bool.hasEnvironment('VISUALIZE_MENU_AIM') || kDebugMode;
+const bool _kEnableMenuAimVisualizer = bool.hasEnvironment('VISUALIZE_MENU_AIM')
+    ? bool.fromEnvironment('VISUALIZE_MENU_AIM', defaultValue: true)
+    : kDebugMode;
 
 /// A geometry object that holds the anchor and target rectangles for menu
 /// aim assist.
@@ -26,7 +28,14 @@ class MenuAimGeometry {
 /// all [BaseMenu] and [BaseSubmenu] descendants in the widget tree.
 class MenuAimScope extends InheritedWidget {
   /// Creates a [MenuAimScope] that wraps its child and provides the [enable] flag.
-  const MenuAimScope({super.key, required this.enable, required super.child});
+  const MenuAimScope({
+    super.key,
+    required this.enable,
+    required super.child,
+    this.sampleCount = MenuAimInterceptor.defaultSampleCount,
+    this.minimumDistanceSquared = MenuAimInterceptor.defaultMinimumDistanceSquared,
+    this.exitDuration = MenuAimInterceptor.defaultExitDuration,
+  });
 
   /// A boolean flag indicating whether menu aim assist is enabled.
   ///
@@ -35,17 +44,38 @@ class MenuAimScope extends InheritedWidget {
   /// `false`, menu aim assist behavior is disabled.
   final bool enable;
 
+  /// {@template MenuAimInterceptor.sampleCount}
+  /// The number of pointer position samples to maintain for trajectory calculations.
+  /// {@endtemplate}
+  final int sampleCount;
+
+  /// {@template MenuAimInterceptor.minimumDistanceSquared}
+  /// The minimum squared distance between the first and last pointer position
+  /// to consider the pointer as moving towards the target.
+  /// {@endtemplate}
+  final double minimumDistanceSquared;
+
+  /// {@template MenuAimInterceptor.exitDuration}
+  /// The duration for the exit timer that disables menu aim assist after the
+  /// pointer leaves the anchor area.
+  /// {@endtemplate}
+  final Duration exitDuration;
+
   /// Returns `true` if menu aim assist is enabled in the current context.
   ///
   /// Calling this method establishes a dependency that rebuilds the provided
   /// [BuildContext] whenever [MenuAimScope.enable] changes.
-  static bool isEnabledOf(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<MenuAimScope>();
-    return scope?.enable ?? false;
+  static MenuAimScope? maybeOf(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<MenuAimScope>();
   }
 
   @override
-  bool updateShouldNotify(MenuAimScope oldWidget) => enable != oldWidget.enable;
+  bool updateShouldNotify(MenuAimScope oldWidget) {
+    return enable != oldWidget.enable ||
+        sampleCount != oldWidget.sampleCount ||
+        minimumDistanceSquared != oldWidget.minimumDistanceSquared ||
+        exitDuration != oldWidget.exitDuration;
+  }
 }
 
 /// A widget that intercepts pointer hit-tests when the pointer moves
@@ -80,43 +110,114 @@ class MenuAimInterceptor extends StatelessWidget {
   /// A static flag to enable or disable visualization of the aim assist
   /// behavior. When set to `true`, the widget will draw lines and cones on the
   /// canvas to illustrate the current pointer trajectory and the target area.
+  ///
+  ///
+  /// This flag has no effect in release builds and is intended for debugging
+  /// and testing purposes only. To enable this feature in production builds,
+  /// set the environment variable `VISUALIZE_MENU_AIM` to `true` at compile
+  /// time.
   static bool visualizeAim = false;
+
+  /// The default duration for the exit timer that disables menu aim assist after
+  /// the pointer leaves the anchor area.
+  static const defaultExitDuration = Duration(milliseconds: 300);
+
+  /// The default number of pointer position samples to maintain for trajectory calculations.
+  static const int defaultSampleCount = 15;
+
+  /// The default minimum squared distance between the first and last pointer
+  /// position samples to consider the pointer as moving towards the target.
+  static const double defaultMinimumDistanceSquared = 15.0;
+
+  /// Returns the class name of the private widget used for menu aim.
+  @visibleForTesting
+  static Type get debugAimListenerWidgetType {
+    return _kEnableMenuAimVisualizer && visualizeAim ? _MenuAimVisualizer : _MenuAimListener;
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (_kEnableMenuAimVisualizer && visualizeAim) {
-      return _MenuAimVisualizer(geometry: geometry);
+    final scope = MenuAimScope.maybeOf(context);
+    if (scope != null && !scope.enable) {
+      return const SizedBox.shrink();
     }
 
-    return _MenuAimListener(geometry: geometry);
+    if (_kEnableMenuAimVisualizer && visualizeAim) {
+      return _MenuAimVisualizer(
+        geometry: geometry,
+        sampleCount: scope?.sampleCount ?? defaultSampleCount,
+        minimumDistanceSquared: scope?.minimumDistanceSquared ?? defaultMinimumDistanceSquared,
+        exitDuration: scope?.exitDuration ?? defaultExitDuration,
+      );
+    }
+
+    return _MenuAimListener(
+      geometry: geometry,
+      sampleCount: scope?.sampleCount ?? defaultSampleCount,
+      minimumDistanceSquared: scope?.minimumDistanceSquared ?? defaultMinimumDistanceSquared,
+      exitDuration: scope?.exitDuration ?? defaultExitDuration,
+    );
   }
 }
 
 class _MenuAimListener extends LeafRenderObjectWidget {
-  const _MenuAimListener({required this.geometry});
+  const _MenuAimListener({
+    required this.geometry,
+    required this.sampleCount,
+    required this.minimumDistanceSquared,
+    required this.exitDuration,
+  });
   final MenuAimGeometry geometry;
+  final int sampleCount;
+  final double minimumDistanceSquared;
+  final Duration exitDuration;
 
   @override
   _RenderMenuAimListener createRenderObject(BuildContext context) {
-    return _RenderMenuAimListener(geometry);
+    return _RenderMenuAimListener(
+      geometry: geometry,
+      sampleCount: sampleCount,
+      minimumDistanceSquared: minimumDistanceSquared,
+      exitDuration: exitDuration,
+    );
   }
 
   @override
   void updateRenderObject(BuildContext context, _RenderMenuAimListener renderObject) {
-    renderObject.delegate = geometry;
+    renderObject
+      ..geometry = geometry
+      ..sampleCount = sampleCount
+      ..minimumDistanceSquared = minimumDistanceSquared
+      ..exitDuration = exitDuration;
   }
 }
 
 class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
-  _RenderMenuAimListener(this.delegate);
-  static const exitDuration = Duration(milliseconds: 300);
-  static const int sampleCount = 15;
-  static const double minimumDistanceSquared = 15.0;
-  final ListQueue<Offset> points = ListQueue(sampleCount);
+  _RenderMenuAimListener({
+    required this.exitDuration,
+    required this.minimumDistanceSquared,
+    required this.geometry,
+    required int sampleCount,
+  }) : _sampleCount = sampleCount;
 
-  MenuAimGeometry delegate;
+  late final ListQueue<Offset> points = ListQueue(_sampleCount);
+  MenuAimGeometry geometry;
   bool enabled = true;
   Timer? exitTimer;
+  Duration exitDuration;
+  double minimumDistanceSquared;
+  int get sampleCount => _sampleCount;
+  int _sampleCount;
+  set sampleCount(int value) {
+    if (_sampleCount == value) {
+      return;
+    }
+    _sampleCount = value;
+    // Evict any excess old samples if queue threshold gets reduced
+    while (points.length > _sampleCount && points.isNotEmpty) {
+      points.removeFirst();
+    }
+  }
 
   @override
   void detach() {
@@ -125,6 +226,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
     super.detach();
   }
 
+  // coverage:ignore-start
   @protected
   void handleConeUpdate() {
     assert(() {
@@ -134,8 +236,14 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
       return true;
     }());
   }
+  // coverage:ignore-end
 
-  static bool _isMovingTowardsTarget(Offset start, Offset end, Rect target) {
+  static bool _isMovingTowardsTarget(
+    Offset start,
+    Offset end,
+    Rect target,
+    double minimumDistanceSquared,
+  ) {
     final Offset movement = end - start;
 
     if (movement.distanceSquared < minimumDistanceSquared) {
@@ -192,16 +300,16 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
       exitTimer = null;
     }
 
-    if (delegate.targetRect == null || delegate.anchorRect == null) {
+    if (geometry.targetRect == null || geometry.anchorRect == null) {
       return false;
     }
 
-    if (points.length == sampleCount) {
+    if (points.length >= sampleCount && points.isNotEmpty) {
       points.removeFirst();
     }
     points.add(position);
 
-    if (delegate.anchorRect!.contains(position) || points.length < 2) {
+    if (geometry.anchorRect!.contains(position) || points.length < 2) {
       enabled = true;
       if (_kEnableMenuAimVisualizer) {
         handleConeUpdate();
@@ -213,7 +321,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
       return false;
     }
 
-    final target = delegate.targetRect!;
+    final target = geometry.targetRect!;
     if (target.contains(position)) {
       enabled = false;
       if (_kEnableMenuAimVisualizer) {
@@ -222,7 +330,7 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
       return false;
     }
 
-    if (_isMovingTowardsTarget(points.first, points.last, target)) {
+    if (_isMovingTowardsTarget(points.first, points.last, target, minimumDistanceSquared)) {
       result.add(BoxHitTestEntry(this, position));
       exitTimer = Timer(exitDuration, () {
         enabled = false;
@@ -243,34 +351,55 @@ class _RenderMenuAimListener extends RenderProxyBoxWithHitTestBehavior {
     return false;
   }
 
+  // coverage:ignore-start
   @override
   void debugPaintSize(PaintingContext context, ui.Offset offset) {
     super.debugPaintSize(context, offset);
     assert(() {
       if (enabled) {
-        _paintCone(context, offset, points, delegate);
+        _paintCone(context, offset, points, geometry);
       }
       return true;
     }());
   }
+
+  // coverage:ignore-end
 }
 
 class _MenuAimVisualizer extends _MenuAimListener {
-  const _MenuAimVisualizer({required super.geometry});
+  const _MenuAimVisualizer({
+    required super.geometry,
+    required super.sampleCount,
+    required super.minimumDistanceSquared,
+    required super.exitDuration,
+  });
 
   @override
   _RenderMenuAimVisualizer createRenderObject(BuildContext context) {
-    return _RenderMenuAimVisualizer(geometry);
+    return _RenderMenuAimVisualizer(
+      geometry: geometry,
+      sampleCount: sampleCount,
+      minimumDistanceSquared: minimumDistanceSquared,
+      exitDuration: exitDuration,
+    );
   }
 
   @override
   void updateRenderObject(BuildContext context, _RenderMenuAimVisualizer renderObject) {
-    renderObject.delegate = geometry;
+    renderObject.geometry = geometry;
+    renderObject.sampleCount = sampleCount;
+    renderObject.minimumDistanceSquared = minimumDistanceSquared;
+    renderObject.exitDuration = exitDuration;
   }
 }
 
 class _RenderMenuAimVisualizer extends _RenderMenuAimListener {
-  _RenderMenuAimVisualizer(super.delegate);
+  _RenderMenuAimVisualizer({
+    required super.exitDuration,
+    required super.minimumDistanceSquared,
+    required super.geometry,
+    required super.sampleCount,
+  });
 
   @override
   void handleConeUpdate() {
@@ -283,7 +412,7 @@ class _RenderMenuAimVisualizer extends _RenderMenuAimListener {
   void paint(PaintingContext context, ui.Offset offset) {
     super.paint(context, offset);
     if (enabled) {
-      _paintCone(context, offset, points, delegate);
+      _paintCone(context, offset, points, geometry);
     }
   }
 }

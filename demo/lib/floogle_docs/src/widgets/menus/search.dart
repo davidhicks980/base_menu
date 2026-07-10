@@ -284,8 +284,8 @@ class _SearchMenuPopupState extends State<_SearchMenuPopup> {
       controller: menuController,
       positionDelegate: const DefaultMenuPositioningDelegate(
         overlayPadding: .zero,
-        anchorAlignment: .topStart,
-        menuAlignment: .topStart,
+        anchorAttachment: .topStart,
+        menuAttachment: .topStart,
       ),
       onClose: _handleClose,
       onFocusChange: _handleFocusChange,

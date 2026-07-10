@@ -31,7 +31,7 @@ class SequoiaMenuItem extends StatefulWidget {
 class _SequoiaMenuItemState extends State<SequoiaMenuItem> with SingleTickerProviderStateMixin {
   static const Duration _flashDuration = Duration(milliseconds: 200);
   Ticker? _flashTicker;
-  int? _phase;
+  int? _flashPhase;
 
   @override
   void dispose() {
@@ -54,11 +54,11 @@ class _SequoiaMenuItemState extends State<SequoiaMenuItem> with SingleTickerProv
     }
 
     final int phase = (elapsed.inMicroseconds * 3) ~/ _flashDuration.inMicroseconds;
-    if (_phase != phase) {
+    if (_flashPhase != phase) {
       setState(() {
-        _phase = phase;
+        _flashPhase = phase;
       });
-      if (_phase == 1 && mounted) {
+      if (_flashPhase == 1 && mounted) {
         if (MenuController.maybeOf(context)?.isOpen ?? false) {
           Actions.invoke(context, const DismissIntent());
         }
@@ -75,14 +75,14 @@ class _SequoiaMenuItemState extends State<SequoiaMenuItem> with SingleTickerProv
         child: SequoiaMenuActionLabel(
           leading: widget.leading,
           shortcut: widget.shortcut,
-          backgroundColor: _phase != null
-              ? switch (_phase) {
+          backgroundColor: _flashPhase != null
+              ? switch (_flashPhase) {
                   0 => const Color(0x00000000),
                   _ => _kSequoiaHighlightBackground,
                 }
               : null,
-          foregroundColor: _phase != null
-              ? switch (_phase) {
+          foregroundColor: _flashPhase != null
+              ? switch (_flashPhase) {
                   0 => _kSequoiaText,
                   _ => _kSequoiaTextFocused,
                 }

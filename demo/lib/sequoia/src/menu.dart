@@ -42,6 +42,7 @@ class _SequoiaMenuBarState extends State<SequoiaMenuBar> {
             child: TapRegion(
               groupId: controller,
               onTapOutside: (event) {
+                print('Tap outside: ${event.localPosition}, buttons: ${event.buttons}');
                 SequoiaMenuDismissHandler.of(context).fadeMenuOut();
               },
               child: BaseMenuBar(
@@ -57,7 +58,12 @@ class _SequoiaMenuBarState extends State<SequoiaMenuBar> {
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   children: [
                     for (final child in widget.items)
-                      SequoiaSubmenu.buildItem(child, true, controller, onOpen: widget.onOpen),
+                      SequoiaSubmenu.buildItem(
+                        child,
+                        true,
+                        onOpen: widget.onOpen,
+                        groupId: controller,
+                      ),
                   ],
                 ),
               ),
@@ -83,7 +89,12 @@ class SequoiaSubmenu extends StatefulWidget {
   final Object groupId;
   final VoidCallback? onOpen;
 
-  static Widget buildItem(MenuItem item, bool isTopLevel, Object groupId, {VoidCallback? onOpen}) {
+  static Widget buildItem(
+    MenuItem item,
+    bool isTopLevel, {
+    VoidCallback? onOpen,
+    required Object groupId,
+  }) {
     if (item case MenuDividerItem()) {
       return const SequoiaMenuDivider();
     }
@@ -152,69 +163,77 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicWidth(
-      child: BaseSubmenu(
-        controller: controller,
-        // Top level opens down, nested submenus open to the side
-        positionDelegate: DefaultMenuPositioningDelegate(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          offset: widget.isTopLevel ? const Offset(-4, 0) : const Offset(0, -1.5),
-        ),
-        onCloseRequest: _handleCloseRequest,
-        hoverOpenDelay: widget.isTopLevel ? Duration.zero : const Duration(milliseconds: 250),
-        anchorActions: actions,
-        focusNode: focusNode,
-        requestFocusOnHover: _dismissHandler.isInteractive,
-        enableHoverTraversal: _dismissHandler.isInteractive,
-        onOpen: widget.onOpen,
-        onPressed: () {
-          if (controller.isOpen) {
-            if (widget.isTopLevel) {
-              _dismissHandler.fadeMenuOut();
+    return ExcludeFocus(
+      excluding: _dismissHandler.isAnimatingOut,
+      child: IntrinsicWidth(
+        child: BaseSubmenu(
+          controller: controller,
+          // Top level opens down, nested submenus open to the side
+          positionDelegate: DefaultMenuPositioningDelegate(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            offset: widget.isTopLevel ? const Offset(-4, 0) : const Offset(0, -1.5),
+          ),
+          onCloseRequest: _handleCloseRequest,
+          hoverOpenDelay: widget.isTopLevel ? Duration.zero : const Duration(milliseconds: 250),
+          anchorActions: actions,
+          focusNode: focusNode,
+          requestFocusOnHover: _dismissHandler.isInteractive,
+          requestOpenOnPointerEnter: _dismissHandler.isInteractive,
+          requestCloseOnPointerExit: _dismissHandler.isInteractive,
+          onOpen: widget.onOpen,
+          onPressed: () {
+            if (controller.isOpen) {
+              if (widget.isTopLevel) {
+                _dismissHandler.fadeMenuOut();
+              }
+            } else {
+              controller.open();
+              focusNode.requestFocus();
+              _dismissHandler.enableInteractivity();
             }
-          } else {
-            controller.open();
-            focusNode.requestFocus();
-            _dismissHandler.enableInteractivity();
-          }
-        },
-        menu: Actions(
-          actions: actions,
-          child: ExcludeSemantics(
-            excluding: _isClosing,
-            child: ExcludeFocus(
+          },
+          menu: Actions(
+            actions: actions,
+            child: ExcludeSemantics(
               excluding: _isClosing,
-              child: IgnorePointer(
-                ignoring: _isClosing,
-                child: TapRegion(
-                  groupId: widget.groupId,
-                  onTapOutside: (event) {
-                    if (event.buttons == kSecondaryMouseButton) {
-                      return;
-                    }
-                    _dismissHandler.fadeMenuOut();
-                  },
-                  child: FadeTransition(
-                    opacity: _dismissHandler.animation,
-                    child: ColoredBox(
-                      color: const Color(0x00000000),
-                      child: Padding(
-                        padding: widget.isTopLevel
-                            ? const EdgeInsets.symmetric(vertical: 8)
-                            : EdgeInsets.zero,
-                        child: SequoiaMenuSurface(
-                          child: BaseMenuPanel(
-                            onPointerExit: (event) {
-                              if (!focusNode.hasFocus) {
-                                focusNode.requestFocus();
-                              }
-                            },
-                            orientation: Axis.vertical,
-                            padding: const EdgeInsets.all(4),
-                            children: [
-                              for (final child in widget.item.children)
-                                SequoiaSubmenu.buildItem(child, false, widget.groupId),
-                            ],
+              child: ExcludeFocus(
+                excluding: _isClosing,
+                child: IgnorePointer(
+                  ignoring: _isClosing,
+                  child: TapRegion(
+                    groupId: widget.groupId,
+                    onTapOutside: (event) {
+                      if (event.buttons == kSecondaryMouseButton) {
+                        return;
+                      }
+                      _dismissHandler.fadeMenuOut();
+                    },
+                    child: MouseRegion(
+                      opaque: true,
+                      hitTestBehavior: HitTestBehavior.opaque,
+                      child: FadeTransition(
+                        opacity: _dismissHandler.animation,
+                        child: ColoredBox(
+                          color: const Color(0x00000000),
+                          child: Padding(
+                            padding: widget.isTopLevel
+                                ? const EdgeInsets.symmetric(vertical: 8)
+                                : EdgeInsets.zero,
+                            child: SequoiaMenuSurface(
+                              child: BaseMenuPanel(
+                                onPointerExit: (event) {
+                                  if (!focusNode.hasFocus) {
+                                    focusNode.requestFocus();
+                                  }
+                                },
+                                orientation: Axis.vertical,
+                                padding: const EdgeInsets.all(4),
+                                children: [
+                                  for (final child in widget.item.children)
+                                    SequoiaSubmenu.buildItem(child, false, groupId: widget.groupId),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -224,35 +243,35 @@ class _SequoiaSubmenuState extends State<SequoiaSubmenu> {
               ),
             ),
           ),
-        ),
-        child: widget.isTopLevel
-            ? switch (widget.item.label) {
-                'System' => SequoiaMenuBarActionLabel(
-                  radius: const BorderRadiusGeometry.directional(
-                    topStart: Radius.circular(12),
-                    bottomStart: Radius.circular(5),
-                    bottomEnd: Radius.circular(5),
-                    topEnd: Radius.circular(5),
-                  ),
-                  padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 5.0),
-                  child: _SequoiaTreeIcon(
-                    color: const Color(0xFFFFFFFF),
-                    size: MediaQuery.textScalerOf(context).scale(16),
-                  ),
-                ),
-                'Code' => SequoiaMenuBarActionLabel(
-                  child: Text(
-                    widget.item.label,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.05,
-                      fontVariations: [FontVariation.weight(700)],
+          child: widget.isTopLevel
+              ? switch (widget.item.label) {
+                  'System' => SequoiaMenuBarActionLabel(
+                    radius: const BorderRadiusGeometry.directional(
+                      topStart: Radius.circular(12),
+                      bottomStart: Radius.circular(5),
+                      bottomEnd: Radius.circular(5),
+                      topEnd: Radius.circular(5),
+                    ),
+                    padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 5.0),
+                    child: _SequoiaTreeIcon(
+                      color: const Color(0xFFFFFFFF),
+                      size: MediaQuery.textScalerOf(context).scale(16),
                     ),
                   ),
-                ),
-                _ => SequoiaMenuBarActionLabel(child: Text(widget.item.label)),
-              }
-            : SequoiaSubmenuActionLabel(child: Text(widget.item.label)),
+                  'Code' => SequoiaMenuBarActionLabel(
+                    child: Text(
+                      widget.item.label,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.05,
+                        fontVariations: [FontVariation.weight(700)],
+                      ),
+                    ),
+                  ),
+                  _ => SequoiaMenuBarActionLabel(child: Text(widget.item.label)),
+                }
+              : SequoiaSubmenuActionLabel(child: Text(widget.item.label)),
+        ),
       ),
     );
   }

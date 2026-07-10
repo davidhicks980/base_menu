@@ -571,9 +571,11 @@ class SubmenuChild extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(tag.text),
-              Text(
-                trailing ?? (tag.level == 0 ? '>' : 'v'),
-                style: const TextStyle(fontSize: 12, color: Color(0xFFFFFFFF)),
+              ExcludeSemantics(
+                child: Text(
+                  trailing ?? (tag.level == 0 ? '>' : 'v'),
+                  style: const TextStyle(fontSize: 12, color: Color(0xFFFFFFFF)),
+                ),
               ),
             ],
           ),

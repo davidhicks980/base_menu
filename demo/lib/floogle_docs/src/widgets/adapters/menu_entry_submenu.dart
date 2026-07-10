@@ -1,12 +1,10 @@
 import 'package:base_menu/base_menu.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../data/menu.dart';
 import '../../model/model.dart';
 import '../menu_action_label.dart';
 import '../menu_panel.dart';
-import '../menus/document_menu_bar.dart';
 import 'menu_entry_panel.dart';
 
 class MenuEntrySubmenu extends StatefulWidget {
@@ -43,23 +41,14 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
       hoverOpenDelay: widget.hoverDelay,
       hoverCloseDelay: widget.hoverDelay,
       controller: _menuController,
-      menu: TapRegion(
-        groupId: 'menu_system',
-        onTapOutside: (event) {
-          if (event.buttons == kSecondaryMouseButton) {
-            return;
+      menu: MenuEntryPanel(
+        menuEntry: widget.entry,
+        constraints: widget.entry == Menu.table ? null : widget.constraints,
+        onSurfaceExit: (event) {
+          if (!_focusNode.hasFocus) {
+            _focusNode.requestFocus();
           }
-          DocumentMenuBar.disableInteractivityOf(context);
         },
-        child: MenuEntryPanel(
-          menuEntry: widget.entry,
-          constraints: widget.entry == Menu.table ? null : widget.constraints,
-          onSurfaceExit: (event) {
-            if (!_focusNode.hasFocus) {
-              _focusNode.requestFocus();
-            }
-          },
-        ),
       ),
       child: SubmenuActionLabel(
         axis: Axis.vertical,

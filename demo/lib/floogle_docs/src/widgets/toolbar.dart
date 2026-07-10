@@ -321,6 +321,7 @@ class OverflowButton extends StatefulWidget {
 class _OverflowButtonState extends State<OverflowButton> with SingleTickerProviderStateMixin {
   late final AnimationController animationController;
   bool isEntered = false;
+  bool _allowClose = false;
   AnimationStatus get _animationStatus => animationController.status;
 
   void _handleMenuOpenRequest(Offset? position, VoidCallback showOverlay) {
@@ -333,6 +334,9 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
   }
 
   void _handleMenuCloseRequest(VoidCallback hideOverlay) {
+    if (!_allowClose) {
+      return;
+    }
     isEntered = false;
     if (!_animationStatus.isForwardOrCompleted) {
       return;
@@ -343,6 +347,9 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
 
   void _handleTrailingFocusChange(bool hasFocus) {
     if (!hasFocus) {
+      if (_animationStatus.isForwardOrCompleted) {
+        _allowClose = true;
+      }
       return;
     }
 
@@ -358,6 +365,9 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
 
   void _handleLeadingFocusChange(bool hasFocus) {
     if (!hasFocus) {
+      if (_animationStatus.isForwardOrCompleted) {
+        _allowClose = true;
+      }
       return;
     }
 
@@ -418,6 +428,13 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
               child: Flexible(
                 child: Actions(
                   actions: {
+                    DismissIntent: CallbackAction<DismissIntent>(
+                      onInvoke: (intent) {
+                        _allowClose = true;
+                        widget.controller.close();
+                        return null;
+                      },
+                    ),
                     VerticalMenuFocusPreviousIntent: DoNothingAction(),
                     VerticalMenuFocusNextIntent: DoNothingAction(),
                     NextFocusIntent: NextFocusAction(),
@@ -442,17 +459,15 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
       positionDelegate: const DefaultMenuPositioningDelegate(
         overlayPadding: .symmetric(horizontal: 5),
         offset: Offset(0, 4),
-        anchorAlignment: .bottomEnd,
-        menuAlignment: .topEnd,
+        anchorAttachment: .bottomEnd,
+        menuAttachment: .topEnd,
       ),
       orientation: Axis.horizontal,
       onOpenRequest: _handleMenuOpenRequest,
       onCloseRequest: _handleMenuCloseRequest,
       onOpen: widget.onOpen,
-      onFocusChange: (value) {
-        if (!value) {
-          widget.controller.close();
-        }
+      onClose: () {
+        _allowClose = false;
       },
       menu: panel,
       builder: (context, controller, child) {
@@ -472,6 +487,7 @@ class _OverflowButtonState extends State<OverflowButton> with SingleTickerProvid
               focusNode: widget.buttonFocusNode,
               onPressed: () {
                 if (_animationStatus.isForwardOrCompleted) {
+                  _allowClose = true;
                   controller.close();
                 } else {
                   controller.open();

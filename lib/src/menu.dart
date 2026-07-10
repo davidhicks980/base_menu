@@ -217,14 +217,14 @@ class EdgeBehavior {
 /// panel of a [BaseMenu].
 ///
 /// The position is determined relative to the menu's anchor using the provided
-/// [anchorAlignment], [menuAlignment], and [offset].
+/// [anchorAttachment], [menuAttachment], and [offset].
 ///
 /// If [useDirectionalOffset] is true, the horizontal component of the [offset]
 /// is applied in the reading direction of the ambient [Directionality].
 /// Otherwise, the offset is applied as-is, regardless of the ambient
 /// [Directionality].
 ///
-/// When the menu is opened with a `position` argument, the [anchorAlignment]
+/// When the menu is opened with a `position` argument, the [anchorAttachment]
 /// and [offset] are ignored, and the menu is positioned at the provided
 /// [RawMenuOverlayInfo.position].
 ///
@@ -241,10 +241,10 @@ class EdgeBehavior {
 class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
   /// Creates a [DefaultMenuPositioningDelegate].
   const DefaultMenuPositioningDelegate({
-    this.anchorAlignment,
+    this.anchorAttachment,
+    this.menuAttachment,
     this.offset = ui.Offset.zero,
     this.useDirectionalOffset = true,
-    this.menuAlignment,
     this.padding = EdgeInsets.zero,
     this.overlayPadding = const EdgeInsets.all(8),
     this.edgeBehavior = const EdgeBehavior(
@@ -254,25 +254,25 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
     this.enableAimAssist,
   });
 
-  /// The point on the menu surface that attaches to the anchor.
-  ///
-  /// Unlike [anchorAlignment] and [offset], the [menuAlignment] will be
-  /// applied when the menu is opened with a `position` argument.
-  ///
-  /// Defaults to [AlignmentDirectional.topStart].
-  final AlignmentGeometry? menuAlignment;
-
   /// The point on the anchor surface that attaches to the menu.
   ///
-  /// The [anchorAlignment] is ignored if a `position` argument is provided to
-  /// [MenuController.open].
+  /// The [anchorAttachment] has no effect if a `position` argument is provided
+  /// to [MenuController.open].
   ///
   /// Defaults to [AlignmentDirectional.topEnd] if this menu's anchor is in a
   /// vertical menu, and [AlignmentDirectional.bottomStart] otherwise.
   ///
   /// If [edgeBehavior] has [EdgeBehaviorStrategy.flip] enabled on an axis, the
-  /// [anchorAlignment] will flip over the midpoint of the anchor on that axis.
-  final AlignmentGeometry? anchorAlignment;
+  /// [anchorAttachment] will flip over the midpoint of the anchor on that axis.
+  final AlignmentGeometry? anchorAttachment;
+
+  /// The point on the menu surface that attaches to the anchor.
+  ///
+  /// Unlike [anchorAttachment] and [offset], the [menuAttachment] will be
+  /// applied when the menu is opened with a `position` argument.
+  ///
+  /// Defaults to [AlignmentDirectional.topStart].
+  final AlignmentGeometry? menuAttachment;
 
   /// The offset applied to the menu relative to the anchor attachment point.
   ///
@@ -281,8 +281,8 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
   /// [Directionality]. Otherwise, the offset is applied as-is, regardless of
   /// the ambient [Directionality].
   ///
-  /// The [anchorAlignment] and [offset] are ignored if a `position` argument is
-  /// provided to [MenuController.open].
+  /// The [offset] has no effect if a `position` argument is provided to
+  /// [MenuController.open].
   ///
   /// Defaults to [Offset.zero].
   final Offset offset;
@@ -290,9 +290,6 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
   /// Whether the [offset] is directional, meaning its horizontal component is
   /// applied in the reading direction of the ambient [Directionality].
   final bool useDirectionalOffset;
-
-  /// The behavior to apply when the menu overflows the edge of the screen.
-  final EdgeBehavior edgeBehavior;
 
   /// The [EdgeInsetsGeometry] applied to the menu surface but ignored during
   /// menu positioning.
@@ -312,6 +309,9 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
   /// Defaults to 8 pixels on all sides.
   final EdgeInsetsGeometry overlayPadding;
 
+  /// The behavior applied when the menu overflows the edge of the screen.
+  final EdgeBehavior edgeBehavior;
+
   /// Whether to enable the aim assist feature for this menu.
   ///
   /// To enable aim assist for all menus in a subtree, place a [MenuAimScope]
@@ -326,7 +326,7 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
   @override
   Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child) {
     final alignment =
-        anchorAlignment ??
+        anchorAttachment ??
         switch (BaseMenu.maybeOrientationOf(context)) {
           Axis.vertical => AlignmentDirectional.topEnd,
           _ => AlignmentDirectional.bottomStart,
@@ -336,7 +336,7 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
         ? Offset(-offset.dx, offset.dy)
         : offset;
 
-    final enableAim = enableAimAssist ?? MenuAimScope.isEnabledOf(context);
+    final enableAim = enableAimAssist ?? MenuAimScope.maybeOf(context)?.enable ?? false;
     if (enableAim) {
       return _AimAssistBuilder(
         builder: (context, geometry) {
@@ -347,7 +347,7 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
             anchorRect: position.anchorRect,
             offset: resolvedOffset,
             menuPosition: position.position,
-            menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+            menuAlignment: menuAttachment ?? AlignmentDirectional.topStart,
             alignment: alignment,
             edgeBehavior: edgeBehavior,
             onPositioned: (targetRect) {
@@ -364,7 +364,7 @@ class DefaultMenuPositioningDelegate implements MenuPositioningDelegate {
         anchorRect: position.anchorRect,
         offset: resolvedOffset,
         menuPosition: position.position,
-        menuAlignment: menuAlignment ?? AlignmentDirectional.topStart,
+        menuAlignment: menuAttachment ?? AlignmentDirectional.topStart,
         alignment: alignment,
         edgeBehavior: edgeBehavior,
         child: child,

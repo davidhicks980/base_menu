@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:base_menu/base_menu.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -1702,6 +1703,188 @@ void main() {
     expect(controller.isOpen, isFalse);
   });
 
+  group('Semantics', () {
+    testWidgets('correctly applies expanded property', skip: kIsWeb, (WidgetTester tester) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+      final controller = MenuController();
+      await tester.pumpWidget(
+        App(
+          BaseMenuBar(
+            child: BaseSubmenu(
+              role: null,
+              controller: controller,
+              menu: const SizedBox(),
+              child: const SubmenuChild(tag: Tag.anchor),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        tester.getSemantics(find.text(Tag.anchor.text)),
+        matchesSemantics(
+          label: Tag.anchor.text,
+          hasExpandedState: true,
+          hasTapAction: true,
+          isEnabled: true,
+          hasEnabledState: true,
+          isFocusable: true,
+          hasFocusAction: true,
+          textDirection: .ltr,
+        ),
+      );
+
+      controller.open();
+      await tester.pump();
+
+      expect(
+        tester.getSemantics(find.text(Tag.anchor.text)),
+        matchesSemantics(
+          label: Tag.anchor.text,
+          isExpanded: true,
+          hasExpandedState: true,
+          hasTapAction: true,
+          isEnabled: true,
+          hasEnabledState: true,
+          isFocusable: true,
+          hasFocusAction: true,
+          textDirection: .ltr,
+        ),
+      );
+
+      handle.dispose();
+    });
+    testWidgets('correctly applies expanded property (Web)', skip: !kIsWeb, (
+      WidgetTester tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+      final controller = MenuController();
+      await tester.pumpWidget(
+        App(
+          BaseMenuBar(
+            child: BaseSubmenu(
+              role: null,
+              controller: controller,
+              menu: const SizedBox(),
+              child: const SubmenuChild(tag: Tag.anchor),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        tester.getSemantics(find.text(Tag.anchor.text)),
+        matchesSemantics(
+          label: Tag.anchor.text,
+          hasExpandedState: true,
+          hasTapAction: true,
+          isEnabled: true,
+          isButton: true,
+          hasEnabledState: true,
+          isFocusable: true,
+          hasFocusAction: true,
+          textDirection: .ltr,
+        ),
+      );
+
+      controller.open();
+      await tester.pump();
+
+      expect(
+        tester.getSemantics(find.text(Tag.anchor.text)),
+        matchesSemantics(
+          label: Tag.anchor.text,
+          isExpanded: true,
+          hasExpandedState: true,
+          hasTapAction: true,
+          isEnabled: true,
+          isButton: true,
+          hasEnabledState: true,
+          isFocusable: true,
+          hasFocusAction: true,
+          textDirection: .ltr,
+        ),
+      );
+
+      handle.dispose();
+    });
+
+    testWidgets('parent semantics correctly merge with anchor', skip: kIsWeb, (
+      WidgetTester tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+      final controller = MenuController();
+      await tester.pumpWidget(
+        App(
+          MergeSemantics(
+            child: Semantics(
+              label: 'Parent',
+              child: BaseSubmenu(
+                role: null,
+                controller: controller,
+                menu: const SizedBox(),
+                child: const SubmenuChild(tag: Tag.anchor),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        tester.getSemantics(find.text(Tag.anchor.text)),
+        matchesSemantics(
+          label: 'Parent\n${Tag.anchor.text}',
+          hasExpandedState: true,
+          hasTapAction: true,
+          isEnabled: true,
+          hasEnabledState: true,
+          isFocusable: true,
+          hasFocusAction: true,
+          textDirection: .ltr,
+        ),
+      );
+      handle.dispose();
+    });
+
+    testWidgets('parent semantics correctly merge with anchor (Web)', skip: !kIsWeb, (
+      WidgetTester tester,
+    ) async {
+      final SemanticsHandle handle = tester.ensureSemantics();
+      final controller = MenuController();
+      await tester.pumpWidget(
+        App(
+          MergeSemantics(
+            child: Semantics(
+              label: Tag.outer.text,
+              child: BaseSubmenu(
+                role: null,
+                controller: controller,
+                menu: const SizedBox(),
+                child: const SubmenuChild(tag: Tag.anchor),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        tester.getSemantics(find.text(Tag.anchor.text)),
+        matchesSemantics(
+          label: '${Tag.outer.text}\n${Tag.anchor.text}',
+          hasExpandedState: true,
+          hasTapAction: true,
+          isEnabled: true,
+          hasEnabledState: true,
+          isFocusable: true,
+          hasFocusAction: true,
+          isButton: true,
+          textDirection: .ltr,
+        ),
+      );
+      handle.dispose();
+    });
+  });
+
   group('Hover + Focus', () {
     testWidgets('keyboard focus inside panel prevents hover close', (WidgetTester tester) async {
       const closeDelay = Duration(milliseconds: 500);
@@ -1714,16 +1897,12 @@ void main() {
             role: null,
             controller: controller,
             hoverCloseDelay: closeDelay,
-            menu: Focus(
-              focusNode: panelFocusNode,
-              child: const SizedBox(key: ValueKey('item'), width: 100, height: 40),
-            ),
+            menu: Focus(focusNode: panelFocusNode, child: const SizedBox(width: 100, height: 40)),
             child: const SubmenuChild(tag: Tag.anchor),
           ),
         ),
       );
 
-      // Open the submenu overlay.
       controller.open();
       await tester.pump();
       expect(controller.isOpen, isTrue);
@@ -1733,19 +1912,14 @@ void main() {
       await gesture.addPointer(location: tester.getCenter(find.text(Tag.anchor.text)));
       await tester.pump();
 
-      // Request focus on the internal element using programmatic/keyboard traversal.
       panelFocusNode.requestFocus();
       await tester.pump();
       expect(panelFocusNode.hasFocus, isTrue);
 
-      // Succeeded by the pointer leaving both anchor and panel area (moves to infinity).
       await gesture.moveTo(Offset.infinite);
       await tester.pump();
-
-      // Advance time beyond the hoverCloseDelay.
       await tester.pump(closeDelay + const Duration(milliseconds: 100));
 
-      // The submenu should remain open because focus inside the panel's scope prevents close.
       expect(
         controller.isOpen,
         isTrue,
@@ -2178,6 +2352,61 @@ void main() {
       await tester.pump();
 
       expect(focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('respects requestOpenOnPointerEnter', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        App(
+          BaseSubmenu(
+            role: null,
+            controller: controller,
+            requestOpenOnPointerEnter: false,
+            menu: Button.tag(Tag.a),
+            child: const SubmenuChild(tag: Tag.anchor),
+          ),
+        ),
+      );
+
+      final TestGesture gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+      addTearDown(gesture.removePointer);
+      await gesture.addPointer(location: Offset.zero);
+      await gesture.moveTo(tester.getCenter(find.text(Tag.anchor.text)));
+
+      // Advance a significant amount of time to ensure it doesn't open
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(controller.isOpen, isFalse);
+    });
+
+    testWidgets('respects requestCloseOnPointerExit', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        App(
+          BaseSubmenu(
+            role: null,
+            controller: controller,
+            requestCloseOnPointerExit: false,
+            menu: Button.tag(Tag.a),
+            child: const SubmenuChild(tag: Tag.anchor),
+          ),
+        ),
+      );
+
+      controller.open();
+      await tester.pump();
+      expect(controller.isOpen, isTrue);
+
+      final TestGesture gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+      addTearDown(gesture.removePointer);
+      await gesture.addPointer(location: tester.getCenter(find.text(Tag.anchor.text)));
+      await tester.pump();
+
+      // Exit anchor and move pointer away
+      await gesture.moveTo(Offset.infinite);
+
+      // Advance a significant amount of time to ensure it doesn't close
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(controller.isOpen, isTrue);
     });
   });
 

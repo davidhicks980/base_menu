@@ -1,12 +1,11 @@
 import 'package:base_menu/base_menu.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../../shared/package.dart';
 import '../theme/colors.dart';
+import '../utilities/exclusive_menu_manager.dart';
 import 'app_state_manager.dart';
 import 'dropdown_arrow.dart';
-import 'menu_panel.dart';
 import 'tooltip.dart';
 
 class Select extends StatefulWidget {
@@ -32,61 +31,14 @@ class Select extends StatefulWidget {
 }
 
 class _SelectState extends State<Select> {
-  bool _scopeHasFocus = false;
-  bool _buttonHasFocus = false;
-  bool _isFrameScheduled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.focusNode.addListener(_handleAnchorFocusChange);
-  }
-
-  @override
-  void didUpdateWidget(Select oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.focusNode != widget.focusNode) {
-      oldWidget.focusNode.removeListener(_handleAnchorFocusChange);
-      widget.focusNode.addListener(_handleAnchorFocusChange);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.focusNode.removeListener(_handleAnchorFocusChange);
-    super.dispose();
-  }
-
-  void _resolveFocus() {
-    if (_isFrameScheduled) {
-      return;
-    }
-    _isFrameScheduled = true;
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (!_scopeHasFocus && !_buttonHasFocus && mounted) {
-        widget.menuController.close();
-      }
-      _isFrameScheduled = false;
-    });
-  }
-
-  void _handleAnchorFocusChange() {
-    _buttonHasFocus = widget.focusNode.hasFocus;
-    if (!_buttonHasFocus) {
-      _resolveFocus();
-    }
-  }
-
-  void _handleScopeFocusChange(bool value) {
-    _scopeHasFocus = value;
-    if (!value) {
-      _resolveFocus();
-    }
-  }
-
   void _handleOpen() {
     MenuTooltipScope.of(context).hideTooltip(sync: true);
     widget.focusNode.requestFocus();
+    ExclusiveMenuManager.of(context).setActive(widget.menuController);
+  }
+
+  void _handleClose() {
+    ExclusiveMenuManager.of(context).setInactive(widget.menuController);
   }
 
   void _handlePressed() {
@@ -101,19 +53,24 @@ class _SelectState extends State<Select> {
   Widget build(BuildContext context) {
     return BaseSubmenu(
       controller: widget.menuController,
-      onFocusChange: _handleScopeFocusChange,
       onOpen: _handleOpen,
+      onClose: _handleClose,
       positionDelegate: AppStateManager.isHeaderShownOf(context)
           ? const DefaultMenuPositioningDelegate(
-              overlayPadding: EdgeInsets.only(top: 98, bottom: 8),
-              padding: MenuPanel.defaultPadding,
+              edgeBehavior: EdgeBehavior(
+                vertical: EdgeBehaviorStrategy(shift: false, flip: false, constrain: false),
+                horizontal: EdgeBehaviorStrategy(shift: true, flip: true, constrain: false),
+              ),
             )
           : const DefaultMenuPositioningDelegate(
-              overlayPadding: EdgeInsets.only(top: 37, bottom: 8),
-              padding: MenuPanel.defaultPadding,
+              edgeBehavior: EdgeBehavior(
+                vertical: EdgeBehaviorStrategy(shift: false, flip: false, constrain: false),
+                horizontal: EdgeBehaviorStrategy(shift: true, flip: true, constrain: false),
+              ),
             ),
       requestFocusOnHover: false,
-      enableHoverTraversal: false,
+      requestOpenOnPointerEnter: false,
+      requestCloseOnPointerExit: false,
       menu: widget.panel,
       focusNode: widget.focusNode,
       mouseCursor: WidgetStateMouseCursor.clickable,

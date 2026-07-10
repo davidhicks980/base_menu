@@ -567,34 +567,273 @@ void main() {
     expect(intercepted, isFalse);
   });
 
-  testWidgets('MenuAimScope provides enabled state', (WidgetTester tester) async {
-    var isEnabled = false;
+  testWidgets('updates render object with new geometry', (WidgetTester tester) async {
+    final geometry1 = MenuAimGeometry()
+      ..anchorRect = const Rect.fromLTWH(0, 0, 50, 50)
+      ..targetRect = const Rect.fromLTWH(200, 200, 50, 50);
+
+    final geometry2 = MenuAimGeometry()
+      ..anchorRect = const Rect.fromLTWH(10, 10, 50, 50)
+      ..targetRect = const Rect.fromLTWH(210, 210, 50, 50);
+
+    await tester.pumpWidget(App(AimTester(geometry: geometry1, onHoverChanged: (_) {})));
+
+    // Locate the internal listener or visualizer widget's render object
+    final dynamic renderObject = tester.renderObject(
+      find.byType(MenuAimInterceptor.debugAimListenerWidgetType),
+    );
+
+    // ignore: avoid_dynamic_calls
+    expect(renderObject.geometry, same(geometry1));
+
+    // Update with the new geometry
+    await tester.pumpWidget(App(AimTester(geometry: geometry2, onHoverChanged: (_) {})));
+
+    // Verify that the render object has been updated with the new geometry
+    // ignore: avoid_dynamic_calls
+    expect(renderObject.geometry, same(geometry2));
+  });
+
+  testWidgets('MenuAimScope provides menu aim parameters', (WidgetTester tester) async {
+    late MenuAimScope scopeData;
 
     await tester.pumpWidget(
       MenuAimScope(
         enable: true,
         child: Builder(
           builder: (context) {
-            isEnabled = MenuAimScope.isEnabledOf(context);
+            scopeData = MenuAimScope.maybeOf(context)!;
             return const SizedBox();
           },
         ),
       ),
     );
-    expect(isEnabled, isTrue);
+
+    await tester.pump();
+    // Check defaults
+    expect(scopeData.enable, isTrue);
+    expect(scopeData.sampleCount, MenuAimInterceptor.defaultSampleCount);
+    expect(scopeData.minimumDistanceSquared, MenuAimInterceptor.defaultMinimumDistanceSquared);
+    expect(scopeData.exitDuration, MenuAimInterceptor.defaultExitDuration);
 
     await tester.pumpWidget(
       MenuAimScope(
         enable: false,
+        sampleCount: 10,
+        minimumDistanceSquared: 100.0,
+        exitDuration: const Duration(milliseconds: 500),
         child: Builder(
           builder: (context) {
-            isEnabled = MenuAimScope.isEnabledOf(context);
+            scopeData = MenuAimScope.maybeOf(context)!;
             return const SizedBox();
           },
         ),
       ),
     );
-    expect(isEnabled, isFalse);
+    await tester.pump();
+
+    expect(scopeData.enable, isFalse);
+    expect(scopeData.sampleCount, 10);
+    expect(scopeData.minimumDistanceSquared, 100.0);
+    expect(scopeData.exitDuration, const Duration(milliseconds: 500));
+  });
+
+  testWidgets('dynamically updating sampleCount trims excess points on render object', (
+    WidgetTester tester,
+  ) async {
+    final geometry = MenuAimGeometry()
+      ..anchorRect = const Rect.fromLTWH(0, 0, 50, 50)
+      ..targetRect = const Rect.fromLTWH(200, 200, 50, 50);
+
+    // Render with large sampleCount
+    await tester.pumpWidget(
+      App(
+        MenuAimScope(
+          enable: true,
+          sampleCount: 10,
+          child: AimTester(geometry: geometry, onHoverChanged: (_) {}),
+        ),
+      ),
+    );
+
+    final TestGesture gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+    addTearDown(gesture.removePointer);
+    await gesture.addPointer(location: const Offset(10, 10));
+    await tester.pump();
+
+    // Trigger several movements to populate the point queue
+    for (var i = 0; i < 30; i++) {
+      await gesture.moveTo(Offset(10.0 + i, 10.0 + i));
+      await tester.pump();
+    }
+
+    final dynamic renderObject = tester.renderObject(
+      find.byType(MenuAimInterceptor.debugAimListenerWidgetType),
+    );
+
+    // ignore: avoid_dynamic_calls
+    expect(renderObject.points.length, equals(10));
+
+    // Rebuild with custom scope asserting a smaller sampleCount
+    await tester.pumpWidget(
+      App(
+        MenuAimScope(
+          enable: true,
+          sampleCount: 3,
+          child: AimTester(geometry: geometry, onHoverChanged: (_) {}),
+        ),
+      ),
+    );
+
+    // Verify queue is trimmed down immediately on render object update
+
+    // ignore: avoid_dynamic_calls
+    expect(renderObject.sampleCount, equals(3));
+    // ignore: avoid_dynamic_calls
+    expect(renderObject.points.length, equals(3));
+  });
+
+  testWidgets('custom exitDuration is observed by the timer', (WidgetTester tester) async {
+    final geometry = MenuAimGeometry()
+      ..anchorRect = const Rect.fromLTWH(0, 0, 50, 50)
+      ..targetRect = const Rect.fromLTWH(200, 200, 50, 50);
+
+    var intercepted = false;
+
+    // Use a very short custom exit duration of 50ms
+    await tester.pumpWidget(
+      App(
+        MenuAimScope(
+          enable: true,
+          exitDuration: const Duration(milliseconds: 50),
+          child: AimTester(
+            geometry: geometry,
+            onHoverChanged: (hovered) {
+              intercepted = !hovered;
+            },
+          ),
+        ),
+      ),
+    );
+
+    final TestGesture gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+    addTearDown(gesture.removePointer);
+    await gesture.addPointer(location: const Offset(25, 25));
+    await tester.pump();
+
+    await moveMouse(
+      gesture,
+      tester: tester,
+      start: const Offset(25, 25),
+      end: const Offset(55, 55),
+      duration: const Duration(milliseconds: 1),
+      steps: 5,
+    );
+
+    expect(intercepted, isTrue);
+
+    // Move slightly and wait 60ms (exceeding the 50ms limit, but well below 300ms default)
+    await gesture.moveTo(const Offset(60, 60));
+    await tester.pump(const Duration(milliseconds: 60));
+    await tester.pump();
+
+    expect(intercepted, isFalse);
+  });
+
+  testWidgets('custom minimumDistanceSquared limits small gestures from intercepting', (
+    WidgetTester tester,
+  ) async {
+    final geometry = MenuAimGeometry()
+      ..anchorRect = const Rect.fromLTWH(200, 200, 50, 50)
+      ..targetRect = const Rect.fromLTWH(300, 300, 50, 50);
+
+    var intercepted = false;
+
+    // Use a custom scope with a very high minimum distance squared (e.g. 500.0)
+    await tester.pumpWidget(
+      App(
+        MenuAimScope(
+          enable: true,
+          minimumDistanceSquared: 500.0,
+          child: AimTester(
+            geometry: geometry,
+            onHoverChanged: (hovered) {
+              intercepted = !hovered;
+            },
+          ),
+        ),
+      ),
+    );
+
+    final TestGesture gesture = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+    // Start near the boundary edge of the anchor
+    await gesture.addPointer(location: const Offset(245, 245));
+    await tester.pump();
+
+    // Move outside the anchor towards the target (dist squared = (255-245)^2 + (255-245)^2 = 200.0)
+    await moveMouse(
+      gesture,
+      tester: tester,
+      start: const Offset(245, 245),
+      end: const Offset(255, 255),
+      duration: const Duration(milliseconds: 10),
+      steps: 5,
+    );
+
+    // Should NOT intercept because 200.0 is below minimumDistanceSquared (500.0)
+    expect(intercepted, isFalse);
+
+    await gesture.removePointer();
+
+    // Reset points queue
+    await tester.pumpWidget(
+      App(
+        MenuAimScope(
+          enable: true,
+          sampleCount: 0,
+          child: AimTester(
+            geometry: geometry,
+            onHoverChanged: (hovered) {
+              intercepted = !hovered;
+            },
+          ),
+        ),
+      ),
+    );
+
+    // Now rebuild and verify that with default minimumDistanceSquared (15.0), the same gesture DOES intercept
+    await tester.pumpWidget(
+      App(
+        MenuAimScope(
+          enable: true,
+          minimumDistanceSquared: 10,
+          child: AimTester(
+            geometry: geometry,
+            onHoverChanged: (hovered) {
+              intercepted = !hovered;
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final TestGesture gesture2 = await tester.createGesture(kind: ui.PointerDeviceKind.mouse);
+    addTearDown(gesture2.removePointer);
+    await gesture2.addPointer(location: const Offset(245, 245));
+    await tester.pump();
+
+    await moveMouse(
+      gesture2,
+      tester: tester,
+      start: const Offset(245, 245),
+      end: const Offset(255, 255),
+      duration: const Duration(milliseconds: 10),
+      steps: 5,
+    );
+
+    // Should intercept because 200.0 is above the default minimumDistanceSquared (15.0)
+    expect(intercepted, isTrue);
   });
 }
 

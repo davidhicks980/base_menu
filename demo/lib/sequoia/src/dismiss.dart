@@ -74,12 +74,25 @@ class SequoiaMenuDismissCoordinatorState extends State<SequoiaMenuDismissCoordin
   }
 
   void fadeMenuOut() {
-    if (isAnimatingOut || !mounted || !widget.controller.isOpen) {
+    if (!mounted) {
+      return;
+    }
+
+    if (!widget.controller.isOpen) {
+      setState(() {
+        isInteractive = widget.isInteractive;
+      });
+      return;
+    }
+
+    if (isAnimatingOut) {
       return;
     }
 
     widget.onFadeOutBegin?.call();
-    isAnimatingOut = true;
+    setState(() {
+      isAnimatingOut = true;
+    });
     animation.duration = const Duration(milliseconds: 133);
     animation.reverse().whenComplete(() {
       widget.controller.close();

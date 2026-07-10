@@ -17,7 +17,7 @@ class MenuEntryPanel extends StatelessWidget {
   const MenuEntryPanel({
     super.key,
     this.constraints,
-    this.clipBehavior = Clip.none,
+    this.clipBehavior = .antiAlias,
     this.borderRadius = const BorderRadius.all(Radius.circular(4)),
     this.axis = Axis.vertical,
     required this.menuEntry,

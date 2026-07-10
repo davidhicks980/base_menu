@@ -1,5 +1,6 @@
+import 'dart:async';
+
 import 'package:base_menu/base_menu.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/src/gestures/events.dart';
 import 'package:flutter/widgets.dart';
@@ -7,6 +8,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../data/menu.dart';
 import '../../model/model.dart';
+import '../../utilities/exclusive_menu_manager.dart';
 import '../adapters/menu_entry_menu_bar_menu.dart';
 import '../menu_panel.dart';
 import '../overflow_toolbar.dart';
@@ -31,14 +33,6 @@ class DocumentMenuBar extends StatefulWidget {
     return scope?.isInteractive ?? false;
   }
 
-  static void disableInteractivityOf(BuildContext context) {
-    context.findAncestorStateOfType<_DocumentMenuBarState>()?.disableInteractivity();
-  }
-
-  static void enableInteractivityOf(BuildContext context) {
-    context.findAncestorStateOfType<_DocumentMenuBarState>()?.enableInteractivity();
-  }
-
   static bool hasAncestor(BuildContext context) {
     return context.getInheritedWidgetOfExactType<_DocumentMenuBarScope>() != null;
   }
@@ -54,41 +48,6 @@ class _DocumentMenuBarState extends State<DocumentMenuBar> {
   final List<Widget> children = Menu.main.children
       .map((entry) => MenuBarMenu(entry: entry))
       .toList(growable: false);
-  bool _isInteractive = false;
-
-  void disableInteractivity() {
-    if (_isInteractive) {
-      setState(() {
-        _isInteractive = false;
-      });
-      _focusScopeNode.requestScopeFocus();
-    }
-  }
-
-  void enableInteractivity() {
-    if (!_isInteractive) {
-      setState(() {
-        _isInteractive = true;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    if (kIsWeb) {
-      _focusScopeNode.addListener(() {
-        if (!_focusScopeNode.hasFocus) {
-          SchedulerBinding.instance.addPostFrameCallback((_) {
-            FocusManager.instance.applyFocusChangesIfNeeded();
-            if (mounted && !_focusScopeNode.hasFocus) {
-              _menuController.close();
-            }
-          });
-        }
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -96,13 +55,8 @@ class _DocumentMenuBarState extends State<DocumentMenuBar> {
     super.dispose();
   }
 
-  void _handleTapOutside(PointerDownEvent event) {
-    disableInteractivity();
-    _menuController.close();
-  }
-
   void _handlePointerExit(PointerExitEvent event) {
-    if (!_menuController.isOpen) {
+    if (!_menuController.isOpen && _focusScopeNode.hasFocus) {
       _focusScopeNode.requestScopeFocus();
     }
   }
@@ -111,49 +65,59 @@ class _DocumentMenuBarState extends State<DocumentMenuBar> {
   Widget build(BuildContext context) {
     final bool hasOverflow = _cutoff < Menu.main.children.length;
     return _DocumentMenuBarScope(
-      isInteractive: _isInteractive,
-      child: BaseMenuBar(
-        controller: _menuController,
-        focusScopeNode: _focusScopeNode,
+      isInteractive: ExclusiveMenuManager.controllerOf(context) == _menuController,
+      child: Align(
+        alignment: AlignmentDirectional.topStart,
         child: TapRegion(
-          groupId: 'menu_system',
-          onTapOutside: _handleTapOutside,
-          child: BaseMenuPanel(
-            constraints: const BoxConstraints.tightFor(height: 23.5),
-            padding: const EdgeInsetsDirectional.only(end: 20.0),
-            mainAxisSize: MainAxisSize.min,
-            onPointerExit: _handlePointerExit,
-            children: [
-              Flexible(
-                child: OverflowRow(
-                  onOverflow: (int lastVisibleIndex) {
-                    _cutoff = lastVisibleIndex;
-                    SchedulerBinding.instance.addPostFrameCallback((timestamp) {
-                      if (mounted) {
-                        setState(() {});
-                      }
-                    });
-                  },
-                  children: children,
-                ),
-              ),
-              if (hasOverflow)
-                MenuBarMenu(
-                  overflow: true,
-                  panel: MenuPanel(
-                    onSurfaceExit: _handlePointerExit,
-                    orientation: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-                    children: [
-                      ...Menu.main.children.skip(_cutoff).map((entry) => MenuBarMenu(entry: entry)),
-                    ],
-                  ),
-                  entry: SubmenuEntry(
-                    const MenuEntry('More', icon: Symbols.more_horiz),
-                    Menu.main.children.take(_cutoff).toList(),
+          onTapOutside: (event) {
+            scheduleMicrotask(() {
+              if (mounted && ExclusiveMenuManager.controllerOf(context) == _menuController) {
+                _focusScopeNode.unfocus();
+              }
+            });
+          },
+          child: BaseMenuBar(
+            controller: _menuController,
+            focusScopeNode: _focusScopeNode,
+            child: BaseMenuPanel(
+              constraints: const BoxConstraints.tightFor(height: 23.5),
+              padding: const EdgeInsetsDirectional.only(end: 20.0),
+              mainAxisSize: MainAxisSize.min,
+              onPointerExit: _handlePointerExit,
+              clipBehavior: .hardEdge,
+              children: [
+                Flexible(
+                  child: OverflowRow(
+                    onOverflow: (int lastVisibleIndex) {
+                      _cutoff = lastVisibleIndex;
+                      SchedulerBinding.instance.addPostFrameCallback((timestamp) {
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      });
+                    },
+                    children: children,
                   ),
                 ),
-            ],
+                if (hasOverflow)
+                  MenuBarMenu(
+                    overflow: true,
+                    panel: MenuPanel(
+                      onSurfaceExit: _handlePointerExit,
+                      orientation: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
+                      children: Menu.main.children
+                          .skip(_cutoff)
+                          .map((entry) => MenuBarMenu(entry: entry))
+                          .toList(),
+                    ),
+                    entry: SubmenuEntry(
+                      const MenuEntry('More', icon: Symbols.more_horiz),
+                      Menu.main.children.take(_cutoff).toList(),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

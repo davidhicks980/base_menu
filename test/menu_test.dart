@@ -2338,8 +2338,8 @@ void main() {
         buildTest(
           const DefaultMenuPositioningDelegate(
             enableAimAssist: true,
-            anchorAlignment: Alignment.centerRight,
-            menuAlignment: Alignment.centerLeft,
+            anchorAttachment: Alignment.centerRight,
+            menuAttachment: Alignment.centerLeft,
           ),
         ),
       );
@@ -2401,8 +2401,8 @@ void main() {
         buildTest(
           const DefaultMenuPositioningDelegate(
             enableAimAssist: true,
-            anchorAlignment: Alignment.centerLeft,
-            menuAlignment: Alignment.centerRight,
+            anchorAttachment: Alignment.centerLeft,
+            menuAttachment: Alignment.centerRight,
           ),
         ),
       );
@@ -2449,8 +2449,8 @@ void main() {
                   controller: MenuController(),
                   positionDelegate: const DefaultMenuPositioningDelegate(
                     enableAimAssist: true,
-                    anchorAlignment: Alignment.centerRight,
-                    menuAlignment: Alignment.centerLeft,
+                    anchorAttachment: Alignment.centerRight,
+                    menuAttachment: Alignment.centerLeft,
                   ),
                   menu: Container(
                     key: Tag.overlay.key,
@@ -5101,13 +5101,13 @@ void main() {
       return menuRects;
     }
 
-    testWidgets('LTR alignment', (WidgetTester tester) async {
-      Widget buildApp({AlignmentGeometry? alignment}) {
+    testWidgets('LTR attachment', (WidgetTester tester) async {
+      Widget buildApp({AlignmentGeometry? attachment}) {
         return App(
           BaseMenu(
             positionDelegate: DefaultMenuPositioningDelegate(
-              anchorAlignment: alignment,
-              menuAlignment: Alignment.center,
+              anchorAttachment: attachment,
+              menuAttachment: Alignment.center,
             ),
 
             menu: BaseMenuPanel(
@@ -5134,7 +5134,7 @@ void main() {
       final ui.Rect anchorRect = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
 
       for (final alignment in alignments) {
-        await tester.pumpWidget(buildApp(alignment: alignment));
+        await tester.pumpWidget(buildApp(attachment: alignment));
         final ui.Rect overlay = tester.getRect(find.widgetWithText(Container, Tag.a.text).first);
         expect(
           alignment.resolve(TextDirection.ltr).withinRect(anchorRect),
@@ -5146,14 +5146,14 @@ void main() {
       }
     });
 
-    testWidgets('RTL alignment', (WidgetTester tester) async {
-      Widget buildApp({AlignmentGeometry? alignment}) {
+    testWidgets('RTL attachment', (WidgetTester tester) async {
+      Widget buildApp({AlignmentGeometry? attachment}) {
         return App(
           textDirection: TextDirection.rtl,
           BaseMenu(
             positionDelegate: DefaultMenuPositioningDelegate(
-              anchorAlignment: alignment,
-              menuAlignment: Alignment.center,
+              anchorAttachment: attachment,
+              menuAttachment: Alignment.center,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -5179,7 +5179,7 @@ void main() {
       final ui.Rect anchorRect = tester.getRect(find.widgetWithText(Button, Tag.anchor.text));
 
       for (final alignment in alignments) {
-        await tester.pumpWidget(buildApp(alignment: alignment));
+        await tester.pumpWidget(buildApp(attachment: alignment));
         final ui.Rect overlay = tester.getRect(find.widgetWithText(Container, Tag.a.text).first);
         expect(
           alignment.resolve(TextDirection.rtl).withinRect(anchorRect),
@@ -5191,16 +5191,16 @@ void main() {
       }
     });
 
-    testWidgets('LTR menu alignment', (WidgetTester tester) async {
+    testWidgets('LTR menu attachment', (WidgetTester tester) async {
       const size = Size(800, 600);
       await changeSurfaceSize(tester, size);
 
-      Widget buildApp({AlignmentGeometry? alignment}) {
+      Widget buildApp({AlignmentGeometry? attachment}) {
         return App(
           BaseMenu(
             positionDelegate: DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.center,
-              menuAlignment: alignment,
+              anchorAttachment: Alignment.center,
+              menuAttachment: attachment,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -5225,7 +5225,7 @@ void main() {
 
       for (final alignment in alignments) {
         for (double y = -2; y <= 2; y += 1) {
-          await tester.pumpWidget(buildApp(alignment: alignment));
+          await tester.pumpWidget(buildApp(attachment: alignment));
           final ui.Rect overlay = tester.getRect(find.widgetWithText(Container, Tag.a.text).first);
 
           expect(
@@ -5239,16 +5239,16 @@ void main() {
       }
     });
 
-    testWidgets('RTL menu alignment', (WidgetTester tester) async {
+    testWidgets('RTL menu attachment', (WidgetTester tester) async {
       const size = Size(800, 600);
       await changeSurfaceSize(tester, size);
-      Widget buildApp({AlignmentGeometry? alignment}) {
+      Widget buildApp({AlignmentGeometry? attachment}) {
         return App(
           textDirection: TextDirection.rtl,
           BaseMenu(
             positionDelegate: DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.center,
-              menuAlignment: alignment,
+              anchorAttachment: Alignment.center,
+              menuAttachment: attachment,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -5271,13 +5271,13 @@ void main() {
       await tester.pump();
 
       for (final alignment in alignments) {
-        await tester.pumpWidget(buildApp(alignment: alignment));
+        await tester.pumpWidget(buildApp(attachment: alignment));
         final ui.Rect overlay = tester.getRect(find.widgetWithText(Container, Tag.a.text).first);
         expect(
           alignment.resolve(TextDirection.rtl).withinRect(overlay),
           size.center(Offset.zero),
           reason:
-              'Menu alignment: $alignment \n'
+              'Menu attachment: $alignment \n'
               'Menu rect: $overlay \n',
         );
       }
@@ -5415,20 +5415,20 @@ void main() {
       expect(submenu.topRight, equals(tester.getTopLeft(find.byKey(Tag.a.key))));
     });
 
-    testWidgets('alignmentOffset is directional by default', (WidgetTester tester) async {
+    testWidgets('offset is directional by default', (WidgetTester tester) async {
       const offset = Offset(24, 33);
 
       Widget buildApp({
-        Offset alignmentOffset = Offset.zero,
+        Offset offset = Offset.zero,
         ui.TextDirection textDirection = ui.TextDirection.ltr,
       }) {
         return App(
           textDirection: textDirection,
           BaseMenu(
             positionDelegate: DefaultMenuPositioningDelegate(
-              offset: alignmentOffset,
-              anchorAlignment: Alignment.center,
-              menuAlignment: Alignment.center,
+              offset: offset,
+              anchorAttachment: Alignment.center,
+              menuAttachment: Alignment.center,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -5453,7 +5453,7 @@ void main() {
 
       final Rect ltrPosition = collectOverlays().first;
 
-      await tester.pumpWidget(buildApp(alignmentOffset: offset));
+      await tester.pumpWidget(buildApp(offset: offset));
 
       final Rect ltrPositionTwo = collectOverlays().first;
 
@@ -5463,28 +5463,26 @@ void main() {
 
       final Rect rtlPosition = collectOverlays().first;
 
-      await tester.pumpWidget(
-        buildApp(alignmentOffset: offset, textDirection: ui.TextDirection.rtl),
-      );
+      await tester.pumpWidget(buildApp(offset: offset, textDirection: ui.TextDirection.rtl));
 
       final Rect rtlPositionTwo = collectOverlays().first;
 
       expect(rtlPositionTwo, equals(rtlPosition.shift(Offset(-offset.dx, offset.dy))));
     });
 
-    testWidgets('LTR alignmentOffset', (WidgetTester tester) async {
+    testWidgets('LTR offset', (WidgetTester tester) async {
       const offset = Offset(24, 33);
 
       Widget buildApp({
-        Offset alignmentOffset = Offset.zero,
-        AlignmentGeometry anchorAlignment = Alignment.center,
+        Offset offset = Offset.zero,
+        AlignmentGeometry anchorAttachment = Alignment.center,
       }) {
         return App(
           BaseMenu(
             positionDelegate: DefaultMenuPositioningDelegate(
-              anchorAlignment: anchorAlignment,
-              menuAlignment: Alignment.center,
-              offset: alignmentOffset,
+              anchorAttachment: anchorAttachment,
+              menuAttachment: Alignment.center,
+              offset: offset,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -5510,31 +5508,29 @@ void main() {
 
       final Rect center = collectOverlays().first;
 
-      await tester.pumpWidget(buildApp(alignmentOffset: offset));
+      await tester.pumpWidget(buildApp(offset: offset));
 
       expect(center.shift(offset), equals(collectOverlays().first));
 
-      await tester.pumpWidget(buildApp(alignmentOffset: -offset));
+      await tester.pumpWidget(buildApp(offset: -offset));
 
       expect(center.shift(-offset), equals(collectOverlays().first));
     });
 
-    testWidgets('RTL alignmentOffset with useDirectionalOffset set to false', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('RTL offset with useDirectionalOffset set to false', (WidgetTester tester) async {
       const offset = Offset(24, 33);
 
       Widget buildApp({
-        Offset alignmentOffset = Offset.zero,
-        AlignmentGeometry anchorAlignment = Alignment.center,
+        Offset offset = Offset.zero,
+        AlignmentGeometry anchorAttachment = Alignment.center,
       }) {
         return App(
           textDirection: ui.TextDirection.rtl,
           BaseMenu(
             positionDelegate: DefaultMenuPositioningDelegate(
-              anchorAlignment: anchorAlignment,
-              menuAlignment: Alignment.center,
-              offset: alignmentOffset,
+              anchorAttachment: anchorAttachment,
+              menuAttachment: Alignment.center,
+              offset: offset,
               useDirectionalOffset: false,
             ),
             menu: BaseMenuPanel(
@@ -5561,26 +5557,26 @@ void main() {
 
       final Rect center = collectOverlays().first;
 
-      await tester.pumpWidget(buildApp(alignmentOffset: offset));
+      await tester.pumpWidget(buildApp(offset: offset));
 
       expect(center.shift(offset), equals(collectOverlays().first));
 
-      await tester.pumpWidget(buildApp(alignmentOffset: -offset));
+      await tester.pumpWidget(buildApp(offset: -offset));
 
       expect(center.shift(-offset), equals(collectOverlays().first));
     });
 
-    testWidgets('RTL alignmentOffset', (WidgetTester tester) async {
+    testWidgets('RTL offset', (WidgetTester tester) async {
       const offset = Offset(24, 33);
 
-      Widget buildApp({Offset alignmentOffset = Offset.zero}) {
+      Widget buildApp({Offset offset = Offset.zero}) {
         return App(
           textDirection: ui.TextDirection.rtl,
           BaseMenu(
             positionDelegate: DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.center,
-              menuAlignment: Alignment.center,
-              offset: alignmentOffset,
+              anchorAttachment: Alignment.center,
+              menuAttachment: Alignment.center,
+              offset: offset,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -5606,11 +5602,11 @@ void main() {
 
       final Rect center = collectOverlays().first;
 
-      await tester.pumpWidget(buildApp(alignmentOffset: offset));
+      await tester.pumpWidget(buildApp(offset: offset));
 
       expect(center.shift(Offset(-offset.dx, offset.dy)), equals(collectOverlays().first));
 
-      await tester.pumpWidget(buildApp(alignmentOffset: -offset));
+      await tester.pumpWidget(buildApp(offset: -offset));
 
       expect(center.shift(Offset(offset.dx, -offset.dy)), equals(collectOverlays().first));
     });
@@ -5625,8 +5621,8 @@ void main() {
             onCloseRequest: (hideOverlay) {},
             positionDelegate: const DefaultMenuPositioningDelegate(
               offset: Offset(-100, 100),
-              anchorAlignment: .topStart,
-              menuAlignment: .topStart,
+              anchorAttachment: .topStart,
+              menuAttachment: .topStart,
               overlayPadding: EdgeInsets.zero,
             ),
             menu: BaseMenuPanel(
@@ -5638,8 +5634,8 @@ void main() {
                   positionDelegate: const DefaultMenuPositioningDelegate(
                     offset: Offset(100, -100),
                     overlayPadding: EdgeInsets.zero,
-                    anchorAlignment: .topStart,
-                    menuAlignment: .topStart,
+                    anchorAttachment: .topStart,
+                    menuAttachment: .topStart,
                   ),
                   menu: BaseMenuPanel(
                     orientation: Axis.vertical,
@@ -5679,8 +5675,8 @@ void main() {
             positionDelegate: const DefaultMenuPositioningDelegate(
               offset: Offset(-100, 100),
               overlayPadding: EdgeInsets.zero,
-              anchorAlignment: .topStart,
-              menuAlignment: .topStart,
+              anchorAttachment: .topStart,
+              menuAttachment: .topStart,
               useDirectionalOffset: false,
             ),
             menu: BaseMenuPanel(
@@ -5691,8 +5687,8 @@ void main() {
                   positionDelegate: const DefaultMenuPositioningDelegate(
                     offset: Offset(100, -100),
                     overlayPadding: EdgeInsets.zero,
-                    anchorAlignment: .topStart,
-                    menuAlignment: .topStart,
+                    anchorAttachment: .topStart,
+                    menuAttachment: .topStart,
                     useDirectionalOffset: false,
                   ),
                   menu: BaseMenuPanel(
@@ -5949,8 +5945,8 @@ void main() {
           alignment: const Alignment(0.5, 0),
           BaseMenu(
             positionDelegate: const DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.center,
-              menuAlignment: Alignment(-0.9, -0.9),
+              anchorAttachment: Alignment.center,
+              menuAttachment: Alignment(-0.9, -0.9),
             ),
             onCloseRequest: (hideOverlay) {},
             menu: BaseMenuPanel(
@@ -5990,8 +5986,8 @@ void main() {
           alignment: const Alignment(0.5, 0),
           BaseMenu(
             positionDelegate: const DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.center,
-              menuAlignment: Alignment(-0.9, -0.9),
+              anchorAttachment: Alignment.center,
+              menuAttachment: Alignment(-0.9, -0.9),
             ),
             onCloseRequest: (hideOverlay) {},
             menu: BaseMenuPanel(
@@ -6028,8 +6024,8 @@ void main() {
           alignment: const Alignment(-0.5, 0),
           BaseMenu(
             positionDelegate: const DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.topLeft,
-              menuAlignment: Alignment(0.75, -0.75),
+              anchorAttachment: Alignment.topLeft,
+              menuAttachment: Alignment(0.75, -0.75),
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -6061,8 +6057,8 @@ void main() {
           alignment: const Alignment(-0.5, 0),
           BaseMenu(
             positionDelegate: const DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.topLeft,
-              menuAlignment: Alignment(0.75, -0.75),
+              anchorAttachment: Alignment.topLeft,
+              menuAttachment: Alignment(0.75, -0.75),
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -6093,7 +6089,7 @@ void main() {
             BaseMenu(
               controller: controller,
               positionDelegate: const DefaultMenuPositioningDelegate(
-                menuAlignment: Alignment.center,
+                menuAttachment: Alignment.center,
                 overlayPadding: EdgeInsets.zero,
               ),
               menu: BaseMenuPanel(
@@ -6160,8 +6156,8 @@ void main() {
           alignment: const Alignment(0, -0.5),
           BaseMenu(
             positionDelegate: const DefaultMenuPositioningDelegate(
-              anchorAlignment: AlignmentDirectional.topStart,
-              menuAlignment: AlignmentDirectional.bottomStart,
+              anchorAttachment: AlignmentDirectional.topStart,
+              menuAttachment: AlignmentDirectional.bottomStart,
               offset: Offset(0, -8),
             ),
             menu: ColoredBox(
@@ -6185,16 +6181,14 @@ void main() {
       expect(collectOverlays().first.top, equals(anchor.bottom + 8));
     });
 
-    testWidgets('AlignmentOffset is reflected across anchor when menu flips', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('offset is reflected across anchor when menu flips', (WidgetTester tester) async {
       await tester.pumpWidget(
         App(
           alignment: const Alignment(0.8, 0.8),
           BaseMenu(
             positionDelegate: const DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.center,
-              menuAlignment: Alignment.center,
+              anchorAttachment: Alignment.center,
+              menuAttachment: Alignment.center,
               offset: Offset(200, 200),
             ),
             menu: BaseMenuPanel(
@@ -6221,8 +6215,8 @@ void main() {
           alignment: const AlignmentDirectional(0.95, 0.95),
           BaseMenu(
             positionDelegate: const DefaultMenuPositioningDelegate(
-              anchorAlignment: AlignmentDirectional.bottomEnd,
-              menuAlignment: Alignment.center,
+              anchorAttachment: AlignmentDirectional.bottomEnd,
+              menuAttachment: Alignment.center,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -6240,7 +6234,7 @@ void main() {
       expect(collectOverlays().first.center, equals(anchorTopLeft));
     });
 
-    testWidgets('MenuAlignment is reflected across anchor when menu flips', (
+    testWidgets('menuAttachment is reflected across anchor when menu flips', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -6248,8 +6242,8 @@ void main() {
           alignment: const AlignmentDirectional(0.95, 0.95),
           BaseMenu(
             positionDelegate: const DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.center,
-              menuAlignment: AlignmentDirectional.topStart,
+              anchorAttachment: Alignment.center,
+              menuAttachment: AlignmentDirectional.topStart,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -6278,8 +6272,8 @@ void main() {
             BaseMenu(
               controller: controller,
               positionDelegate: const DefaultMenuPositioningDelegate(
-                anchorAlignment: Alignment.topLeft,
-                menuAlignment: Alignment.topCenter,
+                anchorAttachment: Alignment.topLeft,
+                menuAttachment: Alignment.topCenter,
               ),
               menu: BaseMenuPanel(
                 orientation: Axis.vertical,
@@ -6317,9 +6311,7 @@ void main() {
       },
     );
 
-    testWidgets('Menus opened with a position ignore `alignmentOffset`', (
-      WidgetTester tester,
-    ) async {
+    testWidgets('Menus opened with a position ignore offset', (WidgetTester tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 600));
 
       await tester.pumpWidget(
@@ -6327,8 +6319,8 @@ void main() {
           BaseMenu(
             positionDelegate: const DefaultMenuPositioningDelegate(
               offset: Offset(33, 45),
-              anchorAlignment: Alignment.topLeft,
-              menuAlignment: Alignment.topCenter,
+              anchorAttachment: Alignment.topLeft,
+              menuAttachment: Alignment.topCenter,
             ),
             controller: controller,
             menu: BaseMenuPanel(
@@ -6346,7 +6338,7 @@ void main() {
       controller.open();
       await tester.pump();
 
-      // Get position with alignmentOffset.
+      // Get position with offset.
       final ui.Rect control = collectOverlays().first;
 
       controller.open(position: Offset.zero);
@@ -6356,7 +6348,9 @@ void main() {
       expect(collectOverlays().first, control.shift(const Offset(-33, -45)));
     });
 
-    testWidgets('Menus opened with a position ignore `alignment`', (WidgetTester tester) async {
+    testWidgets('Menus opened with a position ignore anchorAttachment', (
+      WidgetTester tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(800, 600));
 
       await tester.pumpWidget(
@@ -6364,8 +6358,8 @@ void main() {
           BaseMenu(
             controller: controller,
             positionDelegate: const DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.bottomRight,
-              menuAlignment: Alignment.topLeft,
+              anchorAttachment: Alignment.bottomRight,
+              menuAttachment: Alignment.topLeft,
             ),
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
@@ -6381,7 +6375,7 @@ void main() {
       controller.open();
       await tester.pump();
 
-      // Get position with alignmentOffset.
+      // Get position with offset.
       final ui.Rect control = collectOverlays().first;
 
       controller.open(position: Offset.zero);
@@ -6394,7 +6388,7 @@ void main() {
       expect(collectOverlays().first, control.shift(const Offset(-100, -100)));
     });
 
-    testWidgets('Menus opened with a position respect the menuAlignment property', (
+    testWidgets('Menus opened with a position respect the menuAttachment property', (
       WidgetTester tester,
     ) async {
       await tester.binding.setSurfaceSize(const Size(800, 600));
@@ -6404,8 +6398,8 @@ void main() {
           BaseMenu(
             controller: controller,
             positionDelegate: const DefaultMenuPositioningDelegate(
-              anchorAlignment: Alignment.topLeft,
-              menuAlignment: Alignment.center,
+              anchorAttachment: Alignment.topLeft,
+              menuAttachment: Alignment.center,
               padding: EdgeInsets.all(25),
             ),
             menu: BaseMenuPanel(
@@ -6422,7 +6416,7 @@ void main() {
       controller.open();
       await tester.pump();
 
-      // Get position with alignmentOffset.
+      // Get position with offset.
       final ui.Rect control = collectOverlays().first;
 
       controller.open(position: const Offset(100, 100));
@@ -6445,7 +6439,7 @@ void main() {
           BaseMenu(
             controller: controller,
             positionDelegate: const DefaultMenuPositioningDelegate(
-              menuAlignment: Alignment.topLeft,
+              menuAttachment: Alignment.topLeft,
               overlayPadding: EdgeInsets.zero,
             ),
             menu: BaseMenuPanel(
@@ -6485,8 +6479,8 @@ void main() {
       final child = BaseMenu(
         controller: controller,
         positionDelegate: const DefaultMenuPositioningDelegate(
-          anchorAlignment: AlignmentDirectional.bottomStart,
-          menuAlignment: AlignmentDirectional.topStart,
+          anchorAttachment: AlignmentDirectional.bottomStart,
+          menuAttachment: AlignmentDirectional.topStart,
           padding: EdgeInsets.fromLTRB(0, 5, 0, 3),
         ),
         menu: ColoredBox(
@@ -6499,8 +6493,8 @@ void main() {
                 color: childColor,
                 child: BaseMenu(
                   positionDelegate: const DefaultMenuPositioningDelegate(
-                    anchorAlignment: AlignmentDirectional.topEnd,
-                    menuAlignment: AlignmentDirectional.topStart,
+                    anchorAttachment: AlignmentDirectional.topEnd,
+                    menuAttachment: AlignmentDirectional.topStart,
                     padding: EdgeInsets.fromLTRB(0, 11, 0, 17),
                   ),
                   menu: ColoredBox(
@@ -6590,8 +6584,8 @@ void main() {
       final child = BaseMenu(
         controller: controller,
         positionDelegate: const DefaultMenuPositioningDelegate(
-          anchorAlignment: AlignmentDirectional.bottomStart,
-          menuAlignment: AlignmentDirectional.topStart,
+          anchorAttachment: AlignmentDirectional.bottomStart,
+          menuAttachment: AlignmentDirectional.topStart,
           padding: EdgeInsetsDirectional.fromSTEB(5, 0, 3, 0),
         ),
         menu: ColoredBox(
@@ -6605,8 +6599,8 @@ void main() {
                 color: childColor,
                 child: BaseMenu(
                   positionDelegate: const DefaultMenuPositioningDelegate(
-                    anchorAlignment: AlignmentDirectional.topEnd,
-                    menuAlignment: AlignmentDirectional.topStart,
+                    anchorAttachment: AlignmentDirectional.topEnd,
+                    menuAttachment: AlignmentDirectional.topStart,
                     padding: EdgeInsetsDirectional.fromSTEB(11, 0, 17, 0),
                   ),
                   menu: ColoredBox(
@@ -6694,8 +6688,8 @@ void main() {
       final child = BaseMenu(
         controller: controller,
         positionDelegate: const DefaultMenuPositioningDelegate(
-          anchorAlignment: AlignmentDirectional.bottomStart,
-          menuAlignment: AlignmentDirectional.topStart,
+          anchorAttachment: AlignmentDirectional.bottomStart,
+          menuAttachment: AlignmentDirectional.topStart,
           padding: EdgeInsetsDirectional.fromSTEB(5, 0, 3, 0),
         ),
         menu: ColoredBox(
@@ -6708,8 +6702,8 @@ void main() {
                 color: childColor,
                 child: BaseMenu(
                   positionDelegate: const DefaultMenuPositioningDelegate(
-                    anchorAlignment: AlignmentDirectional.topEnd,
-                    menuAlignment: AlignmentDirectional.topStart,
+                    anchorAttachment: AlignmentDirectional.topEnd,
+                    menuAttachment: AlignmentDirectional.topStart,
                     padding: EdgeInsetsDirectional.fromSTEB(11, 0, 17, 0),
                   ),
                   menu: ColoredBox(
@@ -6796,8 +6790,8 @@ void main() {
       final Widget menu = BaseMenu(
         controller: controller,
         positionDelegate: const DefaultMenuPositioningDelegate(
-          anchorAlignment: Alignment.topRight,
-          menuAlignment: Alignment.topLeft,
+          anchorAttachment: Alignment.topRight,
+          menuAttachment: Alignment.topLeft,
           padding: EdgeInsets.only(right: 50, top: 30),
           overlayPadding: EdgeInsets.zero,
         ),
@@ -6992,8 +6986,8 @@ void main() {
                     top: 300,
                     child: BaseMenu(
                       positionDelegate: const DefaultMenuPositioningDelegate(
-                        anchorAlignment: Alignment.topLeft,
-                        menuAlignment: Alignment.topRight,
+                        anchorAttachment: Alignment.topLeft,
+                        menuAttachment: Alignment.topRight,
                         overlayPadding: .zero,
                       ),
                       menu: BaseMenuPanel(
@@ -7111,8 +7105,8 @@ void main() {
                   children: <Widget>[
                     BaseMenu(
                       positionDelegate: DefaultMenuPositioningDelegate(
-                        anchorAlignment: AlignmentDirectional.bottomStart,
-                        menuAlignment: AlignmentDirectional.topStart,
+                        anchorAttachment: AlignmentDirectional.bottomStart,
+                        menuAttachment: AlignmentDirectional.topStart,
                         overlayPadding: EdgeInsets.zero,
                       ),
                       menu: BaseMenuPanel(
@@ -7190,8 +7184,8 @@ void main() {
                       BaseMenu(
                         positionDelegate: DefaultMenuPositioningDelegate(
                           overlayPadding: EdgeInsets.zero,
-                          menuAlignment: AlignmentDirectional.topStart,
-                          anchorAlignment: AlignmentDirectional.bottomStart,
+                          menuAttachment: AlignmentDirectional.topStart,
+                          anchorAttachment: AlignmentDirectional.bottomStart,
                         ),
                         useRootOverlay: true,
 
@@ -7289,8 +7283,8 @@ void main() {
                   child: BaseMenu(
                     controller: controller,
                     positionDelegate: const DefaultMenuPositioningDelegate(
-                      anchorAlignment: Alignment.center,
-                      menuAlignment: Alignment.topLeft,
+                      anchorAttachment: Alignment.center,
+                      menuAttachment: Alignment.topLeft,
                     ),
                     menu: Container(
                       width: 100,
@@ -7390,7 +7384,7 @@ void main() {
                     controller: controller,
                     positionDelegate: const DefaultMenuPositioningDelegate(
                       // Force anchor to a specific global position outside the screens
-                      anchorAlignment: Alignment.topLeft,
+                      anchorAttachment: Alignment.topLeft,
                     ),
                     menu: Container(
                       color: const Color.fromARGB(156, 255, 0, 0),
@@ -7420,8 +7414,8 @@ void main() {
       WidgetTester tester,
     ) async {
       final controller = MenuController();
-      AlignmentGeometry anchorAlignment = AlignmentDirectional.topStart;
-      AlignmentGeometry menuAlignment = AlignmentDirectional.topStart;
+      AlignmentGeometry anchorAttachment = AlignmentDirectional.topStart;
+      AlignmentGeometry menuAttachment = AlignmentDirectional.topStart;
       EdgeInsetsGeometry overlayPadding = EdgeInsets.zero;
       EdgeInsetsGeometry padding = EdgeInsets.zero; // Maps to menuPadding
       TextDirection textDirection = TextDirection.ltr;
@@ -7439,8 +7433,8 @@ void main() {
                   child: BaseMenu(
                     controller: controller,
                     positionDelegate: DefaultMenuPositioningDelegate(
-                      anchorAlignment: anchorAlignment,
-                      menuAlignment: menuAlignment,
+                      anchorAttachment: anchorAttachment,
+                      menuAttachment: menuAttachment,
                       overlayPadding: overlayPadding,
                       padding: padding,
                       edgeBehavior: const EdgeBehavior(
@@ -7473,22 +7467,22 @@ void main() {
       expect(getMenuOffset(), getAnchorRect().topLeft);
 
       setState(() {
-        anchorAlignment = AlignmentDirectional.bottomEnd;
+        anchorAttachment = AlignmentDirectional.bottomEnd;
       });
       await tester.pump();
 
       expect(getMenuOffset(), getAnchorRect().bottomRight);
 
       setState(() {
-        menuAlignment = AlignmentDirectional.bottomEnd;
+        menuAttachment = AlignmentDirectional.bottomEnd;
       });
       await tester.pump();
 
       expect(getMenuOffset(), getAnchorRect().bottomRight - const Offset(100, 100));
 
       setState(() {
-        anchorAlignment = AlignmentDirectional.topStart;
-        menuAlignment = AlignmentDirectional.topStart;
+        anchorAttachment = AlignmentDirectional.topStart;
+        menuAttachment = AlignmentDirectional.topStart;
         textDirection = TextDirection.rtl;
       });
       await tester.pump();
@@ -7552,8 +7546,8 @@ void main() {
             BaseMenu(
               onCloseRequest: (hideOverlay) {},
               positionDelegate: DefaultMenuPositioningDelegate(
-                anchorAlignment: AlignmentDirectional.topEnd,
-                menuAlignment: AlignmentDirectional.topStart,
+                anchorAttachment: AlignmentDirectional.topEnd,
+                menuAttachment: AlignmentDirectional.topStart,
                 edgeBehavior: EdgeBehavior(
                   horizontal: horizontalStrategy,
                   vertical: const EdgeBehaviorStrategy(),
@@ -7626,7 +7620,7 @@ void main() {
         expect(menu().width, equals(screenWidth - padding.horizontal));
       });
 
-      testWidgets('Horizontal behavior (menuAlignment: 0.75, 0.75)', (WidgetTester tester) async {
+      testWidgets('Horizontal behavior (menuAttachment: 0.75, 0.75)', (WidgetTester tester) async {
         await changeSurfaceSize(tester, const Size(800, 600));
         const padding = EdgeInsets.all(8.0);
         const menuWidth = 900.0;
@@ -7638,8 +7632,8 @@ void main() {
             BaseMenu(
               onCloseRequest: (hideOverlay) {},
               positionDelegate: DefaultMenuPositioningDelegate(
-                anchorAlignment: AlignmentDirectional.topEnd,
-                menuAlignment: const AlignmentDirectional(0.75, 0.75),
+                anchorAttachment: AlignmentDirectional.topEnd,
+                menuAttachment: const AlignmentDirectional(0.75, 0.75),
                 edgeBehavior: EdgeBehavior(
                   horizontal: horizontalStrategy,
                   vertical: const EdgeBehaviorStrategy(),
@@ -7725,8 +7719,8 @@ void main() {
             BaseMenu(
               onCloseRequest: (hideOverlay) {},
               positionDelegate: DefaultMenuPositioningDelegate(
-                anchorAlignment: AlignmentDirectional.topEnd,
-                menuAlignment: AlignmentDirectional.topStart,
+                anchorAttachment: AlignmentDirectional.topEnd,
+                menuAttachment: AlignmentDirectional.topStart,
                 edgeBehavior: EdgeBehavior(
                   horizontal: horizontalStrategy,
                   vertical: const EdgeBehaviorStrategy(),
@@ -7800,7 +7794,7 @@ void main() {
         expect(menu().width, equals(screenWidth - padding.horizontal));
       });
 
-      testWidgets('Horizontal behavior (RTL) (menuAlignment: 0.75, 0.75)', (
+      testWidgets('Horizontal behavior (RTL) (menuAttachment: 0.75, 0.75)', (
         WidgetTester tester,
       ) async {
         await changeSurfaceSize(tester, const Size(800, 600));
@@ -7815,8 +7809,8 @@ void main() {
             BaseMenu(
               onCloseRequest: (hideOverlay) {},
               positionDelegate: DefaultMenuPositioningDelegate(
-                anchorAlignment: AlignmentDirectional.topEnd,
-                menuAlignment: const AlignmentDirectional(0.75, 0.75),
+                anchorAttachment: AlignmentDirectional.topEnd,
+                menuAttachment: const AlignmentDirectional(0.75, 0.75),
                 edgeBehavior: EdgeBehavior(
                   horizontal: horizontalStrategy,
                   vertical: const EdgeBehaviorStrategy(),
@@ -7904,8 +7898,8 @@ void main() {
             BaseMenu(
               onCloseRequest: (hideOverlay) {},
               positionDelegate: DefaultMenuPositioningDelegate(
-                anchorAlignment: Alignment.bottomLeft,
-                menuAlignment: Alignment.topLeft,
+                anchorAttachment: Alignment.bottomLeft,
+                menuAttachment: Alignment.topLeft,
                 edgeBehavior: EdgeBehavior(
                   horizontal: const EdgeBehaviorStrategy(),
                   vertical: verticalStrategy,
@@ -7981,7 +7975,7 @@ void main() {
         expect(menu().height, equals(screenHeight - padding.vertical));
       });
 
-      testWidgets('Vertical behavior (anchor bottom, menuAlignment: 0.75, 0.75)', (
+      testWidgets('Vertical behavior (anchor bottom, menuAttachment: 0.75, 0.75)', (
         WidgetTester tester,
       ) async {
         await changeSurfaceSize(tester, const Size(800, 600));
@@ -7995,8 +7989,8 @@ void main() {
             BaseMenu(
               onCloseRequest: (hideOverlay) {},
               positionDelegate: DefaultMenuPositioningDelegate(
-                anchorAlignment: Alignment.bottomLeft,
-                menuAlignment: const Alignment(0.75, 0.75),
+                anchorAttachment: Alignment.bottomLeft,
+                menuAttachment: const Alignment(0.75, 0.75),
                 edgeBehavior: EdgeBehavior(
                   horizontal: const EdgeBehaviorStrategy(),
                   vertical: verticalStrategy,
@@ -8075,8 +8069,8 @@ void main() {
         await changeSurfaceSize(tester, surfaceSize);
 
         const delegate = DefaultMenuPositioningDelegate(
-          anchorAlignment: Alignment.center,
-          menuAlignment: Alignment.center,
+          anchorAttachment: Alignment.center,
+          menuAttachment: Alignment.center,
           edgeBehavior: EdgeBehavior(
             horizontal: EdgeBehaviorStrategy(),
             vertical: EdgeBehaviorStrategy(shift: true, constrain: true),
@@ -8109,8 +8103,8 @@ void main() {
         await changeSurfaceSize(tester, surfaceSize);
 
         const delegate = DefaultMenuPositioningDelegate(
-          anchorAlignment: Alignment.center,
-          menuAlignment: Alignment.center,
+          anchorAttachment: Alignment.center,
+          menuAttachment: Alignment.center,
           edgeBehavior: EdgeBehavior(
             horizontal: EdgeBehaviorStrategy(shift: true),
             vertical: EdgeBehaviorStrategy(),
@@ -8152,8 +8146,8 @@ void main() {
         await changeSurfaceSize(tester, surfaceSize);
 
         const delegate = DefaultMenuPositioningDelegate(
-          anchorAlignment: Alignment.center,
-          menuAlignment: Alignment.center,
+          anchorAttachment: Alignment.center,
+          menuAttachment: Alignment.center,
           edgeBehavior: EdgeBehavior(
             horizontal: EdgeBehaviorStrategy(shift: true, constrain: true),
             vertical: EdgeBehaviorStrategy(),

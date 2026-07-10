@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../../../shared/browser_context_menu_blocker.dart';
 import '../../data/menu.dart';
+import '../../utilities/exclusive_menu_manager.dart';
 import '../adapters/menu_entry_panel.dart';
 
 class EditorContextMenu extends StatefulWidget {
@@ -84,9 +85,14 @@ class _EditorContextMenuState extends State<EditorContextMenu> {
         }
       },
       onOpen: () {
+        ExclusiveMenuManager.of(context).setActive(widget.menuController);
         _focusNode.requestFocus();
       },
+      onClose: () {
+        ExclusiveMenuManager.of(context).setInactive(widget.menuController);
+      },
       menu: MenuEntryPanel(
+        clipBehavior: Clip.antiAlias,
         menuEntry: Menu.context,
         constraints: const BoxConstraints(minWidth: 320),
         onSurfaceExit: (_) {

@@ -12,6 +12,7 @@ import '../model/enum.dart';
 import '../model/intents.dart';
 import '../model/model.dart';
 import '../utilities/editor_controller.dart';
+import '../utilities/exclusive_menu_manager.dart';
 import '../utilities/style_segment_tree.dart';
 import 'action_reflector.dart';
 
@@ -554,6 +555,7 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
     KeepWithNextIntent: _ToggleEntryAction(this),
     PreventSingleLinesIntent: _ToggleEntryAction(this),
     SetColumnsIntent: ReflectAction<SetColumnsIntent>('Set Columns'),
+    InsertChecklistIntent: ReflectAction('Insert Checklist'),
     InsertBulletedListIntent: ReflectAction<InsertBulletedListIntent>('Set Bulleted List'),
     InsertNumberedListIntent: ReflectAction<InsertNumberedListIntent>('Set Numbered List'),
     FormatNumberedListIntent: ReflectAction<FormatNumberedListIntent>('Format Numbered List'),
@@ -636,24 +638,26 @@ class _AppStateManagerState extends State<AppStateManager> implements AppStateIn
       actions: _actions,
       child: Shortcuts(
         shortcuts: shortcuts,
-        child: ListenableBuilder(
-          listenable: controller,
-          builder: (context, child) {
-            syncFlagsToTextStyle(controller.selectedTextStyle ?? const SegmentTextStyle());
-            return _EditorModel(
-              controller: controller,
-              hasSelection: !controller.selection.isCollapsed,
-              selectedText: controller.selectedText,
-              selectedTextStyle: controller.selectedTextStyle,
-              selectedParagraphStyle: controller.selectedParagraphStyle,
-              paragraphStyles: controller.paragraphStyles,
-              editorFocusNode: editorFocusNode,
-              searchMenuController: searchMenuController,
-              documentFlags: documentFlags,
-              isHeaderShown: _isHeaderShown,
-              child: widget.child,
-            );
-          },
+        child: ExclusiveMenuScope(
+          child: ListenableBuilder(
+            listenable: controller,
+            builder: (context, child) {
+              syncFlagsToTextStyle(controller.selectedTextStyle ?? const SegmentTextStyle());
+              return _EditorModel(
+                controller: controller,
+                hasSelection: !controller.selection.isCollapsed,
+                selectedText: controller.selectedText,
+                selectedTextStyle: controller.selectedTextStyle,
+                selectedParagraphStyle: controller.selectedParagraphStyle,
+                paragraphStyles: controller.paragraphStyles,
+                editorFocusNode: editorFocusNode,
+                searchMenuController: searchMenuController,
+                documentFlags: documentFlags,
+                isHeaderShown: _isHeaderShown,
+                child: widget.child,
+              );
+            },
+          ),
         ),
       ),
     );

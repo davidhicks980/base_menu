@@ -76,71 +76,67 @@ class WebCheckboxMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final body = MergeSemantics(
-      child: SizedBox(
-        height: 30,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-          child: Row(
-            spacing: 12,
-            children: [
-              ExcludeFocus(
-                child: AbsorbPointer(
-                  child: Semantics(
-                    checked: isChecked,
-                    child: Builder(
-                      builder: (context) {
-                        final states = statesOf(context);
-                        return Container(
-                          width: 13,
-                          height: 13,
-                          decoration: WidgetStateProperty.fromMap(
-                            _checkboxDecoration,
-                          ).resolve(states),
-                          child: checkbox,
-                        );
-                      },
-                    ),
-                  ),
+    final body = SizedBox(
+      height: 30,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        child: Row(
+          spacing: 12,
+          children: [
+            ExcludeFocus(
+              child: AbsorbPointer(
+                child: Builder(
+                  builder: (context) {
+                    final states = statesOf(context);
+                    return Container(
+                      width: 13,
+                      height: 13,
+                      decoration: WidgetStateProperty.fromMap(_checkboxDecoration).resolve(states),
+                      child: checkbox,
+                    );
+                  },
                 ),
               ),
-              Padding(padding: const EdgeInsets.only(bottom: 2.0), child: child),
-            ],
-          ),
+            ),
+            Padding(padding: const EdgeInsets.only(bottom: 2.0), child: child),
+          ],
         ),
       ),
     );
 
-    return BaseMenuItem<WebCheckboxMenuItem>(
-      role: .menuItemCheckbox,
-      requestCloseOnActivate: false,
-      requestFocusOnHover: false,
-      onPressed: onChange != null
-          ? () {
-              onChange!(!isChecked);
-            }
-          : null,
-      child: _CheckedScope<WebCheckboxMenuItem>(
-        isChecked: isChecked,
-        child: Builder(
-          builder: (context) {
-            return DecoratedBox(
-              decoration: isHoveredOf(context)
-                  ? BoxDecoration(
-                      color: const Color(0xFFEDEDED),
-                      border: isFocusedOf(context)
-                          ? Border.all(color: const Color(0xFF0075FF), width: 2.0)
-                          : null,
-                    )
-                  : BoxDecoration(
-                      color: const Color(0x00000000),
-                      border: isFocusedOf(context)
-                          ? Border.all(color: const Color(0xFF0075FF), width: 2.0)
-                          : null,
-                    ),
-              child: body,
-            );
-          },
+    return Semantics(
+      checked: isChecked,
+      child: BaseMenuItem<WebCheckboxMenuItem>(
+        role: .menuItemCheckbox,
+        requestCloseOnActivate: false,
+        requestFocusOnHover: false,
+        onPressed: onChange != null
+            ? () {
+                onChange!(!isChecked);
+              }
+            : null,
+        child: _CheckedScope<WebCheckboxMenuItem>(
+          isChecked: isChecked,
+          child: Builder(
+            builder: (context) {
+              return DecoratedBox(
+                decoration: isHoveredOf(context)
+                    ? BoxDecoration(
+                        color: const Color(0xFFEDEDED),
+                        border: isFocusedOf(context)
+                            ? Border.all(color: const Color(0xFF0075FF), width: 2.0)
+                            : null,
+                      )
+                    : BoxDecoration(
+                        color: const Color(0x00000000),
+                        border: isFocusedOf(context)
+                            ? Border.all(color: const Color(0xFF0075FF), width: 2.0)
+                            : null,
+                      ),
+                child: body,
+              );
+            },
+          ),
         ),
       ),
     );

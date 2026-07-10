@@ -2,11 +2,12 @@ import 'package:base_menu/base_menu.dart';
 import 'package:flutter/widgets.dart';
 
 import '../theme/colors.dart';
+import '../utilities/exclusive_menu_manager.dart';
 import 'icon_button.dart';
 import 'menu_panel.dart';
 import 'tooltip.dart';
 
-class Popup extends StatelessWidget {
+class Popup extends StatefulWidget {
   const Popup({
     super.key,
     this.buttonConstraints = const BoxConstraints(minWidth: 30, minHeight: 30),
@@ -40,44 +41,66 @@ class Popup extends StatelessWidget {
   );
 
   @override
+  State<Popup> createState() => _PopupState();
+}
+
+class _PopupState extends State<Popup> {
+  final controller = MenuController();
+
+  void _handleOpen() {
+    ExclusiveMenuManager.of(context).setActive(controller);
+    widget.onOpen?.call();
+    MenuTooltipScope.of(context).hideTooltip(sync: true);
+    widget.focusNode?.requestFocus();
+  }
+
+  void _handleClose() {
+    widget.onClose?.call();
+    ExclusiveMenuManager.of(context).setInactive(controller);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final controller = MenuController();
     final body = BaseSubmenu(
       requestFocusOnHover: false,
-      enableHoverTraversal: false,
+      requestOpenOnPointerEnter: false,
+      requestCloseOnPointerExit: false,
       controller: controller,
-      orientation: orientation,
-      menu: panel,
+      orientation: widget.orientation,
+      menu: widget.panel,
       positionDelegate: const DefaultMenuPositioningDelegate(
         offset: Offset(0, 8),
         padding: MenuPanel.defaultPadding,
       ),
-      onOpen: onOpen,
-      onClose: onClose,
+      onOpen: _handleOpen,
+      onClose: _handleClose,
       onPressed: () {
         if (controller.isOpen) {
           controller.close();
         } else {
           controller.open();
-          MenuTooltipScope.of(context).hideTooltip(sync: true);
         }
       },
-      focusNode: focusNode,
+      focusNode: widget.focusNode,
       child: Builder(
         builder: (context) {
           return ToolbarIconLabel(
             decoration:
-                buttonDecoration ??
-                (MenuController.maybeIsOpenOf(context) == true ? openDecoration : null),
-            constraints: buttonConstraints,
-            child: child,
+                widget.buttonDecoration ??
+                (MenuController.maybeIsOpenOf(context) == true ? Popup.openDecoration : null),
+            constraints: widget.buttonConstraints,
+            child: widget.child,
           );
         },
       ),
     );
-    if (tooltip == null) {
+    if (widget.tooltip == null) {
       return body;
     }
-    return MenuTooltip(enableSemantics: enableTooltipSemantics, message: tooltip!, child: body);
+    return MenuTooltip(
+      enableSemantics: widget.enableTooltipSemantics,
+      message: widget.tooltip!,
+      child: body,
+    );
   }
 }

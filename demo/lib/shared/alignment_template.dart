@@ -74,6 +74,7 @@ class _AlignmentTemplateState extends State<AlignmentTemplate> {
                           StatefulBuilder(
                             builder: (context, setState) {
                               return GridSlider(
+                                formatter: const GridSliderFormatter.alignment(title: 'Button'),
                                 size: const Size(110, 110),
                                 x: _anchorPosition.$1,
                                 y: _anchorPosition.$2,
@@ -94,7 +95,10 @@ class _AlignmentTemplateState extends State<AlignmentTemplate> {
                                 x: _menuPosition.$1,
                                 y: _menuPosition.$2,
                                 title: const TextSpan(text: 'Controller Offset'),
-                                formatter: const GridSliderFormatter.pixel(magnitude: 200),
+                                formatter: const GridSliderFormatter.pixel(
+                                  magnitude: 200,
+                                  title: 'Controller',
+                                ),
                                 onChange: (double x, double y) {
                                   setState(() {
                                     _menuPosition = (x, y);
@@ -109,9 +113,30 @@ class _AlignmentTemplateState extends State<AlignmentTemplate> {
                             builder: (context, setState) {
                               return GridSlider(
                                 size: const Size(110, 110),
+                                x: _alignmentOffset.$1 * 10,
+                                y: _alignmentOffset.$2 * 10,
+                                title: const TextSpan(text: 'Offset'),
+                                formatter: const GridSliderFormatter.pixel(
+                                  magnitude: 10,
+                                  title: '',
+                                ),
+                                onChange: (double x, double y) {
+                                  setState(() {
+                                    _alignmentOffset = (x / 10, y / 10);
+                                  });
+                                  notify();
+                                },
+                              );
+                            },
+                          ),
+                          StatefulBuilder(
+                            builder: (context, setState) {
+                              return GridSlider(
+                                formatter: const GridSliderFormatter.alignment(title: 'Anchor'),
+                                size: const Size(110, 110),
                                 x: _anchorAttachment.$1,
                                 y: _anchorAttachment.$2,
-                                title: const TextSpan(text: 'Anchor Alignment'),
+                                title: const TextSpan(text: 'Anchor Attachment'),
                                 onChange: (double x, double y) {
                                   setState(() {
                                     _anchorAttachment = (x, y);
@@ -125,26 +150,10 @@ class _AlignmentTemplateState extends State<AlignmentTemplate> {
                             builder: (context, setState) {
                               return GridSlider(
                                 size: const Size(110, 110),
-                                x: _alignmentOffset.$1 * 10,
-                                y: _alignmentOffset.$2 * 10,
-                                title: const TextSpan(text: 'Alignment Offset'),
-                                formatter: const GridSliderFormatter.pixel(magnitude: 10),
-                                onChange: (double x, double y) {
-                                  setState(() {
-                                    _alignmentOffset = (x / 10, y / 10);
-                                  });
-                                  notify();
-                                },
-                              );
-                            },
-                          ),
-                          StatefulBuilder(
-                            builder: (context, setState) {
-                              return GridSlider(
-                                size: const Size(110, 110),
                                 x: _menuAttachment.$1,
                                 y: _menuAttachment.$2,
-                                title: const TextSpan(text: 'Menu Alignment'),
+                                title: const TextSpan(text: 'Menu Attachment'),
+                                formatter: const GridSliderFormatter.alignment(title: 'Menu'),
                                 onChange: (double x, double y) {
                                   setState(() {
                                     _menuAttachment = (x, y);
@@ -289,8 +298,8 @@ class _AlignmentTemplateState extends State<AlignmentTemplate> {
                   child: widget.build(
                     context,
                     DefaultMenuPositioningDelegate(
-                      anchorAlignment: anchorAlignment,
-                      menuAlignment: menuAlignment,
+                      anchorAttachment: anchorAlignment,
+                      menuAttachment: menuAlignment,
                       offset: offset,
                       edgeBehavior: EdgeBehavior(
                         horizontal: EdgeBehaviorStrategy(

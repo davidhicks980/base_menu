@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 
 import '../../../shared/package.dart';
 import '../theme/colors.dart';
+import '../utilities/exclusive_menu_manager.dart';
 import 'editable.dart';
 import 'menu_action_label.dart';
 import 'menu_panel.dart';
@@ -403,21 +404,31 @@ class _ComboBoxState extends State<ComboBox> implements _ComboBoxBehavior {
     _traversalSelect(_indexToValue.lastKey()!);
   }
 
+  void _handleOpen() {
+    widget.onOpen?.call();
+    ExclusiveMenuManager.of(context).setActive(widget.menuController);
+  }
+
+  void _handleClose() {
+    widget.onClose?.call();
+    ExclusiveMenuManager.of(context).setInactive(widget.menuController);
+  }
+
   @override
   Widget build(BuildContext context) {
     final alignment = widget.alignment.resolve(Directionality.of(context));
     return Actions(
       actions: actions,
       child: BaseMenu(
-        onOpen: widget.onOpen,
-        onClose: widget.onClose,
+        onOpen: _handleOpen,
+        onClose: _handleClose,
         controller: widget.menuController,
         positionDelegate: DefaultMenuPositioningDelegate(
           // The vertical padding is to account for the border and padding of the anchor.
           padding: MenuPanel.defaultPadding,
           offset: const Offset(0, 7),
-          menuAlignment: Alignment(alignment.x, -1),
-          anchorAlignment: Alignment(alignment.x, 1),
+          menuAttachment: Alignment(alignment.x, -1),
+          anchorAttachment: Alignment(alignment.x, 1),
         ),
         menu: _ComboBoxHighlight(
           value: widget.value,

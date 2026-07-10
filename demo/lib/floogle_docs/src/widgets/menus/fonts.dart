@@ -17,7 +17,6 @@ import '../menu_panel.dart';
 import '../select.dart';
 import '../selectable_menu_item.dart';
 import '../tooltip.dart';
-
 import '../web_label.dart';
 
 class FontMenu extends StatefulWidget {
@@ -75,7 +74,12 @@ class _FontMenuState extends State<FontMenu> {
               clipBehavior: Clip.hardEdge,
               onSurfaceExit: _handleSurfaceExit,
               padding: const .symmetric(vertical: 6),
-              constraints: const .tightFor(width: 272),
+              constraints: BoxConstraints(
+                minWidth: 272,
+                maxWidth: 272,
+                maxHeight: MediaQuery.of(context).size.height - 120,
+                minHeight: 300,
+              ).normalize(),
               scrollable: false,
               children: const [
                 MenuItem(leading: Icon(Symbols.brand_family), child: Text('More fonts')),

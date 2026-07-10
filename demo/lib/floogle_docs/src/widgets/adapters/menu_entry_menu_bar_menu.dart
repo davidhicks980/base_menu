@@ -1,10 +1,10 @@
 import 'package:base_menu/base_menu.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../../../shared/package.dart';
 import '../../model/model.dart';
+import '../../utilities/exclusive_menu_manager.dart';
 import '../menu_bar_button_label.dart';
 import '../menus/document_menu_bar.dart';
 import '../web_label.dart';
@@ -31,6 +31,11 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
     super.dispose();
   }
 
+  void _handleOpen() {
+    ExclusiveMenuManager.of(context).setActive(MenuController.maybeOf(context)!);
+    anchorFocusNode.requestFocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BaseSubmenu(
@@ -40,54 +45,41 @@ class _MenuBarMenuState extends State<MenuBarMenu> {
       orientation: widget.overflow ? Axis.horizontal : Axis.vertical,
       controller: controller,
       focusNode: anchorFocusNode,
+      onOpen: _handleOpen,
       requestFocusOnHover: DocumentMenuBar.isInteractiveOf(context),
-      enableHoverTraversal: DocumentMenuBar.isInteractiveOf(context),
+      requestOpenOnPointerEnter:
+          DocumentMenuBar.isInteractiveOf(context) && MenuController.maybeIsOpenOf(context) == true,
+      requestCloseOnPointerExit: false,
       onPressed: () {
         if (controller.isOpen) {
-          DocumentMenuBar.disableInteractivityOf(context);
-          anchorFocusNode.unfocus();
+          controller.close();
         } else {
           controller.open();
-          anchorFocusNode.requestFocus();
-          DocumentMenuBar.enableInteractivityOf(context);
         }
       },
-      menu: TapRegion(
-        groupId: 'menu_system',
-        onTapOutside: (PointerDownEvent event) {
-          if (!DocumentMenuBar.hasAncestor(context)) {
-            return;
-          }
-
-          if (event.buttons == kSecondaryMouseButton) {
-            return;
-          }
-
-          DocumentMenuBar.disableInteractivityOf(context);
-        },
-        child:
-            widget.panel ??
-            MenuEntryPanel(
-              onSurfaceExit: (_) {
-                if (!anchorFocusNode.hasFocus) {
-                  anchorFocusNode.requestFocus();
-                }
-              },
-              menuEntry: widget.entry,
-              borderRadius: const BorderRadiusDirectional.only(
-                bottomStart: Radius.circular(4),
-                bottomEnd: Radius.circular(4),
-                topEnd: Radius.circular(4),
-              ),
-              constraints: widget.overflow
-                  ? const BoxConstraints(minWidth: 200)
-                  : const BoxConstraints(minWidth: 320),
+      menu:
+          widget.panel ??
+          MenuEntryPanel(
+            onSurfaceExit: (_) {
+              if (!anchorFocusNode.hasFocus) {
+                anchorFocusNode.requestFocus();
+              }
+            },
+            menuEntry: widget.entry,
+            borderRadius: const BorderRadiusDirectional.only(
+              bottomStart: Radius.circular(4),
+              bottomEnd: Radius.circular(4),
+              topEnd: Radius.circular(4),
             ),
-      ),
+            constraints: widget.overflow
+                ? const BoxConstraints(minWidth: 200)
+                : const BoxConstraints(minWidth: 320),
+          ),
       child: Builder(
         builder: (context) {
           return MenuBarButtonLabel(
-            widget.overflow
+            isInteractive: DocumentMenuBar.isInteractiveOf(context),
+            child: widget.overflow
                 ? Icon(widget.entry.child.icon, size: 16)
                 : kIsWeb
                 ? WebLabel(

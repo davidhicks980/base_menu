@@ -1,3 +1,4 @@
+import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 
 import '../app/app.dart';
@@ -17,70 +18,73 @@ class _SequoiaAppState extends State<SequoiaApp> {
   final MenuController contextMenuController = MenuController();
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Align(
-          alignment: .topLeft,
-          child: SequoiaMenuBar(items: sequoiaMenu, onOpen: contextMenuController.close),
-        ),
-        Positioned(
-          top: 100,
-          left: 100,
-          right: 100,
-          bottom: 100,
-          child: ContextMenuBlockerRegion(
-            child: SequoiaContextMenu(
-              controller: contextMenuController,
-              item: const [
-                MenuItem(label: 'Undo'),
-                MenuItem(label: 'Redo'),
-                MenuDividerItem(),
-                MenuItem(label: 'Cut'),
-                MenuItem(label: 'Copy'),
-                MenuItem(label: 'Paste'),
-                MenuDividerItem(),
-                MenuItem(
-                  label: 'Share',
-                  children: [
-                    MenuItem(
-                      label: 'Social Media',
-                      children: [
-                        MenuItem(label: 'Twitter'),
-                        MenuItem(label: 'Facebook'),
-                        MenuItem(label: 'Instagram'),
-                        MenuItem(label: 'LinkedIn'),
-                      ],
-                    ),
-                    MenuItem(
-                      label: 'Email',
-                      children: [
-                        MenuItem(label: 'Work Email'),
-                        MenuItem(label: 'Personal Email'),
-                        MenuItem(label: 'Support'),
-                      ],
-                    ),
-                    MenuItem(label: 'Messages'),
-                    MenuItem(label: 'AirDrop'),
-                  ],
-                ),
-                MenuItem(
-                  label: 'Services',
-                  children: [
-                    MenuItem(label: 'Search in Floogle'),
-                    MenuItem(label: 'Translate'),
-                  ],
-                ),
-              ],
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: const Color(0x0fffffff),
-                  border: Border.all(color: AppColorScheme.of(context).outlineVariant),
+    return MenuAimScope(
+      enable: true,
+      child: Stack(
+        children: [
+          Align(
+            alignment: .topLeft,
+            child: SequoiaMenuBar(items: sequoiaMenu, onOpen: contextMenuController.close),
+          ),
+          Positioned(
+            top: 100,
+            left: 100,
+            right: 100,
+            bottom: 100,
+            child: ContextMenuBlockerRegion(
+              child: SequoiaContextMenu(
+                controller: contextMenuController,
+                item: const [
+                  MenuItem(label: 'Undo'),
+                  MenuItem(label: 'Redo'),
+                  MenuDividerItem(),
+                  MenuItem(label: 'Cut'),
+                  MenuItem(label: 'Copy'),
+                  MenuItem(label: 'Paste'),
+                  MenuDividerItem(),
+                  MenuItem(
+                    label: 'Share',
+                    children: [
+                      MenuItem(
+                        label: 'Social Media',
+                        children: [
+                          MenuItem(label: 'Twitter'),
+                          MenuItem(label: 'Facebook'),
+                          MenuItem(label: 'Instagram'),
+                          MenuItem(label: 'LinkedIn'),
+                        ],
+                      ),
+                      MenuItem(
+                        label: 'Email',
+                        children: [
+                          MenuItem(label: 'Work Email'),
+                          MenuItem(label: 'Personal Email'),
+                          MenuItem(label: 'Support'),
+                        ],
+                      ),
+                      MenuItem(label: 'Messages'),
+                      MenuItem(label: 'AirDrop'),
+                    ],
+                  ),
+                  MenuItem(
+                    label: 'Services',
+                    children: [
+                      MenuItem(label: 'Search in Floogle'),
+                      MenuItem(label: 'Translate'),
+                    ],
+                  ),
+                ],
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: const Color(0x0fffffff),
+                    border: Border.all(color: AppColorScheme.of(context).outlineVariant),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

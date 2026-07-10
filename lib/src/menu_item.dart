@@ -232,28 +232,26 @@ class _BaseMenuItemState<T extends Object?> extends State<BaseMenuItem<T>> {
 
   @override
   Widget build(BuildContext context) {
-    return MergeSemantics(
-      child: Semantics.fromProperties(
-        properties: SemanticsProperties(role: widget.role, button: kIsWeb ? true : null),
-        child: BaseControl<BaseMenuItem<T>>(
-          onPressed: widget.enabled ? _handlePressed : null,
-          onActivate: widget.onActivate,
-          onPointerEnter: widget.requestFocusOnHover && widget.enabled
-              ? _handleHoverEnter
-              : widget.onPointerEnter,
-          onPointerHover: widget.onPointerHover,
-          onPointerExit: widget.onPointerExit,
-          focusNode: _focusNode,
-          onFocusChange: widget.onFocusChange,
-          autofocus: widget.autofocus,
-          mouseCursor: widget.mouseCursor,
-          behavior: widget.behavior,
-          gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
-          gestureSemantics: widget.gestureSemantics,
-          shortcuts: widget.shortcuts,
-          opaque: widget.opaque,
-          child: widget.child,
-        ),
+    return Semantics.fromProperties(
+      properties: SemanticsProperties(role: widget.role, button: kIsWeb ? true : null),
+      child: BaseControl<BaseMenuItem<T>>(
+        onPressed: widget.enabled ? _handlePressed : null,
+        onActivate: widget.onActivate,
+        onPointerEnter: widget.requestFocusOnHover && widget.enabled
+            ? _handleHoverEnter
+            : widget.onPointerEnter,
+        onPointerHover: widget.onPointerHover,
+        onPointerExit: widget.onPointerExit,
+        focusNode: _focusNode,
+        onFocusChange: widget.onFocusChange,
+        autofocus: widget.autofocus,
+        mouseCursor: widget.mouseCursor,
+        behavior: widget.behavior,
+        gestureSemanticsEnabled: widget.gestureSemanticsEnabled,
+        gestureSemantics: widget.gestureSemantics,
+        shortcuts: widget.shortcuts,
+        opaque: widget.opaque,
+        child: widget.child,
       ),
     );
   }

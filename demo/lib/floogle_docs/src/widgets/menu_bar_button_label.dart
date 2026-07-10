@@ -5,9 +5,9 @@ import '../../../shared/package.dart';
 import '../theme/colors.dart';
 
 class MenuBarButtonLabel extends StatelessWidget {
-  const MenuBarButtonLabel(this.child, {super.key, this.decoration});
+  const MenuBarButtonLabel({super.key, required this.child, required this.isInteractive});
   final Widget child;
-  final Decoration? decoration;
+  final bool isInteractive;
 
   static const _textStyle = TextStyle(
     fontFamily: 'GoogleSans',
@@ -25,7 +25,7 @@ class MenuBarButtonLabel extends StatelessWidget {
     topEnd: Radius.circular(4),
   );
 
-  static const WidgetStateProperty<BoxDecoration> _decoration = WidgetStateProperty.fromMap({
+  static const _decorationMap = {
     WidgetState.pressed: BoxDecoration(
       color: FloogleColors.menuItemPressedColor,
       borderRadius: BorderRadius.all(Radius.circular(4)),
@@ -34,10 +34,19 @@ class MenuBarButtonLabel extends StatelessWidget {
       color: FloogleColors.menuItemFocusColor,
       borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
+  };
+
+  static const WidgetStateProperty<BoxDecoration> _decoration = WidgetStateProperty.fromMap({
+    ..._decorationMap,
     WidgetState.hovered: BoxDecoration(
       color: FloogleColors.onDarkGray,
       borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
+    WidgetState.any: BoxDecoration(),
+  });
+
+  static const _interactiveDecoration = WidgetStateProperty.fromMap({
+    ..._decorationMap,
     WidgetState.any: BoxDecoration(),
   });
 
@@ -59,22 +68,16 @@ class MenuBarButtonLabel extends StatelessWidget {
       ),
     );
 
-    if (decoration != null) {
-      return DecoratedBox(decoration: decoration!, child: child);
+    if (isInteractive) {
+      return DecoratedBox(
+        decoration: _interactiveDecoration.resolve(BaseMenuItem.statesOf(context)),
+        child: child,
+      );
+    } else {
+      return DecoratedBox(
+        decoration: _decoration.resolve(BaseMenuItem.statesOf(context)),
+        child: child,
+      );
     }
-
-    return Builder(
-      builder: (context) {
-        final isOpen = MenuController.maybeIsOpenOf(context) ?? false;
-        BoxDecoration decoration = _decoration.resolve(BaseMenuItem.statesOf(context));
-        if (isOpen) {
-          decoration = decoration.copyWith(
-            borderRadius: _openBorderRadius,
-            color: FloogleColors.menuItemFocusColor,
-          );
-        }
-        return DecoratedBox(decoration: decoration, child: child);
-      },
-    );
   }
 }

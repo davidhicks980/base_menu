@@ -36,7 +36,7 @@ class GridSlider extends StatefulWidget {
     this.x = 0,
     this.y = 0,
     this.size = const Size(150, 150),
-    this.formatter = const GridSliderFormatter.alignment(),
+    required this.formatter,
   });
 
   final double x;
@@ -102,9 +102,8 @@ class _GridSliderState extends State<GridSlider> {
     _moveTo((offset.dx / widget.size.width) * 2 - 1, (offset.dy / widget.size.height) * 2 - 1);
   }
 
-  bool _moveBy(_GridSliderIntent intent) {
-    _moveTo((x + intent.dx), (y + intent.dy));
-    return true;
+  void _moveBy(_GridSliderIntent intent) {
+    _moveTo(x + intent.dx, y + intent.dy);
   }
 
   void _handleManualInput() {
@@ -125,159 +124,171 @@ class _GridSliderState extends State<GridSlider> {
   Widget build(BuildContext context) {
     final Brightness brightness = AppColorScheme.of(context).brightness;
     final alignment = Alignment(x, y);
-    return Actions(
-      actions: {
-        _IncrementIntent: CallbackAction<_IncrementIntent>(onInvoke: _moveBy),
-        _DecrementIntent: CallbackAction<_DecrementIntent>(onInvoke: _moveBy),
-      },
-      child: Column(
-        mainAxisSize: .min,
-        children: [
-          ExcludeSemantics(
-            child: DefaultTextStyle(
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-                color: Colors.black,
+    return Semantics(
+      label: widget.title.toPlainText(),
+      explicitChildNodes: true,
+      child: Actions(
+        actions: {
+          _IncrementIntent: CallbackAction<_IncrementIntent>(onInvoke: _moveBy),
+          _DecrementIntent: CallbackAction<_DecrementIntent>(onInvoke: _moveBy),
+        },
+        child: Column(
+          mainAxisSize: .min,
+          children: [
+            ExcludeSemantics(
+              child: DefaultTextStyle(
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
+                ),
+                child: Text.rich(widget.title, textAlign: TextAlign.start),
               ),
-              child: Text.rich(widget.title, textAlign: TextAlign.start),
             ),
-          ),
 
-          Shortcuts(
-            shortcuts: const {
-              SingleActivator(.arrowUp): _DecrementIntent(0, step),
-              SingleActivator(.arrowUp, shift: true): _DecrementIntent(0, stepLarge),
-              SingleActivator(.arrowUp, meta: true): _DecrementIntent(0, stepSmall),
-              SingleActivator(.arrowDown): _IncrementIntent(0, step),
-              SingleActivator(.arrowDown, shift: true): _IncrementIntent(0, stepLarge),
-              SingleActivator(.arrowDown, meta: true): _IncrementIntent(0, stepSmall),
-              SingleActivator(.arrowLeft): _DecrementIntent(step, 0),
-              SingleActivator(.arrowLeft, shift: true): _DecrementIntent(stepLarge, 0),
-              SingleActivator(.arrowLeft, meta: true): _DecrementIntent(stepSmall, 0),
-              SingleActivator(.arrowRight): _IncrementIntent(step, 0),
-              SingleActivator(.arrowRight, meta: true): _IncrementIntent(stepSmall, 0),
-              SingleActivator(.arrowRight, shift: true): _IncrementIntent(stepLarge, 0),
-            },
-            child: Focus(
-              focusNode: _focusNode,
-              skipTraversal: true,
-              descendantsAreTraversable: false,
-              includeSemantics: false,
-              child: ExcludeSemantics(
-                excluding: true,
-                child: SizedBox.fromSize(
-                  size: widget.size,
-                  child: Stack(
-                    alignment: .center,
-                    children: <Widget>[
-                      CustomPaint(
-                        painter: GridPainter(alignment, brightness),
-                        size: Size(widget.size.width - 16, widget.size.height - 16),
-                      ),
-                      Align(
-                        alignment: alignment,
-                        child: ListenableBuilder(
-                          listenable: _focusNode,
-                          builder: _buildFocusOutline,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: dotColor,
-                              shape: BoxShape.circle,
+            Shortcuts(
+              shortcuts: const {
+                SingleActivator(.arrowUp): _DecrementIntent(0, step),
+                SingleActivator(.arrowUp, shift: true): _DecrementIntent(0, stepLarge),
+                SingleActivator(.arrowUp, meta: true): _DecrementIntent(0, stepSmall),
+                SingleActivator(.arrowDown): _IncrementIntent(0, step),
+                SingleActivator(.arrowDown, shift: true): _IncrementIntent(0, stepLarge),
+                SingleActivator(.arrowDown, meta: true): _IncrementIntent(0, stepSmall),
+                SingleActivator(.arrowLeft): _DecrementIntent(step, 0),
+                SingleActivator(.arrowLeft, shift: true): _DecrementIntent(stepLarge, 0),
+                SingleActivator(.arrowLeft, meta: true): _DecrementIntent(stepSmall, 0),
+                SingleActivator(.arrowRight): _IncrementIntent(step, 0),
+                SingleActivator(.arrowRight, meta: true): _IncrementIntent(stepSmall, 0),
+                SingleActivator(.arrowRight, shift: true): _IncrementIntent(stepLarge, 0),
+              },
+              child: Focus(
+                focusNode: _focusNode,
+                skipTraversal: true,
+                descendantsAreTraversable: false,
+                includeSemantics: false,
+                child: ExcludeSemantics(
+                  excluding: true,
+                  child: SizedBox.fromSize(
+                    size: widget.size,
+                    child: Stack(
+                      alignment: .center,
+                      children: <Widget>[
+                        CustomPaint(
+                          painter: GridPainter(alignment, brightness),
+                          size: Size(widget.size.width - 16, widget.size.height - 16),
+                        ),
+                        Align(
+                          alignment: alignment,
+                          child: ListenableBuilder(
+                            listenable: _focusNode,
+                            builder: _buildFocusOutline,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: dotColor,
+                                shape: BoxShape.circle,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Positioned.fill(
-                        child: GestureDetector(
-                          excludeFromSemantics: true,
-                          onPanUpdate: _handlePanUpdate,
-                          onTapDown: _handleTapDown,
-                          behavior: .opaque,
-                          dragStartBehavior: .down,
-                          child: const ColoredBox(color: transparent, child: SizedBox.expand()),
+                        Positioned.fill(
+                          child: GestureDetector(
+                            excludeFromSemantics: true,
+                            onPanUpdate: _handlePanUpdate,
+                            onTapDown: _handleTapDown,
+                            behavior: .opaque,
+                            dragStartBehavior: .down,
+                            child: const ColoredBox(color: transparent, child: SizedBox.expand()),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          SizedBox(
-            width: widget.size.width,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                mainAxisSize: .min,
-                spacing: 4,
-                children: [
-                  Expanded(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        border: Border.all(color: const Color(0xFFCCCCCC), width: 1.0),
-                      ),
-                      child: Shortcuts(
-                        shortcuts: const {
-                          SingleActivator(.arrowUp): _IncrementIntent(step, 0),
-                          SingleActivator(.arrowUp, shift: true): _IncrementIntent(stepLarge, 0),
-                          SingleActivator(.arrowUp, meta: true): _IncrementIntent(stepSmall, 0),
-                          SingleActivator(.arrowDown): _DecrementIntent(step, 0),
-                          SingleActivator(.arrowDown, shift: true): _DecrementIntent(stepLarge, 0),
-                          SingleActivator(.arrowDown, meta: true): _DecrementIntent(stepSmall, 0),
-                        },
-                        child: NumberField(
-                          focusNode: xFocusNode,
-                          textEditingController: _xController,
-                          semanticsLabel: widget.formatter.semanticsLabel(.horizontal),
-                          semanticsHint: widget.formatter.semanticsHint(.horizontal),
-                          formatters: widget.formatter.inputFormatters,
-                          onChanged: _handleManualInput,
+            SizedBox(
+              width: widget.size.width,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  mainAxisSize: .min,
+                  spacing: 4,
+                  children: [
+                    Expanded(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          border: Border.all(color: const Color(0xFFCCCCCC), width: 1.0),
+                        ),
+                        child: Shortcuts(
+                          shortcuts: const {
+                            SingleActivator(.arrowUp): _IncrementIntent(step, 0),
+                            SingleActivator(.arrowUp, shift: true): _IncrementIntent(stepLarge, 0),
+                            SingleActivator(.arrowUp, meta: true): _IncrementIntent(stepSmall, 0),
+                            SingleActivator(.arrowDown): _DecrementIntent(step, 0),
+                            SingleActivator(.arrowDown, shift: true): _DecrementIntent(
+                              stepLarge,
+                              0,
+                            ),
+                            SingleActivator(.arrowDown, meta: true): _DecrementIntent(stepSmall, 0),
+                          },
+                          child: NumberField(
+                            focusNode: xFocusNode,
+                            textEditingController: _xController,
+                            semanticsLabel: widget.formatter.semanticsLabel(.horizontal),
+                            semanticsHint: widget.formatter.semanticsHint(.horizontal),
+                            formatters: widget.formatter.inputFormatters,
+                            onChanged: _handleManualInput,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Text(
-                    'x',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColorScheme.of(context).onSurface.withValues(alpha: 0.8),
-                    ),
-                  ),
-                  Expanded(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F5F5),
-                        border: Border.all(color: const Color(0xFFCCCCCC), width: 1.0),
-                      ),
-                      child: Shortcuts(
-                        shortcuts: const {
-                          SingleActivator(.arrowUp): _IncrementIntent(0, step),
-                          SingleActivator(.arrowUp, shift: true): _IncrementIntent(0, stepLarge),
-                          SingleActivator(.arrowUp, meta: true): _IncrementIntent(0, stepSmall),
-                          SingleActivator(.arrowDown): _DecrementIntent(0, step),
-                          SingleActivator(.arrowDown, shift: true): _DecrementIntent(0, stepLarge),
-                          SingleActivator(.arrowDown, meta: true): _DecrementIntent(0, stepSmall),
-                        },
-                        child: NumberField(
-                          focusNode: yFocusNode,
-                          textEditingController: _yController,
-                          onChanged: _handleManualInput,
-                          semanticsLabel: widget.formatter.semanticsLabel(.vertical),
-                          semanticsHint: widget.formatter.semanticsHint(.vertical),
-                          formatters: widget.formatter.inputFormatters,
+                    ExcludeSemantics(
+                      child: Text(
+                        'x',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColorScheme.of(context).onSurface.withValues(alpha: 0.8),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5F5F5),
+                          border: Border.all(color: const Color(0xFFCCCCCC), width: 1.0),
+                        ),
+                        child: Shortcuts(
+                          shortcuts: const {
+                            SingleActivator(.arrowUp): _IncrementIntent(0, step),
+                            SingleActivator(.arrowUp, shift: true): _IncrementIntent(0, stepLarge),
+                            SingleActivator(.arrowUp, meta: true): _IncrementIntent(0, stepSmall),
+                            SingleActivator(.arrowDown): _DecrementIntent(0, step),
+                            SingleActivator(.arrowDown, shift: true): _DecrementIntent(
+                              0,
+                              stepLarge,
+                            ),
+                            SingleActivator(.arrowDown, meta: true): _DecrementIntent(0, stepSmall),
+                          },
+                          child: NumberField(
+                            focusNode: yFocusNode,
+                            textEditingController: _yController,
+                            onChanged: _handleManualInput,
+                            semanticsLabel: widget.formatter.semanticsLabel(.vertical),
+                            semanticsHint: widget.formatter.semanticsHint(.vertical),
+                            formatters: widget.formatter.inputFormatters,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -469,12 +480,18 @@ class _NumberFieldState extends State<NumberField> {
                     Positioned(
                       left: 0,
                       right: 0,
-                      child: Text(
-                        widget.textEditingController.text,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: .center,
-                        style: _textStyle.copyWith(color: kBlack.withValues(alpha: 0.6)),
+                      child: Semantics(
+                        label: widget.semanticsLabel,
+                        hint: widget.semanticsHint,
+                        child: ExcludeSemantics(
+                          child: Text(
+                            widget.textEditingController.text,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: .center,
+                            style: _textStyle.copyWith(color: kBlack.withValues(alpha: 0.6)),
+                          ),
+                        ),
                       ),
                     ),
                   Opacity(
@@ -507,8 +524,10 @@ class _NumberFieldState extends State<NumberField> {
 
 abstract class GridSliderFormatter {
   const GridSliderFormatter._();
-  const factory GridSliderFormatter.pixel({required double magnitude}) = _PixelGridSliderFormatter;
-  const factory GridSliderFormatter.alignment() = _AlignmentGridSliderFormatter;
+  const factory GridSliderFormatter.pixel({required double magnitude, required String title}) =
+      _PixelGridSliderFormatter;
+  const factory GridSliderFormatter.alignment({required String title}) =
+      _AlignmentGridSliderFormatter;
 
   /// Converts internal [-1, 1] value to display string (e.g., "10.0").
   String format(double value);
@@ -529,8 +548,9 @@ abstract class GridSliderFormatter {
 }
 
 class _PixelGridSliderFormatter extends GridSliderFormatter {
-  const _PixelGridSliderFormatter({required this.magnitude}) : super._();
+  const _PixelGridSliderFormatter({required this.magnitude, required this.title}) : super._();
   final double magnitude;
+  final String title;
 
   @override
   String format(double value) => (value * magnitude).toStringAsFixed(0);
@@ -555,14 +575,15 @@ class _PixelGridSliderFormatter extends GridSliderFormatter {
 
   @override
   String semanticsLabel(Axis axis) =>
-      '${axis == Axis.horizontal ? 'Horizontal' : 'Vertical'} alignment offset in pixels';
+      '${axis == Axis.horizontal ? 'Horizontal' : 'Vertical'} $title alignment offset in pixels';
 
   @override
   String semanticsHint(Axis axis) => 'Enter a value between -${magnitude}px and ${magnitude}px';
 }
 
 class _AlignmentGridSliderFormatter extends GridSliderFormatter {
-  const _AlignmentGridSliderFormatter() : super._();
+  const _AlignmentGridSliderFormatter({required this.title}) : super._();
+  final String title;
 
   @override
   String format(double value) => value.toStringAsFixed(2);
@@ -581,7 +602,7 @@ class _AlignmentGridSliderFormatter extends GridSliderFormatter {
 
   @override
   String semanticsLabel(Axis axis) =>
-      '${axis == Axis.horizontal ? 'Horizontal' : 'Vertical'} alignment between -1 and 1';
+      '${axis == Axis.horizontal ? 'Horizontal' : 'Vertical'} $title alignment between -1 and 1';
 
   @override
   String semanticsHint(Axis axis) => 'Enter a value between -1 and 1';

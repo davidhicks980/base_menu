@@ -86,6 +86,7 @@ class _SequoiaContextMenuState extends State<SequoiaContextMenu> {
         },
         focusNode: _focusNode,
         onOpen: () {
+          setState(() {});
           SchedulerBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               _focusNode.requestFocus();
@@ -94,6 +95,7 @@ class _SequoiaContextMenuState extends State<SequoiaContextMenu> {
         },
         controller: widget.controller,
         child: Focus(
+          canRequestFocus: widget.controller.isOpen,
           focusNode: _focusNode,
           child: Semantics(
             onLongPress: () {
@@ -201,7 +203,7 @@ class _SequoiaContextSubmenuState extends State<SequoiaContextSubmenu> {
               child: IgnorePointer(
                 ignoring: _isClosing,
                 child: TapRegion(
-                  groupId: 'context',
+                  groupId: widget.controller,
                   onTapOutside: (event) {
                     if (event.buttons == kSecondaryMouseButton) {
                       return;
@@ -223,7 +225,7 @@ class _SequoiaContextSubmenuState extends State<SequoiaContextSubmenu> {
                           padding: const EdgeInsets.all(4),
                           children: [
                             for (final child in widget.item)
-                              SequoiaSubmenu.buildItem(child, false, 'context'),
+                              SequoiaSubmenu.buildItem(child, false, groupId: widget.controller),
                           ],
                         ),
                       ),

@@ -11,7 +11,7 @@ class MenuPanel extends StatelessWidget {
     this.constraints,
     this.orientation = Axis.vertical,
     required this.children,
-    this.clipBehavior = Clip.none,
+    this.clipBehavior = Clip.antiAlias,
     this.spacing = 0,
     this.borderRadius = const BorderRadius.all(Radius.circular(4)),
     this.color = FloogleColors.white,
@@ -38,7 +38,7 @@ class MenuPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _MenuPanelDecoration(
+    return MenuPanelDecoration(
       clipBehavior: clipBehavior,
       borderRadius: borderRadius,
       color: color,
@@ -57,8 +57,9 @@ class MenuPanel extends StatelessWidget {
   }
 }
 
-class _MenuPanelDecoration extends StatelessWidget {
-  const _MenuPanelDecoration({
+class MenuPanelDecoration extends StatelessWidget {
+  const MenuPanelDecoration({
+    super.key,
     required this.child,
     this.clipBehavior = Clip.none,
     this.borderRadius = const BorderRadius.all(Radius.circular(4)),

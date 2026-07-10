@@ -85,7 +85,8 @@ class BaseSubmenu<T extends Object?> extends StatefulWidget
     this.enabled = true,
     this.anchorActions,
     this.requestFocusOnHover = true,
-    this.enableHoverTraversal = true,
+    this.requestCloseOnPointerExit = true,
+    this.requestOpenOnPointerEnter = true,
   });
 
   @override
@@ -204,10 +205,15 @@ class BaseSubmenu<T extends Object?> extends StatefulWidget
   @override
   final bool requestFocusOnHover;
 
-  /// Whether the submenu should open when hovered.
+  /// Whether the submenu should open when its anchor gains hover.
   ///
   /// Defaults to true.
-  final bool enableHoverTraversal;
+  final bool requestOpenOnPointerEnter;
+
+  /// Whether the submenu should close when its anchor loses hover.
+  ///
+  /// Defaults to true.
+  final bool requestCloseOnPointerExit;
 
   @override
   bool get requestCloseOnActivate => false;
@@ -311,6 +317,10 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
   }
 
   void _scheduleHoverClose() {
+    if (!widget.requestCloseOnPointerExit) {
+      return;
+    }
+
     assert(widget.controller.isOpen);
     _closeTimer?.cancel();
     _closeTimer = Timer(widget.hoverCloseDelay, () {
@@ -321,6 +331,10 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
   }
 
   void _scheduleHoverOpen() {
+    if (!widget.requestOpenOnPointerEnter) {
+      return;
+    }
+
     assert(!widget.controller.isOpen);
     _openTimer?.cancel();
     _openTimer = Timer(widget.hoverOpenDelay, () {
@@ -331,7 +345,7 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
   }
 
   void _handlePointerEnterAnchor(PointerEnterEvent event) {
-    if (widget.enableHoverTraversal && !widget.controller.isOpen) {
+    if (!widget.controller.isOpen) {
       _scheduleHoverOpen();
     }
     _closeTimer?.cancel();
@@ -340,7 +354,7 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
 
   void _handlePointerLeaveAnchor(PointerExitEvent event) {
     _openTimer?.cancel();
-    if (widget.controller.isOpen && !_isScopeFocused && widget.enableHoverTraversal) {
+    if (widget.controller.isOpen && !_isScopeFocused) {
       _scheduleHoverClose();
     }
 
@@ -350,16 +364,12 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
 
   void _handlePointerEnterPanel(PointerEvent event) {
     _closeTimer?.cancel();
-    if (!_focusNode.hasFocus) {
-      _focusNode.requestFocus();
-    }
+    _focusNode.requestFocus();
     _updateHighlight();
   }
 
   void _handlePointerExitPanel(PointerExitEvent event) {
-    if (!_focusNode.hasFocus) {
-      _focusNode.requestFocus();
-    }
+    _focusNode.requestFocus();
   }
 
   void _handleAnchorFocusChange() {
@@ -485,11 +495,12 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
         },
       };
 
-  Widget _buildHighlight(BuildContext context, Widget? child) =>
-      BaseFocusableStateInjector<BaseMenuItem<T>>(
-        showFocusHighlight: _highlightNotifier.value,
-        child: child!,
-      );
+  Widget _buildHighlight(BuildContext context, Widget? child) {
+    return BaseFocusableStateInjector<BaseMenuItem<T>>(
+      showFocusHighlight: _highlightNotifier.value,
+      child: child!,
+    );
+  }
 
   Widget _buildOverlayChild(BuildContext context, Widget child) {
     final overlay = MouseRegion(
@@ -551,8 +562,12 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
       actions: controller.isOpen
           ? {...?_anchorActions, ...?widget.anchorActions}
           : widget.anchorActions ?? const {},
-      child: Semantics(
-        expanded: controller.isOpen,
+      child: Semantics.fromProperties(
+        properties: SemanticsProperties(
+          expanded: controller.isOpen,
+          onExpand: widget.enabled && !controller.isOpen ? _handleActivate : null,
+          onCollapse: widget.enabled && controller.isOpen ? controller.close : null,
+        ),
         child: BaseMenuItem<T>(
           focusNode: _focusNode,
           autofocus: widget.autofocus,

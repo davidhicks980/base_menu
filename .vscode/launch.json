@@ -14,58 +14,6 @@
             ],
             "program": "./test/"
         },
-
-        {
-            "name": "menu",
-            "request": "launch",
-            "type": "dart",
-            "program": "example/lib/main.dart"
-
-        },
-        {
-            "name": "menu (profile mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile",
-            "program": "example/lib/main.dart"
-        },
-        {
-            "name": "menu (release mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release",
-            "program": "example/lib/main.dart"
-        },
-        {
-            "name": "example",
-            "cwd": "example",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "example (WASM)",
-            "cwd": "example",
-            "request": "launch",
-            "type": "dart",
-            "args": [
-                "--wasm"
-            ]
-        },
-        {
-            "name": "example (profile mode)",
-            "cwd": "example",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "example (release mode)",
-            "cwd": "example",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        },
-
         {
             "name": "floogle_docs_deployment",
             "cwd": "deployments/floogle_docs",
@@ -73,9 +21,9 @@
             "type": "dart",
             "program": "lib/main.dart",
             "args": [
-                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=VISUALIZE_MENU_AIM=true", 
+                "--dart-define=FONT_PACKAGE=base_menu_demo"
             ]
-
         },
         {
             "name": "floogle_docs_deployment (WASM)",
@@ -85,7 +33,9 @@
             "program": "lib/main.dart",
 
             "args": [
-                "--wasm"
+                "--wasm",  
+                "--dart-define=VISUALIZE_MENU_AIM=true", 
+                "--dart-define=FONT_PACKAGE=base_menu_demo"
             ]
         },
         {
@@ -96,7 +46,8 @@
             "program": "lib/main.dart",
             "flutterMode": "profile",
             "args": [
-                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=VISUALIZE_MENU_AIM=true", 
+                "--dart-define=FONT_PACKAGE=base_menu_demo"
             ]
         },
         {
@@ -107,7 +58,9 @@
             "program": "lib/main.dart",
             "flutterMode": "release",
             "args": [
-                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--wasm",
+                "--dart-define=VISUALIZE_MENU_AIM=true", 
+                "--dart-define=FONT_PACKAGE=base_menu_demo"
             ]
         },
            {
@@ -117,9 +70,9 @@
             "type": "dart",
             "program": "lib/main.dart",
             "args": [
-                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=VISUALIZE_MENU_AIM=true", 
+                "--dart-define=FONT_PACKAGE=base_menu_demo"
             ]
-
         },
         {
             "name": "base_menu_deployment (WASM)",
@@ -130,8 +83,8 @@
 
             "args": [
                 "--wasm",
-                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
-
+                "--dart-define=VISUALIZE_MENU_AIM=true", 
+                "--dart-define=FONT_PACKAGE=base_menu_demo"
             ]
         },
         {
@@ -142,8 +95,8 @@
             "program": "lib/main.dart",
             "flutterMode": "profile",
             "args": [
-                "--wasm",
-                "--dart-define=VISUALIZE_MENU_AIM=true", "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=VISUALIZE_MENU_AIM=true", 
+                "--dart-define=FONT_PACKAGE=base_menu_demo"
             ]
         },
         {
@@ -169,7 +122,6 @@
             "program": "lib/floogle_docs/floogle_docs.dart",
             "args": [
                 "--dart-define=VISUALIZE_MENU_AIM=true"
-                
             ]
 
         },
@@ -181,7 +133,7 @@
             "program": "lib/floogle_docs/floogle_docs.dart",
 
             "args": [
-                  "--dart-define=VISUALIZE_MENU_AIM=true",
+                "--dart-define=VISUALIZE_MENU_AIM=true",
                 "--wasm"
             ]
         },
@@ -204,6 +156,7 @@
             "program": "lib/floogle_docs/floogle_docs.dart",
             "flutterMode": "release",
             "args": [
+                "--wasm",
                 "--dart-define=VISUALIZE_MENU_AIM=true"
             ]
         }

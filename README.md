@@ -1,9 +1,6 @@
-# Base Menu (WIP)
+# Base Menu
 
 Composable widgets for building menu systems.
-
-Warning: This package is a work in progress and the API is subject to change.
-Use with caution and be prepared for breaking changes.
 
 [Demos](https://base-menu-library.web.app/) · [Floogle Docs Standalone](https://floogle-docs.web.app/)
 

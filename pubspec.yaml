@@ -11,6 +11,7 @@ workspace:
   - demo
   - deployments/base_menu
   - deployments/floogle_docs
+  - example
 
 environment:
   sdk: ^3.11.4

@@ -60,7 +60,7 @@ class BaseSubmenu<T extends Object?> extends StatefulWidget
     this.useRootOverlay = false,
     this.consumeOutsideTaps = false,
     this.onFocusChange,
-    this.directionalFocusEdgeBehavior,
+    this.traversalEdgeBehavior,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
       role: SemanticsRole.menu,
@@ -126,7 +126,7 @@ class BaseSubmenu<T extends Object?> extends StatefulWidget
   final ValueChanged<bool>? onFocusChange;
 
   @override
-  final TraversalEdgeBehavior? directionalFocusEdgeBehavior;
+  final TraversalEdgeBehavior? traversalEdgeBehavior;
 
   @override
   final SemanticsProperties semanticProperties;
@@ -531,7 +531,7 @@ class _BaseSubmenuState<T extends Object?> extends State<BaseSubmenu<T>> {
       useRootOverlay: widget.useRootOverlay,
       menu: Actions(actions: _overlayActions ?? const {}, child: widget.menu),
       onFocusChange: _handleScopeFocusChange,
-      directionalFocusEdgeBehavior: widget.directionalFocusEdgeBehavior,
+      traversalEdgeBehavior: widget.traversalEdgeBehavior,
       semanticProperties: widget.semanticProperties,
       orientation: widget.orientation,
       positionDelegate: widget.positionDelegate,

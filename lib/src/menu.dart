@@ -428,7 +428,7 @@ class _AimAssistBuilderState extends State<_AimAssistBuilder> {
 /// * **[semanticProperties]**: The [SemanticsProperties] applied to the menu's
 ///   [Semantics] node.
 /// * **[onFocusChange]**: Notifies when the menu surface gains or loses focus.
-/// * **[directionalFocusEdgeBehavior]**: Controls how focus traversal behaves
+/// * **[traversalEdgeBehavior]**: Controls how focus traversal behaves
 ///   when focus moves beyond the first or last item in the menu. Defaults to
 ///   [TraversalEdgeBehavior.stop] on iOS and macOS, and
 ///   [TraversalEdgeBehavior.closedLoop] on other platforms (including web).
@@ -452,7 +452,7 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
     this.onOpenRequest = BaseMenu.defaultOnOpenRequested,
     this.onCloseRequest = BaseMenu.defaultOnCloseRequested,
     this.onFocusChange,
-    this.directionalFocusEdgeBehavior,
+    this.traversalEdgeBehavior,
     this.semanticProperties = const SemanticsProperties(
       scopesRoute: true,
       role: SemanticsRole.menu,
@@ -488,7 +488,7 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
   final ValueChanged<bool>? onFocusChange;
 
   @override
-  final TraversalEdgeBehavior? directionalFocusEdgeBehavior;
+  final TraversalEdgeBehavior? traversalEdgeBehavior;
 
   @override
   final SemanticsProperties semanticProperties;
@@ -523,8 +523,8 @@ class BaseMenu extends StatefulWidget implements BaseMenuInterface {
   @visibleForTesting
   // ignore: public_member_api_docs
   TraversalEdgeBehavior get effectiveTraversalEdgeBehavior {
-    if (directionalFocusEdgeBehavior != null) {
-      return directionalFocusEdgeBehavior!;
+    if (traversalEdgeBehavior != null) {
+      return traversalEdgeBehavior!;
     }
 
     if (kIsWeb) {
@@ -590,13 +590,14 @@ class _BaseMenuState extends State<BaseMenu> {
   late final _menuScopeNode = FocusScopeNode(
     skipTraversal: true,
     traversalEdgeBehavior: widget.effectiveTraversalEdgeBehavior,
-    directionalTraversalEdgeBehavior: widget.effectiveTraversalEdgeBehavior,
     debugLabel: widget.debugMenuFocusScopeLabel,
   );
 
   late final Map<Type, Action<Intent>> _anchorActions = <Type, Action<Intent>>{
     EnterMenuIntent: CallbackAction<EnterMenuIntent>(onInvoke: _handleEnterMenu),
   };
+
+  final _overlayFocusNode = FocusNode(debugLabel: 'BaseMenu Overlay FocusNode');
 
   TextDirection _textDirection = TextDirection.ltr;
   bool _parentIsSubmenu = false;
@@ -647,9 +648,8 @@ class _BaseMenuState extends State<BaseMenu> {
       }
     }
 
-    if (oldWidget.directionalFocusEdgeBehavior != widget.directionalFocusEdgeBehavior) {
+    if (oldWidget.traversalEdgeBehavior != widget.traversalEdgeBehavior) {
       _menuScopeNode.traversalEdgeBehavior = widget.effectiveTraversalEdgeBehavior;
-      _menuScopeNode.directionalTraversalEdgeBehavior = widget.effectiveTraversalEdgeBehavior;
     }
 
     assert(() {
@@ -662,6 +662,7 @@ class _BaseMenuState extends State<BaseMenu> {
   void dispose() {
     _internalMenuController = null;
     _menuScopeNode.dispose();
+    _overlayFocusNode.dispose();
     super.dispose();
   }
 
@@ -715,8 +716,9 @@ class _BaseMenuState extends State<BaseMenu> {
     );
   }
 
-  Widget _buildOverlay(BuildContext context, RawMenuOverlayInfo position) {
+  Widget _buildOverlay(BuildContext _, RawMenuOverlayInfo position) {
     final overlay = _MenuOverlay(
+      overlayFocusNode: _overlayFocusNode,
       submenuAxis: widget.orientation,
       position: position,
       consumeOutsideTaps: widget.consumeOutsideTaps,
@@ -744,13 +746,19 @@ class _BaseMenuState extends State<BaseMenu> {
         NextFocusIntent: CallbackAction<NextFocusIntent>(
           onInvoke: (intent) {
             _menuController.close();
-            return _menuScopeNode.enclosingScope?.nextFocus();
+            _overlayFocusNode.descendantsAreFocusable = false;
+            FocusManager.instance.applyFocusChangesIfNeeded();
+            _overlayFocusNode.descendantsAreFocusable = true;
+            return FocusScope.of(context, createDependency: false).nextFocus();
           },
         ),
         PreviousFocusIntent: CallbackAction<PreviousFocusIntent>(
           onInvoke: (intent) {
             _menuController.close();
-            return _menuScopeNode.enclosingScope?.previousFocus();
+            _overlayFocusNode.descendantsAreFocusable = false;
+            FocusManager.instance.applyFocusChangesIfNeeded();
+            _overlayFocusNode.descendantsAreFocusable = true;
+            return FocusScope.of(context, createDependency: false).previousFocus();
           },
         ),
       },
@@ -845,6 +853,7 @@ class _MenuOverlay extends StatelessWidget {
     required this.consumeOutsideTaps,
     required this.submenuAxis,
     required this.positioningDelegate,
+    required this.overlayFocusNode,
   });
 
   final RawMenuOverlayInfo position;
@@ -855,14 +864,14 @@ class _MenuOverlay extends StatelessWidget {
   final Axis submenuAxis;
   final SemanticsProperties semanticProperties;
   final MenuPositioningDelegate positioningDelegate;
+  final FocusNode overlayFocusNode;
 
   Widget _buildConditionalTraversal(BuildContext context, Widget? child) {
     return Focus(
+      focusNode: overlayFocusNode,
       includeSemantics: false,
       canRequestFocus: false,
       skipTraversal: !focusScopeNode.hasFocus,
-      descendantsAreTraversable: true,
-      descendantsAreFocusable: true,
       child: child!,
     );
   }
@@ -1036,7 +1045,7 @@ class _BaseMenuBarState extends State<BaseMenuBar> {
     if (oldWidget.focusScopeNode != widget.focusScopeNode) {
       if (widget.focusScopeNode == null) {
         _internalFocusScopeNode = FocusScopeNode(
-          debugLabel: 'BaseMenuBar.focusScopeNode ${widget.orientation} ${widget.key}',
+          debugLabel: 'BaseMenuBar.focusScopeNode ${widget.orientation}',
           directionalTraversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
         );
       } else {
@@ -1153,7 +1162,6 @@ class _MenuFocusTraversalState extends State<_MenuFocusTraversal> {
           },
         },
         child: Shortcuts(
-          debugLabel: 'Menu Focus Traversal Shortcuts ${widget.child}',
           shortcuts: switch (Directionality.maybeOf(context) ?? .ltr) {
             TextDirection.ltr => _kMenuLTRShortcuts,
             TextDirection.rtl => _kMenuRTLShortcuts,

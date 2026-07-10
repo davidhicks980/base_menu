@@ -830,7 +830,7 @@ void main() {
       App(
         BaseMenu(
           controller: controller,
-          directionalFocusEdgeBehavior: TraversalEdgeBehavior.leaveFlutterView,
+          traversalEdgeBehavior: TraversalEdgeBehavior.leaveFlutterView,
           menu: SizedBox(key: Tag.overlay.key),
           child: const AnchorButton(Tag.anchor),
         ),
@@ -845,14 +845,13 @@ void main() {
 
     final FocusScopeNode scopeNode = focusScopeNode();
     expect(scopeNode.traversalEdgeBehavior, TraversalEdgeBehavior.leaveFlutterView);
-    expect(scopeNode.directionalTraversalEdgeBehavior, TraversalEdgeBehavior.leaveFlutterView);
 
     // Update parameters
     await tester.pumpWidget(
       App(
         BaseMenu(
           controller: controller,
-          directionalFocusEdgeBehavior: TraversalEdgeBehavior.parentScope,
+          traversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
           menu: SizedBox(key: Tag.overlay.key),
           child: const AnchorButton(Tag.anchor),
         ),
@@ -860,7 +859,6 @@ void main() {
     );
 
     expect(scopeNode.traversalEdgeBehavior, TraversalEdgeBehavior.parentScope);
-    expect(scopeNode.directionalTraversalEdgeBehavior, TraversalEdgeBehavior.parentScope);
 
     // Update back to null controller
     await tester.pumpWidget(
@@ -873,7 +871,6 @@ void main() {
     );
 
     expect(scopeNode.traversalEdgeBehavior, TraversalEdgeBehavior.closedLoop);
-    expect(scopeNode.directionalTraversalEdgeBehavior, TraversalEdgeBehavior.closedLoop);
   });
 
   testWidgets('[BaseMenu] updates key correctly', (WidgetTester tester) async {
@@ -2834,6 +2831,94 @@ void main() {
     expect(isFocused, isFalse);
   });
 
+  testWidgets('BaseMenuBar has correct semantics', (WidgetTester tester) async {
+    final SemanticsHandle handle = tester.ensureSemantics();
+    await tester.pumpWidget(const App(BaseMenuBar(child: SizedBox())));
+    final node = tester
+        .getSemantics(find.byType(BaseMenuBar))
+        .debugListChildrenInOrder(DebugSemanticsDumpOrder.traversalOrder)
+        .single;
+    expect(node.role, equals(SemanticsRole.menuBar));
+    expect(node, matchesSemantics(scopesRoute: true));
+    handle.dispose();
+  });
+
+  testWidgets('BaseMenu overlay has correct semantics', (WidgetTester tester) async {
+    final SemanticsHandle handle = tester.ensureSemantics();
+    final controller = MenuController();
+    await tester.pumpWidget(
+      App(
+        BaseMenu(
+          overlayChildBuilder: (context, child) {
+            return KeyedSubtree(key: Tag.overlay.key, child: child);
+          },
+          controller: controller,
+          menu: Column(children: <Widget>[Text(Tag.a.text), Text(Tag.b.text)]),
+          child: Text(Tag.anchor.text),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSemantics(find.text(Tag.anchor.text)),
+      matchesSemantics(label: Tag.anchor.text),
+    );
+
+    controller.open();
+    await tester.pump();
+    final node = tester
+        .getSemantics(find.byKey(Tag.overlay.key))
+        .debugListChildrenInOrder(DebugSemanticsDumpOrder.traversalOrder)
+        .single;
+
+    expect(node.role, equals(SemanticsRole.menu));
+    expect(node, matchesSemantics(scopesRoute: true));
+
+    final children = node
+        .debugListChildrenInOrder(.traversalOrder)
+        .single
+        .debugListChildrenInOrder(.traversalOrder);
+
+    expect(children, [matchesSemantics(label: Tag.a.text), matchesSemantics(label: Tag.b.text)]);
+
+    handle.dispose();
+  });
+
+  testWidgets('BaseMenu overlay has correct semantics', (WidgetTester tester) async {
+    final SemanticsHandle handle = tester.ensureSemantics();
+    final controller = MenuController();
+    await tester.pumpWidget(
+      App(
+        BaseMenu(
+          overlayChildBuilder: (context, child) {
+            return KeyedSubtree(key: Tag.overlay.key, child: child);
+          },
+          semanticProperties: SemanticsProperties(label: Tag.overlay.text),
+          controller: controller,
+          menu: Column(children: <Widget>[Text(Tag.a.text), Text(Tag.b.text)]),
+          child: Text(Tag.anchor.text),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSemantics(find.text(Tag.anchor.text)),
+      matchesSemantics(label: Tag.anchor.text),
+    );
+
+    controller.open();
+    await tester.pump();
+    final node = tester
+        .getSemantics(find.byKey(Tag.overlay.key))
+        .debugListChildrenInOrder(DebugSemanticsDumpOrder.traversalOrder)
+        .single;
+
+    expect(node.role, equals(SemanticsRole.none));
+    expect(node, matchesSemantics(label: Tag.overlay.text));
+
+    handle.dispose();
+  });
+
   group('Focus', () {
     Future<void> expectFocusPath(
       WidgetTester tester,
@@ -3100,7 +3185,7 @@ void main() {
         App(
           BaseMenu(
             controller: controller,
-            directionalFocusEdgeBehavior: TraversalEdgeBehavior.closedLoop,
+            traversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
               children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b), Button.tag(Tag.c)],
@@ -3137,7 +3222,7 @@ void main() {
         App(
           BaseMenu(
             controller: controller,
-            directionalFocusEdgeBehavior: TraversalEdgeBehavior.stop,
+            traversalEdgeBehavior: TraversalEdgeBehavior.stop,
             menu: BaseMenuPanel(
               orientation: Axis.vertical,
               children: <Widget>[Button.tag(Tag.a), Button.tag(Tag.b), Button.tag(Tag.c)],
@@ -3186,7 +3271,7 @@ void main() {
             children: [
               BaseMenu(
                 controller: controller,
-                directionalFocusEdgeBehavior: TraversalEdgeBehavior.parentScope,
+                traversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
                 menu: BaseMenuPanel(
                   orientation: Axis.vertical,
                   children: <Widget>[Button.tag(Tag.a)],
@@ -3220,7 +3305,7 @@ void main() {
 
       final widget = BaseMenu(
         controller: controller,
-        directionalFocusEdgeBehavior: TraversalEdgeBehavior.leaveFlutterView,
+        traversalEdgeBehavior: TraversalEdgeBehavior.leaveFlutterView,
         menu: BaseMenuPanel(orientation: Axis.vertical, children: <Widget>[Button.tag(Tag.a)]),
         child: const AnchorButton(Tag.anchor, autofocus: true),
       );

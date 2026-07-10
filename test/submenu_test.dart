@@ -1376,7 +1376,7 @@ void main() {
           },
           semanticProperties: semanticProperties,
           orientation: orientation,
-          directionalFocusEdgeBehavior: edgeBehavior,
+          traversalEdgeBehavior: edgeBehavior,
           consumeOutsideTaps: true,
           useRootOverlay: true,
           menu: Button.tag(Tag.a, focusNode: aFocusNode),
@@ -1397,7 +1397,7 @@ void main() {
     expect(baseMenu.semanticProperties, semanticProperties);
     expect(baseMenu.positionDelegate, positionDelegate);
     expect(baseMenu.orientation, orientation);
-    expect(baseMenu.directionalFocusEdgeBehavior, edgeBehavior);
+    expect(baseMenu.traversalEdgeBehavior, edgeBehavior);
 
     // Validate callback pass-through (onOpen)
     await tester.tap(find.text(Tag.anchor.text));

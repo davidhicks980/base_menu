@@ -467,7 +467,7 @@ class MenuSystem extends StatelessWidget {
       return BaseMenuBar(orientation: layers.first, child: _buildLevel(depth: 0));
     } else {
       return BaseMenu(
-        directionalFocusEdgeBehavior: .closedLoop,
+        traversalEdgeBehavior: .closedLoop,
         orientation: layers.first,
         menu: _buildLevel(depth: 0),
         child: AnchorButton(Tag.anchor, autofocus: autofocus == Tag.anchor, onPressed: (tag) {}),
@@ -521,7 +521,7 @@ class _SubmenuState extends State<_Submenu> {
           : const BoxConstraints.tightFor(width: 225, height: 32),
       child: BaseSubmenu(
         role: widget.tag == Tag.anchor ? null : .menuItem,
-        directionalFocusEdgeBehavior: .closedLoop,
+        traversalEdgeBehavior: .closedLoop,
         positionDelegate: const DefaultMenuPositioningDelegate(
           padding: EdgeInsetsGeometry.symmetric(horizontal: 4, vertical: 4),
         ),

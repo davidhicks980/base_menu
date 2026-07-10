@@ -231,6 +231,26 @@ class AppScaffold extends StatefulWidget {
 
 class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStateMixin {
   bool showNavigationDrawer = true;
+  final FocusNode contentFocusNode = FocusNode();
+  final FocusNode skipFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    skipFocusNode.addListener(_onSkipFocusChange);
+  }
+
+  @override
+  void dispose() {
+    skipFocusNode.removeListener(_onSkipFocusChange);
+    skipFocusNode.dispose();
+    contentFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onSkipFocusChange() {
+    setState(() {});
+  }
 
   void toggleDrawer() {
     setState(() {
@@ -240,9 +260,15 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    final child = RepaintBoundary(child: widget.child);
+    final child = FocusTraversalOrder(
+      order: const NumericFocusOrder(2),
+      child: Focus(
+        focusNode: contentFocusNode,
+        child: RepaintBoundary(child: widget.child),
+      ),
+    );
     return FocusTraversalGroup(
-      policy: WidgetOrderTraversalPolicy(),
+      policy: OrderedTraversalPolicy(secondary: WidgetOrderTraversalPolicy()),
       child: ColoredBox(
         color: AppColorScheme.of(context).surfaceContainerLow,
         child: SafeArea(
@@ -255,78 +281,81 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
                 bottom: 0,
                 duration: const Duration(milliseconds: 800),
                 curve: Curves.easeOutQuint,
-                child: ColoredBox(
-                  color: AppColorScheme.of(context).brightness == Brightness.light
-                      ? const Color.fromARGB(4, 28, 27, 31)
-                      : kTransparent,
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: CustomScrollView(
-                          slivers: [
-                            PinnedHeaderSliver(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Row(
-                                      mainAxisSize: MainAxisSize.max,
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Padding(
-                                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                                          child: Text(
-                                            'Base Menu',
-                                            style: TextStyle(
-                                              fontVariations: const [FontVariation.weight(800)],
-                                              letterSpacing: -0.5,
-                                              fontSize: 24,
-                                              fontFamily: 'InterVariable',
-                                              package: kPackage,
-                                              color: AppColorScheme.of(context).onSurface,
+                child: FocusTraversalOrder(
+                  order: const NumericFocusOrder(1),
+                  child: ColoredBox(
+                    color: AppColorScheme.of(context).brightness == Brightness.light
+                        ? const Color.fromARGB(4, 28, 27, 31)
+                        : kTransparent,
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: CustomScrollView(
+                            slivers: [
+                              PinnedHeaderSliver(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.max,
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                                            child: Text(
+                                              'Base Menu',
+                                              style: TextStyle(
+                                                fontVariations: const [FontVariation.weight(800)],
+                                                letterSpacing: -0.5,
+                                                fontSize: 24,
+                                                fontFamily: 'InterVariable',
+                                                package: kPackage,
+                                                color: AppColorScheme.of(context).onSurface,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsetsDirectional.only(end: 1),
-                                          child: MenuButton(
-                                            isOpen: showNavigationDrawer,
-                                            onPressed: toggleDrawer,
+                                          Padding(
+                                            padding: const EdgeInsetsDirectional.only(end: 1),
+                                            child: MenuButton(
+                                              isOpen: showNavigationDrawer,
+                                              onPressed: toggleDrawer,
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
 
-                            SliverToBoxAdapter(
-                              child: ExcludeFocus(
-                                excluding: !showNavigationDrawer,
-                                child: ExcludeSemantics(
+                              SliverToBoxAdapter(
+                                child: ExcludeFocus(
                                   excluding: !showNavigationDrawer,
-                                  child: IgnorePointer(
-                                    ignoring: !showNavigationDrawer,
-                                    child: AnimatedOpacity(
-                                      duration: const Duration(milliseconds: 800),
-                                      curve: Curves.easeOutQuint,
-                                      opacity: showNavigationDrawer ? 1 : 0,
-                                      child: const _Sidenav(),
+                                  child: ExcludeSemantics(
+                                    excluding: !showNavigationDrawer,
+                                    child: IgnorePointer(
+                                      ignoring: !showNavigationDrawer,
+                                      child: AnimatedOpacity(
+                                        duration: const Duration(milliseconds: 800),
+                                        curve: Curves.easeOutQuint,
+                                        opacity: showNavigationDrawer ? 1 : 0,
+                                        child: const _Sidenav(),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      Separator.vertical(
-                        color: AppColorScheme.of(context).outlineVariant,
-                        thickness: 2,
-                      ),
-                    ],
+                        Separator.vertical(
+                          color: AppColorScheme.of(context).outlineVariant,
+                          thickness: 2,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -352,6 +381,39 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
                     ),
                   );
                 },
+              ),
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 100),
+                curve: Curves.easeOutCubic,
+                top: skipFocusNode.hasFocus ? 16.0 : -100.0,
+                left: 16.0,
+                child: FocusTraversalOrder(
+                  order: const NumericFocusOrder(0),
+                  child: BaseControl(
+                    focusNode: skipFocusNode,
+                    onPressed: () {
+                      contentFocusNode.requestFocus();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppColorScheme.of(context).primary,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColorScheme.of(context).onSurface, width: 2),
+                        boxShadow: const [
+                          BoxShadow(color: Color(0x40000000), blurRadius: 8, offset: Offset(0, 4)),
+                        ],
+                      ),
+                      child: Text(
+                        'Skip to main content',
+                        style: TextStyle(
+                          color: AppColorScheme.of(context).onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

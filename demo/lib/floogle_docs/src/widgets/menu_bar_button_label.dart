@@ -20,11 +20,6 @@ class MenuBarButtonLabel extends StatelessWidget {
     color: FloogleColors.darkGray,
   );
 
-  static const _openBorderRadius = BorderRadiusDirectional.only(
-    topStart: Radius.circular(4),
-    topEnd: Radius.circular(4),
-  );
-
   static const _decorationMap = {
     WidgetState.pressed: BoxDecoration(
       color: FloogleColors.menuItemPressedColor,

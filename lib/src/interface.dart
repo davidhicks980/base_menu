@@ -169,7 +169,7 @@ abstract interface class BaseMenuInterface {
   /// Defaults to using [TraversalEdgeBehavior.stop] when
   /// [defaultTargetPlatform] is [TargetPlatform.macOS] or
   /// [TargetPlatform.iOS], and [TraversalEdgeBehavior.closedLoop] otherwise.
-  TraversalEdgeBehavior? get directionalFocusEdgeBehavior;
+  TraversalEdgeBehavior? get traversalEdgeBehavior;
 
   /// An optional [MenuController] that allows opening and closing of the menu
   /// from other widgets.

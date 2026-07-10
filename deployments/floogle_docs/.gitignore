@@ -48,4 +48,4 @@ app.*.map.json
 .widget_preview/
 
 .firebase
-/scripts/
+/scripts/build.sh

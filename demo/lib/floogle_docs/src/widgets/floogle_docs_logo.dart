@@ -44,13 +44,13 @@ class _FloogleDocsLogo extends StatelessWidget {
     return SizedBox.square(
       dimension: 34.0,
       child: Center(
-        child: CustomPaint(size: const Size(34.0 * 0.75, 34.0), painter: _FloogleDocsPainter()),
+        child: CustomPaint(size: const Size(34.0 * 0.75, 34.0), painter: FloogleDocsPainter()),
       ),
     );
   }
 }
 
-class _FloogleDocsPainter extends CustomPainter {
+class FloogleDocsPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..isAntiAlias = true;

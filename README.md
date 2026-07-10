@@ -1,6 +1,6 @@
 # Base Menu
 
-![Base Menu Sequoia Demo](assets/images/base_menu.png)
+![Base Menu Sequoia Demo](assets/images/sequoia.png)
 
 Composable widgets for building menu systems.
 

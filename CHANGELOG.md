@@ -1,3 +1,7 @@
+# 0.1.3
+
+* Fixed broken links in README.md and documentation.
+
 # 0.1.2
 
 * Created documentation folder with usage guides.

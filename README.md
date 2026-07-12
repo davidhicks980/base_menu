@@ -8,7 +8,7 @@ Composable widgets for building menu systems in Flutter.
 
 [Live Gallery](https://base-menu-library.web.app/) · [Floogle Docs Demo](https://floogle-docs.web.app/) · [API Reference](https://pub.dev/documentation/base_menu/latest/)
 
-![Sequoia MenuBar Demo](assets/images/sequoia.png)
+![Sequoia MenuBar Demo](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/images/sequoia.png)
 
 ## Features
 
@@ -28,11 +28,11 @@ Base Menu provides a small set of primitive widgets that control keyboard traver
 
 | Component | Description | Visual |
 | :--- | :--- | :--- |
-| `BaseMenu` | A single-layer menu overlay or context trigger. | ![BaseMenu](assets/images/readme_menu.png) |
-| `BaseSubmenu` | A `BaseMenu` specialized for nested menus. Coordinates cross-axis keyboard navigation and hover traversal. Uses a `BaseMenuItem` as its anchor. | ![BaseSubmenu](assets/images/readme_submenu.png) |
-| `BaseMenuBar` | An inline grouping layer that coordinates keyboard and focus routing for a set of menu buttons. | ![BaseMenuBar](assets/images/readme_menu_bar.png) |
-| `BaseMenuItem` | A primary control that adds hover-to-focus and close-on-activate actions to a `BaseControl`. | ![BaseMenuItem](assets/images/readme_menu_item.png) |
-| `BaseMenuPanel` | A layout container for a set of menu items. | ![BaseMenuPanel](assets/images/readme_menu_panel.png) |
+| `BaseMenu` | A single-layer menu overlay or context trigger. | ![BaseMenu](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/images/readme_menu.png) |
+| `BaseSubmenu` | A `BaseMenu` specialized for nested menus. Coordinates cross-axis keyboard navigation and hover traversal. Uses a `BaseMenuItem` as its anchor. | ![BaseSubmenu](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/images/readme_submenu.png) |
+| `BaseMenuBar` | An inline grouping layer that coordinates keyboard and focus routing for a set of menu buttons. | ![BaseMenuBar](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/images/readme_menu_bar.png) |
+| `BaseMenuItem` | A primary control that adds hover-to-focus and close-on-activate actions to a `BaseControl`. | ![BaseMenuItem](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/images/readme_menu_item.png) |
+| `BaseMenuPanel` | A layout container for a set of menu items. | ![BaseMenuPanel](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/images/readme_menu_panel.png) |
 
 ## Getting started
 
@@ -46,7 +46,7 @@ import 'package:base_menu/base_menu.dart';
 
 ### Controls
 
-[Full guide](./documentation/controls.md)
+[Full guide](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/documentation/controls.md)
 
 Add custom styling to menu items by using state selectors in a `BaseControl` or
 `BaseMenuItem`.
@@ -146,7 +146,7 @@ BaseMenu(
 
 ### Positioning
 
-[Full guide](./documentation/positioning.md)
+[Full guide](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/documentation/positioning.md)
 
 Use `DefaultMenuPositioningDelegate` to configure the menu's position relative to its anchor:
 
@@ -165,15 +165,15 @@ BaseMenu(
 )
 ```
 
-![Positioned Menu](./assets/images/readme_positioned_menu.png)
+![Positioned Menu](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/images/readme_positioned_menu.png)
 
 ### Aim assist
 
-[Full guide](./documentation/aim.md)
+[Full guide](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/documentation/aim.md)
 
 | Disabled | Enabled |
 | :---: | :---: |
-| ![Aim Assist Disabled](/assets/videos/aim_assist_disabled.gif) | ![Aim Assist Enabled](/assets/videos/aim_assist_enabled.gif) |
+| ![Aim Assist Disabled](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/videos/aim_assist_disabled.gif) | ![Aim Assist Enabled](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/videos/aim_assist_enabled.gif) |
 
 To enable aim assist for a single menu, set the `enableAimAssist` property of
 the menu's positioning delegate to `true`. 

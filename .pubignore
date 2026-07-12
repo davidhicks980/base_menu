@@ -1,5 +1,13 @@
 deployments/
-demo/
 build/
 coverage/
-doc/
+gallery/
+/**/*.mp4
+assets/videos/base_focusable.gif  
+assets/videos/base_hoverable.gif 
+assets/videos/base_menu_item.gif
+assets/videos/checkbox.gif 
+assets/videos/constrain_edge_behavior.gif
+assets/videos/flip_edge_behavior.gif
+assets/videos/no_horizontal_edge_behavior.gif
+assets/videos/shift_edge_behavior.gif 

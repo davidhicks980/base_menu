@@ -102,12 +102,11 @@ class CustomMenuItem extends StatelessWidget {
 }
 ```
 
-This makes it easy to swap out the styling of menu items without changing the
-underlying menu logic.
 
-### Menu
 
-Wrap your menu panel in a `DecoratedBox` apply a background color, border, or
+### Panel
+
+Wrap a `BaseMenuPanel` in a `DecoratedBox` to apply a background color, border, or
 shadow:
 
 ```dart

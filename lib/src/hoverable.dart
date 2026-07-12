@@ -104,8 +104,8 @@ class BaseHoverable<T extends Object?> extends StatefulWidget implements BaseHov
   /// Calling this method establishes a dependency that will cause the provided
   /// [BuildContext] to rebuild whenever the ancestor gains or loses hover.
   ///
-  /// Unlike [isHoverHighlightShownOf], this method is not affected by whether
-  /// the widget is [enabled] or the [FocusHighlightMode]. As a result,
+  /// Unlike [isHoverHighlightShownOf], this method is not affected by the
+  /// [FocusHighlightMode] or whether the widget is [enabled]. As a result,
   /// [isHoverHighlightShownOf] should be used instead of [isHoveredOf] to
   /// determine the visual appearance of downstream widgets.
   /// {@endtemplate}
@@ -133,7 +133,6 @@ class BaseHoverable<T extends Object?> extends StatefulWidget implements BaseHov
   /// [isHoveredOf] may return true when this method returns false. In this
   /// case, the widget is hovered but the platform has indicated that a hover
   /// highlight is not appropriate for the current input method.
-  ///
   /// {@endtemplate}
   @optionalTypeArgs
   static bool isHoverHighlightShownOf<T extends Object?>(BuildContext context) {

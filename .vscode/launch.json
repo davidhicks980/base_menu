@@ -159,6 +159,16 @@
                 "--wasm",
                 "--dart-define=VISUALIZE_MENU_AIM=true"
             ]
+        },
+
+        {
+            "name": "snippets (debug mode)",
+            "cwd": "documentation/snippets",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "flutterMode": "debug",
+          
         }
     ]
 }

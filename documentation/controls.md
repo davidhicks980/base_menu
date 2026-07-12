@@ -61,10 +61,8 @@ Usage:
 ```dart
 HoverRectangle();
 ```
-<p align="center">
-<video src="/assets/videos/base_hoverable.gif" width="100%" autoplay loop muted></video>
-</p>
 
+![Hoverable rectangle](../assets/videos/base_hoverable.gif)
 
 ### BaseFocusable
 
@@ -124,11 +122,7 @@ FocusRectangle(
 );
 ```
 
-<p align="center">
-<video src="/assets/videos/base_focusable.gif" width="300px" autoplay loop muted></video>
-</p>
-
-<br>
+![Focusable rectangle](../assets/videos/base_focusable.gif)
 
 ## 3. Composite Controls
 
@@ -383,9 +377,8 @@ web, but you want the checkbox to adapt to the web engine's native look and
 feel. Theming is then a matter of using state selectors to apply different
 styles:
 
-<p align="center">
-<video src="/assets/videos/checkbox.gif" width="300px" autoplay loop muted></video>
-</p>
+![Checkbox](../assets/videos/checkbox.gif)
+
 
 #### Theming for the Blink browser engine (Chromium):
 ```dart

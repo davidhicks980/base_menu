@@ -183,11 +183,6 @@ To control the behavior of aim assist for a subtree, wrap the subtree with
 will inherit the `enable` value unless a descendant menu's positioning delegate
 overrides it.
 
-If a custom `MenuPositioningDelegate` is used with `BaseMenu`, the delegate is
-responsible for implementing aim assist behavior. See the
-[Standalone](#standalone) section for an example of how to implement aim assist
-in a custom delegate.
-
 ```dart
 // Enable aim assist for a subtree of menus.
 MenuAimScope(

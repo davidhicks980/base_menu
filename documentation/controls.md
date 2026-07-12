@@ -7,9 +7,11 @@ additional state management.
 There are two primary ways to access the state of an ancestor control:
 
 1.  **State Selectors**: Methods like `isHoveredOf(context)` or
-    `isPressedOf(context)`. These return a specific boolean and are ideal for
-    simple conditional logic.
-2.  **State Aggregators**: The `statesOf(context)` method returns a `Set<WidgetState>`. This is designed for use with `WidgetStateProperty`, similar to how Material 3 components are styled.
+    `isPressedOf(context)`. These return a boolean and are ideal for simple
+    conditional logic.
+2.  **State Aggregators**: The `statesOf(context)` method returns a
+    `Set<WidgetState>`. This is designed for use with `WidgetStateProperty`,
+    similar to how Material 3 components are styled.
 
 
 ## 2. Atomic Controls
@@ -60,7 +62,7 @@ Usage:
 HoverRectangle();
 ```
 <p align="center">
-<video src="/assets/videos/base_hoverable.mp4" width="100%" autoplay loop muted></video>
+<video src="/assets/videos/base_hoverable.gif" width="100%" autoplay loop muted></video>
 </p>
 
 
@@ -123,7 +125,7 @@ FocusRectangle(
 ```
 
 <p align="center">
-<video src="/assets/videos/base_focusable.mp4" width="300px" autoplay loop muted></video>
+<video src="/assets/videos/base_focusable.gif" width="300px" autoplay loop muted></video>
 </p>
 
 <br>
@@ -382,7 +384,7 @@ feel. Theming is then a matter of using state selectors to apply different
 styles:
 
 <p align="center">
-<video src="/assets/videos/checkbox.mp4" width="300px" autoplay loop muted></video>
+<video src="/assets/videos/checkbox.gif" width="300px" autoplay loop muted></video>
 </p>
 
 #### Theming for the Blink browser engine (Chromium):

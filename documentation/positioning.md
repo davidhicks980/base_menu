@@ -5,7 +5,7 @@ determines the size and location of the menu panel relative to its anchor (the
 widget that triggered the menu).
 
 The default implementation, `DefaultMenuPositioningDelegate`, provides a
-flexible system for alignment, offsets, and handling screen overflows.
+flexible system for alignment, offset, padding, and edge behavior.
 
 ## Core Concepts
 
@@ -30,7 +30,6 @@ red point represents the menu's attachment.
 
 ![Submenu with vertical parent](../assets/images/alignment_vertical.png)
 ![Submenu with horizontal parent](../assets/images/alignment_horizontal.png)
-
 
 Changing the anchor attachment point to `bottomCenter` and the menu attachment
 point to `topCenter` for the submenu in the second example yields:
@@ -102,7 +101,7 @@ strategies:
 
 ### Configuration Example
 
-By default, all strategies are enabled. You can restrict this behavior for specific UX requirements:
+By default, all edge behavior strategies are enabled. You can restrict this behavior for specific UX requirements:
 
 ```dart
 DefaultMenuPositioningDelegate(

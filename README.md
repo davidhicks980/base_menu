@@ -3,7 +3,7 @@
 Composable widgets for building menu systems in Flutter.
 
 [![Pub Version](https://img.shields.io/pub/v/base_menu)](https://pub.dev/packages/base_menu)
-[![Deploy Platform](https://img.shields.io/badge/platform-flutter%20%7C%20web%20%7C%20desktop-blue)](#)
+[![Deploy Platform](https://img.shields.io/badge/platform-flutter%20%7C%20mobile%20%7C%20web%20%7C%20desktop-blue)](#)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [Live Gallery](https://base-menu-library.web.app/) · [Floogle Docs Demo](https://floogle-docs.web.app/) · [API Reference](https://pub.dev/documentation/base_menu/latest/)

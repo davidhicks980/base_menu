@@ -60,7 +60,7 @@ Usage:
 HoverRectangle();
 ```
 <p align="center">
-<video src="assets/videos/base_hoverable.mp4" width="100%" autoplay loop muted></video>
+<video src="/assets/videos/base_hoverable.mp4" width="100%" autoplay loop muted></video>
 </p>
 
 
@@ -123,7 +123,7 @@ FocusRectangle(
 ```
 
 <p align="center">
-<video src="assets/videos/base_focusable.mp4" width="300px" autoplay loop muted></video>
+<video src="/assets/videos/base_focusable.mp4" width="300px" autoplay loop muted></video>
 </p>
 
 <br>
@@ -382,7 +382,7 @@ feel. Theming is then a matter of using state selectors to apply different
 styles:
 
 <p align="center">
-<video src="assets/videos/checkbox.mp4" width="300px" autoplay loop muted></video>
+<video src="/assets/videos/checkbox.mp4" width="300px" autoplay loop muted></video>
 </p>
 
 #### Theming for the Blink browser engine (Chromium):

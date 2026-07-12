@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../checkbox_menu_item/src/checkbox_menu_item.dart';
 
 class WebCheckbox extends StatelessWidget {
-  const WebCheckbox();
+  const WebCheckbox({super.key});
 
   @override
   Widget build(BuildContext context) {

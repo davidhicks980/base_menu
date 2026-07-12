@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:base_menu_demo/floogle_docs/src/widgets/floogle_docs_logo.dart';
+import 'package:base_menu_gallery/floogle_docs/src/widgets/floogle_docs_logo.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // Forgive me

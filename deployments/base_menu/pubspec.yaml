@@ -1,5 +1,5 @@
-name: base_menu_samples_explorer
-description: "A showcase of base_menu capabilities."
+name: base_menu_gallery_deployment
+description: "A deployment of the Base Menu Gallery."
 publish_to: 'none'
 version: 0.1.0+1
 resolution: workspace
@@ -11,8 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  base_menu_demo:
-    path: ../../demo
+  base_menu_gallery:
+    path: ../../gallery
   firebase_core: ^4.11.0
   flutter_web_plugins:
     sdk: flutter
@@ -23,5 +23,4 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^6.0.0
 
-flutter:
-  uses-material-design: true
+

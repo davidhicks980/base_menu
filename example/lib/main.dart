@@ -136,7 +136,7 @@ class Label extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BaseMenuItem.isFocusedOf(context)
+      decoration: BaseMenuItem.isFocusHighlightShownOf(context)
           ? BoxDecoration(border: Border.all(width: 2), color: color)
           : BoxDecoration(color: color),
       child: Padding(

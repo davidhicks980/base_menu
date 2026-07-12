@@ -109,7 +109,6 @@ class BaseFocusable<T extends Object?> extends StatefulWidget implements BaseFoc
   /// The value of [isFocusedOf] may be true when [isFocusHighlightShownOf] is
   /// false. In this case, the ancestor has input focus but has indicated that a
   /// focus highlight should not be shown.
-  ///
   /// {@endtemplate}
   @optionalTypeArgs
   static bool isFocusedOf<T extends Object?>(BuildContext context) {

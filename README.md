@@ -2,7 +2,6 @@
 
 Composable widgets for building menu systems in Flutter.
 
-[![Pub Version](https://img.shields.io/pub/v/base_menu)](https://pub.dev/packages/base_menu)
 [![Deploy Platform](https://img.shields.io/badge/platform-flutter%20%7C%20mobile%20%7C%20web%20%7C%20desktop-blue)](#)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -18,7 +17,6 @@ Composable widgets for building menu systems in Flutter.
 * Menu aim assist (safe triangles)
 * A robust positioning algorithm with support for custom layout delegates
 * Built on the [MenuController](https://api.flutter.dev/flutter/widgets/MenuController-class.html) API
-
 
 ## Architecture
 

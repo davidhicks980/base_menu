@@ -1,3 +1,7 @@
+# 0.1.4
+
+* Remove pub version badge from README.md.
+
 # 0.1.3
 
 * Fixed broken links in README.md and documentation.

@@ -46,7 +46,7 @@ import 'package:base_menu/base_menu.dart';
 
 ### Controls
 
-[Full guide](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/documentation/controls.md)
+[Full guide](https://github.com/davidhicks980/base_menu/blob/main/documentation/controls.md)
 
 Add custom styling to menu items by using state selectors in a `BaseControl` or
 `BaseMenuItem`.
@@ -146,7 +146,7 @@ BaseMenu(
 
 ### Positioning
 
-[Full guide](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/documentation/positioning.md)
+[Full guide](https://github.com/davidhicks980/base_menu/blob/main/documentation/positioning.md)
 
 Use `DefaultMenuPositioningDelegate` to configure the menu's position relative to its anchor:
 
@@ -169,7 +169,7 @@ BaseMenu(
 
 ### Aim assist
 
-[Full guide](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/documentation/aim.md)
+[Full guide](https://github.com/davidhicks980/base_menu/blob/main/documentation/aim.md)
 
 | Disabled | Enabled |
 | :---: | :---: |

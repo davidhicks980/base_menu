@@ -28,14 +28,14 @@ the attachment points:
 In the images below, the green point represents the anchor's attachment, and the
 red point represents the menu's attachment.
 
-![Submenu with vertical parent](../assets/images/vertical_alignment.png)
-![Submenu with horizontal parent](../assets/images/horizontal_alignment.png)
+![Submenu with vertical parent](../assets/images/alignment_vertical.png)
+![Submenu with horizontal parent](../assets/images/alignment_horizontal.png)
 
 
 Changing the anchor attachment point to `bottomCenter` and the menu attachment
 point to `topCenter` for the submenu in the second example yields:
 
-![Submenu with horizontal parent](../assets/images/top_center_alignment.png)
+![Submenu with horizontal parent](../assets/images/alignment_center.png)
 
 
 Note that the root menu's layout is unaffected by changing the submenu's
@@ -53,6 +53,19 @@ to the menu's attachment point, moving it further away from the anchor:
 
 ![Offset menu](../assets/images/offset.png)
 
+### Padding
+
+Menu panels often have padding that causes misalignment with their anchor. Use
+the `padding` property to tell the positioner to ignore specific edges of the
+menu's content for alignment purposes.
+
+| Without padding | With padding |
+| :---: | :---: |
+| ![Without padding](../assets/images/padding_unadjusted.png) | ![With padding](../assets/images/padding_adjusted.png) |
+
+The positioning algorithm will automatically adapt the padding adjustment to the
+menu's orientation, edge behavior, text direction, and alignment.
+
 
 ## Usage
 
@@ -68,32 +81,12 @@ BaseMenu(
     menuAttachment: Alignment.topCenter,
     // Add a 4-pixel gap between the anchor and the menu
     offset: Offset(0, 4),
+    // Adjust the menu's vertical padding for a panel with 6 pixels of vertical padding.
+    padding: EdgeInsets.symmetric(vertical: 6.0),
   ),
-  menu: MyMenuPanel(),
-  child: MyButton(),
+  // ...other parameters...
 )
 ```
-
-### Padding
-
-Menu panels often have padding that causes misalignment with their anchor. Use
-the `padding` property to tell the positioner to ignore specific edges of the
-menu's content for alignment purposes.
-
-```dart
-DefaultMenuPositioningDelegate(
-  // If your menu panel has 6px of vertical padding, 
-  // setting this ensures the first item aligns perfectly with the anchor.
-  padding: EdgeInsets.symmetric(vertical: 6.0),
-)
-```
-
-| Without padding | With padding |
-| :---: | :---: |
-| ![Without padding](../assets/images/padding_unadjusted.png) | ![With padding](../assets/images/padding_adjusted.png) |
-
-The positioning algorithm will automatically adapt the padding adjustment to the
-menu's orientation, edge behavior, text direction, and alignment.
 
 ## Edge Behavior
 
@@ -122,17 +115,9 @@ DefaultMenuPositioningDelegate(
 )
 ```
 
-Horizontal behavior with flip, shift, and constrain disabled:
+If you disable all strategies for an axis, the menu will be clipped by the screen edge:
+
 ![Clipping edge behavior](../assets/videos/no_horizontal_edge_behavior.gif)
-
-Horizontal behavior with flip enabled, shift and constrain disabled:
-
-
-Horizontal behavior with shift enabled, flip and constrain disabled:
-
-
-Horizontal behavior with constrain enabled, flip and shift disabled:
-
 
 
 ## Custom Positioner

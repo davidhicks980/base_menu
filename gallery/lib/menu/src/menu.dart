@@ -24,7 +24,7 @@ class _PopupState extends State<Popup> {
   Widget build(BuildContext context) {
     return BaseMenu(
       orientation: widget.orientation,
-      positionDelegate: const ExamplePositioningDelegate(),
+      positionDelegate: const DefaultMenuPositioningDelegate(offset: Offset(0, 4)),
 
       // The builder provides the anchor button and access to the menu
       // controller
@@ -95,23 +95,6 @@ class MenuItem extends StatelessWidget {
     return BaseMenuItem(
       onPressed: () {},
       child: StyledMenuItemChild(child: Text(label)),
-    );
-  }
-}
-
-class ExamplePositioningDelegate implements MenuPositioningDelegate {
-  const ExamplePositioningDelegate();
-
-  @override
-  Widget build(BuildContext context, RawMenuOverlayInfo position, Widget child) {
-    return Stack(
-      children: [
-        Positioned(
-          left: position.anchorRect.left,
-          top: position.anchorRect.bottom,
-          child: Align(alignment: Alignment.topLeft, child: child),
-        ),
-      ],
     );
   }
 }

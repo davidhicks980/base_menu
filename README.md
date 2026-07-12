@@ -1,6 +1,6 @@
 # Base Menu
 
-A composable toolkit for building custom menu systems in Flutter.
+Composable widgets for building menu systems in Flutter.
 
 [![Pub Version](https://img.shields.io/pub/v/base_menu)](https://pub.dev/packages/base_menu)
 [![Deploy Platform](https://img.shields.io/badge/platform-flutter%20%7C%20web%20%7C%20desktop-blue)](#)
@@ -8,9 +8,7 @@ A composable toolkit for building custom menu systems in Flutter.
 
 [Live Gallery](https://base-menu-library.web.app/) · [Floogle Docs Demo](https://floogle-docs.web.app/) · [API Reference](https://pub.dev/documentation/base_menu/latest/)
 
-<p align="center">
-  <img src="assets/images/sequoia.png" width="560" alt="Base Menu Sequoia Demo">
-</p>
+![Sequoia MenuBar Demo](assets/images/sequoia.png)
 
 ## Features
 
@@ -24,42 +22,37 @@ A composable toolkit for building custom menu systems in Flutter.
 
 ## Architecture
 
-Base Menu provides a small set of primitive widgets that control keyboard
-traversal, focus routing, and menu positioning. These widgets can be composed to create a wide
+Base Menu provides a small set of primitive widgets that control keyboard traversal, focus routing, and menu positioning. These widgets can be composed to create a wide variety of menu systems, from simple context menus to complex multi-level menu bars.
 
-**Menus**:
+### Core Components
 
-* `BaseMenu` – A single-layer menu overlay or context trigger.
-* `BaseSubmenu` – A BaseMenu specialized for nested menus. Coordinates
-  cross-axis keyboard navigation and hover traversal. Uses a `BaseMenuItem`
-  as its anchor.
-* `BaseMenuBar` – An inline grouping layer that coordinates keyboard and focus
-  routing for a set of menu buttons.
+| Component | Description | Visual |
+| :--- | :--- | :--- |
+| `BaseMenu` | A single-layer menu overlay or context trigger. | ![BaseMenu](assets/images/readme_menu.png) |
+| `BaseSubmenu` | A `BaseMenu` specialized for nested menus. Coordinates cross-axis keyboard navigation and hover traversal. Uses a `BaseMenuItem` as its anchor. | ![BaseSubmenu](assets/images/readme_submenu.png) |
+| `BaseMenuBar` | An inline grouping layer that coordinates keyboard and focus routing for a set of menu buttons. | ![BaseMenuBar](assets/images/readme_menu_bar.png) |
+| `BaseMenuItem` | A primary control that adds hover-to-focus and close-on-activate actions to a `BaseControl`. | ![BaseMenuItem](assets/images/readme_menu_item.png) |
+| `BaseMenuPanel` | A layout container for a set of menu items. | ![BaseMenuPanel](assets/images/readme_menu_panel.png) |
 
-**Panels**:
+## Getting started
 
-* `BaseMenuPanel` – Linearly arranges menu items in a given `orientation` and
-  tracks mouse boundaries.
-
-**Controls**:
-
-* `BaseHoverable` – A `MouseRegion` that passes hover state to its descendants.
-* `BaseFocusable` – A `Focus` widget that passes focus state to its descendants.
-* `BaseControl` - A widget that composes `BaseHoverable` and `BaseFocusable`
-  with a `RawGestureDetector` to pass hover, focus, and pressed states to
-  descendants. Also handles keyboard activation.
-* `BaseMenuItem` – A `BaseControl` that adds hover-to-focus
-  and close-on-activate actions.
-
-## Styling Controls
-
-Adding custom styling to menu items
-
-Because `BaseMenuItem` and `BaseControl` communicate their visual state through
-inherited widgets, theming can be isolated into a separate widget.
+Add the package to your `pubspec.yaml` and import it into your project:
 
 ```dart
-// Implement styling for a menu item using the inherited state from BaseMenuItem.
+import 'package:base_menu/base_menu.dart';
+```
+
+## Customization
+
+### Controls
+
+[Full guide](./documentation/controls.md)
+
+Add custom styling to menu items by using state selectors in a `BaseControl` or
+`BaseMenuItem`.
+
+```dart
+// Implement styling for a menu item using the state selectors from BaseMenuItem.
 class StyledLabel extends StatelessWidget {
   const StyledLabel({super.key, required this.child});
   final Widget child;
@@ -93,6 +86,7 @@ class StyledLabel extends StatelessWidget {
   }
 }
 
+// Usage:
 class CustomMenuItem extends StatelessWidget {
   const CustomMenuItem({super.key, required this.child, this.onPressed});
   final Widget child;
@@ -111,209 +105,117 @@ class CustomMenuItem extends StatelessWidget {
 This makes it easy to swap out the styling of menu items without changing the
 underlying menu logic.
 
+### Menu
 
-## Advanced Interactions
-
-### Menu Items
-
-Menu Utilities provides compositional widgets that allow you to build menu items with
-different levels of theming granularity.
-
-Theme with the inherited `WidgetState` of a menu item:
+Wrap your menu panel in a `DecoratedBox` apply a background color, border, or
+shadow:
 
 ```dart
-/// A menu item that changes color when hovered, focused, or pressed.
-class MenuItem extends StatelessWidget {
-  const MenuItem({super.key, required this.child, required this.onPressed, this.suffix});
-  final Widget child;
-  final Widget? suffix;
-  final VoidCallback? onPressed;
-
-  static const WidgetStateProperty<BoxDecoration> decoration = WidgetStateProperty.fromMap({
-    WidgetState.pressed: BoxDecoration(color: Color(0xFFE9E9E9)),
-    WidgetState.hovered: BoxDecoration(color: Color(0xFFEDEDED)),
-    WidgetState.focused: BoxDecoration(color: Color(0xFFEDEDED)),
-    WidgetState.any:     BoxDecoration(color: Color(0x00000000)),
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final Widget body = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-      child: suffix != null
-        ? Row(spacing: 12, mainAxisAlignment: .spaceBetween, children: [child, suffix!])
-        : child,
-    );
-
-    return BaseMenuItem(
-      onPressed: () {},
-      child: Builder(
-        builder: (context) {
-          // Rebuilds any time the menu item is hovered, focused, pressed, or
-          // disabled.
-          return DecoratedBox(
-            decoration: decoration.resolve(BaseMenuItem.statesOf(context)),
-            child: body,
-          );
-        },
-      ),
-    );
-  }
-}
-```
-
-Depend on a specific menu item state to isolate updates:
-
-```dart
-/// A suffix that changes color when its parent menu item is hovered.
-class Suffix extends StatelessWidget {
-  const Suffix({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    const box = SizedBox.square(dimension: 20);
-    // Rebuilds only when the parent menu item is hovered.
-    if (BaseMenuItem.isHoveredOf(context)) {
-      return const ColoredBox(color: Color(0xFFFF0000), child: box);
-    } else {
-      return const ColoredBox(color: Color(0xFF000000), child: box);
-    }
-  }
-}
-```
-
-Isolate hover effects to a particular part of a menu item:
-
-```dart
-/// A suffix that changes color it is hovered, but not when its parent menu item
-/// is hovered.
-class HoverableSuffix extends StatelessWidget {
-  const HoverableSuffix({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    const box = SizedBox.square(dimension: 20);
-    return BaseHoverable(
-      child: Builder(
-        builder: (context) {
-          // Rebuilds only when this widget is hovered.
-          if (BaseHoverable.isHoveredOf(context)) {
-            return const ColoredBox(color: Color(0xFFFF0000), child: box);
-          } else {
-            return const ColoredBox(color: Color(0xFF000000), child: box);
-          }
-        },
-      ),
-    );
-  }
-}
-```
-
-Use `BaseHoverable` with a generic type parameter to pass hover state to
-descendant widgets without exposing the Menu Utilities API:
-
-```dart
-/// A suffix that passes its hover state to its child.
-class SpecializedSuffix extends StatelessWidget {
-  const SpecializedSuffix({super.key, required this.child});
+class StyledMenuPanel extends StatelessWidget {
+  const StyledMenuPanel({super.key, required this.child});
   final Widget child;
 
-  static bool isHovered(BuildContext context) {
-    return BaseHoverable.isHoveredOf<SpecializedSuffix>(context);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BaseHoverable<SpecializedSuffix>(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints.tightFor(width: 20, height: 20),
-        child: child,
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: Color(0xffffffff),
+        borderRadius: BorderRadius.all(Radius.circular(4)),
+        boxShadow: [
+          BoxShadow(color: Color(0x18000000), blurRadius: 8, offset: Offset(0, 4)),
+          BoxShadow(color: Color(0x0D000000), blurRadius: 4, offset: Offset(0, 2)),
+        ],
       ),
+      child: child,
     );
   }
 }
+
+// Usage:
+BaseMenu(
+  menu: StyledMenuPanel(
+    child: BaseMenuPanel(
+      children: [
+        const MenuItem(label: 'Undo'),
+        const MenuItem(label: 'Redo'),
+      ],
+    ),
+  ),
+  // ...
+);
 ```
 
-Putting it all together:
+### Positioning
+
+[Full guide](./documentation/positioning.md)
+
+Use `DefaultMenuPositioningDelegate` to configure the menu's position relative to its anchor:
 
 ```dart
-class CustomizedMenu extends StatelessWidget {
-  const CustomizedMenu({super.key});
+BaseMenu(
+  positionDelegate: DefaultMenuPositioningDelegate(
+    // Attach the bottom-center of the anchor to the top-center of the menu
+    anchorAttachment: Alignment.bottomCenter,
+    menuAttachment: Alignment.topCenter,
+    // Add a 4-pixel vertical gap between the anchor and the menu
+    offset: Offset(0, 4),
+    // Adjust the menu's vertical padding for a panel with 6 pixels of vertical padding.
+    padding: EdgeInsets.symmetric(vertical: 6.0),
+  ),
+  // ...
+)
+```
 
-  @override
-  Widget build(BuildContext context) {
-    return DefaultTextStyle(
-      style: const TextStyle(fontSize: 14, color: Color(0xFF000000)),
-      child: ColoredBox(
-        color: const Color(0xFF0FF0FF),
-        child: BaseMenu(
-          builder: (BuildContext context, MenuController controller, Widget? child) {
-            return BaseControl(
-              onPressed: () {
-                if (controller.isOpen) {
-                  controller.close();
-                } else {
-                  controller.open();
-                }
-              },
-              child: const Text('Open Menu'),
-            );
-          },
-          menu: ColoredBox(
-            color: const Color(0xFFFFFFFF),
-            child: BaseMenuPanel(
-              direction: .vertical,
-              children: [
-                MenuItem(
-                  onPressed: () {
-                    print('Suffix Pressed');
-                  },
-                  suffix: const Suffix(),
-                  child: const Text('Suffix'),
-                ),
-                MenuItem(
-                  onPressed: () {
-                    print('Hoverable Suffix Pressed');
-                  },
-                  suffix: const HoverableSuffix(),
-                  child: const Text('Hoverable Suffix'),
-                ),
-                MenuItem(
-                  onPressed: () {
-                    print('Specialized Suffix Pressed');
-                  },
-                  suffix: SpecializedSuffix(
-                    child: Builder(
-                      builder: (context) {
-                        if (SpecializedSuffix.isHovered(context)) {
-                          return const ColoredBox(color: Color(0xFFFF0000));
-                        } else {
-                          return const ColoredBox(color: Color(0xFF000000));
-                        }
-                      },
-                    ),
-                  ),
-                  child: const Text('Specialized Suffix'),
-                ),
-              ],
-            ),
-          ),
+![Positioned Menu](./assets/images/readme_positioned_menu.png)
+
+## Aim assist
+
+[Full guide](./documentation/aim.md)
+
+| Disabled | Enabled |
+| :---: | :---: |
+| ![Aim Assist Disabled](/assets/videos/aim_assist_disabled.gif) | ![Aim Assist Enabled](/assets/videos/aim_assist_enabled.gif) |
+
+To enable aim assist for a single menu, set the `enableAimAssist` property of
+the menu's positioning delegate to `true`. 
+
+To control the behavior of aim assist for a subtree, wrap the subtree with
+`MenuAimScope` and set the `enable` property to `true`. All descendant menus
+will inherit the `enable` value unless a descendant menu's positioning delegate
+overrides it.
+
+If a custom `MenuPositioningDelegate` is used with `BaseMenu`, the delegate is
+responsible for implementing aim assist behavior. See the
+[Standalone](#standalone) section for an example of how to implement aim assist
+in a custom delegate.
+
+```dart
+// Enable aim assist for a subtree of menus.
+MenuAimScope(
+  enable: true,
+  child: Column(
+    children: [
+      // Aim assist is enabled for this menu and its descendants.
+      BaseSubmenu(
+        controller: controllerOne,
+        menu: ExamplePanel(),
+        child: Text('File'),
+      ),
+      BaseSubmenu(
+        controller: controllerTwo,
+        // Aim assist is disabled for this menu, but not its descendants.
+        positionDelegate: DefaultMenuPositioningDelegate(
+          enableAimAssist: false,
         ),
+        menu: ExamplePanel(),
+        child: Text('Edit'),
       ),
-    );
-  }
-}
+    ],
+  ),
+)
 ```
 
-## Getting started
-
-Add the package to your `pubspec.yaml` and import it into your project:
-
-```dart
-import 'package:base_menu/base_menu.dart';
-```
-
-### Example:
+### Popup Example:
 
 ```dart
 class BaseMenuApp extends StatefulWidget {

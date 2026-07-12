@@ -22,7 +22,7 @@
             "program": "lib/main.dart",
             "args": [
                 "--dart-define=VISUALIZE_MENU_AIM=true", 
-                "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=FONT_PACKAGE=base_menu_gallery"
             ]
         },
         {
@@ -35,7 +35,7 @@
             "args": [
                 "--wasm",  
                 "--dart-define=VISUALIZE_MENU_AIM=true", 
-                "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=FONT_PACKAGE=base_menu_gallery"
             ]
         },
         {
@@ -47,7 +47,7 @@
             "flutterMode": "profile",
             "args": [
                 "--dart-define=VISUALIZE_MENU_AIM=true", 
-                "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=FONT_PACKAGE=base_menu_gallery"
             ]
         },
         {
@@ -60,7 +60,7 @@
             "args": [
                 "--wasm",
                 "--dart-define=VISUALIZE_MENU_AIM=true", 
-                "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=FONT_PACKAGE=base_menu_gallery"
             ]
         },
            {
@@ -71,7 +71,7 @@
             "program": "lib/main.dart",
             "args": [
                 "--dart-define=VISUALIZE_MENU_AIM=true", 
-                "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=FONT_PACKAGE=base_menu_gallery"
             ]
         },
         {
@@ -84,7 +84,7 @@
             "args": [
                 "--wasm",
                 "--dart-define=VISUALIZE_MENU_AIM=true", 
-                "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=FONT_PACKAGE=base_menu_gallery"
             ]
         },
         {
@@ -96,7 +96,7 @@
             "flutterMode": "profile",
             "args": [
                 "--dart-define=VISUALIZE_MENU_AIM=true", 
-                "--dart-define=FONT_PACKAGE=base_menu_demo"
+                "--dart-define=FONT_PACKAGE=base_menu_gallery"
             ]
         },
         {
@@ -109,7 +109,7 @@
             "args": [
                 "--wasm",
                 "--dart-define=VISUALIZE_MENU_AIM=true", 
-                "--dart-define=FONT_PACKAGE=base_menu_demo",
+                "--dart-define=FONT_PACKAGE=base_menu_gallery",
                 "--release"
             ]
         },

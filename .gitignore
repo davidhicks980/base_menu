@@ -48,4 +48,5 @@ app.*.map.json
 .fvmrc
 .vscode/copilot-instructions.md
 .vscode/settings.json
-doc/
+
+documentation/snippets/

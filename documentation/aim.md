@@ -7,7 +7,7 @@ the pointer passes over sibling menu items.
 
 | Disabled | Enabled |
 | :---: | :---: |
-| <video src="../assets/videos/aim_assist_disabled.gif" width="100%" autoplay loop muted></video> | <video src="../assets/videos/aim_assist_enabled.gif" width="100%" autoplay loop muted></video> |
+| ![Aim Assist Disabled](../assets/videos/aim_assist_disabled.gif) | ![Aim Assist Enabled](../assets/videos/aim_assist_enabled.gif) |
 
 ## Usage
 

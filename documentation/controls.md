@@ -2,7 +2,7 @@ Base Menu uses inherited widgets to provide state information to its
 descendants. By doing so, most theming can be achieved without the need for
 additional state management. 
 
-## 1. Core Concepts: Accessing State
+## Accessing State
 
 There are two primary ways to access the state of an ancestor control:
 
@@ -13,8 +13,7 @@ There are two primary ways to access the state of an ancestor control:
     `Set<WidgetState>`. This is designed for use with `WidgetStateProperty`,
     similar to how Material 3 components are styled.
 
-
-## 2. Atomic Controls
+## Atomic Controls
 
 ### BaseHoverable
 
@@ -124,7 +123,7 @@ FocusRectangle(
 
 ![Focusable rectangle](../assets/videos/base_focusable.gif)
 
-## 3. Composite Controls
+## Composite Controls
 
 ### BaseControl
 
@@ -189,7 +188,7 @@ class MenuItemDemo extends StatelessWidget {
 ```
 
 
-## 4. Building design systems
+## Building design systems
 
 ### Passing State
 
@@ -216,7 +215,7 @@ static Set<WidgetState> statesOf<T extends Object?>(BuildContext context) {
 This prevents descendants of `BaseMenuItem` from accidentally accessing the
 state of an intermediate `BaseControl`.
 
-**Benefits:**
+**Advantages:**
   * Any **descendant** of a control can access state, meaning multiple nested
     styling layers can be applied independently.
   * Each part of a widget can rebuild independently, which can improve
@@ -230,7 +229,7 @@ state of an intermediate `BaseControl`.
     trying to access state.
 
 
-##### Example
+<details><summary>Example</summary>
 
 ```dart
 class Checkbox extends StatefulWidget {
@@ -300,13 +299,16 @@ class _CheckboxScope extends InheritedWidget {
   }
 }
 ```
+</details>
+
+
 
 #### Builder
 
 Developers may favor using a builder to pass state to a design system's public
 API. 
 
-**Benefits:**
+**Advantages:**
   * Easier to understand, especially for developers who are not familiar with
     inherited widgets.
   * Less prone to errors since the builder function is called with the correct
@@ -320,6 +322,8 @@ API.
     state changes, which can be less efficient.
   * Providing a builder function instead of a child widget can make usage more
     verbose.
+
+<details><summary>Example</summary>
 
 ```dart
 class CheckboxBuilder extends StatefulWidget {
@@ -368,19 +372,19 @@ class _CheckboxBuilderState extends State<CheckboxBuilder> {
   }
 }
 ```
+</details>
 
 
-### Example: Checkbox with Type Specialization
+### Theming Example: Checkbox with Type Specialization
 
-Imagine you are building a checkbox that mimicks `<input type="checkbox">` on
-web, but you want the checkbox to adapt to the web engine's native look and
-feel. Theming is then a matter of using state selectors to apply different
-styles:
+Imagine you are building a checkbox that matches the appearance of `<input
+type="checkbox">` with respect to a browser engine's native styling:
 
 ![Checkbox](../assets/videos/checkbox.gif)
 
 
-#### Theming for the Blink browser engine (Chromium):
+<details><summary>Theming for the Blink browser engine (Chromium)</summary>
+
 ```dart
 class BlinkCheckbox extends StatelessWidget {
   const BlinkCheckbox({super.key});
@@ -455,14 +459,16 @@ class _BlinkCheckmarkPainter extends CustomPainter {
 }
 ```
 
-##### Usage: 
+Usage: 
+
 ```dart
 Checkbox(
   child: BlinkCheckbox(),
 );
 ```
+</details>
 
-#### Theming for the WebKit browser engine (Safari):
+<details><summary>Theming for the WebKit browser engine (Safari)</summary>
 
 ```dart
 class WebkitCheckbox extends StatelessWidget {
@@ -579,12 +585,17 @@ class _WebkitCheckmarkPainter extends CustomPainter {
 }
 ```
 
-##### Usage:
+Usage: 
 
 ```dart
 Checkbox(
   child: WebkitCheckbox(),
 );
 ```
+</details>
+
+
+
+
 
 

@@ -1,6 +1,8 @@
+# Styling Controls
+
 Base Menu uses inherited widgets to provide state information to its
-descendants. By doing so, most theming can be achieved without the need for
-additional state management. 
+descendants, allowing most theming to be achieved without additional state
+management.
 
 ## Accessing State
 
@@ -21,9 +23,8 @@ There are two primary ways to access the state of an ancestor control:
 selectors, `isHoveredOf(context)` and `isHoverHighlightShownOf(context)`.
 
 Because `isHoveredOf(context)` does not account for platform differences in
-hover behavior and does not consider whether the widget is enabled, it is
-recommended to use `isHoverHighlightShownOf(context)` when applying visual
-feedback.
+hover behavior and does not consider whether the widget is enabled, using
+`isHoverHighlightShownOf(context)` is recommended when applying visual feedback.
 
 #### Example: A rectangle that changes color when hovered
 
@@ -65,8 +66,8 @@ HoverRectangle();
 
 ### BaseFocusable
 
-BaseFocusable tracks focus using a `Focus` widget and provides two state
-selectors, `isFocusedOf(context)` and `isFocusHighlightShownOf(context)`.
+The `BaseFocusable` widget tracks focus using a `Focus` widget and provides two
+state selectors, `isFocusedOf(context)` and `isFocusHighlightShownOf(context)`.
 
 Similar to hover, `isFocusHighlightShownOf(context)` is preferred over
 `isFocusedOf(context)` because the latter does not account for platform
@@ -127,9 +128,9 @@ FocusRectangle(
 
 ### BaseControl
 
-BaseControl is a general-purpose pressable widget that combines the state
-selectors provided by `BaseFocusable` and `BaseHoverable` with two additional
-selectors: `BaseControl.isPressedOf(context)` and
+The `BaseControl` widget is a general-purpose pressable control that combines
+the state selectors provided by `BaseFocusable` and `BaseHoverable` with two
+additional selectors: `BaseControl.isPressedOf(context)` and
 `BaseControl.isDisabledOf(context)`.
 
 Additionally, `BaseControl` provides a state aggregator,
@@ -141,10 +142,12 @@ where multiple states need to be considered simultaneously.
 
 `BaseMenuItem` wraps `BaseControl` and is designed for use in menus. It provides
 the same state selectors and aggregator as `BaseControl`, but also includes
-focus-on-hover, dismiss-on-press, and a menu item semantic role.
+focus-on-hover, dismiss-on-press, and a menuitem semantic role.
 
 #### Declarative styles using `WidgetStateProperty.fromMap`
-For complex styling, use `WidgetStateProperty` to map states to visual properties like `BoxDecoration`. This is the pattern used in main.dart.
+
+For complex styling, use `WidgetStateProperty` to map states to visual
+properties like `BoxDecoration`. This is the pattern used in main.dart.
 
 ```dart
 class MenuItemDemo extends StatelessWidget {
@@ -192,8 +195,8 @@ class MenuItemDemo extends StatelessWidget {
 
 ### Passing State
 
-Design systems looking to pass state can do so through type specialization
-or builder functions.
+Design systems looking to pass state can do so through type specialization or
+builder functions.
 
 #### Type Specialization
 
@@ -224,9 +227,9 @@ state of an intermediate `BaseControl`.
 **Disadvantages:**
   * The public API of a design system's widget must expose state selectors and
     aggregators, which can make the implementation more verbose.
-  * Forgetting to include an ancestor control in the widget tree
-    or using the wrong type specialization will result in an assertion error when
-    trying to access state.
+  * Forgetting to include an ancestor control in the widget tree or using the
+    wrong type specialization will result in an assertion error when trying to
+    access the state.
 
 
 <details><summary>Example</summary>
@@ -316,8 +319,8 @@ API.
     the widget tree.
 
 **Disadvantages:**
-  * Only the widget that is built by the builder function can access state, which
-    can make it difficult to apply multiple nested styling layers.
+  * Only the widget that is built by the builder function can access state,
+    which can make it difficult to apply multiple nested styling layers.
   * The entire widget built by the builder function will rebuild whenever the
     state changes, which can be less efficient.
   * Providing a builder function instead of a child widget can make usage more
@@ -383,7 +386,7 @@ type="checkbox">` with respect to a browser engine's native styling:
 ![Checkbox](../assets/videos/checkbox.gif)
 
 
-<details><summary>Theming for the Blink browser engine (Chromium)</summary>
+<details><summary>Theming for Blink (Chromium)</summary>
 
 ```dart
 class BlinkCheckbox extends StatelessWidget {
@@ -468,7 +471,7 @@ Checkbox(
 ```
 </details>
 
-<details><summary>Theming for the WebKit browser engine (Safari)</summary>
+<details><summary>Theming WebKit (Safari)</summary>
 
 ```dart
 class WebkitCheckbox extends StatelessWidget {

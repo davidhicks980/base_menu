@@ -1,6 +1,6 @@
 name: base_menu
 description: "Composable widgets for building menu systems."
-version: 0.1.3
+version: 0.1.4
 homepage: https://base-menu-library.web.app/
 repository: https://github.com/davidhicks980/base_menu/tree/main 
 issue_tracker: https://github.com/davidhicks980/base_menu/issues

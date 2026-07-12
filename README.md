@@ -7,20 +7,25 @@ Composable widgets for building menu systems in Flutter.
 
 [Live Gallery](https://base-menu-library.web.app/) · [Floogle Docs Demo](https://floogle-docs.web.app/) · [API Reference](https://pub.dev/documentation/base_menu/latest/)
 
-![Sequoia MenuBar Demo](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/images/sequoia.png)
+![Sequoia Menu Bar Demo](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/images/sequoia.png)
 
 ## Features
 
-* Completely headless. No pixels are painted by this library.
-* Keyboard support that follows the [WAI-ARIA Menubar
-  guidelines](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/)
+* Completely headless: no pixels are painted by this library
+* Keyboard support that follows the [WAI-ARIA Menu and Menubar
+  Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/)
 * Menu aim assist (safe triangles)
 * A robust positioning algorithm with support for custom layout delegates
-* Built on the [MenuController](https://api.flutter.dev/flutter/widgets/MenuController-class.html) API
+* Built on the
+  [MenuController](https://api.flutter.dev/flutter/widgets/MenuController-class.html)
+  API
 
 ## Architecture
 
-Base Menu provides a small set of primitive widgets that control keyboard traversal, focus routing, and menu positioning. These widgets can be composed to create a wide variety of menu systems, from simple context menus to complex multi-level menu bars.
+Base Menu provides a small set of primitive widgets that control keyboard
+traversal, focus routing, and menu positioning. These widgets can be composed to
+create a wide variety of menu systems, from simple context menus to complex
+multi-level menu bars.
 
 ### Core Components
 
@@ -104,8 +109,8 @@ class CustomMenuItem extends StatelessWidget {
 
 ### Panel
 
-Wrap a `BaseMenuPanel` in a `DecoratedBox` to apply a background color, border, or
-shadow:
+Wrap a `BaseMenuPanel` in a `DecoratedBox` to apply a background color, border,
+or shadow:
 
 ```dart
 class StyledMenuPanel extends StatelessWidget {
@@ -146,7 +151,8 @@ BaseMenu(
 
 [Full guide](https://github.com/davidhicks980/base_menu/blob/main/documentation/positioning.md)
 
-Use `DefaultMenuPositioningDelegate` to configure the menu's position relative to its anchor:
+Use `DefaultMenuPositioningDelegate` to configure the menu's position relative
+to its anchor:
 
 ```dart
 BaseMenu(
@@ -156,7 +162,7 @@ BaseMenu(
     menuAttachment: Alignment.topCenter,
     // Add a 4-pixel vertical gap between the anchor and the menu
     offset: Offset(0, 4),
-    // Adjust the menu's vertical padding for a panel with 6 pixels of vertical padding.
+    // Match the vertical padding of the menu panel (6 pixels).
     padding: EdgeInsets.symmetric(vertical: 6.0),
   ),
   // ...

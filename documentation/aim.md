@@ -62,8 +62,8 @@ Menu aim assist can also be used as an independent module:
    menu and its anchor.
 2. Pass a `MenuAimGeometry` instance to the `MenuAimInterceptor`.
 3. Update the `MenuAimGeometry.anchorRect` and `MenuAimGeometry.targetRect`
-   properties when the anchor and target positions are updated. **The `anchorRect`
-   and `targetRect` should be in the same coordinate space as the
+   properties when the anchor and target positions are updated. **The
+   `anchorRect` and `targetRect` should be in the same coordinate space as the
    `MenuAimInterceptor`.**
 
 Because `MenuAimInterceptor` only captures pointer events within its bounds, it
@@ -75,7 +75,7 @@ class ExampleState extends State<Example> {
 
   @override
   Widget build(BuildContext context) {
-    final isEnabled = MenuAimScope.maybeOf(context)?.enable ?? false;;
+    final isEnabled = MenuAimScope.maybeOf(context)?.enable ?? false;
 
     // Don't include the interceptor if aim assist is disabled.
     if (!isEnabled) {
@@ -119,7 +119,7 @@ This renders the safe triangle (magenta), current trajectory (green), and the
 nearest target point (blue).
 
 By default, the aim trajectory visualizer is compiled out of release builds.
-Setting the `VISUALIZE_MENU_AIM` environmental variable to `true` allows the
+Setting the `VISUALIZE_MENU_AIM` environment variable to `true` allows the
 visualizer to be used in production builds.
 
 ```bash

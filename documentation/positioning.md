@@ -13,17 +13,18 @@ flexible system for alignment, offset, padding, and edge behavior.
 
 Positioning begins with two attachment points:
 
-1.  **`anchorAttachment`**: The point on the anchor (such as a button) that the menu should attach to.
+1.  **`anchorAttachment`**: The point on the anchor (such as a button) that the
+    menu should attach to.
 2.  **`menuAttachment`**: The point on the menu panel that aligns with the
     anchor's attachment point.
 
 By default, `BaseMenu` uses the orientation of the menu's parent to determine
 the attachment points:
 
-*   **Horizontal or No Parent**: The anchor's `AlignmentDirectional.bottomStart` attaches to the
-    menu's `AlignmentDirectional.topStart` (stacked).
-*   **Vertical Parent**: The anchor's `AlignmentDirectional.topEnd` attaches to the menu's `AlignmentDirectional.topStart`
-    (side-by-side).
+*   **Horizontal or No Parent**: The anchor's `AlignmentDirectional.bottomStart`
+    attaches to the menu's `AlignmentDirectional.topStart` (stacked).
+*   **Vertical Parent**: The anchor's `AlignmentDirectional.topEnd` attaches to
+    the menu's `AlignmentDirectional.topStart` (side-by-side).
 
 In the images below, the green point represents the anchor's attachment, and the
 red point represents the menu's attachment.
@@ -62,23 +63,23 @@ menu's content for alignment purposes.
 | :---: | :---: |
 | ![Without padding](../assets/images/padding_unadjusted.png) | ![With padding](../assets/images/padding_adjusted.png) |
 
-The positioning algorithm will automatically adapt the padding adjustment to the
-menu's orientation, edge behavior, text direction, and alignment.
-
+The positioning algorithm will automatically adjust the menu's position to
+account for padding, orientation, edge behavior, text direction, and alignment.
 
 ## Usage
 
 ### Basic Configuration
 
-You can customize the positioning of any `BaseMenu` or `BaseSubmenu` by providing a `positionDelegate`.
+You can customize the positioning of any `BaseMenu` or `BaseSubmenu` by
+providing a `positionDelegate`.
 
 ```dart
 BaseMenu(
   positionDelegate: DefaultMenuPositioningDelegate(
-    // Attach the bottom-center of the anchor to the top-center of the menu
+    // Attach the bottom-center of the anchor to the top-center of the menu.
     anchorAttachment: Alignment.bottomCenter,
     menuAttachment: Alignment.topCenter,
-    // Add a 4-pixel gap between the anchor and the menu
+    // Add a 4-pixel gap between the anchor and the menu.
     offset: Offset(0, 4),
     // Adjust the menu's vertical padding for a panel with 6 pixels of vertical padding.
     padding: EdgeInsets.symmetric(vertical: 6.0),
@@ -95,13 +96,14 @@ strategies:
 
 | Strategy | Description | Example |
 | :--- | :--- | :--- | 
-| **`flip`** | The menu flips to the opposite side of the anchor point if it doesn't fit in its preferred position. | ![Flip edge behavior](../assets/videos/flip_edge_behavior.gif) |
+| **`flip`** | The menu flips to the opposite side of the attachment point if it doesn't fit in its preferred position. | ![Flip edge behavior](../assets/videos/flip_edge_behavior.gif) |
 | **`shift`** | The menu slides along the axis to stay within the screen bounds, potentially covering the anchor. | ![Shift edge behavior](../assets/videos/shift_edge_behavior.gif) |
 | **`constrain`** | The menu is resized to fit within the available space. | ![Constrain edge behavior](../assets/videos/constrain_edge_behavior.gif) |
 
 ### Configuration Example
 
-By default, all edge behavior strategies are enabled. You can restrict this behavior for specific UX requirements:
+By default, all edge behavior strategies are enabled. You can restrict this
+behavior for specific UX requirements:
 
 ```dart
 DefaultMenuPositioningDelegate(
@@ -114,14 +116,17 @@ DefaultMenuPositioningDelegate(
 )
 ```
 
-If you disable all strategies for an axis, the menu will be clipped by the screen edge:
+If you disable all strategies for an axis, the menu will be clipped by the
+screen edge:
 
 ![Clipping edge behavior](../assets/videos/no_horizontal_edge_behavior.gif)
 
 
 ## Custom Positioner
 
-The default positioner used by `BaseMenu` and `BaseSubmenu` can be replaced with a custom implementation of `MenuPositioningDelegate`. This allows for complete control over the menu's size and position:
+The default positioner used by `BaseMenu` and `BaseSubmenu` can be replaced with
+a custom implementation of `MenuPositioningDelegate`. This allows for complete
+control over the menu's size and position:
 
 
 ```dart

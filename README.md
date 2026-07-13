@@ -1,6 +1,6 @@
 # Base Menu
 
-Composable widgets for building menu systems in Flutter.
+Composable primitives for building accessible menu systems.
 
 [![Deploy Platform](https://img.shields.io/badge/platform-flutter%20%7C%20mobile%20%7C%20web%20%7C%20desktop-blue)](#)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)

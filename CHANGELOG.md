@@ -1,3 +1,7 @@
+# 0.1.5
+
+* Increased pubspec description length to follow Dart package conventions.
+
 # 0.1.4
 
 * Remove pub version badge from README.md.

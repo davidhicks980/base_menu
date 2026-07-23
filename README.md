@@ -5,7 +5,7 @@ Composable primitives for building accessible menu systems.
 [![Deploy Platform](https://img.shields.io/badge/platform-flutter%20%7C%20mobile%20%7C%20web%20%7C%20desktop-blue)](#)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-[Live Gallery](https://base-menu-library.web.app/) · [Floogle Docs Demo](https://floogle-docs.web.app/) · [API Reference](https://pub.dev/documentation/base_menu/latest/)
+[Live Gallery](https://base-menu-library.web.app/) · [Floogle Docs](https://floogle-docs.web.app/) · [API Reference](https://pub.dev/documentation/base_menu/latest/) · [Pub.dev](https://pub.dev/packages/base_menu)
 
 ![Sequoia Menu Bar Demo](https://raw.githubusercontent.com/davidhicks980/base_menu/refs/heads/main/assets/images/sequoia.png)
 

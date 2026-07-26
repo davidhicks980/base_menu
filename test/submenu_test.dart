@@ -2021,7 +2021,7 @@ void main() {
       await gesture.removePointer();
     });
 
-    testWidgets('pointer enter/exit panel manages close timer and requests focus', (
+    testWidgets('pointer enter and exit panel manage close timers and request focus', (
       WidgetTester tester,
     ) async {
       const closeDelay = Duration(milliseconds: 500);
@@ -2085,6 +2085,91 @@ void main() {
       await tester.pump();
 
       expect(focusNode.hasFocus, isTrue);
+    });
+
+    testWidgets('touch pointer enter does not open via hoverOpenDelay', (
+      WidgetTester tester,
+    ) async {
+      const delay = Duration(milliseconds: 500);
+      await tester.pumpWidget(
+        App(
+          BaseSubmenu(
+            role: null,
+            controller: controller,
+            hoverOpenDelay: delay,
+            menu: Button.tag(Tag.a),
+            child: const SubmenuChild(tag: Tag.anchor),
+          ),
+        ),
+      );
+
+      final TestGesture gesture = await tester.createGesture();
+      addTearDown(gesture.removePointer);
+      await gesture.addPointer(location: Offset.zero);
+      await gesture.moveTo(tester.getCenter(find.text(Tag.anchor.text)));
+      await tester.pump(delay + const Duration(milliseconds: 100));
+
+      expect(controller.isOpen, isFalse);
+    });
+
+    testWidgets('touch pointer exit does not close via hoverCloseDelay', (
+      WidgetTester tester,
+    ) async {
+      const delay = Duration(milliseconds: 500);
+      await tester.pumpWidget(
+        App(
+          BaseSubmenu(
+            role: null,
+            controller: controller,
+            hoverCloseDelay: delay,
+            menu: Button.tag(Tag.a),
+            child: const SubmenuChild(tag: Tag.anchor),
+          ),
+        ),
+      );
+
+      controller.open();
+      await tester.pump();
+      expect(controller.isOpen, isTrue);
+
+      final TestGesture gesture = await tester.createGesture();
+      addTearDown(gesture.removePointer);
+      await gesture.addPointer(location: tester.getCenter(find.text(Tag.anchor.text)));
+      await tester.pump();
+      await gesture.moveTo(Offset.zero);
+      await tester.pump(delay + const Duration(milliseconds: 100));
+
+      expect(controller.isOpen, isTrue);
+    });
+
+    testWidgets('touch pointer exit does not close via hoverCloseDelay', (
+      WidgetTester tester,
+    ) async {
+      const delay = Duration(milliseconds: 500);
+      await tester.pumpWidget(
+        App(
+          BaseSubmenu(
+            role: null,
+            controller: controller,
+            hoverCloseDelay: delay,
+            menu: Button.tag(Tag.a),
+            child: const SubmenuChild(tag: Tag.anchor),
+          ),
+        ),
+      );
+
+      controller.open();
+      await tester.pump();
+      expect(controller.isOpen, isTrue);
+
+      final TestGesture gesture = await tester.createGesture();
+      addTearDown(gesture.removePointer);
+      await gesture.addPointer(location: tester.getCenter(find.text(Tag.anchor.text)));
+      await tester.pump();
+      await gesture.moveTo(Offset.zero);
+      await tester.pump(delay + const Duration(milliseconds: 100));
+
+      expect(controller.isOpen, isTrue);
     });
 
     testWidgets('respects requestOpenOnPointerEnter', (WidgetTester tester) async {

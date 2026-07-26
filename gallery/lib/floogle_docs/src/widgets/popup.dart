@@ -81,6 +81,11 @@ class _PopupState extends State<Popup> {
           controller.open();
         }
       },
+      onFocusChange: (value) {
+        if (!value && controller.isOpen) {
+          controller.close();
+        }
+      },
       focusNode: widget.focusNode,
       child: Builder(
         builder: (context) {

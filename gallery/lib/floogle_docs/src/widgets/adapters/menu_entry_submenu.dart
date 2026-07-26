@@ -41,6 +41,11 @@ class _MenuEntrySubmenuState extends State<MenuEntrySubmenu> {
       hoverOpenDelay: widget.hoverDelay,
       hoverCloseDelay: widget.hoverDelay,
       controller: _menuController,
+      onPressed: () {
+        if (!_menuController.isOpen) {
+          _menuController.open();
+        }
+      },
       menu: MenuEntryPanel(
         menuEntry: widget.entry,
         constraints: widget.entry == Menu.table ? null : widget.constraints,

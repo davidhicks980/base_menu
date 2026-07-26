@@ -15,7 +15,10 @@ class MenuBar extends StatefulWidget {
 }
 
 class _MenuBarState extends State<MenuBar> {
-  final focusScopeNode = FocusScopeNode(traversalEdgeBehavior: .parentScope);
+  final focusScopeNode = FocusScopeNode(
+    traversalEdgeBehavior: .closedLoop,
+    directionalTraversalEdgeBehavior: .closedLoop,
+  );
   @override
   void dispose() {
     focusScopeNode.dispose();

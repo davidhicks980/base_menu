@@ -28,10 +28,10 @@ class _DimensionPickerState extends State<DimensionPicker> {
     }
   }
 
-  void _handleSelect([Object? _]) {
+  void _handleSelect([int? row, int? column]) {
     setState(() {
-      selectedRow = highlightedRow ?? selectedRow;
-      selectedColumn = highlightedColumn ?? selectedColumn;
+      selectedRow = row ?? highlightedRow ?? selectedRow;
+      selectedColumn = column ?? highlightedColumn ?? selectedColumn;
       highlightedRow = null;
       highlightedColumn = null;
     });
@@ -41,7 +41,12 @@ class _DimensionPickerState extends State<DimensionPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final callbackAction = CallbackAction<Intent>(onInvoke: _handleSelect);
+    final callbackAction = CallbackAction<Intent>(
+      onInvoke: (Intent intent) {
+        _handleSelect();
+        return null;
+      },
+    );
     highlightedRow = highlightedRow ?? selectedRow;
     highlightedColumn = highlightedColumn ?? selectedColumn;
     final int rowCount = clampDouble(highlightedRow! + 2, 5, 20).toInt();
@@ -106,7 +111,7 @@ class _DimensionPickerState extends State<DimensionPicker> {
                             for (int column = 0; column < columnCount; column++)
                               Cell(
                                 selected: row <= highlightedRow! && column <= highlightedColumn!,
-                                onTap: () => _handleSelect(),
+                                onTap: () => _handleSelect(row, column),
                                 onPointerEnter: (event) => _handleHighlight(row, column),
                               ),
                           ],

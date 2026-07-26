@@ -64,7 +64,17 @@
             ]
         },
            {
-            "name": "base_menu_deployment",
+            "name": "base_menu",
+            "cwd": "gallery",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define=VISUALIZE_MENU_AIM=true", 
+            ]
+        },
+           {
+            "name": "gallery_deployment",
             "cwd": "deployments/base_menu",
             "request": "launch",
             "type": "dart",
@@ -75,7 +85,7 @@
             ]
         },
         {
-            "name": "base_menu_deployment (WASM)",
+            "name": "gallery_deployment (WASM)",
             "cwd": "deployments/base_menu",
             "request": "launch",
             "type": "dart",
@@ -88,7 +98,7 @@
             ]
         },
         {
-            "name": "base_menu_deployment (profile mode)",
+            "name": "gallery_deployment (profile mode)",
             "cwd": "deployments/base_menu",
             "request": "launch",
             "type": "dart",
@@ -100,7 +110,7 @@
             ]
         },
         {
-            "name": "base_menu_deployment (release mode)",
+            "name": "gallery_deployment (release mode)",
             "cwd": "deployments/base_menu",
             "request": "launch",
             "type": "dart",
@@ -160,15 +170,5 @@
                 "--dart-define=VISUALIZE_MENU_AIM=true"
             ]
         },
-
-        {
-            "name": "snippets (debug mode)",
-            "cwd": "documentation/snippets",
-            "request": "launch",
-            "type": "dart",
-            "program": "lib/main.dart",
-            "flutterMode": "debug",
-          
-        }
     ]
 }

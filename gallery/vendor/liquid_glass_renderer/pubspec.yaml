@@ -1,0 +1,51 @@
+name: liquid_glass_renderer
+description: The raw renderer for a liquid glass effect in Flutter.
+version: 0.2.0-dev.4
+
+homepage: https://whynotmake.it
+repository: https://github.com/whynotmake-it/flutter_liquid_glass/tree/main/packages/liquid_glass_renderer
+screenshots:
+  - description: "A title image with three liquid glass elements"
+    path: doc/screenshot.png  
+
+topics:
+  - liquid-glass
+  - apple
+  - shaders
+  - flutter
+  - effects
+
+environment:
+  sdk: ">=3.12.0 <4.0.0"
+  flutter: ">=3.44.0"
+
+# We only support Platforms that support Impeller.
+platforms:
+  macos:
+  ios:
+  android:
+
+dependencies:
+  equatable: ^2.0.7
+  flutter:
+    sdk: flutter
+  flutter_shaders: ^0.1.3
+  logging: ^1.3.0
+  meta: ^1.16.0
+  motor: ^1.0.1
+
+dev_dependencies:
+  alchemist: ^0.12.1
+  flutter_test:
+    sdk: flutter
+  lintervention: ^0.3.1
+  mocktail: ^1.0.3
+  snaptest: ^0.2.3
+
+flutter:
+  shaders:
+    - lib/assets/shaders/liquid_glass_geometry_blended.frag
+    - lib/assets/shaders/liquid_glass_filter.frag
+    - lib/assets/shaders/liquid_glass_final_render.frag
+    - lib/assets/shaders/liquid_glass_direct_render.frag
+    - lib/assets/shaders/fake_glass_color.frag

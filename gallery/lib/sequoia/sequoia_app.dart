@@ -1,90 +1,49 @@
-import 'package:base_menu/base_menu.dart';
 import 'package:flutter/material.dart';
 
-import '../app/app.dart';
-import '../shared/browser_context_menu_blocker.dart';
-import 'src/context_menu.dart';
-import 'src/menu.dart';
-import 'src/model.dart';
+import '../cupertino_menu_bar/cupertino_menu_bar_app.dart';
+import '../cupertino_menu_bar/src/theme.dart';
+import '../shared/package.dart';
+import 'src/surface.dart';
 
-class SequoiaApp extends StatefulWidget {
+const EdgeInsets _kCupertinoMenuItemPadding = EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.5);
+const Radius _kCupertinoMenuBorderRadius = Radius.circular(4.0);
+
+class SequoiaApp extends StatelessWidget {
   const SequoiaApp({super.key});
 
   @override
-  State<SequoiaApp> createState() => _SequoiaAppState();
-}
-
-class _SequoiaAppState extends State<SequoiaApp> {
-  final MenuController contextMenuController = MenuController();
-  @override
   Widget build(BuildContext context) {
-    return MenuAimScope(
-      enable: true,
-      child: Stack(
-        children: [
-          Align(
-            alignment: .topLeft,
-            child: SequoiaMenuBar(items: sequoiaMenu, onOpen: contextMenuController.close),
-          ),
-          Positioned(
-            top: 100,
-            left: 100,
-            right: 100,
-            bottom: 100,
-            child: ContextMenuBlockerRegion(
-              child: SequoiaContextMenu(
-                controller: contextMenuController,
-                item: const [
-                  MenuItem(label: 'Undo'),
-                  MenuItem(label: 'Redo'),
-                  MenuDividerItem(),
-                  MenuItem(label: 'Cut'),
-                  MenuItem(label: 'Copy'),
-                  MenuItem(label: 'Paste'),
-                  MenuDividerItem(),
-                  MenuItem(
-                    label: 'Share',
-                    children: [
-                      MenuItem(
-                        label: 'Social Media',
-                        children: [
-                          MenuItem(label: 'Twitter'),
-                          MenuItem(label: 'Facebook'),
-                          MenuItem(label: 'Instagram'),
-                          MenuItem(label: 'LinkedIn'),
-                        ],
-                      ),
-                      MenuItem(
-                        label: 'Email',
-                        children: [
-                          MenuItem(label: 'Work Email'),
-                          MenuItem(label: 'Personal Email'),
-                          MenuItem(label: 'Support'),
-                        ],
-                      ),
-                      MenuItem(label: 'Messages'),
-                      MenuItem(label: 'AirDrop'),
-                    ],
-                  ),
-                  MenuItem(
-                    label: 'Services',
-                    children: [
-                      MenuItem(label: 'Search in Floogle'),
-                      MenuItem(label: 'Translate'),
-                    ],
-                  ),
-                ],
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: const Color(0x0fffffff),
-                    border: Border.all(color: AppColorScheme.of(context).outlineVariant),
-                  ),
-                ),
+    return Stack(
+      children: [
+        const Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: ExactAssetImage('assets/images/mountains.jpeg', package: kPackage),
+                fit: BoxFit.cover,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+        CupertinoMenuTheme(
+          surfacePadding:
+              EdgeInsets.all(3 / View.of(context).devicePixelRatio) + const EdgeInsets.all(4),
+          surface: const SequoiaMenuSurface(),
+          child: const CupertinoMenuBarItemTheme(
+            radius: Radius.circular(5),
+            child: CupertinoMenuItemTheme(
+              highlightColor: Color.from(alpha: 1, red: 0.082, green: 0.388, blue: 0.725),
+              radius: _kCupertinoMenuBorderRadius,
+              padding: _kCupertinoMenuItemPadding,
+              showIcon: false,
+              expandedColor: Color.fromARGB(24, 255, 255, 255),
+              secondaryTextStyle: TextStyle(fontSize: 13),
+
+              child: CupertinoMenuBarApp(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

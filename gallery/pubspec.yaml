@@ -10,9 +10,12 @@ environment:
 dependencies:
   base_menu: 
     path: ../
+  cupertino_icons: ^1.0.9
   flutter:
     sdk: flutter
   google_fonts: ^8.1.0
+  liquid_glass_renderer: 
+    path: ./vendor/liquid_glass_renderer
   material_symbols_icons: ^4.2928.1
   vector_math: ^2.2.0
 dev_dependencies:
@@ -22,187 +25,193 @@ dev_dependencies:
 
 flutter:
   uses-material-design: false
+  assets:
+    - assets/images/centered_snow_mountain_cropped.jpeg
+    - assets/images/dusk_snow_mountain_cropped.jpeg
+    - assets/images/looking_glass_autumn_cropped.jpeg
+    - assets/images/looking_glass_spring_cropped.jpeg
+    - assets/images/mountains.jpeg
   fonts:
     - family: InterVariable
       fonts:
-        - asset: assets/InterVariable.ttf
+        - asset: assets/fonts/InterVariable.ttf
     - family: RobotoFlex
       fonts:
-        - asset: assets/Roboto_Flex.ttf
+        - asset: assets/fonts/Roboto_Flex.ttf
     - family: GoogleSans
       fonts:
-        - asset: assets/GoogleSans.ttf
+        - asset: assets/fonts/GoogleSans.ttf
     - family: GoogleSansFlex
       fonts:
-        - asset: assets/GoogleSansFlex.ttf
+        - asset: assets/fonts/GoogleSansFlex.ttf
     - family: GoogleSansCode
       fonts:
-        - asset: assets/GoogleSansCode.ttf
+        - asset: assets/fonts/GoogleSansCode.ttf
     - family: Amatic SC
       fonts:
-        - asset: assets/Amatic_SC_400.ttf
+        - asset: assets/fonts/Amatic_SC_400.ttf
     - family: Caveat
       fonts:
-        - asset: assets/Caveat_400.ttf
-        - asset: assets/Caveat_500.ttf
-        - asset: assets/Caveat_600.ttf
-        - asset: assets/Caveat_700.ttf
+        - asset: assets/fonts/Caveat_400.ttf
+        - asset: assets/fonts/Caveat_500.ttf
+        - asset: assets/fonts/Caveat_600.ttf
+        - asset: assets/fonts/Caveat_700.ttf
     - family: Comfortaa
       fonts:
-        - asset: assets/Comfortaa_300.ttf
-        - asset: assets/Comfortaa_400.ttf
-        - asset: assets/Comfortaa_700.ttf
+        - asset: assets/fonts/Comfortaa_300.ttf
+        - asset: assets/fonts/Comfortaa_400.ttf
+        - asset: assets/fonts/Comfortaa_700.ttf
     - family: EB Garamond
       fonts:
-        - asset: assets/EB_Garamond_400.ttf
-        - asset: assets/EB_Garamond_500.ttf
-        - asset: assets/EB_Garamond_600.ttf
-        - asset: assets/EB_Garamond_700.ttf
-        - asset: assets/EB_Garamond_800.ttf
+        - asset: assets/fonts/EB_Garamond_400.ttf
+        - asset: assets/fonts/EB_Garamond_500.ttf
+        - asset: assets/fonts/EB_Garamond_600.ttf
+        - asset: assets/fonts/EB_Garamond_700.ttf
+        - asset: assets/fonts/EB_Garamond_800.ttf
     - family: Inter
       fonts:
-        - asset: assets/Inter_100.ttf
-        - asset: assets/Inter_200.ttf
-        - asset: assets/Inter_300.ttf
-        - asset: assets/Inter_400.ttf
-        - asset: assets/Inter_500.ttf
-        - asset: assets/Inter_600.ttf
-        - asset: assets/Inter_700.ttf
-        - asset: assets/Inter_800.ttf
-        - asset: assets/Inter_900.ttf
+        - asset: assets/fonts/Inter_100.ttf
+        - asset: assets/fonts/Inter_200.ttf
+        - asset: assets/fonts/Inter_300.ttf
+        - asset: assets/fonts/Inter_400.ttf
+        - asset: assets/fonts/Inter_500.ttf
+        - asset: assets/fonts/Inter_600.ttf
+        - asset: assets/fonts/Inter_700.ttf
+        - asset: assets/fonts/Inter_800.ttf
+        - asset: assets/fonts/Inter_900.ttf
     - family: Lato
       fonts:
-        - asset: assets/Lato_100.ttf
-        - asset: assets/Lato_300.ttf
-        - asset: assets/Lato_400.ttf
-        - asset: assets/Lato_700.ttf
-        - asset: assets/Lato_900.ttf
+        - asset: assets/fonts/Lato_100.ttf
+        - asset: assets/fonts/Lato_300.ttf
+        - asset: assets/fonts/Lato_400.ttf
+        - asset: assets/fonts/Lato_700.ttf
+        - asset: assets/fonts/Lato_900.ttf
     - family: Lexend
       fonts:
-        - asset: assets/Lexend_100.ttf
-        - asset: assets/Lexend_200.ttf
-        - asset: assets/Lexend_300.ttf
-        - asset: assets/Lexend_400.ttf
-        - asset: assets/Lexend_500.ttf
-        - asset: assets/Lexend_600.ttf
-        - asset: assets/Lexend_700.ttf
-        - asset: assets/Lexend_800.ttf
-        - asset: assets/Lexend_900.ttf
+        - asset: assets/fonts/Lexend_100.ttf
+        - asset: assets/fonts/Lexend_200.ttf
+        - asset: assets/fonts/Lexend_300.ttf
+        - asset: assets/fonts/Lexend_400.ttf
+        - asset: assets/fonts/Lexend_500.ttf
+        - asset: assets/fonts/Lexend_600.ttf
+        - asset: assets/fonts/Lexend_700.ttf
+        - asset: assets/fonts/Lexend_800.ttf
+        - asset: assets/fonts/Lexend_900.ttf
     - family: Libre Baskerville
       fonts:
-        - asset: assets/Libre_Baskerville_400.ttf
-        - asset: assets/Libre_Baskerville_700.ttf
+        - asset: assets/fonts/Libre_Baskerville_400.ttf
+        - asset: assets/fonts/Libre_Baskerville_700.ttf
     - family: Lora
       fonts:
-        - asset: assets/Lora_400.ttf
-        - asset: assets/Lora_500.ttf
-        - asset: assets/Lora_600.ttf
-        - asset: assets/Lora_700.ttf
+        - asset: assets/fonts/Lora_400.ttf
+        - asset: assets/fonts/Lora_500.ttf
+        - asset: assets/fonts/Lora_600.ttf
+        - asset: assets/fonts/Lora_700.ttf
     - family: Merriweather
       fonts:
-        - asset: assets/Merriweather_300.ttf
-        - asset: assets/Merriweather_400.ttf
-        - asset: assets/Merriweather_700.ttf
-        - asset: assets/Merriweather_900.ttf
+        - asset: assets/fonts/Merriweather_300.ttf
+        - asset: assets/fonts/Merriweather_400.ttf
+        - asset: assets/fonts/Merriweather_700.ttf
+        - asset: assets/fonts/Merriweather_900.ttf
     - family: Montserrat
       fonts:
-        - asset: assets/Montserrat_100.ttf
-        - asset: assets/Montserrat_200.ttf
-        - asset: assets/Montserrat_300.ttf
-        - asset: assets/Montserrat_400.ttf
-        - asset: assets/Montserrat_500.ttf
-        - asset: assets/Montserrat_600.ttf
-        - asset: assets/Montserrat_700.ttf
-        - asset: assets/Montserrat_800.ttf
-        - asset: assets/Montserrat_900.ttf
+        - asset: assets/fonts/Montserrat_100.ttf
+        - asset: assets/fonts/Montserrat_200.ttf
+        - asset: assets/fonts/Montserrat_300.ttf
+        - asset: assets/fonts/Montserrat_400.ttf
+        - asset: assets/fonts/Montserrat_500.ttf
+        - asset: assets/fonts/Montserrat_600.ttf
+        - asset: assets/fonts/Montserrat_700.ttf
+        - asset: assets/fonts/Montserrat_800.ttf
+        - asset: assets/fonts/Montserrat_900.ttf
     - family: Nunito
       fonts:
-        - asset: assets/Nunito_200.ttf
-        - asset: assets/Nunito_300.ttf
-        - asset: assets/Nunito_400.ttf
-        - asset: assets/Nunito_500.ttf
-        - asset: assets/Nunito_600.ttf
-        - asset: assets/Nunito_700.ttf
-        - asset: assets/Nunito_800.ttf
-        - asset: assets/Nunito_900.ttf
+        - asset: assets/fonts/Nunito_200.ttf
+        - asset: assets/fonts/Nunito_300.ttf
+        - asset: assets/fonts/Nunito_400.ttf
+        - asset: assets/fonts/Nunito_500.ttf
+        - asset: assets/fonts/Nunito_600.ttf
+        - asset: assets/fonts/Nunito_700.ttf
+        - asset: assets/fonts/Nunito_800.ttf
+        - asset: assets/fonts/Nunito_900.ttf
     - family: Oswald
       fonts:
-        - asset: assets/Oswald_200.ttf
-        - asset: assets/Oswald_300.ttf
-        - asset: assets/Oswald_400.ttf
-        - asset: assets/Oswald_500.ttf
-        - asset: assets/Oswald_600.ttf
-        - asset: assets/Oswald_700.ttf
+        - asset: assets/fonts/Oswald_200.ttf
+        - asset: assets/fonts/Oswald_300.ttf
+        - asset: assets/fonts/Oswald_400.ttf
+        - asset: assets/fonts/Oswald_500.ttf
+        - asset: assets/fonts/Oswald_600.ttf
+        - asset: assets/fonts/Oswald_700.ttf
     - family: Pacifico
       fonts:
-        - asset: assets/Pacifico_400.ttf
+        - asset: assets/fonts/Pacifico_400.ttf
     - family: Playfair Display
       fonts:
-        - asset: assets/Playfair_Display_400.ttf
-        - asset: assets/Playfair_Display_500.ttf
-        - asset: assets/Playfair_Display_600.ttf
-        - asset: assets/Playfair_Display_700.ttf
-        - asset: assets/Playfair_Display_800.ttf
-        - asset: assets/Playfair_Display_900.ttf
+        - asset: assets/fonts/Playfair_Display_400.ttf
+        - asset: assets/fonts/Playfair_Display_500.ttf
+        - asset: assets/fonts/Playfair_Display_600.ttf
+        - asset: assets/fonts/Playfair_Display_700.ttf
+        - asset: assets/fonts/Playfair_Display_800.ttf
+        - asset: assets/fonts/Playfair_Display_900.ttf
     - family: Raleway
       fonts:
-        - asset: assets/Raleway_100.ttf
-        - asset: assets/Raleway_200.ttf
-        - asset: assets/Raleway_300.ttf
-        - asset: assets/Raleway_400.ttf
-        - asset: assets/Raleway_500.ttf
-        - asset: assets/Raleway_600.ttf
-        - asset: assets/Raleway_700.ttf
-        - asset: assets/Raleway_800.ttf
-        - asset: assets/Raleway_900.ttf
+        - asset: assets/fonts/Raleway_100.ttf
+        - asset: assets/fonts/Raleway_200.ttf
+        - asset: assets/fonts/Raleway_300.ttf
+        - asset: assets/fonts/Raleway_400.ttf
+        - asset: assets/fonts/Raleway_500.ttf
+        - asset: assets/fonts/Raleway_600.ttf
+        - asset: assets/fonts/Raleway_700.ttf
+        - asset: assets/fonts/Raleway_800.ttf
+        - asset: assets/fonts/Raleway_900.ttf
     - family: Roboto
       fonts:
-        - asset: assets/Roboto_100.ttf
-        - asset: assets/Roboto_300.ttf
-        - asset: assets/Roboto_400.ttf
-        - asset: assets/Roboto_500.ttf
-        - asset: assets/Roboto_700.ttf
-        - asset: assets/Roboto_900.ttf
+        - asset: assets/fonts/Roboto_100.ttf
+        - asset: assets/fonts/Roboto_300.ttf
+        - asset: assets/fonts/Roboto_400.ttf
+        - asset: assets/fonts/Roboto_500.ttf
+        - asset: assets/fonts/Roboto_700.ttf
+        - asset: assets/fonts/Roboto_900.ttf
     - family: Roboto Mono
       fonts:
-        - asset: assets/Roboto_Mono_100.ttf
-        - asset: assets/Roboto_Mono_300.ttf
-        - asset: assets/Roboto_Mono_400.ttf
-        - asset: assets/Roboto_Mono_500.ttf
-        - asset: assets/Roboto_Mono_700.ttf
+        - asset: assets/fonts/Roboto_Mono_100.ttf
+        - asset: assets/fonts/Roboto_Mono_300.ttf
+        - asset: assets/fonts/Roboto_Mono_400.ttf
+        - asset: assets/fonts/Roboto_Mono_500.ttf
+        - asset: assets/fonts/Roboto_Mono_700.ttf
     - family: Roboto Serif
       fonts:
-        - asset: assets/Roboto_Serif_100.ttf
-        - asset: assets/Roboto_Serif_200.ttf
-        - asset: assets/Roboto_Serif_300.ttf
-        - asset: assets/Roboto_Serif_400.ttf
-        - asset: assets/Roboto_Serif_500.ttf
-        - asset: assets/Roboto_Serif_600.ttf
-        - asset: assets/Roboto_Serif_700.ttf
-        - asset: assets/Roboto_Serif_800.ttf
-        - asset: assets/Roboto_Serif_900.ttf
+        - asset: assets/fonts/Roboto_Serif_100.ttf
+        - asset: assets/fonts/Roboto_Serif_200.ttf
+        - asset: assets/fonts/Roboto_Serif_300.ttf
+        - asset: assets/fonts/Roboto_Serif_400.ttf
+        - asset: assets/fonts/Roboto_Serif_500.ttf
+        - asset: assets/fonts/Roboto_Serif_600.ttf
+        - asset: assets/fonts/Roboto_Serif_700.ttf
+        - asset: assets/fonts/Roboto_Serif_800.ttf
+        - asset: assets/fonts/Roboto_Serif_900.ttf
     - family: Roboto Slab
       fonts:
-        - asset: assets/Roboto_Slab_100.ttf
-        - asset: assets/Roboto_Slab_200.ttf
-        - asset: assets/Roboto_Slab_300.ttf
-        - asset: assets/Roboto_Slab_400.ttf
-        - asset: assets/Roboto_Slab_500.ttf
-        - asset: assets/Roboto_Slab_600.ttf
-        - asset: assets/Roboto_Slab_700.ttf
-        - asset: assets/Roboto_Slab_800.ttf
-        - asset: assets/Roboto_Slab_900.ttf
+        - asset: assets/fonts/Roboto_Slab_100.ttf
+        - asset: assets/fonts/Roboto_Slab_200.ttf
+        - asset: assets/fonts/Roboto_Slab_300.ttf
+        - asset: assets/fonts/Roboto_Slab_400.ttf
+        - asset: assets/fonts/Roboto_Slab_500.ttf
+        - asset: assets/fonts/Roboto_Slab_600.ttf
+        - asset: assets/fonts/Roboto_Slab_700.ttf
+        - asset: assets/fonts/Roboto_Slab_800.ttf
+        - asset: assets/fonts/Roboto_Slab_900.ttf
     - family: Source Sans 3
       fonts:
-        - asset: assets/Source_Sans_3_200.ttf
-        - asset: assets/Source_Sans_3_300.ttf
-        - asset: assets/Source_Sans_3_400.ttf
-        - asset: assets/Source_Sans_3_600.ttf
-        - asset: assets/Source_Sans_3_700.ttf
-        - asset: assets/Source_Sans_3_900.ttf
+        - asset: assets/fonts/Source_Sans_3_200.ttf
+        - asset: assets/fonts/Source_Sans_3_300.ttf
+        - asset: assets/fonts/Source_Sans_3_400.ttf
+        - asset: assets/fonts/Source_Sans_3_600.ttf
+        - asset: assets/fonts/Source_Sans_3_700.ttf
+        - asset: assets/fonts/Source_Sans_3_900.ttf
     - family: Ubuntu
       fonts:
-        - asset: assets/Ubuntu_300.ttf
-        - asset: assets/Ubuntu_400.ttf
-        - asset: assets/Ubuntu_500.ttf
-        - asset: assets/Ubuntu_700.ttf
+        - asset: assets/fonts/Ubuntu_300.ttf
+        - asset: assets/fonts/Ubuntu_400.ttf
+        - asset: assets/fonts/Ubuntu_500.ttf
+        - asset: assets/fonts/Ubuntu_700.ttf

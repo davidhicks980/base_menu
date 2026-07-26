@@ -7,6 +7,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../checkbox_menu_item/checkbox_menu_item_app.dart';
 import '../floogle_docs/floogle_docs.dart';
 import '../floogle_docs/src/theme/colors.dart';
+import '../looking_glass/looking_glass_app.dart';
 import '../menu/menu_app.dart';
 import '../menubar/menubar_app.dart';
 import '../positioning/positioning_app.dart';
@@ -75,6 +76,14 @@ enum AppDestination {
     '/sequoia',
     icon: Icon(Symbols.temp_preferences_eco),
     selectedIcon: Icon(Symbols.temp_preferences_eco, fill: 1),
+    brightness: .dark,
+    section: AppSection.examples,
+  ),
+  lookingGlass(
+    'Looking Glass',
+    '/lookingglass',
+    icon: Icon(Symbols.water_drop),
+    selectedIcon: Icon(Symbols.water_drop, fill: 1),
     brightness: .dark,
     section: AppSection.examples,
   );
@@ -164,6 +173,7 @@ class _AppState extends State<App> {
                 ),
                 AppDestination.positioning => const PositioningApp(),
                 AppDestination.sequoia => const SequoiaApp(),
+                AppDestination.lookingGlass => const LookingGlassApp(),
                 AppDestination.menuItem => const CheckboxMenuItemApp(),
               },
             ),
@@ -260,6 +270,7 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final isDark = AppColorScheme.of(context).brightness == Brightness.dark;
     final child = FocusTraversalOrder(
       order: const NumericFocusOrder(2),
       child: Focus(
@@ -273,6 +284,7 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
         color: AppColorScheme.of(context).surfaceContainerLow,
         child: SafeArea(
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
               AnimatedPositioned(
                 left: showNavigationDrawer ? 0 : -198,
@@ -351,7 +363,9 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
                           ),
                         ),
                         Separator.vertical(
-                          color: AppColorScheme.of(context).outlineVariant,
+                          color: isDark
+                              ? const Color(0xAB000000)
+                              : AppColorScheme.of(context).outlineVariant,
                           thickness: 2,
                         ),
                       ],

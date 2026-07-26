@@ -1,0 +1,349 @@
+// ignore_for_file: require_trailing_commas
+
+import 'dart:ui' as ui;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_shaders/flutter_shaders.dart';
+import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:liquid_glass_renderer/src/glass_shadow.dart';
+import 'package:liquid_glass_renderer/src/internal/optimized_clip.dart';
+import 'package:liquid_glass_renderer/src/shaders.dart';
+import 'package:meta/meta.dart';
+
+/// A widget that aims to provide a similar look to [LiquidGlass], but without
+/// the expensive shader.
+class FakeGlass extends StatelessWidget {
+  /// Creates a new [FakeGlass] widget with the given [child], [shape], and
+  /// [settings].
+  const FakeGlass({
+    required this.shape,
+    required this.child,
+    LiquidGlassSettings this.settings = const LiquidGlassSettings(),
+    this.shadows = const [],
+    super.key,
+  });
+
+  /// Creates a new [FakeGlass] widget that takes settings from the nearest
+  /// ancestor [LiquidGlassLayer].
+  const FakeGlass.inLayer({
+    required this.shape,
+    required this.child,
+    this.shadows = const [],
+    super.key,
+  }) : settings = null;
+
+  /// {@macro liquid_glass_renderer.LiquidGlass.shape}
+  final LiquidShape shape;
+
+  /// The settings for the glass effect.
+  ///
+  /// Some properties will not have any effect, such as `thickness` and
+  /// `refractiveIndex`, since there is no actual refraction happening.
+  final LiquidGlassSettings? settings;
+
+  /// The list of shadows to paint around the glass shape.
+  ///
+  /// Only outer-equivalent shadows are supported; [BoxShadow.blurStyle] is
+  /// ignored. When any shadow has a non-zero [BoxShadow.offset], the glass
+  /// shape is cut out of the composed shadow stack so the shadow does not
+  /// bleed through the translucent glass body.
+  final List<BoxShadow> shadows;
+
+  /// The child widget that will be displayed inside the glass.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = this.settings ?? LiquidGlassSettings.of(context);
+
+    // If we are in a layer, we accept that layer's backdrop key.
+    final backdropKey = this.settings == null
+        ? BackdropGroup.of(context)?.backdropKey
+        : null;
+    return GlassShadow(
+      shape: shape,
+      shadows: shadows,
+      settings: settings,
+      child: OptimizedClip(
+        shape: shape,
+        child: ShaderBuilder(
+          assetKey: ShaderKeys.fakeGlassColor,
+          (context, shader, child) => RawFakeGlass(
+            shape: shape,
+            settings: settings,
+            backdropKey: backdropKey,
+            colorShader: shader,
+            child: Opacity(
+              opacity: settings.visibility.clamp(0, 1),
+              child: GlassGlowLayer(
+                child: this.child,
+              ),
+            ),
+          ),
+          child: Opacity(
+            opacity: settings.visibility.clamp(0, 1),
+            child: GlassGlowLayer(
+              child: child,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+@internal
+class RawFakeGlass extends SingleChildRenderObjectWidget {
+  const RawFakeGlass({
+    required this.shape,
+    required super.child,
+    required this.colorShader,
+    this.backdropKey,
+    this.settings = const LiquidGlassSettings(),
+    super.key,
+  });
+
+  final LiquidShape shape;
+
+  final LiquidGlassSettings settings;
+
+  final BackdropKey? backdropKey;
+
+  final ui.FragmentShader colorShader;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    return _RenderFakeGlass(
+      shape: shape,
+      settings: settings,
+      backdropKey: backdropKey,
+      colorShader: colorShader,
+    );
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant RenderObject renderObject,
+  ) {
+    if (renderObject is _RenderFakeGlass) {
+      renderObject
+        ..shape = shape
+        ..settings = settings
+        .._backdropKey = backdropKey
+        ..colorShader = colorShader;
+    }
+  }
+}
+
+class _RenderFakeGlass extends RenderProxyBox {
+  _RenderFakeGlass({
+    required this._shape,
+    required this._settings,
+    required this._backdropKey,
+    required this._colorShader,
+  });
+
+  LiquidShape _shape;
+  LiquidShape get shape => _shape;
+  set shape(LiquidShape value) {
+    if (_shape == value) return;
+    _shape = value;
+    markNeedsPaint();
+  }
+
+  LiquidGlassSettings _settings;
+  LiquidGlassSettings get settings => _settings;
+  set settings(LiquidGlassSettings value) {
+    if (_settings == value) return;
+    _settings = value;
+    markNeedsPaint();
+  }
+
+  BackdropKey? _backdropKey;
+  BackdropKey? get backdropKey => _backdropKey;
+  set backdropKey(BackdropKey? value) {
+    if (_backdropKey == value) return;
+    _backdropKey = value;
+    markNeedsPaint();
+  }
+
+  ui.FragmentShader _colorShader;
+  ui.FragmentShader get colorShader => _colorShader;
+  set colorShader(ui.FragmentShader value) {
+    if (_colorShader == value) return;
+    _colorShader = value;
+    markNeedsPaint();
+  }
+
+  final _saturationLayerHandle = LayerHandle<BackdropFilterLayer>();
+
+  @override
+  void dispose() {
+    _saturationLayerHandle.layer = null;
+    super.dispose();
+  }
+
+  bool get _hasBlur => settings.effectiveBlur != 0;
+
+  bool get _hasSaturationChange => settings.effectiveSaturation != 1;
+
+  bool get _hasBackdropEffect => _hasBlur || _hasSaturationChange;
+
+  @override
+  bool get alwaysNeedsCompositing => _hasBackdropEffect;
+
+  @override
+  BackdropFilterLayer? get layer => super.layer as BackdropFilterLayer?;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (!_hasBackdropEffect) {
+      // No blur or saturation change — skip the BackdropFilterLayer entirely
+      // and just paint the specular highlights and child directly.
+      this.layer = null;
+      _saturationLayerHandle.layer = null;
+      final path = shape.getOuterPath(offset & size);
+      _paintColor(context.canvas, path);
+      super.paint(context, offset);
+      return;
+    }
+
+    if (!_hasBlur) {
+      // No blur, but saturation needs changing — skip the blur
+      // BackdropFilterLayer (a zero-blur BackdropFilterLayer with srcATop can
+      // produce empty output on Impeller) and only apply saturation.
+      this.layer = null;
+      final saturationFilter = _getBackdropFilter(settings);
+      _paintContent(
+        context,
+        offset,
+        saturationFilter: saturationFilter,
+      );
+      return;
+    }
+
+    final blurFilter = ui.ImageFilter.blur(
+      sigmaX: settings.effectiveBlur,
+      sigmaY: settings.effectiveBlur,
+      tileMode: TileMode.mirror,
+    );
+
+    final saturationFilter = _getBackdropFilter(settings);
+
+    final layer = (this.layer ??= BackdropFilterLayer())
+      ..filter = blurFilter
+      ..blendMode = BlendMode.srcATop
+      ..backdropKey = backdropKey;
+
+    context.pushLayer(
+      layer,
+      (context, offset) {
+        // If we are on Skia, we need to avoid the raster cache.
+        if (!ui.ImageFilter.isShaderFilterSupported) {
+          context.setWillChangeHint();
+        }
+
+        _paintContent(
+          context,
+          offset,
+          saturationFilter: saturationFilter,
+        );
+      },
+      offset,
+    );
+  }
+
+  /// Paints the saturation layer (if needed), glass color, specular highlights,
+  /// and child.
+  void _paintContent(
+    PaintingContext context,
+    Offset offset, {
+    ui.ImageFilter? saturationFilter,
+  }) {
+    if (saturationFilter != null) {
+      final saturationLayer =
+          (_saturationLayerHandle.layer ??= BackdropFilterLayer())
+            ..filter = saturationFilter
+            ..blendMode = BlendMode.srcATop;
+      context.pushLayer(
+        saturationLayer,
+        _paintInnerContent,
+        offset,
+      );
+    } else {
+      _saturationLayerHandle.layer = null;
+      _paintInnerContent(context, offset);
+    }
+  }
+
+  /// Paints the glass color (when the shader isn't handling it), specular
+  /// highlights, and child.
+  void _paintInnerContent(PaintingContext context, Offset offset) {
+    final path = shape.getOuterPath(offset & size);
+    if (!ui.ImageFilter.isShaderFilterSupported) {
+      // The shader handles color when it's active, so only paint color
+      // manually when there's no shader (Skia) or no saturation change.
+      _paintColor(context.canvas, path);
+    }
+    super.paint(context, offset);
+  }
+
+  ui.ImageFilter? _getBackdropFilter(LiquidGlassSettings settings) {
+    if (settings.effectiveSaturation == 1) {
+      return null; // No saturation change, so no filter needed.
+    }
+    if (ui.ImageFilter.isShaderFilterSupported) {
+      // We will use our shader to apply saturation and color at once
+      final glassColor = settings.effectiveGlassColor;
+
+      _colorShader.setFloatUniforms((value) {
+        // uSize (vec2)
+        value
+          ..setSize(size)
+          ..setColor(glassColor)
+          ..setFloat(settings.effectiveSaturation);
+      });
+      return ui.ImageFilter.shader(_colorShader);
+    }
+    // Skia fallback: use a color matrix for saturation only.
+    return ui.ColorFilter.matrix(
+      _createSaturationMatrix(settings.effectiveSaturation),
+    );
+  }
+
+  /// Creates a saturation adjustment matrix
+  /// saturation = 0 -> grayscale (using Rec. 709 luma coefficients)
+  /// saturation = 1 -> original color (no change)
+  /// saturation > 1 -> over-saturated
+  List<double> _createSaturationMatrix(double saturation) {
+    // Rec. 709 luma coefficients for RGB to grayscale conversion
+    const lumR = 0.299;
+    const lumG = 0.587;
+    const lumB = 0.114;
+
+    // Saturation matrix that interpolates between grayscale and original color
+    // Based on: result = luminance + (color - luminance) * saturation
+    final s = saturation;
+    final invSat = 1.0 - s;
+
+    return [
+      lumR * invSat + s, lumG * invSat, lumB * invSat, 0, 0, // R
+      lumR * invSat, lumG * invSat + s, lumB * invSat, 0, 0, // G
+      lumR * invSat, lumG * invSat, lumB * invSat + s, 0, 0, // B
+      0, 0, 0, 1, 0, // A
+    ];
+  }
+
+  void _paintColor(Canvas canvas, Path path) {
+    final color = settings.effectiveGlassColor;
+
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    // We can actually fill the canvas, since we are clipping.
+    canvas.drawPaint(paint);
+  }
+}

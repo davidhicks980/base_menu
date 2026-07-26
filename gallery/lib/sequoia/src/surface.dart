@@ -4,11 +4,9 @@ import 'package:flutter/material.dart';
 class SequoiaMenuSurface extends StatelessWidget {
   const SequoiaMenuSurface({
     super.key,
-    required this.child,
     this.borderRadius = const BorderRadius.all(Radius.circular(6.0)),
   });
 
-  final Widget child;
   final BorderRadius borderRadius;
 
   // The [ColorFilter] matrix used to saturate widgets underlying a
@@ -85,7 +83,6 @@ class SequoiaMenuSurface extends StatelessWidget {
                 outerColor: Colors.black,
                 color: borderColor,
               ),
-              child: child,
             ),
           ),
         ),

@@ -22,44 +22,16 @@ class _CupertinoMenuBarAppState extends State<CupertinoMenuBarApp> {
       enable: true,
       child: Stack(
         children: [
-          const Positioned(
-            left: 0,
-            width: 100,
-            top: 100,
-            bottom: 100,
-            child: ColoredBox(color: Color(0x45000000)),
-          ),
-          const Positioned(
-            left: 0,
-            right: 0,
-            height: 100,
-            bottom: 0,
-            child: ColoredBox(color: Color(0x45000000)),
-          ),
-          const Positioned(
-            right: 0,
-            width: 100,
-            top: 100,
-            bottom: 100,
-            child: ColoredBox(color: Color(0x45000000)),
-          ),
-          const Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            height: 100,
-            child: ColoredBox(color: Color(0x45000000)),
-          ),
           Align(
             alignment: .topLeft,
             child: CupertinoMenuBar(items: sequoiaMenu, onOpen: contextMenuController.close),
           ),
 
           Positioned(
-            top: 100,
-            bottom: 100,
-            right: 100,
-            left: 100,
+            top: 30,
+            bottom: 0,
+            right: 0,
+            left: 0,
             child: ContextMenuBlockerRegion(
               child: CupertinoContextMenu(
                 controller: contextMenuController,

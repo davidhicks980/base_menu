@@ -68,11 +68,7 @@ class _SelectState extends State<Select> {
                 horizontal: EdgeBehaviorStrategy(shift: true, flip: true, constrain: false),
               ),
             ),
-      onFocusChange: (value) {
-        if (!value && widget.menuController.isOpen) {
-          widget.menuController.close();
-        }
-      },
+
       requestFocusOnHover: false,
       requestOpenOnPointerEnter: false,
       requestCloseOnPointerExit: false,

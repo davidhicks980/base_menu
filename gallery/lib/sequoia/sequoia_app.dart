@@ -38,7 +38,6 @@ class SequoiaApp extends StatelessWidget {
               showIcon: false,
               expandedColor: Color.fromARGB(24, 255, 255, 255),
               secondaryTextStyle: TextStyle(fontSize: 13),
-
               child: CupertinoMenuBarApp(),
             ),
           ),

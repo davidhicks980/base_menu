@@ -47,23 +47,28 @@ class _CupertinoMenuBarState extends State<CupertinoMenuBar> {
               child: BaseMenuBar(
                 controller: controller,
                 focusScopeNode: focusScopeNode,
-                child: BaseMenuPanel(
-                  onPointerExit: (event) {
-                    if (focusScopeNode.hasFocus) {
-                      focusScopeNode.requestScopeFocus();
-                    }
-                  },
-                  orientation: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  children: [
-                    for (final child in widget.items)
-                      CupertinoSubmenu.buildItem(
-                        child,
-                        true,
-                        onOpen: widget.onOpen,
-                        groupId: controller,
-                      ),
-                  ],
+                child: UnconstrainedBox(
+                  alignment: Alignment.topLeft,
+                  clipBehavior: .hardEdge,
+                  child: BaseMenuPanel(
+                    scrollable: false,
+                    onPointerExit: (event) {
+                      if (focusScopeNode.hasFocus) {
+                        focusScopeNode.requestScopeFocus();
+                      }
+                    },
+                    orientation: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    children: [
+                      for (final child in widget.items)
+                        CupertinoSubmenu.buildItem(
+                          child,
+                          true,
+                          onOpen: widget.onOpen,
+                          groupId: controller,
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -261,6 +266,7 @@ class _CupertinoSubmenuState extends State<CupertinoSubmenu> {
           child: widget.isTopLevel
               ? switch (widget.item.label) {
                   'System' => CupertinoMenuBarActionLabel(
+                    screenRadius: const Radius.circular(12),
                     padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 5.0),
                     child: _CupertinoTreeIcon(
                       color: const Color(0xFFFFFFFF),

@@ -287,7 +287,7 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
             clipBehavior: Clip.none,
             children: [
               AnimatedPositioned(
-                left: showNavigationDrawer ? 0 : -198,
+                left: showNavigationDrawer ? 0 : -194,
                 width: 250,
                 top: 0,
                 bottom: 0,
@@ -376,7 +376,7 @@ class _AppScaffoldState extends State<AppScaffold> with SingleTickerProviderStat
               Builder(
                 builder: (context) {
                   final size = MediaQuery.sizeOf(context);
-                  final offset = showNavigationDrawer ? 250.0 : 52.0;
+                  final offset = showNavigationDrawer ? 250.0 : 56.0;
                   return AnimatedPositioned(
                     duration: const Duration(milliseconds: 800),
                     left: offset,

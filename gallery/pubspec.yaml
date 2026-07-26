@@ -26,10 +26,6 @@ dev_dependencies:
 flutter:
   uses-material-design: false
   assets:
-    - assets/images/centered_snow_mountain_cropped.jpeg
-    - assets/images/dusk_snow_mountain_cropped.jpeg
-    - assets/images/looking_glass_autumn_cropped.jpeg
-    - assets/images/looking_glass_spring_cropped.jpeg
     - assets/images/mountains.jpeg
   fonts:
     - family: InterVariable

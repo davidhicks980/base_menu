@@ -49,6 +49,12 @@ class _SelectState extends State<Select> {
     }
   }
 
+  void _handleOverlayFocusChange(bool value) {
+    if (!value && !widget.focusNode.hasFocus && widget.menuController.isOpen) {
+      widget.menuController.close();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BaseSubmenu(
@@ -69,6 +75,7 @@ class _SelectState extends State<Select> {
               ),
             ),
 
+      onFocusChange: _handleOverlayFocusChange,
       requestFocusOnHover: false,
       requestOpenOnPointerEnter: false,
       requestCloseOnPointerExit: false,

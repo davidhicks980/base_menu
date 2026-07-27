@@ -19,7 +19,9 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    - documentation/**
     - doc/**
+
 formatter:
   page_width: 100
 
@@ -256,3 +258,6 @@ linter:
     - valid_regexps
     - void_checks
     - no_runtimeType_toString # use objectRuntimeType from package:foundation
+    - require_trailing_commas
+    - unawaited_futures
+    - discarded_futures

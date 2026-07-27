@@ -46,12 +46,48 @@ class Popup extends StatefulWidget {
 
 class _PopupState extends State<Popup> {
   final controller = MenuController();
+  FocusNode? _internalFocusNode;
+  FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.focusNode == null) {
+      _internalFocusNode = FocusNode();
+    }
+  }
+
+  @override
+  void didUpdateWidget(Popup oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.focusNode != widget.focusNode) {
+      if (widget.focusNode == null) {
+        _internalFocusNode = FocusNode();
+      } else {
+        _internalFocusNode?.dispose();
+        _internalFocusNode = null;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _internalFocusNode?.dispose();
+    _internalFocusNode = null;
+    super.dispose();
+  }
+
+  void _handleOverlayFocusChange(bool value) {
+    if (!value && !_focusNode.hasFocus && controller.isOpen) {
+      controller.close();
+    }
+  }
 
   void _handleOpen() {
     ExclusiveMenuManager.of(context).setActive(controller);
     widget.onOpen?.call();
     MenuTooltipScope.of(context).hideTooltip(sync: true);
-    widget.focusNode?.requestFocus();
+    _focusNode.requestFocus();
   }
 
   void _handleClose() {
@@ -72,6 +108,7 @@ class _PopupState extends State<Popup> {
         offset: Offset(0, 8),
         padding: MenuPanel.defaultPadding,
       ),
+      onFocusChange: _handleOverlayFocusChange,
       onOpen: _handleOpen,
       onClose: _handleClose,
       onPressed: () {
@@ -82,7 +119,7 @@ class _PopupState extends State<Popup> {
         }
       },
 
-      focusNode: widget.focusNode,
+      focusNode: _focusNode,
       child: Builder(
         builder: (context) {
           return ToolbarIconLabel(

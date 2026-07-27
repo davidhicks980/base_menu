@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:base_menu/base_menu.dart';
-import 'package:flutter/material.dart' show ColorScheme;
+import 'package:flutter/material.dart' show ColorScheme, Material;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -19,6 +21,7 @@ import '../shared/separator.dart';
 import '../shared/theme.dart';
 import '../submenu/submenu_app.dart';
 import 'src/navigation_menu.dart';
+import 'src/settings/settings.dart';
 
 enum AppSection {
   api('INTERFACE'),
@@ -155,29 +158,31 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return ContextMenuBlocker(
-      child: BaseMenuApp(
-        title: 'Base Menu Library',
-        initialRoute: AppDestination.menu.route,
-        routes: {
-          for (final destination in AppDestination.values)
-            destination.route: (context) => _AppRouteWrapper(
-              destination: destination,
-              child: switch (destination) {
-                AppDestination.menu => const MenuApp(),
-                AppDestination.menuBar => const MenuBarApp(),
-                AppDestination.submenu => const SubmenuApp(),
-                AppDestination.floogleDocs => const Padding(
-                  padding: EdgeInsets.only(left: 4.0),
-                  child: FloogleDocsApp(),
-                ),
-                AppDestination.positioning => const PositioningApp(),
-                AppDestination.sequoia => const SequoiaApp(),
-                AppDestination.lookingGlass => const LookingGlassApp(),
-                AppDestination.menuItem => const CheckboxMenuItemApp(),
-              },
-            ),
-        },
+    return SettingsScope(
+      child: ContextMenuBlocker(
+        child: BaseMenuApp(
+          title: 'Base Menu Library',
+          initialRoute: AppDestination.menu.route,
+          routes: {
+            for (final destination in AppDestination.values)
+              destination.route: (context) => _AppRouteWrapper(
+                destination: destination,
+                child: switch (destination) {
+                  AppDestination.menu => const MenuApp(),
+                  AppDestination.menuBar => const MenuBarApp(),
+                  AppDestination.submenu => const SubmenuApp(),
+                  AppDestination.floogleDocs => const Padding(
+                    padding: EdgeInsets.only(left: 4.0),
+                    child: FloogleDocsApp(),
+                  ),
+                  AppDestination.positioning => const PositioningApp(),
+                  AppDestination.sequoia => const SequoiaApp(),
+                  AppDestination.lookingGlass => const LookingGlassApp(),
+                  AppDestination.menuItem => const CheckboxMenuItemApp(),
+                },
+              ),
+          },
+        ),
       ),
     );
   }
@@ -445,13 +450,13 @@ class _Sidenav extends StatelessWidget {
     return MediaQuery.withNoTextScaling(
       child: NavigationMenu<AppDestination>(
         onDestinationSelected: (AppDestination selected) {
-          Navigator.pushReplacementNamed(context, selected.route);
+          unawaited(Navigator.pushReplacementNamed(context, selected.route));
         },
         selected: AppDestination.fromRoute(ModalRoute.of(context)!.settings.name),
         label: 'Main',
         children: [
           NavigationMenuGroup(
-            header: _DrawerHeader(title: AppSection.api.label),
+            header: DrawerHeader(title: AppSection.api.label),
             groupLabel: AppSection.api.label,
             children: [
               for (final destination in AppDestination.values.where(
@@ -466,7 +471,7 @@ class _Sidenav extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 12.0),
             child: NavigationMenuGroup(
-              header: _DrawerHeader(title: AppSection.examples.label),
+              header: DrawerHeader(title: AppSection.examples.label),
               groupLabel: AppSection.examples.label,
               children: [
                 for (final destination in AppDestination.values.where(
@@ -479,6 +484,7 @@ class _Sidenav extends StatelessWidget {
               ],
             ),
           ),
+          const Material(child: Settings()),
         ],
       ),
     );
@@ -553,8 +559,8 @@ class MenuButton extends StatelessWidget {
   }
 }
 
-class _DrawerHeader extends StatelessWidget {
-  const _DrawerHeader({required this.title});
+class DrawerHeader extends StatelessWidget {
+  const DrawerHeader({super.key, required this.title});
   final String title;
 
   @override
@@ -578,25 +584,25 @@ class _DrawerHeader extends StatelessWidget {
   }
 }
 
+const WidgetStateProperty<TextStyle> sidebarTextStyle = WidgetStateProperty.fromMap({
+  WidgetState.selected: TextStyle(
+    fontWeight: FontWeight.w700,
+    fontSize: 14,
+    letterSpacing: -0.1,
+    fontFamily: 'InterVariable',
+    package: kPackage,
+  ),
+  WidgetState.any: TextStyle(
+    fontVariations: [FontVariation.weight(550)],
+    fontSize: 14,
+    fontFamily: 'InterVariable',
+    package: kPackage,
+  ),
+});
+
 class _DestinationLabel extends StatelessWidget {
   const _DestinationLabel({required this.destination});
   final AppDestination destination;
-
-  static const WidgetStateProperty<TextStyle> textStyle = WidgetStateProperty.fromMap({
-    WidgetState.selected: TextStyle(
-      fontWeight: FontWeight.w700,
-      fontSize: 14,
-      letterSpacing: -0.1,
-      fontFamily: 'InterVariable',
-      package: kPackage,
-    ),
-    WidgetState.any: TextStyle(
-      fontVariations: [FontVariation.weight(550)],
-      fontSize: 14,
-      fontFamily: 'InterVariable',
-      package: kPackage,
-    ),
-  });
 
   static const WidgetStateProperty<Color> lightBackgroundColor = WidgetStateProperty.fromMap({
     WidgetState.pressed: Color.fromARGB(20, 0, 0, 0),
@@ -658,7 +664,7 @@ class _DestinationLabel extends StatelessWidget {
               padding: const EdgeInsetsDirectional.only(start: 12),
               child: Text(
                 destination.label,
-                style: textStyle.resolve(states).copyWith(color: itemColor),
+                style: sidebarTextStyle.resolve(states).copyWith(color: itemColor),
               ),
             ),
           ],

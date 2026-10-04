@@ -9,5 +9,5 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   SemanticsBinding.instance.ensureSemantics();
-  floogle_docs.main();
+  await floogle_docs.main();
 }

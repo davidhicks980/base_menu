@@ -1,20 +1,10 @@
-name: base_menu_library
+name: base_menu
 description: "Composable primitives for building accessible menu systems."
-version: 0.1.5
+version: 0.2.0
 homepage: https://base-menu-library.web.app/
 repository: https://github.com/davidhicks980/base_menu/tree/main 
 issue_tracker: https://github.com/davidhicks980/base_menu/issues
-
-topics:
-  - menus
-  - ui
-workspace:
-  - packages/gallery
-  - packages/base_menu
-  - packages/base_menu/example
-  - deployments/base_menu
-  - deployments/floogle_docs
-  - packages/gallery/vendor/liquid_glass_renderer
+resolution: workspace
 
 environment:
   sdk: ^3.11.4
@@ -28,8 +18,3 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
-    
-
-false_secrets:
- - /deployments/base_menu/lib/firebase_options.dart
- - /deployments/floogle_docs/lib/firebase_options.dart

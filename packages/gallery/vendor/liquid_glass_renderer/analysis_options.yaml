@@ -1,0 +1,6 @@
+analyzer:
+  exclude:
+    - build/**
+    - lib/**
+    - example/**
+include: package:lintervention/analysis_options.yaml

@@ -1,0 +1,76 @@
+import 'package:base_menu/base_menu.dart';
+import 'package:flutter/material.dart';
+
+import '../shared/checkbox.dart';
+import '../shared/package.dart';
+import 'src/checkbox_menu_item.dart';
+
+export 'src/checkbox_menu_item.dart';
+
+class CheckboxMenuItemApp extends StatefulWidget {
+  const CheckboxMenuItemApp({super.key});
+
+  @override
+  State<CheckboxMenuItemApp> createState() => _CheckboxMenuItemAppState();
+}
+
+class _CheckboxMenuItemAppState extends State<CheckboxMenuItemApp> {
+  @override
+  Widget build(BuildContext context) {
+    return const DefaultTextStyle(
+      style: TextStyle(
+        fontFamily: 'InterVariable',
+        package: kPackage,
+        fontSize: 14,
+        color: Color(0xFF1A1A1A),
+        height: 1.5,
+        decoration: TextDecoration.none,
+        fontWeight: FontWeight.w500,
+      ),
+      child: Column(
+        children: [
+          Spacer(),
+          Text('Todo List', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          BaseMenuBar(
+            orientation: .vertical,
+            child: BaseMenuPanel(
+              constraints: BoxConstraints(minWidth: 100),
+              children: [
+                _CheckboxMenuItem(child: Text('Play with cat')),
+                _CheckboxMenuItem(child: Text('Pet cat')),
+                _CheckboxMenuItem(child: Text('Feed cat')),
+                _CheckboxMenuItem(child: Text('Get bit by cat')),
+              ],
+            ),
+          ),
+          Spacer(),
+        ],
+      ),
+    );
+  }
+}
+
+class _CheckboxMenuItem extends StatefulWidget {
+  const _CheckboxMenuItem({required this.child});
+  final Widget child;
+
+  @override
+  State<_CheckboxMenuItem> createState() => _CheckboxMenuItemState();
+}
+
+class _CheckboxMenuItemState extends State<_CheckboxMenuItem> {
+  bool isChecked = false;
+  @override
+  Widget build(BuildContext context) {
+    return WebCheckboxMenuItem(
+      checkbox: const WebCheckbox(),
+      isChecked: isChecked,
+      onChange: (value) {
+        setState(() {
+          isChecked = value;
+        });
+      },
+      child: widget.child,
+    );
+  }
+}

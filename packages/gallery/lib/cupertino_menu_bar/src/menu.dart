@@ -149,6 +149,10 @@ class _CupertinoSubmenuState extends State<CupertinoSubmenu> {
   }
 
   void _handleCloseRequest(VoidCallback hideOverlay) {
+    if (!controller.isOpen) {
+      return;
+    }
+
     scheduleMicrotask(() {
       if (!_dismissHandler.isAnimatingOut) {
         hideOverlay();

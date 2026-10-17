@@ -200,6 +200,75 @@ class BaseControl<T extends Object?> extends StatefulWidget implements BaseContr
     return context.dependOnInheritedWidgetOfExactType<_PressableScope<T>>()!.pressed;
   }
 
+  /// ## EXPERIMENTAL API
+  /// Subject to change or removal without notice.
+  ///
+  /// ---
+  ///
+  /// Returns the [TapDownDetails] of the active press gesture for the ancestor
+  /// [BaseControl] of type [T] nearest to the provided [context].
+  ///
+  /// {@template BaseControl.pressedDownDetailsOf}
+  /// Calling this method establishes a dependency that will cause the provided
+  /// [BuildContext] to rebuild whenever the ancestor [BaseControl] is pressed
+  /// or released.
+  ///
+  /// ## Non-Pointer Activation
+  ///
+  /// This method returns `null` if:
+  /// * The control is not currently pressed.
+  /// * The control is pressed with a keyboard action (such as
+  ///   [LogicalKeyboardKey.space]) or an accessibility intent rather than a
+  ///   pointer gesture, even if [isPressedOf] returns `true`.
+  ///
+  /// Callers implementing custom visual feedback (such as ink splashes or press
+  /// highlights) should handle `null` by falling back to a default origin, such
+  /// as the center of the widget:
+  ///
+  /// ```dart
+  /// final details = BaseControl.pressedDownDetailsOf(context);
+  /// final renderBox = context.findRenderObject() as RenderBox?;
+  /// final origin = details != null
+  ///     ? renderBox?.globalToLocal(details.globalPosition)
+  ///     : renderBox?.size.center(Offset.zero);
+  /// ```
+  ///
+  /// ## Coordinate Spaces
+  ///
+  /// Note that [TapDownDetails.localPosition] is measured relative to the
+  /// [BaseControl]'s root render object, **not** necessarily the descendant
+  /// widget calling this method.
+  ///
+  /// If the calling widget is offset inside [child] (e.g., via padding, margin,
+  /// alignment, transforms, or scrolling), using `details.localPosition`
+  /// directly will yield misaligned coordinates. Instead, convert
+  /// [TapDownDetails.globalPosition] to the calling widget's local coordinates
+  /// using its [RenderBox.globalToLocal]:
+  ///
+  /// ```dart
+  /// final details = BaseControl.pressedDownDetailsOf(context);
+  /// if (details != null) {
+  ///   final renderBox = context.findRenderObject() as RenderBox?;
+  ///   final localOffset = renderBox?.globalToLocal(details.globalPosition);
+  /// }
+  /// ```
+  /// {@endtemplate}
+  @optionalTypeArgs
+  static TapDownDetails? pressedDownDetailsOf<T extends Object?>(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<_PressableScope<T>>();
+    assert(() {
+      if (scope == null) {
+        throw FlutterError(
+          'BaseControl.pressedDownDetailsOf() called with a context that does not contain '
+          'a BaseControl<$T>.\n'
+          'The context used was: $context',
+        );
+      }
+      return true;
+    }());
+    return scope!.details;
+  }
+
   /// Returns whether the ancestor [BaseControl] of type [T] nearest to the provided
   /// [context] has input focus.
   ///
@@ -301,6 +370,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
 
   bool isHovered = false;
   bool _isPressed = false;
+  TapDownDetails? _tapDownDetails;
   _ActivationSource? _activationSource;
 
   void _handleTapDown(TapDownDetails details) {
@@ -310,6 +380,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
 
     setState(() {
       _activationSource = .pointer;
+      _tapDownDetails = details;
       _isPressed = true;
     });
   }
@@ -321,6 +392,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
 
     setState(() {
       _activationSource = null;
+      _tapDownDetails = null;
       _isPressed = false;
     });
 
@@ -336,6 +408,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
     if (!_isPressed) {
       setState(() {
         _isPressed = true;
+        _tapDownDetails = null;
       });
     }
   }
@@ -349,6 +422,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
     if (_isPressed) {
       setState(() {
         _isPressed = false;
+        _tapDownDetails = null;
       });
     }
 
@@ -367,6 +441,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
     if (_isPressed) {
       setState(() {
         _isPressed = false;
+        _tapDownDetails = null;
       });
     }
   }
@@ -377,6 +452,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
     if (!widget.enabled && _isPressed) {
       _isPressed = false;
       _activationSource = null;
+      _tapDownDetails = null;
     }
   }
 
@@ -469,6 +545,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
                 gestures: widget.enabled ? _gestures! : const <Type, GestureRecognizerFactory>{},
                 child: _PressableScope<T>(
                   pressed: _isPressed,
+                  details: _tapDownDetails,
                   child: StatefulBuilder(builder: _buildHoverable),
                 ),
               ),
@@ -487,13 +564,14 @@ class _ActivateDownIntent extends Intent {
 }
 
 class _PressableScope<T extends Object?> extends InheritedWidget {
-  const _PressableScope({required this.pressed, required super.child});
+  const _PressableScope({required this.pressed, required this.details, required super.child});
 
   final bool pressed;
+  final TapDownDetails? details;
 
   @override
   bool updateShouldNotify(_PressableScope<T> oldWidget) {
-    return pressed != oldWidget.pressed;
+    return pressed != oldWidget.pressed || details != oldWidget.details;
   }
 }
 

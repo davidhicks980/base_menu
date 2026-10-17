@@ -428,6 +428,31 @@ void main() {
     expect(BaseControl.statesOf<void>(element()), isNot(contains(WidgetState.pressed)));
   });
 
+  testWidgets('pressedDownDetailsOf returns pointer details while pressed', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(App(BaseControl<void>(onPressed: () {}, child: Text(Tag.a.text))));
+
+    Element element() => tester.element(find.text(Tag.a.text));
+
+    expect(BaseControl.pressedDownDetailsOf<void>(element()), isNull);
+
+    final Offset position = tester.getCenter(find.text(Tag.a.text));
+    final TestGesture gesture = await tester.startGesture(position);
+    addTearDown(gesture.removePointer);
+    await tester.pump();
+
+    expect(BaseControl.isPressedOf<void>(element()), isTrue);
+    final TapDownDetails? details = BaseControl.pressedDownDetailsOf<void>(element());
+    expect(details, isNotNull);
+    expect(details!.globalPosition, position);
+
+    await gesture.up();
+    await tester.pump();
+
+    expect(BaseControl.pressedDownDetailsOf<void>(element()), isNull);
+  });
+
   testWidgets('isPressedOf is toggled by Space', (WidgetTester tester) async {
     var pressedCount = 0;
 
@@ -452,6 +477,27 @@ void main() {
     await tester.pump();
 
     expect(BaseControl.isPressedOf<void>(element()), isFalse);
+  });
+
+  testWidgets('pressedDownDetailsOf is null during keyboard activation', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      App(BaseControl<void>(onPressed: () {}, autofocus: true, child: Text(Tag.a.text))),
+    );
+
+    Element element() => tester.element(find.text(Tag.a.text));
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+
+    expect(BaseControl.isPressedOf<void>(element()), isTrue);
+    expect(BaseControl.pressedDownDetailsOf<void>(element()), isNull);
+
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+
+    expect(BaseControl.pressedDownDetailsOf<void>(element()), isNull);
   });
 
   testWidgets('isPressedOf is cleared on tap cancel', (WidgetTester tester) async {

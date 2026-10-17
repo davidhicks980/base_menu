@@ -1,3 +1,7 @@
+# 0.2.1
+
+* Passed HitTestBehavior to RawGestureDetector in BaseControl.
+
 # 0.2.0
 
 * Fixed repository structure to follow Dart package conventions.

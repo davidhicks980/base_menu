@@ -1,6 +1,6 @@
 name: base_menu
 description: "Composable primitives for building accessible menu systems."
-version: 0.2.0
+version: 0.2.1
 homepage: https://base-menu-library.web.app/
 repository: https://github.com/davidhicks980/base_menu/tree/main 
 issue_tracker: https://github.com/davidhicks980/base_menu/issues

@@ -1,3 +1,8 @@
+# 0.2.2
+
+* Added experimental pressedDownDetailsOf() method to BaseControl to retrieve the
+  TapDownDetails of the active press gesture.
+
 # 0.2.1
 
 * Passed HitTestBehavior to RawGestureDetector in BaseControl.

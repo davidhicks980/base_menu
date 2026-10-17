@@ -314,7 +314,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
     });
   }
 
-  void _handleTapUp(TapUpDetails? details) {
+  void _handleTapUp(TapUpDetails details) {
     if (_activationSource == .keyboard) {
       return;
     }
@@ -465,7 +465,7 @@ class _BaseControlState<T extends Object?> extends State<BaseControl<T>> {
               child: RawGestureDetector(
                 excludeFromSemantics: !widget.gestureSemanticsEnabled,
                 semantics: widget.gestureSemantics,
-                behavior: .deferToChild,
+                behavior: widget.behavior,
                 gestures: widget.enabled ? _gestures! : const <Type, GestureRecognizerFactory>{},
                 child: _PressableScope<T>(
                   pressed: _isPressed,
